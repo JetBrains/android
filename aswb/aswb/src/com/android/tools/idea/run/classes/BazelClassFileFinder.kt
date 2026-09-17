@@ -26,17 +26,15 @@ import java.util.jar.JarFile
 import java.util.zip.ZipEntry
 import kotlin.streams.asSequence
 
-internal class BazelClassFileFinder(jars: Collection<Path>) : ClassFileFinder {
-  private val classToJarMultimap: Map<String, List<Jar>>
+class BazelClassFileFinder internal constructor(jars: Collection<Path>) : ClassFileFinder {
+  private val classToJarMultimap = jars.asSequence().map { Jar(it) }.flatMap { it.entries }.groupBy({ it.toString() }, { it.jar })
+  val jarCountForLoggingOnly = jars.size
 
-  init {
-    classToJarMultimap = jars.asSequence().map { Jar(it) }.flatMap { it.entries }.groupBy({ it.toString() }, { it.jar })
-  }
+  override fun findClassFile(fqcn: String): ClassContent {
+    val path = getPathFromFqcn(fqcn)
 
-  override fun findClassFile(c: String): ClassContent? {
-    var c = c
-    c = getPathFromFqcn(c)
-    return classToJarMultimap[c]?.get(0)?.getContent(c)
+    val jar = requireNotNull(classToJarMultimap[path]) { "$fqcn is expected to be in $classToJarMultimap" }
+    return jar[0].getContent(path)
   }
 
   private class Jar(jar: Path) {
@@ -62,14 +60,9 @@ internal class BazelClassFileFinder(jars: Collection<Path>) : ClassFileFinder {
       }
     }
 
-    fun getContent(c: String?): ClassContent? {
-      try {
-        JarFile(this.jar).use { jar ->
-          return ClassContent.Companion.fromJarEntryContent(this.jar, jar.getInputStream(jar.getEntry(c)).readAllBytes())
-        }
-      } catch (exception: IOException) {
-        Logger.getInstance(BazelClassFileFinder::class.java).warn(exception)
-        return null
+    fun getContent(path: String): ClassContent {
+      JarFile(this.jar).use { jar ->
+        return ClassContent.fromJarEntryContent(this.jar, jar.getInputStream(jar.getEntry(path)).readAllBytes())
       }
     }
   }

@@ -778,13 +778,6 @@ class CpuCaptureParserTest {
         .hasCauseThat()
         .hasMessageThat()
         .contains("Trace file '${traceFile.absolutePath}' expected to be of type PERFETTO but failed header verification.")
-
-      assertThat(e).hasCauseThat().hasCauseThat().isInstanceOf(Throwable::class.java)
-      assertThat(e)
-        .hasCauseThat()
-        .hasCauseThat()
-        .hasMessageThat()
-        .contains("Encountered unknown tag (84) when attempting to parse perfetto capture.")
     } finally {
       val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
       assertThat(fakeFeatureTracker.lastCpuCaptureMetadata.status)

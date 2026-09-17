@@ -17,10 +17,12 @@ package com.android.tools.idea.vitals
 
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.LoadingState
-import com.android.tools.idea.insights.ai.StubInsightsOnboardingProvider
+import com.android.tools.idea.insights.ai.AiInsight
+import com.android.tools.idea.insights.ai.AiInsightContributor
+import com.android.tools.idea.insights.ai.InsightSource
+import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolverImpl
-import com.android.tools.idea.insights.client.FakeAiInsightClient
-import com.android.tools.idea.insights.client.GeminiCrashInsightRequest
+import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.stacktrace.Caption
@@ -28,7 +30,10 @@ import com.android.tools.idea.insights.model.stacktrace.ExceptionStack
 import com.android.tools.idea.insights.model.stacktrace.Frame
 import com.android.tools.idea.insights.model.stacktrace.Stacktrace
 import com.android.tools.idea.insights.model.stacktrace.StacktraceGroup
+import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth
+import com.intellij.openapi.project.Project
+import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -43,30 +48,32 @@ class VitalsAiInsightToolkitTest {
 
   @Before
   fun setup() {
-    aiInsightToolkit =
-      VitalsAiInsightToolkit(
-        projectRule.project,
-        StubInsightsOnboardingProvider(),
-        CodeContextResolverImpl(projectRule.project),
-        FakeAiInsightClient,
-      )
+    val client =
+      object : AiInsightContributor {
+        override fun canContribute(): Boolean = true
+
+        override fun showOnboarding(project: Project) = Unit
+
+        override suspend fun fetchInsight(
+          connection: Connection,
+          event: Event,
+          project: Project,
+          codeContextResolver: CodeContextResolver,
+        ): AiInsight {
+          return AiInsight("insight for $connection and $event", event, insightSource = InsightSource.STUDIO_BOT)
+        }
+      }
+    ExtensionTestUtil.maskExtensions(AiInsightContributor.EP_NAME, listOf(client), projectRule.disposable)
+
+    aiInsightToolkit = VitalsAiInsightToolkit(projectRule.project, CodeContextResolverImpl(projectRule.project))
   }
 
   @Test
   fun `fetch insight populates proto fields correctly`() = runBlocking {
-    val insight = aiInsightToolkit.fetchInsight(TEST_CONNECTION_1, ISSUE1.id, null, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent)
+    val insight = aiInsightToolkit.fetchInsight(TEST_CONNECTION_1, ISSUE1.id, null, ISSUE1.issueDetails.fatality, ISSUE1.sampleEvent, true)
 
     val rawInsight = (insight as LoadingState.Ready).value.rawInsight
-    val expectedRequest =
-      GeminiCrashInsightRequest(
-        connection = TEST_CONNECTION_1,
-        issueId = ISSUE1.id,
-        variantId = null,
-        deviceName = "Google Pixel 4a",
-        apiLevel = "12",
-        event = ISSUE1.sampleEvent,
-      )
-    Truth.assertThat(rawInsight).isEqualTo(expectedRequest.toString())
+    Truth.assertThat(rawInsight).isEqualTo("insight for $TEST_CONNECTION_1 and ${ISSUE1.sampleEvent}")
   }
 
   @Test

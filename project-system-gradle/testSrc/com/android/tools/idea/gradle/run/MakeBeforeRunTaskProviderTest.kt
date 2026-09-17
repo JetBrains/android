@@ -95,7 +95,6 @@ class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
         alwaysDeployApkFromBundle = false,
         deployAsInstant = false,
         disabledDynamicFeatureModuleNames = emptySet(),
-        supportsPrivacySandbox = false,
       )
   }
 
@@ -363,34 +362,6 @@ class MakeBeforeRunTaskProviderTest : HeavyPlatformTestCase() {
         ProfilingMode.NOT_SET,
       )
     assertThat(argsWithoutProfilingMode).containsNoneOf("-Pandroid.profilingMode=profileable", "Pandroid.profilingMode=debuggable")
-  }
-
-  fun testSdkRuntimeDeviceSpecIncludedInCurrentAgp() {
-    setUpTestProject(":" to AndroidProjectBuilder())
-    whenever(myDevice.supportsSdkRuntime).thenReturn(true)
-    whenever(myDevice.version).thenReturn(AndroidVersion(34, "14"))
-    whenever(myDevice.appPreferredAbi).thenReturn(null)
-
-    val bundleRunConfig = myRunConfiguration.copy(alwaysDeployApkFromBundle = true)
-    val argsCurrentAgp =
-      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, bundleRunConfig, targetDeviceSpec(myDevice), deviceSpecs(myDevice))
-    assertExpectedJsonFile(
-      argsCurrentAgp,
-      "{\"sdk_version\":34,\"codename\":\"14\",\"sdk_runtime\":{\"supported\":true},\"supported_locales\":[\"es\",\"fr\"]}",
-    )
-  }
-
-  fun testSdkRuntimeDeviceSpecNotIncludedInAgp7_3() {
-    // DeviceSpec 'sdk_runtime' config only supported from AGP >= 7.4 .
-    setUpTestProject("7.3.0", ":" to AndroidProjectBuilder())
-    whenever(myDevice.supportsSdkRuntime).thenReturn(true)
-    whenever(myDevice.version).thenReturn(AndroidVersion(34, "14"))
-    whenever(myDevice.appPreferredAbi).thenReturn(null)
-
-    val bundleRunConfig = myRunConfiguration.copy(alwaysDeployApkFromBundle = true)
-    val argsAgp7_3 =
-      MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules, bundleRunConfig, targetDeviceSpec(myDevice), deviceSpecs(myDevice))
-    assertExpectedJsonFile(argsAgp7_3, "{\"sdk_version\":34,\"codename\":\"14\",\"supported_locales\":[\"es\",\"fr\"]}")
   }
 
   companion object {

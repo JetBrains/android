@@ -716,30 +716,27 @@ public class StudioInteractionService {
     long msBetweenRetries = 300;
     long startTime = System.currentTimeMillis();
     long elapsedTime = 0;
-    final AtomicBoolean clicked = new AtomicBoolean(false);
+
+    final AtomicBoolean foundComponent = new AtomicBoolean(false);
+    final AtomicBoolean invokedComponent = new AtomicBoolean(false);
+    Application app = ApplicationManager.getApplication();
 
     while (elapsedTime < timeoutMillis) {
-      ApplicationManager.getApplication().invokeAndWait(() -> {
+      app.invokeLater(() -> {
         try {
           XpathDataModelCreator creator = new XpathDataModelCreator(true);
           org.w3c.dom.Document doc = creator.create(null, false, null);
 
-          // System.out.println("Namrata print doc = "+doc.toString());
-
           XPathFactory xPathFactory = XPathFactory.newInstance();
-          NodeList result = (NodeList)xPathFactory.newXPath().compile(xpath).evaluate(doc, XPathConstants.NODESET);
+          NodeList result = (NodeList) xPathFactory.newXPath().compile(xpath).evaluate(doc, XPathConstants.NODESET);
 
           Component componentToClick = null;
           for (int i = 0; i < result.getLength(); i++) {
             if (result.item(i) instanceof Element element) {
               Object userObj = element.getUserData("component");
 
-              // System.out.println("Namrata print result.item(i) = "+result.item(i).toString());
-
-              // System.out.println("Namrata print userObj = "+userObj.toString());
-
               if (userObj instanceof Component) {
-                Component c = (Component)userObj;
+                Component c = (Component) userObj;
                 if (c.isShowing()) {
                   componentToClick = c;
                   break;
@@ -749,8 +746,79 @@ public class StudioInteractionService {
           }
 
           if (componentToClick != null && componentToClick.isEnabled()) {
-            if (tryClickStrategies(componentToClick)) {
-              clicked.set(true);
+            foundComponent.set(true);
+            Component finalComponent = componentToClick;
+
+            Runnable execComponent = () -> tryClickStrategies(finalComponent);
+            ((TransactionGuardImpl) TransactionGuard.getInstance()).performUserActivity(execComponent);
+          }
+        } catch (Throwable e) {
+          // Retry
+        }
+      }, ModalityState.any());
+
+      app.invokeAndWait(() -> {
+        if (foundComponent.get()) {
+          invokedComponent.set(true);
+        }
+      }, ModalityState.any());
+
+      if (invokedComponent.get()) {
+        break;
+      }
+
+      Thread.sleep(msBetweenRetries);
+      elapsedTime = System.currentTimeMillis() - startTime;
+    }
+
+    if (elapsedTime >= timeoutMillis) {
+      throw new TimeoutException("Timed out after " + elapsedTime + "ms trying to click component by xpath: " + xpath);
+    }
+  }
+
+  /**
+   * Searches for a component matching the provided XPath.
+   *
+   * @param xpath XPath to locate the component.
+   * @param isEnabled Check if element is enabled.
+   * @throws InterruptedException if retry loop is interrupted.
+   * @throws TimeoutException if component is not found or cannot be clicked within timeout period.
+   */
+  public void waitForComponentByXpath(String xpath, boolean isEnabled) throws InterruptedException, TimeoutException {
+    long timeoutMillis = 30000;
+    long msBetweenRetries = 300;
+    long startTime = System.currentTimeMillis();
+    long elapsedTime = 0;
+    final AtomicBoolean found = new AtomicBoolean(false);
+
+    while (elapsedTime < timeoutMillis) {
+      ApplicationManager.getApplication().invokeAndWait(() -> {
+        try {
+          XpathDataModelCreator creator = new XpathDataModelCreator(true);
+          org.w3c.dom.Document doc = creator.create(null, false, null);
+
+          XPathFactory xPathFactory = XPathFactory.newInstance();
+          NodeList result = (NodeList)xPathFactory.newXPath().compile(xpath).evaluate(doc, XPathConstants.NODESET);
+
+          for (int i = 0; i < result.getLength(); i++) {
+            if (result.item(i) instanceof Element element) {
+              Object userObj = element.getUserData("component");
+
+              if (userObj instanceof Component) {
+                Component c = (Component)userObj;
+
+                if(isEnabled) {
+                  if (c.isShowing()) {
+                    found.set(true);
+                    break;
+                  }
+                }  else {
+                  if (c != null) {
+                    found.set(true);
+                    break;
+                  }
+                }
+              }
             }
           }
         }
@@ -759,7 +827,7 @@ public class StudioInteractionService {
         }
       }, ModalityState.any());
 
-      if (clicked.get()) {
+      if (found.get()) {
         return;
       }
 
@@ -767,7 +835,7 @@ public class StudioInteractionService {
       elapsedTime = System.currentTimeMillis() - startTime;
     }
 
-    throw new TimeoutException("Timed out after " + elapsedTime + "ms trying to click component by xpath: " + xpath);
+    throw new TimeoutException("Timed out after " + elapsedTime + "ms waiting for component by xpath: " + xpath);
   }
 
   /**

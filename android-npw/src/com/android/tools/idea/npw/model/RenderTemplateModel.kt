@@ -20,7 +20,7 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.hasAnyKotlinModules
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
-import com.android.tools.idea.npw.project.DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
+import com.android.tools.idea.npw.project.getKotlinVersionOrDefault
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.observable.core.BoolProperty
@@ -224,7 +224,8 @@ private constructor(
       if (newTemplate.constraints.contains(TemplateConstraint.Compose)) {
         val kotlinVersion = moduleTemplateDataBuilder.projectTemplateDataBuilder.kotlinVersion
         if (kotlinVersion == null || !hasMinimumKotlinVersionForComposeKotlinGradlePlugin(kotlinVersion)) {
-          moduleTemplateDataBuilder.projectTemplateDataBuilder.kotlinVersion = DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
+          val agpVersion = moduleTemplateDataBuilder.projectTemplateDataBuilder.agpVersion
+          moduleTemplateDataBuilder.projectTemplateDataBuilder.kotlinVersion = agpVersion.getKotlinVersionOrDefault()
         }
       }
 
@@ -247,7 +248,7 @@ private constructor(
           minSdk = androidSdkInfo.valueOrNull?.minSdk?.majorVersion,
           targetSdk = androidSdkInfo.valueOrNull?.compileSdk?.majorVersion,
           bytecodeLevel = (moduleModelData as? NewAndroidModuleModel)?.bytecodeLevel?.valueOrNull,
-          useGradleKts = useGradleKts.get(),
+          dslLanguage = dslLanguage.get(),
           useAppCompat = false,
         )
 

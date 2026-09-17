@@ -45,6 +45,7 @@ jvm_library(
         "//platform/platform-util-io:ide-util-io",
         "//platform/projectModel-api:projectModel",
         "//platform/util",
+        "//android/adt-ui-compose",
     ],
 )
 
@@ -84,6 +85,7 @@ jvm_library(
         "//platform/platform-util-io:ide-util-io_test_lib",
         "//platform/projectModel-api:projectModel_test_lib",
         "//platform/util:util_test_lib",
+        "//android/adt-ui-compose:adt-ui-compose_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.whats-new-assistant` end

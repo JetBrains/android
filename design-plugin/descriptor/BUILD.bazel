@@ -1,14 +1,13 @@
-load("@community//platform/build-scripts/bazel-rules:dev_dist_plugin.bzl", "dev_dist_plugin")
-load("@jps_dynamic_deps_community//:targets.bzl", "MODULE_TARGETS")
+load("@jps_dynamic_deps_community//:targets.bzl", "dev_dist_plugin")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `dev intellij.android.design-plugin.descriptor` start
 dev_dist_plugin(
     content_modules = [
         # do not sort,
+        "intellij.libraries.layoutlib",
         "intellij.android.compose-designer",
         "intellij.android.designer",
-        "intellij.android.designer.customview",
         "intellij.android.designer.gradle",
         "intellij.android.glance-designer",
         "intellij.android.layoutlib",
@@ -17,19 +16,44 @@ dev_dist_plugin(
         "intellij.android.preview-designer",
         "intellij.android.visual-lint",
         "intellij.android.wear-designer",
-        "intellij.libraries.layoutlib",
     ],
-    libraries = [
-        "//android/compose-designer/lib:android-compose-designer-ui-animation-tooling-internal",
-        "@lib//:android-nav-editor-eclipse-layout-kernel",
-        "@lib//:jaxb-api",
-        "@lib//:libraries-layoutlib-layoutlib",
-        "@lib//:studio-platform",
-        "@lib//:studio-test-platform",
-        "@lib//:truth",
-    ],
+    descriptor = "resources/META-INF/plugin.xml",
+    descriptor_modules = ["intellij.libraries.layoutlib"],
+    descriptors = {
+        "//android/compose-designer:resources/META-INF/compose-designer.xml": "META-INF/compose-designer.xml",
+        "//android/designer/gradle:resources/META-INF/designer-gradle.xml": "META-INF/designer-gradle.xml",
+        "//android/designer:resources/META-INF/designer.xml": "META-INF/designer.xml",
+        "//android/glance-designer:resources/META-INF/glance-designer.xml": "META-INF/glance-designer.xml",
+        "//android/layoutlib:resources/META-INF/layoutlib.xml": "META-INF/layoutlib.xml",
+        "//android/nav/editor/gradle:resources/META-INF/naveditor-gradle.xml": "META-INF/naveditor-gradle.xml",
+        "//android/nav/editor:resources/META-INF/naveditor.xml": "META-INF/naveditor.xml",
+        "//android/preview-designer:resources/META-INF/preview-designer.xml": "META-INF/preview-designer.xml",
+        "//android/wear-designer:resources/META-INF/wear-designer.xml": "META-INF/wear-designer.xml",
+    },
+    directory_name = "design-tools",
+    jars = {
+        "lib/intellij.libraries.layoutlib.jar": [
+            "intellij.libraries.layoutlib",
+            "@lib//:libraries-layoutlib-layoutlib",
+        ],
+        "lib/design-tools.jar": [
+            "intellij.android.design-plugin.descriptor",
+            "intellij.android.compose-designer",
+            "intellij.android.designer",
+            "intellij.android.designer.gradle",
+            "intellij.android.glance-designer",
+            "intellij.android.layoutlib",
+            "intellij.android.nav.editor",
+            "intellij.android.nav.editor.gradle",
+            "intellij.android.preview-designer",
+            "intellij.android.wear-designer",
+            "intellij.android.visual-lint",
+        ],
+        "lib/ui-animation-tooling-internal.jar": ["//android/compose-designer/lib:android-compose-designer-ui-animation-tooling-internal"],
+        "lib/eclipse-layout-kernel.jar": ["@lib//:android-nav-editor-eclipse-layout-kernel"],
+    },
+    main_jar_name = "design-tools.jar",
     main_module = "intellij.android.design-plugin.descriptor",
-    module_targets = MODULE_TARGETS,
 )
 ### auto-generated section `dev intellij.android.design-plugin.descriptor` end
 

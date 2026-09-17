@@ -28,7 +28,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.core.AbstractDevicePanel
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
-import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.DisplayDescriptor
 import com.android.tools.idea.streaming.core.LayoutNode
 import com.android.tools.idea.streaming.core.LeafNode
@@ -37,6 +36,7 @@ import com.android.tools.idea.streaming.core.PanelState
 import com.android.tools.idea.streaming.core.RUNNING_DEVICES_NOTIFICATION_GROUP
 import com.android.tools.idea.streaming.core.SplitNode
 import com.android.tools.idea.streaming.core.SplitPanel
+import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.android.tools.idea.streaming.core.computeBestLayout
 import com.android.tools.idea.streaming.core.htmlColored
 import com.android.tools.idea.streaming.core.icon
@@ -77,12 +77,12 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import org.jetbrains.annotations.TestOnly
 
-private val LOG
-  get() = Logger.getInstance(EmulatorToolWindowPanel::class.java)
-
 /** Provides view of one AVD in the Running Devices tool window. */
 internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val project: Project, val emulator: EmulatorController) :
-  AbstractDevicePanel<EmulatorDisplayPanel>(DeviceId.ofEmulator(emulator.emulatorId), EMULATOR_MAIN_TOOLBAR_ID), ConnectionStateListener {
+  AbstractDevicePanel<EmulatorDisplayPanel>(StreamingDeviceId.ofEmulator(emulator.emulatorId), EMULATOR_MAIN_TOOLBAR_ID),
+  ConnectionStateListener {
+
+  val log = Logger.getInstance("EmulatorToolWindowPanel: ${emulator.emulatorId.avdName}")
 
   private val displayConfigurator = DisplayConfigurator(project)
   private var contentDisposable: Disposable? = null
@@ -165,7 +165,7 @@ internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val
   /** Populates the emulator panel with content. */
   override fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState?) {
     if (contentDisposable != null) {
-      LOG.error(IllegalStateException("$title: content already exists"))
+      log.error(IllegalStateException("$title: content already exists"))
       return
     }
 
@@ -196,7 +196,7 @@ internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val
       try {
         displayConfigurator.buildLayout(multiDisplayState)
       } catch (e: RuntimeException) {
-        LOG.error("Corrupted multi-display state", e)
+        log.error("Corrupted multi-display state", e)
         // Corrupted multi-display state. Start with a single display.
         centerPanel.addToCenter(primaryDisplayPanel)
       }
@@ -297,15 +297,21 @@ internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val
     }
   }
 
+  override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
+    val wasZeroSize = this.width == 0 || this.height == 0
+    super.setBounds(x, y, width, height)
+    if (wasZeroSize && width > 0 && height > 0 && connected) {
+      displayConfigurator.refreshDisplayConfiguration()
+    }
+  }
+
   private inner class DisplayConfigurator(private val project: Project) : DisplayConfigurationListener {
 
     var displayDescriptors = emptyList<DisplayDescriptor>()
 
     @AnyThread
-    override fun displayConfigurationChanged(displayConfigs: List<DisplayConfiguration>?) {
-      if (displayConfigs == null) {
-        refreshDisplayConfiguration()
-      } else {
+    override fun displayConfigurationChanged(displayConfigs: List<DisplayConfiguration>) {
+      EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
         displayConfigurationReceived(displayConfigs)
       }
     }
@@ -316,9 +322,9 @@ internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val
         object : EmptyStreamObserver<DisplayConfigurations>() {
           override fun onNext(message: DisplayConfigurations) {
             if (StudioFlags.EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
-              LOG.info("Display configurations: " + shortDebugString(message))
+              log.info("Display configurations: " + shortDebugString(message))
             } else {
-              LOG.debug("Display configurations: " + shortDebugString(message))
+              log.debug("Display configurations: " + shortDebugString(message))
             }
             EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
               displayConfigurationReceived(message.displaysList)
@@ -330,17 +336,20 @@ internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val
 
     private fun displayConfigurationReceived(displayConfigs: List<DisplayConfiguration>) {
       val primaryDisplayView = primaryDisplayView ?: return
-      val newDisplays = getDisplayDescriptors(primaryDisplayView, displayConfigs)
-      if (newDisplays.size == 1 && displayDescriptors.size <= 1 || newDisplays == displayDescriptors) {
-        return
-      }
+      val availableSpace = centerPanel.sizeWithoutInsets
+      if (availableSpace.width > 0 && availableSpace.height > 0) {
+        val newDisplays = getDisplayDescriptors(primaryDisplayView, displayConfigs)
+        if (newDisplays.size == 1 && displayDescriptors.size <= 1 || newDisplays == displayDescriptors) {
+          return
+        }
 
-      removeDisplayPanels { displayPanel -> !newDisplays.any { it.displayId == displayPanel.displayId } }
-      val layoutRoot = computeBestLayout(centerPanel.sizeWithoutInsets, newDisplays.map { it.size })
-      val rootPanel = buildLayout(layoutRoot, newDisplays)
-      displayDescriptors = newDisplays
-      setRootPanel(rootPanel)
-      ActivityTracker.getInstance().inc()
+        removeDisplayPanels { displayPanel -> !newDisplays.any { it.displayId == displayPanel.displayId } }
+        val layoutRoot = computeBestLayout(availableSpace, newDisplays.map { it.size })
+        val rootPanel = buildLayout(layoutRoot, newDisplays)
+        displayDescriptors = newDisplays
+        setRootPanel(rootPanel)
+        ActivityTracker.getInstance().inc()
+      }
     }
 
     fun buildLayout(multiDisplayState: MultiDisplayState) {

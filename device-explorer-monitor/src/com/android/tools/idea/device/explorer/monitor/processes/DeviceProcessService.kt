@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.device.explorer.monitor.processes
 
+import com.android.adblib.AdbPackageManagerException
+import com.android.adblib.ConnectedDevice
+import com.android.adblib.activityManager
+import com.android.adblib.ddmlibcompatibility.debugging.associatedIDevice
+import com.android.adblib.packageManager
+import com.android.adblib.serialNumber
+import com.android.adblib.tools.debugging.jdwpProcessTracker
+import com.android.adblib.tools.debugging.sendVmExit
 import com.android.annotations.concurrency.UiThread
-import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.Client
-import com.android.ddmlib.CollectingOutputReceiver
-import com.android.ddmlib.IDevice
-import com.android.ddmlib.InstallException
 import com.android.tools.idea.backup.BackupManager
-import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDevice
 import com.android.tools.idea.execution.common.debug.AndroidDebugger
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.android.tools.idea.execution.common.debug.RunConfigurationWithDebugger
@@ -39,11 +42,11 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.concurrency.AppExecutorUtil
-import com.intellij.util.concurrency.ThreadingAssertions
-import java.nio.file.Path
+import java.io.IOException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.intellij.util.concurrency.ThreadingAssertions
 
 @UiThread
 @Service(Service.Level.PROJECT)
@@ -65,65 +68,32 @@ constructor(
   private val workerThreadDispatcher = Dispatchers.Default
   private val uiThreadDispatcher = Dispatchers.EDT
 
-  suspend fun fetchProcessList(device: AdbDevice): List<ProcessInfo> {
-    // Run this in a worker thread in case the device/adb is not responsive
-    val clients = device.device.clients ?: emptyArray()
-    return withContext(workerThreadDispatcher) { clients.asSequence().mapNotNull { client -> createProcessInfo(device, client) }.toList() }
-  }
-
-  @WorkerThread
-  private fun createProcessInfo(device: Device, client: Client): ProcessInfo? {
-    try {
-      val processName = client.clientData.clientDescription
-      return if (processName == null) {
-        thisLogger()
-          .debug(
-            "Process ${client.clientData.pid} was skipped because the process name is not initialized. Is another instance of Studio running?"
-          )
-        ProcessInfo(device, pid = client.clientData.pid)
-      } else {
-        val userId = if (client.clientData.userId == -1) null else client.clientData.userId
-        ProcessInfo(
-          device,
-          pid = client.clientData.pid,
-          packageName = client.clientData.packageName,
-          processName = processName,
-          userId = userId,
-          vmIdentifier = client.clientData.vmIdentifier,
-          abi = client.clientData.abi,
-          debuggerStatus = client.clientData.debuggerConnectionStatus,
-          killAction = { client.kill() },
-        )
-      }
-    } catch (e: Throwable) {
-      thisLogger().warn("Error retrieving process info from `Client`", e)
-      return null
-    }
-  }
-
-  /** Kills the [process] on the [device][ProcessInfo.device] */
-  suspend fun killProcess(process: ProcessInfo, device: IDevice) {
-    if (process.device.serialNumber == device.serialNumber) {
+  /** Kills the [process] on the [ConnectedDevice] */
+  suspend fun killProcess(process: ProcessInfo, device: ConnectedDevice) {
+    if (process.deviceSerialNumber == device.serialNumber) {
       // Run this in a worker thread in case the device/adb is not responsive
       withContext(workerThreadDispatcher) {
-        if (process.packageName != null) {
-          device.kill(process.packageName)
-        } else {
-          thisLogger().debug("Kill process invoked on a null package name")
-          withContext(uiThreadDispatcher) { reportError("kill process", "Couldn't find package name for process.") }
+        try {
+          val processes = device.jdwpProcessTracker.processesFlow.value
+          processes.find { it.pid == process.pid }?.sendVmExit(1)
+        } catch (e: IOException) {
+          thisLogger().warn("`killProcess` failed for pid ${process.pid}", e)
         }
-        process.killAction?.invoke()
       }
     }
   }
 
   /** Force stops the [process] on the [device][ProcessInfo.device] */
-  suspend fun forceStopProcess(process: ProcessInfo, device: IDevice) {
-    if (process.device.serialNumber == device.serialNumber) {
+  suspend fun forceStopProcess(process: ProcessInfo, device: ConnectedDevice) {
+    if (process.deviceSerialNumber == device.serialNumber) {
       // Run this in a worker thread in case the device/adb is not responsive
       withContext(workerThreadDispatcher) {
         if (process.packageName != null) {
-          device.forceStop(process.packageName)
+          try {
+            device.activityManager.forceStop(process.packageName)
+          } catch (e: IOException) {
+            thisLogger().warn("`forceStop` failed for packageName ${process.packageName}", e)
+          }
         } else {
           thisLogger().debug("Force stop invoked on a null package name")
           withContext(uiThreadDispatcher) { reportError("force stop", "Couldn't find package name for process.") }
@@ -132,35 +102,35 @@ constructor(
     }
   }
 
-  suspend fun debugProcess(project: Project, process: ProcessInfo, device: IDevice) {
+  suspend fun debugProcess(project: Project, process: ProcessInfo, device: ConnectedDevice) {
     ThreadingAssertions.assertEventDispatchThread()
 
-    if (process.device.serialNumber == device.serialNumber) {
+    if (process.deviceSerialNumber == device.serialNumber) {
       withContext(workerThreadDispatcher) {
-        val client = device.getClient(process.safeProcessName)
+        val iDevice = device.associatedIDevice()
+        val client = iDevice?.getClient(process.processName)
         val config = RunManager.getInstance(project).selectedConfiguration?.configuration as? RunConfigurationWithDebugger
         val debugger = config?.androidDebuggerContext?.androidDebugger
 
         if (client != null && config != null && debugger != null) {
           connectDebuggerAction.invoke(debugger, client, config)
         } else {
-          thisLogger().debug("Attach Debugger invoke on a null client, config, or debugger")
+          thisLogger().debug("Attach Debugger invoke on a null device, client, config, or debugger")
           withContext(uiThreadDispatcher) { reportError("attach debugger", "Couldn't find process to attach or debugger to use.") }
         }
       }
     }
   }
 
-  suspend fun clearAppData(process: ProcessInfo, device: IDevice) {
-    if (process.device.serialNumber == device.serialNumber) {
+  suspend fun clearAppData(process: ProcessInfo, device: ConnectedDevice) {
+    if (process.deviceSerialNumber == device.serialNumber) {
       withContext(workerThreadDispatcher) {
         val packageName = process.packageName
         if (packageName != null) {
-          val receiver = CollectingOutputReceiver()
-          device.executeShellCommand("pm clear $packageName", receiver)
-          val result = receiver.output.trim()
-          if (result != "Success") {
-            thisLogger().info("Clear App Data $packageName failed with output: $result")
+          try {
+            device.packageManager.clear(packageName)
+          } catch (e: AdbPackageManagerException) {
+            thisLogger().info("Clear App Data $packageName failed with output: ${e.errorOutput}")
             withContext(uiThreadDispatcher) { reportError("clear app data", "Failed to clear app data.") }
           }
         } else {
@@ -171,19 +141,15 @@ constructor(
     }
   }
 
-  suspend fun uninstallApp(process: ProcessInfo, device: IDevice) {
-    if (process.device.serialNumber == device.serialNumber) {
+  suspend fun uninstallApp(process: ProcessInfo, device: ConnectedDevice) {
+    if (process.deviceSerialNumber == device.serialNumber) {
       withContext(workerThreadDispatcher) {
         val packageName = process.packageName
         if (packageName != null) {
           try {
-            val result = device.uninstallPackage(packageName)
-            if (result != null) {
-              thisLogger().info("Uninstall App $packageName failed with output: $result")
-              withContext(uiThreadDispatcher) { reportError("uninstall app", "Failed to uninstall app.") }
-            }
-          } catch (e: InstallException) {
-            thisLogger().info("Uninstall App $packageName failed", e)
+            device.packageManager.uninstall(packageName)
+          } catch (e: AdbPackageManagerException) {
+            thisLogger().info("Uninstalling app `$packageName` failed with an exception: ${e.errorOutput}")
             withContext(uiThreadDispatcher) { reportError("uninstall app", "Failed to uninstall app.") }
           }
         } else {
@@ -195,8 +161,8 @@ constructor(
   }
 
   @UiThread
-  suspend fun backupApplication(project: Project, process: ProcessInfo, device: IDevice) {
-    if (process.device.serialNumber == device.serialNumber) {
+  suspend fun backupApplication(project: Project, process: ProcessInfo, device: ConnectedDevice) {
+    if (process.deviceSerialNumber == device.serialNumber) {
       val packageName = process.packageName
       if (packageName == null) {
         thisLogger().debug("Backup Application invoked without application id")
@@ -209,9 +175,9 @@ constructor(
   }
 
   @UiThread
-  fun restoreApplication(project: Project, device: IDevice, path: Path) {
+  fun restoreApplication(project: Project, device: ConnectedDevice) {
     val backupManager = BackupManager.getInstance(project)
-    backupManager.restoreModal(device.serialNumber, path, BackupManager.Source.DEVICE_EXPLORER)
+    backupManager.restoreModal(device.serialNumber, BackupManager.Source.DEVICE_EXPLORER)
   }
 
   private fun reportError(title: String, messageToReport: String) {

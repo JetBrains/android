@@ -18,6 +18,7 @@
     <group id="Internal.Android.Perfetto" class="com.android.tools.idea.tracer.PerfettoTracingGroup" text="Perfetto Tracing" popup="true" internal="true">
       <add-to-group group-id="Internal.Android"/>
       <action internal="true" id="Android.ToggleTracing" class="com.android.tools.idea.tracer.ToggleTracingAction"/>
+      <action internal="true" id="Android.ToggleCompositionTracing" class="com.android.tools.idea.tracer.ToggleCompositionTracingAction"/>
       <action internal="true" id="Android.FlushTrace" class="com.android.tools.idea.tracer.FlushTraceAction"/>
     </group>
   </actions>

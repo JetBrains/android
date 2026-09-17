@@ -37,7 +37,10 @@ intellij_plugin(
 
 """
 
-_OptionalPluginXmlInfo = provider(fields = ["optional_plugin_xmls"])
+_OptionalPluginXmlInfo = provider(
+    doc = "Information about optional plugin XML files and their corresponding module dependencies.",
+    fields = ["optional_plugin_xmls"],
+)
 
 def _optional_plugin_xml_impl(ctx):
     attr = ctx.attr
@@ -57,9 +60,14 @@ optional_plugin_xml = rule(
     },
 )
 
-_IntellijPluginLibraryInfo = provider(fields = ["plugin_xmls", "optional_plugin_xmls", "java_info"])
+IntellijPluginLibraryInfo = provider(
+    doc = "Combines plugin XML fragments, optional plugin XMLs, and Java dependency information.",
+    fields = ["plugin_xmls", "optional_plugin_xmls", "java_info"],
+)
 
 def _intellij_plugin_library_impl(ctx):
+    # buildifier: disable=native-java-info
+    # buildifier: disable=native-java-common
     java_info = java_common.merge([dep[JavaInfo] for dep in ctx.attr.deps])
 
     plugin_xmls = []
@@ -68,7 +76,7 @@ def _intellij_plugin_library_impl(ctx):
             plugin_xmls.append(file)
 
     return [
-        _IntellijPluginLibraryInfo(
+        IntellijPluginLibraryInfo(
             plugin_xmls = depset(plugin_xmls, order = "preorder"),
             optional_plugin_xmls = [
                 dep[_OptionalPluginXmlInfo]
@@ -76,11 +84,13 @@ def _intellij_plugin_library_impl(ctx):
             ],
             java_info = java_info,
         ),
+        java_info,
     ]
 
 intellij_plugin_library = rule(
     implementation = _intellij_plugin_library_impl,
     attrs = {
+        # buildifier: disable=native-java-info
         "deps": attr.label_list(providers = [JavaInfo]),
         "plugin_xmls": attr.label_list(allow_files = [".xml"]),
         "optional_plugin_xmls": attr.label_list(providers = [_OptionalPluginXmlInfo]),
@@ -90,8 +100,8 @@ intellij_plugin_library = rule(
 def _merge_plugin_xmls(ctx):
     dep_plugin_xmls = []
     for dep in ctx.attr.deps:
-        if _IntellijPluginLibraryInfo in dep:
-            dep_plugin_xmls.append(dep[_IntellijPluginLibraryInfo].plugin_xmls)
+        if IntellijPluginLibraryInfo in dep:
+            dep_plugin_xmls.append(dep[IntellijPluginLibraryInfo].plugin_xmls)
     plugin_xmls = depset([ctx.file.plugin_xml], transitive = dep_plugin_xmls, order = "preorder")
 
     if len(plugin_xmls.to_list()) == 1:
@@ -114,9 +124,9 @@ def _merge_optional_plugin_xmls(ctx):
     module_to_xmls = {}
     optional_plugin_xml_providers = []
     for dep in ctx.attr.deps:
-        if _IntellijPluginLibraryInfo in dep:
+        if IntellijPluginLibraryInfo in dep:
             optional_plugin_xml_providers.extend(
-                dep[_IntellijPluginLibraryInfo].optional_plugin_xmls,
+                dep[IntellijPluginLibraryInfo].optional_plugin_xmls,
             )
     optional_plugin_xml_providers.extend(
         [target[_OptionalPluginXmlInfo] for target in ctx.attr.optional_plugin_xmls],
@@ -154,7 +164,7 @@ def _add_optional_dependencies_to_plugin_xml(ctx, input_plugin_xml_file, modules
     args.extend(["--output", final_plugin_xml_file.path])
     for module in modules:
         args.append(module)
-        args.append(_filename_for_module_dependency(module))
+        args.append(_filename_for_module_dependency(ctx.attr.plugin_name, module))
     ctx.actions.run(
         executable = ctx.executable._append_optional_xml_elements,
         arguments = args,
@@ -165,9 +175,9 @@ def _add_optional_dependencies_to_plugin_xml(ctx, input_plugin_xml_file, modules
     )
     return final_plugin_xml_file
 
-def _filename_for_module_dependency(module):
+def _filename_for_module_dependency(prefix, module):
     """A unique filename for the optional xml dependency for a given module."""
-    return "optional-" + module + ".xml"
+    return "optional-" + prefix + "-" + module + ".xml"
 
 def _package_meta_inf_files(ctx, final_plugin_xml_file, module_to_merged_xmls):
     jar_name = ctx.attr.jar_name
@@ -179,7 +189,7 @@ def _package_meta_inf_files(ctx, final_plugin_xml_file, module_to_merged_xmls):
     args.extend([final_plugin_xml_file.path, "plugin.xml"])
     for module, merged_xml in module_to_merged_xmls.items():
         args.append(merged_xml.path)
-        args.append(_filename_for_module_dependency(module))
+        args.append(_filename_for_module_dependency(ctx.attr.plugin_name, module))
     for plugin_icon_file in ctx.files.plugin_icons:
         args.append(plugin_icon_file.path)
         args.append(plugin_icon_file.basename)
@@ -194,7 +204,9 @@ def _package_meta_inf_files(ctx, final_plugin_xml_file, module_to_merged_xmls):
     return jar_file
 
 def _intellij_plugin_java_deps_impl(ctx):
-    java_infos = [dep[_IntellijPluginLibraryInfo].java_info for dep in ctx.attr.deps]
+    java_infos = [dep[IntellijPluginLibraryInfo].java_info for dep in ctx.attr.deps]
+
+    # buildifier: disable=native-java-common
     return [java_common.merge(java_infos)]
 
 _intellij_plugin_java_deps = rule(
@@ -202,7 +214,7 @@ _intellij_plugin_java_deps = rule(
     attrs = {
         "deps": attr.label_list(
             mandatory = True,
-            providers = [[_IntellijPluginLibraryInfo]],
+            providers = [[IntellijPluginLibraryInfo]],
         ),
     },
 )
@@ -225,7 +237,8 @@ _intellij_plugin_jar = rule(
         "plugin_xml": attr.label(mandatory = True, allow_single_file = [".xml"]),
         "optional_plugin_xmls": attr.label_list(providers = [_OptionalPluginXmlInfo]),
         "jar_name": attr.string(mandatory = True),
-        "deps": attr.label_list(providers = [[_IntellijPluginLibraryInfo]]),
+        "plugin_name": attr.string(mandatory = True),
+        "deps": attr.label_list(providers = [[IntellijPluginLibraryInfo]]),
         "plugin_icons": attr.label_list(allow_files = True),
         "_merge_xml_binary": attr.label(
             default = Label("//tools/adt/idea/aswb/build_defs:merge_xml"),
@@ -280,6 +293,8 @@ def intellij_plugin(
         deps = deps,
         testonly = testonly,
     )
+
+    # buildifier: disable=native-java-binary
     native.java_binary(
         name = binary_name,
         runtime_deps = [":" + java_deps_name] + extra_runtime_deps,
@@ -314,6 +329,7 @@ def intellij_plugin(
         name = jar_target_name,
         deploy_jar = deploy_jar,
         jar_name = jar_name or (name + ".jar"),
+        plugin_name = name,
         deps = deps,
         plugin_xml = plugin_xml,
         optional_plugin_xmls = optional_plugin_xmls,
@@ -324,6 +340,7 @@ def intellij_plugin(
     )
 
     # included (with tag) as a hack so that IJwB can recognize this is an intellij plugin
+    # buildifier: disable=native-java-import
     native.java_import(
         name = name,
         jars = [jar_target_name],

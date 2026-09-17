@@ -23,17 +23,13 @@ import javax.swing.JPanel
 
 open class AndroidDebuggerConfigurable<in S : AndroidDebuggerState> {
   private val attachOnWaitForDebugger = JCheckBox("Automatically attach on Debug.waitForDebugger()")
-  private val debugSandboxSdk = JCheckBox("Launch and attach debugger to Sandbox SDK process on start-up")
   open val component: JComponent?
     get() =
-      if (StudioFlags.ATTACH_ON_WAIT_FOR_DEBUGGER.get() || StudioFlags.LAUNCH_SANDBOX_SDK_PROCESS_WITH_DEBUGGER_ATTACHED_ON_DEBUG.get()) {
+      if (StudioFlags.ATTACH_ON_WAIT_FOR_DEBUGGER.get()) {
         val mainPanel =
           JPanel(VerticalFlowLayout()).apply {
             if (StudioFlags.ATTACH_ON_WAIT_FOR_DEBUGGER.get()) {
               add(attachOnWaitForDebugger)
-            }
-            if (StudioFlags.LAUNCH_SANDBOX_SDK_PROCESS_WITH_DEBUGGER_ATTACHED_ON_DEBUG.get()) {
-              add(debugSandboxSdk)
             }
           }
         mainPanel
@@ -43,11 +39,9 @@ open class AndroidDebuggerConfigurable<in S : AndroidDebuggerState> {
 
   open fun resetFrom(state: S) {
     if (StudioFlags.ATTACH_ON_WAIT_FOR_DEBUGGER.get()) attachOnWaitForDebugger.isSelected = state.attachOnWaitForDebugger()
-    if (StudioFlags.LAUNCH_SANDBOX_SDK_PROCESS_WITH_DEBUGGER_ATTACHED_ON_DEBUG.get()) debugSandboxSdk.isSelected = state.debugSandboxSdk()
   }
 
   open fun applyTo(state: S) {
     if (StudioFlags.ATTACH_ON_WAIT_FOR_DEBUGGER.get()) state.setAttachOnWaitForDebugger(attachOnWaitForDebugger.isSelected)
-    if (StudioFlags.LAUNCH_SANDBOX_SDK_PROCESS_WITH_DEBUGGER_ATTACHED_ON_DEBUG.get()) state.setDebugSandboxSdk(debugSandboxSdk.isSelected)
   }
 }

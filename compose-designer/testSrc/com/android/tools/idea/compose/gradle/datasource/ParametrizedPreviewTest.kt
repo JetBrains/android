@@ -32,7 +32,6 @@ import com.android.tools.idea.preview.find.StaticPreviewProvider
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.UiCheckInstance
 import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
-import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD
@@ -214,7 +213,7 @@ class ParametrizedPreviewTest {
     val mainSurface = NlSurfaceBuilder.builder(project, projectRule.fixture.testRootDisposable).build()
 
     val composeView = TestComposePreviewView(mainSurface)
-    val preview = ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> composeView }
+    val preview = ComposePreviewRepresentation(psiFile) { _, _, _, _, _, _ -> composeView }
     Disposer.register(projectRule.fixture.testRootDisposable, preview)
 
     composeView.runAndWaitForRefresh { preview.onActivate() }
@@ -225,7 +224,7 @@ class ParametrizedPreviewTest {
     assertInstanceOf<UiCheckModeFilter.Enabled<PsiComposePreviewElementInstance>>(preview.uiCheckFilterFlow.value)
 
     assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })
-      .containsExactly("Screen sizes", "Font scales", "Light/Dark", "Colorblind filters")
+      .containsExactly("Screen sizes", "Font scales", "System UI", "Light/Dark", "Colorblind filters")
       .inOrder()
 
     assertThat(
@@ -237,6 +236,7 @@ class ParametrizedPreviewTest {
       .containsExactly(
         "Screen sizes - TestWithProvider (name 0)",
         "Font scales - TestWithProvider (name 0)",
+        "System UI - TestWithProvider (name 0)",
         "Light/Dark - TestWithProvider (name 0)",
         "Colorblind filters - TestWithProvider (name 0)",
       )
@@ -251,6 +251,7 @@ class ParametrizedPreviewTest {
       .containsExactly(
         "google.simpleapplication.ParametrizedPreviewsKt.TestWithProviderScreen sizes",
         "google.simpleapplication.ParametrizedPreviewsKt.TestWithProviderFont scales",
+        "google.simpleapplication.ParametrizedPreviewsKt.TestWithProviderSystem UI",
         "google.simpleapplication.ParametrizedPreviewsKt.TestWithProviderLight/Dark",
         "google.simpleapplication.ParametrizedPreviewsKt.TestWithProviderColorblind filters",
       )
@@ -264,6 +265,8 @@ class ParametrizedPreviewTest {
 
       stringValue ==
         """
+        google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+        google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
         google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
         google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
         google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
@@ -304,7 +307,7 @@ class ParametrizedPreviewTest {
     val mainSurface = NlSurfaceBuilder.builder(project, projectRule.fixture.testRootDisposable).build()
 
     val composeView = TestComposePreviewView(mainSurface)
-    val preview = ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> composeView }
+    val preview = ComposePreviewRepresentation(psiFile) { _, _, _, _, _, _ -> composeView }
     Disposer.register(projectRule.fixture.testRootDisposable, preview)
 
     composeView.runAndWaitForRefresh { preview.onActivate() }
@@ -360,7 +363,7 @@ class ParametrizedPreviewTest {
     val mainSurface = NlSurfaceBuilder.builder(project, projectRule.fixture.testRootDisposable).build()
 
     val composeView = TestComposePreviewView(mainSurface)
-    val preview = ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> composeView }
+    val preview = ComposePreviewRepresentation(psiFile) { _, _, _, _, _, _ -> composeView }
     Disposer.register(projectRule.fixture.testRootDisposable, preview)
 
     composeView.runAndWaitForRefresh { preview.onActivate() }

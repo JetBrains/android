@@ -24,7 +24,7 @@ import com.android.tools.idea.streaming.emulator.actions.getEmulatorController
 import com.android.tools.idea.streaming.emulator.actions.getEmulatorView
 import com.android.tools.idea.streaming.emulator.isReadyForAdbCommands
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
-import com.android.tools.idea.streaming.uisettings.ui.showUiSettingsDialog
+import com.android.tools.idea.streaming.uisettings.ui.showUiSettingsPopup
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.EDT
@@ -53,7 +53,7 @@ internal class EmulatorUiSettingsAction :
     val controller = EmulatorUiSettingsController(project, serialNumber, model, config, emulatorView)
     emulatorView.createCoroutineScope().launch {
       controller.populateModel()
-      withContext(Dispatchers.EDT) { showUiSettingsDialog(project, model, config.deviceType, emulatorView) }
+      withContext(Dispatchers.EDT) { showUiSettingsPopup(model, config.deviceType, emulatorView) }
     }
   }
 

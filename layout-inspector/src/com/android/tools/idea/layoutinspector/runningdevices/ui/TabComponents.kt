@@ -19,10 +19,10 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.layoutinspector.runningdevices.RunningDevicesStateObserver
 import com.android.tools.idea.streaming.core.DeviceDisplayListener
-import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.DisplayOwner
 import com.android.tools.idea.streaming.core.DisplayView
 import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
+import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
@@ -90,10 +90,10 @@ private fun Container.allChildren(): List<Component> {
   }
 }
 
-/** Creates a new [TabComponents] object for the provided [deviceId] */
-fun createTabComponents(project: Project, deviceId: DeviceId): TabComponents {
+/** Creates a new [TabComponents] object for the provided [streamingDeviceId] */
+fun createTabComponents(project: Project, streamingDeviceId: StreamingDeviceId): TabComponents {
   ThreadingAssertions.assertEventDispatchThread()
-  val selectedTabContent = RunningDevicesStateObserver.getInstance(project).getTabContent(deviceId)
+  val selectedTabContent = RunningDevicesStateObserver.getInstance(project).getTabContent(streamingDeviceId)
 
   val streamingDevicePanel = checkNotNull(selectedTabContent?.component)
 

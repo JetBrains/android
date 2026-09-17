@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.mock
 
 class LeakCanaryScreenTest : WithFakeTimer {
   override val timer = FakeTimer()
@@ -78,7 +79,7 @@ class LeakCanaryScreenTest : WithFakeTimer {
     Truth.assertThat(analysis).isNotNull()
     leakCanaryModel.addLeaks((analysis as AnalysisSuccess).leaks)
     leakCanaryModel.onLeakSelection(leakCanaryModel.leaks.value[0])
-    composeTestRule.setContent { LeakCanaryScreen(leakCanaryModel = leakCanaryModel) }
+    composeTestRule.setContent { LeakCanaryScreen(leakCanaryModel = leakCanaryModel, ideProfilerComponents = mock()) }
     composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_LEAK_HEADER_TEXT).isDisplayed()
     composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_OCCURRENCES_HEADER_TEXT).isDisplayed()
     composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_TOTAL_LEAKED_HEADER_TEXT).isDisplayed()
@@ -113,7 +114,7 @@ class LeakCanaryScreenTest : WithFakeTimer {
   fun `test leak canary left and right panel data changes on the selected leak changes`() {
     val analysis = getMultipleLeaksAnalysis()
     Truth.assertThat(analysis).isNotNull()
-    composeTestRule.setContent { LeakCanaryScreen(leakCanaryModel = leakCanaryModel) }
+    composeTestRule.setContent { LeakCanaryScreen(leakCanaryModel = leakCanaryModel, ideProfilerComponents = mock()) }
     // Initially, it's an empty leak list
     composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_LEAK_HEADER_TEXT).isDisplayed()
     composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_OCCURRENCES_HEADER_TEXT).isDisplayed()
@@ -215,7 +216,7 @@ class LeakCanaryScreenTest : WithFakeTimer {
   fun `test leak canary left and right panel data with leaks having className in multiple lines`() {
     val analysis = getLeaksAnalysisWithClassNameInMultipleLine()
     Truth.assertThat(analysis).isNotNull()
-    composeTestRule.setContent { LeakCanaryScreen(leakCanaryModel = leakCanaryModel) }
+    composeTestRule.setContent { LeakCanaryScreen(leakCanaryModel = leakCanaryModel, ideProfilerComponents = mock()) }
     // Initially, it's an empty leak list
     composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_LEAK_HEADER_TEXT).isDisplayed()
     composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_OCCURRENCES_HEADER_TEXT).isDisplayed()
@@ -410,7 +411,7 @@ class LeakCanaryScreenTest : WithFakeTimer {
     Truth.assertThat(analysis).isNotNull()
     leakCanaryModel.addLeaks((analysis as AnalysisSuccess).leaks)
     leakCanaryModel.onLeakSelection(leakCanaryModel.leaks.value[0])
-    composeTestRule.setContent { LeakCanaryScreen(leakCanaryModel = leakCanaryModel) }
+    composeTestRule.setContent { LeakCanaryScreen(leakCanaryModel = leakCanaryModel, ideProfilerComponents = mock()) }
 
     // The first leak from getMultipleLeaksAnalysis() has 3 nodes in its trace.
     val nodeCount = 3
@@ -440,7 +441,7 @@ class LeakCanaryScreenTest : WithFakeTimer {
     Truth.assertThat(analysis).isNotNull()
     leakCanaryModel.addLeaks((analysis as AnalysisSuccess).leaks)
     leakCanaryModel.onLeakSelection(leakCanaryModel.leaks.value[0])
-    composeTestRule.setContent { LeakCanaryScreen(leakCanaryModel = leakCanaryModel) }
+    composeTestRule.setContent { LeakCanaryScreen(leakCanaryModel = leakCanaryModel, ideProfilerComponents = mock()) }
 
     // The first leak from getMultipleLeaksAnalysis() has 3 nodes in its trace.
     val nodeCount = 3
@@ -476,7 +477,7 @@ class LeakCanaryScreenTest : WithFakeTimer {
     var capturedClipboardText: String? = null
 
     copyLeakToClipboard = { capturedClipboardText = it }
-    composeTestRule.setContent { LeakCanaryScreen(leakCanaryModel = leakCanaryModel) }
+    composeTestRule.setContent { LeakCanaryScreen(leakCanaryModel = leakCanaryModel, ideProfilerComponents = mock()) }
 
     val copyButton = composeTestRule.onNodeWithContentDescription(TaskBasedUxStrings.LEAKCANARY_COPY_TO_CLIPBOARD)
     copyButton.performClick()

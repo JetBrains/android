@@ -7,8 +7,8 @@ visibility([
     "//tools/vendor/google/aswb/searchable-options",
 ])
 
-STUDIO_CODENAME = "Panda 3"
+STUDIO_CODENAME = "Panda 4"
 STUDIO_CONFIG = "stable"
 STUDIO_VERSION = "Stable"
-STUDIO_MICRO_PATCH = "3.6"
+STUDIO_MICRO_PATCH = "4.6"
 STUDIO_RELEASE_NUMBER = 1

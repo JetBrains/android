@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.idea.concurrency.createCoroutineScope
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
@@ -75,10 +76,14 @@ class InsightToolbarPanel(
       state = { feedbackState.value == InsightFeedback.THUMBS_DOWN },
     )
 
-  private val refreshAction = InsightRefreshAction(controller)
-
   init {
-    val actionGroup = DefaultActionGroup(copyAction, refreshAction, upvoteAction, downvoteAction)
+    val actionGroup =
+      DefaultActionGroup(copyAction, InsightRefreshAction(controller), upvoteAction, downvoteAction).apply {
+        if (StudioFlags.AQI_FIX_WITH_AGENT.get()) {
+          add(InsightSettingGroup())
+        }
+      }
+
     val toolbar = ActionManager.getInstance().createActionToolbar("${controller.provider.displayName} $INSIGHT_TOOLBAR", actionGroup, true)
     toolbar.targetComponent = this
     add(toolbar.component, BorderLayout.CENTER)

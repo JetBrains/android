@@ -15,8 +15,6 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.ddmlib.AllocationInfo;
-import com.android.ddmlib.AllocationsParser;
 import com.android.tools.profiler.proto.Memory.AllocationEvent;
 import com.android.tools.profiler.proto.Memory.AllocatedClass;
 import com.android.tools.profiler.proto.Memory.AllocationStack;

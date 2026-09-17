@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@ package com.android.tools.idea.profilers;
 
 import static com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter.fromTechnologyToTaskType;
 
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.Client;
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.idea.codenavigation.IntelliJNavSource;
 import com.android.tools.idea.flags.StudioFlags;
@@ -33,7 +36,6 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
-import com.android.tools.idea.transport.EventStreamServer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
 import com.android.tools.nativeSymbolizer.SymbolFilesLocator;
@@ -365,7 +367,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   @Override
   public List<ProfilingConfiguration> getTaskCpuProfilerConfigs(int apiLevel) {
     CpuProfilerConfigsState configsState = CpuProfilerConfigsState.getInstance(myProject);
-    return CpuProfilerConfigConverter.toProfilingConfiguration(configsState.getSavedTaskConfigsIfPresentOrDefault(), apiLevel);
+    List<ProfilingConfiguration> configs = CpuProfilerConfigConverter.toProfilingConfiguration(configsState.getSavedTaskConfigsIfPresentOrDefault(), apiLevel);
+    if (!StudioFlags.PROFILER_LEAKCANARY.get()) {
+      return ContainerUtil.filter(configs, c -> c.getTraceType() != ProfilingConfiguration.TraceType.LEAKCANARY);
+    }
+    return configs;
   }
 
   @Override
@@ -499,6 +505,9 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
    * Uses {@link DependencyConfirmationDialog} which mimics the Firebase assistant UI.
    */
   private void addDependencyWithConfirmationDialog(Module module, GoogleMavenArtifactId artifact, DependencyType dependencyType, CompletableFuture<Boolean> future) {
+    if (artifact == GoogleMavenArtifactId.LEAKCANARY) {
+      getFeatureTracker().trackLeakCanaryAutoInjectPopup();
+    }
     if (showConfirmationDialog(module, artifact, dependencyType)) {
       try {
         AndroidModuleSystem moduleSystem = ProjectSystemUtil.getModuleSystem(module);
@@ -609,6 +618,25 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     return TraceProcessorServiceImpl.getInstance();
   }
 
+
+  @Override
+  public boolean isDebuggerAttached(@NotNull String deviceId, int pid) {
+    AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
+    if (bridge != null) {
+      for (IDevice device : bridge.getDevices()) {
+        if (deviceId.equals(device.getSerialNumber())) {
+          for (Client client : device.getClients()) {
+            if (client.getClientData().getPid() == pid) {
+              return client.isDebuggerAttached();
+            }
+          }
+          return false; // Break out if the device was found but PID was not.
+        }
+      }
+    }
+    return false;
+  }
+
   @Override
   public void buildAndLaunchAction(boolean profileableMode, ProcessListModel.@NotNull ProfilerDeviceSelection device) {
     ProfilerBuildAndLaunch.buildAndLaunchAction(myProject, profileableMode, device);
@@ -655,11 +683,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     }
 
     @Override
-    public boolean isLeakCanaryMilestone2Enabled() {
-      return StudioFlags.PROFILER_LEAKCANARY_MILESTONE2.get();
-    }
-
-    @Override
     public boolean isTaskTitleV2Enabled() {
       return StudioFlags.PROFILER_TASK_TITLE_V2.get();
     }
@@ -667,6 +690,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     @Override
     public boolean isSystemTraceInEditorEnabled() {
       return StudioFlags.PROFILER_SYSTEM_TRACE_IN_EDITOR.get();
+    }
+
+    @Override
+    public boolean isMethodTraceInEditorEnabled() {
+      return StudioFlags.PROFILER_METHOD_TRACE_IN_EDITOR.get();
     }
   }
 }

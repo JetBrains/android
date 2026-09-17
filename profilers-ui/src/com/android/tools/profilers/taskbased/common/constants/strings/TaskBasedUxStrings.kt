@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -105,12 +105,12 @@ object TaskBasedUxStrings {
   const val LEAKCANARY_TOTAL_LEAKED_HEADER_TEXT = "Total leaked"
   const val LEAKCANARY_LEAK_LIST_EMPTY_INITIAL_MESSAGE =
     "Try to reproduce leaks by triggering potentially " + "leaking actions within your app while the recording is ongoing."
-  const val LEAKCANARY_INSTALLATION_REQUIRED_MESSAGE =
-    "This task requires LeakCanary to be installed into your app for any leaks to be visible in Android Studio."
   const val LEAKCANARY_NO_LEAK_FOUND_MESSAGE = "No leaks found."
   const val LEAKCANARY_MISSING_MESSAGE =
     "LeakCanary is missing. Retry after adding the dependency: debugImplementation " + "'com.squareup.leakcanary:leakcanary-android:2.14'."
   const val LEAKCANARY_CHECKING_PRESENCE = "Checking LeakCanary presence..."
+  const val TASK_HAS_DEBUGGER_ATTACHED_MESSAGE = "Cannot start the selected task while a debugger is attached to the process."
+
   const val LEAKCANARY_CHECK_TIMEOUT_MESSAGE =
     "Connection timeout: The app may be running in the background. Bring the app to the foreground and reselect the process to retry."
 
@@ -139,6 +139,8 @@ object TaskBasedUxStrings {
   const val LEAKCANARY_WAITING_HEAP_DUMP = "Waiting to dump heap until"
   const val LEAKCANARY_RETAINED_OBJECT = "retained object"
   const val LEAKCANARY_FORCE_DUMP = "Force dump"
+  const val LEAKCANARY_BANNER_MESSAGE = "On-device customizations are being bypassed. Switch to App Customization to enable them."
+  const val LEAKCANARY_EDIT_CONFIGURATION = "Edit configuration"
 
   fun getTaskTooltip(taskType: ProfilerTaskType) =
     when (taskType) {
@@ -242,6 +244,7 @@ object TaskBasedUxStrings {
         "LeakCanary was not detected in the selected process. Please use the 'Start profiler task from process start' option."
       StartTaskSelectionErrorCode.LEAKCANARY_CHECK_IN_PROGRESS -> LEAKCANARY_CHECKING_PRESENCE
       StartTaskSelectionErrorCode.LEAKCANARY_CHECK_TIMEOUT -> LEAKCANARY_CHECK_TIMEOUT_MESSAGE
+      StartTaskSelectionErrorCode.TASK_HAS_DEBUGGER_ATTACHED -> TASK_HAS_DEBUGGER_ATTACHED_MESSAGE
       StartTaskSelectionErrorCode.GENERAL_ERROR -> "This task cannot be run in this configuration"
     }
 

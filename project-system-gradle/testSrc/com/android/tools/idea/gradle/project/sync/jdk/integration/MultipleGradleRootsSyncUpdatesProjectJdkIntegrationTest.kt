@@ -93,7 +93,9 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
 
   @Test
   @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
-  fun `Given multiple roots using different gradleJdk versions When synced project successfully Then projectJdk is updated with greatest JDK version JDK_EMBEDDED`() =
+  fun `Given multiple roots using different gradleJdk versions When synced project successfully Then projectJdk is updated with greatest JDK version JDK_EMBEDDED`() {
+    // Disable project import Gradle JVM compatibility check
+    StudioFlags.EXECUTE_GRADLE_JVM_COMPATIBILITY_CHECK.overrideForTest(false, projectRule.testRootDisposable)
     jdkIntegrationTest.run(
       project =
         SimpleApplicationMultipleRoots(
@@ -114,6 +116,7 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
         assertOnDiskConfig = { assertProjectJdk(JDK_EMBEDDED) },
       )
     }
+  }
 
   @Test
   fun `Given multiple roots using non expected JDK_EMBEDDED entry When synced project successfully Then projectJdk is updated with specific jdkTable entry created for JDK_EMBEDDED_PATH`() {

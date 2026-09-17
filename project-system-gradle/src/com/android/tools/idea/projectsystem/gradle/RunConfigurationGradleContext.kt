@@ -32,7 +32,6 @@ data class RunConfigurationGradleContext(
   val alwaysDeployApkFromBundle: Boolean,
   val deployAsInstant: Boolean,
   val disabledDynamicFeatureModuleNames: Set<String>,
-  val supportsPrivacySandbox: Boolean,
 )
 
 internal fun RunConfiguration.getGradleContext(): RunConfigurationGradleContext? {
@@ -46,6 +45,5 @@ internal fun RunConfiguration.getGradleContext(): RunConfigurationGradleContext?
     alwaysDeployApkFromBundle = (this as? AndroidRunConfiguration)?.DEPLOY_APK_FROM_BUNDLE ?: false,
     deployAsInstant = (this as? AndroidRunConfiguration)?.DEPLOY_AS_INSTANT ?: false,
     disabledDynamicFeatureModuleNames = (this as? AndroidRunConfiguration)?.disabledDynamicFeatures?.toSet().orEmpty(),
-    supportsPrivacySandbox = false,
   )
 }

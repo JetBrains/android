@@ -78,11 +78,6 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
-  fun testEverythingDisabledNoEffectOnCompileRuntimeConfiguration() {
-    everythingDisabledNoEffectOn("CompileRuntimeConfiguration/SimpleApplication")
-  }
-
-  @Test
   fun testEverythingDisabledNoEffectOnGradleVersion() {
     writeToGradleWrapperPropertiesFile(TestFileName("GradleVersion/OldGradleVersion"))
     val latestKnownVersion = AgpVersion.parse(ANDROID_GRADLE_PLUGIN_VERSION)
@@ -142,15 +137,6 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
   }
 
   @Test
-  fun testEnabledEffectOnCompileRuntimeConfiguration() {
-    writeToBuildFile(TestFileName("CompileRuntimeConfiguration/SimpleApplication"))
-    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("5.0.0"))
-    processor.componentRefactoringProcessors.forEach { it.isEnabled = it is CompileRuntimeConfigurationRefactoringProcessor }
-    processor.run()
-    verifyFileContents(buildFile, TestFileName("CompileRuntimeConfiguration/SimpleApplicationExpected"))
-  }
-
-  @Test
   fun testEnabledEffectOnMigrateBuildFeatures() {
     fun AgpUpgradeComponentRefactoringProcessor.isMigrateBuildFeaturesRefactoringProcessor() =
       this is PropertiesOperationsRefactoringInfo.RefactoringProcessor && info == MIGRATE_TO_BUILD_FEATURES_INFO
@@ -185,18 +171,6 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     processor.componentRefactoringProcessors.forEach { it.isEnabled = it.isMigrateAaptResources() }
     processor.run()
     verifyFileContents(buildFile, TestFileName("MigrateAaptOptionsToAndroidResources/AaptOptionsToAndroidResourcesExpected"))
-  }
-
-  @Test
-  fun testEnabledEffectOnRemoveUseProguard() {
-    fun AgpUpgradeComponentRefactoringProcessor.isRemoveUseProguard() =
-      this is PropertiesOperationsRefactoringInfo.RefactoringProcessor && info == REMOVE_BUILD_TYPE_USE_PROGUARD_INFO
-
-    writeToBuildFile(TestFileName("RemoveBuildTypeUseProguard/TwoBuildTypes"))
-    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("4.2.0"), AgpVersion.parse("7.0.0"))
-    processor.componentRefactoringProcessors.forEach { it.isEnabled = it.isRemoveUseProguard() }
-    processor.run()
-    verifyFileContents(buildFile, TestFileName("RemoveBuildTypeUseProguard/TwoBuildTypesExpected"))
   }
 
   @Test

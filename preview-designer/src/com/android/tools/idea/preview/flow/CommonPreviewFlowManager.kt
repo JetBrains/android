@@ -150,15 +150,13 @@ class CommonPreviewFlowManager<T : PsiPreviewElementInstance>(
     isFastPreviewAvailable: () -> Boolean,
     requestFastPreviewRefresh: suspend () -> Unit,
     restorePreviousMode: () -> Unit,
-    previewElementProvider: PreviewElementProvider<K>,
+    previewElementsFlow: Flow<FlowableCollection<K>>,
     toInstantiatedPreviewElementsFlow: (Flow<FlowableCollection<K>>) -> Flow<FlowableCollection<T>>,
   ) {
     with(this@initializeFlows) {
       val project = psiFilePointer.project
       launch(Dispatchers.Default) {
         // Launch all the listeners that are bound to the current activation.
-        val previewElementsFlow = previewElementsOnFileChangesFlow(project) { previewElementProvider }
-
         // Combine three flows:
         // - Flow containing all the previews that have been found in the files
         // - ModuleClassLoaderOverlay modification flow: If Fast Preview is used and a new class is

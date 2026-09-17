@@ -21,7 +21,6 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.device.FormFactor
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.createValidator
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.project.model.GradleAndroidDependencyModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
@@ -256,9 +255,7 @@ class ConfigureBaselineProfilesModuleStep(model: NewBaselineProfilesModuleModel,
 
     row("Language") { cell(languageCombo).align(AlignX.FILL) }
 
-    if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
-      generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
-    }
+    generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
 
     row {
       topGap(TopGap.SMALL)

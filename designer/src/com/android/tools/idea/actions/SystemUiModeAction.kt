@@ -20,6 +20,7 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.selectionBackground
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.Wallpaper
+import com.android.tools.idea.uibuilder.options.AndroidDesignerBundle.message
 import com.intellij.ide.ui.laf.darcula.ui.DarculaMenuSeparatorUI
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUiKind
@@ -272,11 +273,13 @@ private class WallpaperItem(action: AbstractAction, isSelected: Boolean) : JMenu
     iconTextGap = 0
     horizontalAlignment = SwingConstants.LEFT
     preferredSize = JBUI.size(ICON_SIZE + 2)
-    if (isSelected) {
-      border = RoundedLineBorder(selectionBackground, JBUI.scale(2), JBUI.scale(2))
-    } else {
-      border = JBUI.Borders.empty(2)
-    }
+    toolTipText = action.getValue(AbstractAction.SHORT_DESCRIPTION) as? String
+    border =
+      if (isSelected) {
+        RoundedLineBorder(selectionBackground, JBUI.scale(2), JBUI.scale(2))
+      } else {
+        JBUI.Borders.empty(2)
+      }
   }
 
   override fun updateUI() {
@@ -311,6 +314,7 @@ private class SetWallpaperAction(val wallpaper: Wallpaper?) : ConfigurationActio
           this@SetWallpaperAction.actionPerformed(actionEvent)
         }
       }
+    action.putValue(AbstractAction.SHORT_DESCRIPTION, wallpaper?.displayName ?: message("system.ui.mode.wallpaper.none"))
     val currentWallpaperPath = dataContext.getData(CONFIGURATIONS)?.firstOrNull()?.wallpaperPath
     return WallpaperItem(action, this.wallpaper == wallpaperFromPath(currentWallpaperPath))
   }
@@ -331,6 +335,15 @@ private val Wallpaper.icon: Icon
       Wallpaper.BLUE -> WallpaperIcon.BLUE
       Wallpaper.YELLOW -> WallpaperIcon.YELLOW
     }.icon
+
+private val Wallpaper.displayName: String
+  get() =
+    when (this) {
+      Wallpaper.RED -> message("system.ui.mode.wallpaper.red")
+      Wallpaper.GREEN -> message("system.ui.mode.wallpaper.green")
+      Wallpaper.BLUE -> message("system.ui.mode.wallpaper.blue")
+      Wallpaper.YELLOW -> message("system.ui.mode.wallpaper.yellow")
+    }
 
 private fun wallpaperFromPath(path: String?): Wallpaper? {
   if (path == null) {

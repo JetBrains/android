@@ -28,6 +28,7 @@ val NETWORK_RECEIVING_COLOR: Color = JBColor(0x5882CC, 0x557CC1)
 val NETWORK_RECEIVING_SELECTED_COLOR: Color = JBColor(0x8ebdff, 0x8ebdff)
 val NETWORK_SENDING_COLOR: Color = JBColor(0xF4AF6F, 0xFFC187)
 val NETWORK_WAITING_COLOR: Color = JBColor(0xAAAAAA, 0xAAAAAA)
+val NETWORK_NAME_COLOR: Color = JBColor(Color.black, Color.black)
 val NETWORK_THREADS_VIEW_TOOLTIP_DIVIDER: Color = JBColor(0xD3D3D3, 0x565656)
 val TOOLTIP_BACKGROUND: Color = canvasTooltipBackground
 val TOOLTIP_TEXT = JBColor.foreground()

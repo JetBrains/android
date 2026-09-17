@@ -55,6 +55,8 @@ class LongTextAnalyzerInspection : VisualLintInspection(VisualLintErrorType.LONG
 
 class OverlapAnalyzerInspection : VisualLintInspection(VisualLintErrorType.OVERLAP)
 
+class SystemUiAnalyzerInspection : VisualLintInspection(VisualLintErrorType.SYSTEM_UI)
+
 class TextFieldSizeAnalyzerInspection : VisualLintInspection(VisualLintErrorType.TEXT_FIELD_SIZE)
 
 class WearMarginAnalyzerInspection : VisualLintInspection(VisualLintErrorType.WEAR_MARGIN)

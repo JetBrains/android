@@ -20,13 +20,11 @@ import static com.android.tools.datastore.DataStoreDatabase.Characteristic.DURAB
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.datastore.database.DataStoreTable;
 import com.android.tools.datastore.database.UnifiedEventsTable;
-import com.android.tools.datastore.service.CpuService;
 import com.android.tools.datastore.service.EventService;
 import com.android.tools.datastore.service.MemoryService;
 import com.android.tools.datastore.service.ProfilerService;
 import com.android.tools.datastore.service.TransportService;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
@@ -196,7 +194,6 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     registerService(myTransportService);
     registerService(new ProfilerService(this, myLogService));
     registerService(new EventService(this, myFetchExecutor));
-    registerService(new CpuService(this, myFetchExecutor, myLogService));
     registerService(new MemoryService(this, unifiedTable, myFetchExecutor, myLogService));
   }
 
@@ -294,10 +291,6 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     return myServices;
   }
 
-  public CpuServiceGrpc.CpuServiceBlockingStub getCpuClient(long streamId) {
-    return myConnectedClients.containsKey(streamId) ? myConnectedClients.get(streamId).getCpuClient() : null;
-  }
-
   public EventServiceGrpc.EventServiceBlockingStub getEventClient(long streamId) {
     return myConnectedClients.containsKey(streamId) ? myConnectedClients.get(streamId).getEventClient() : null;
   }
@@ -348,11 +341,6 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
 
     @Nullable
     public ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerClient() {
-      return null;
-    }
-
-    @Nullable
-    public CpuServiceGrpc.CpuServiceBlockingStub getCpuClient() {
       return null;
     }
 

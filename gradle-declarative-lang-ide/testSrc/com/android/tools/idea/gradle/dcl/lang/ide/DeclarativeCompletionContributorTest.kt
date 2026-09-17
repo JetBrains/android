@@ -169,7 +169,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
           "compileOptions",
           "compileSdk",
           "defaultConfig",
-          "dependenciesDcl",
+          "dependencies",
           "getDefaultProguardFile",
           "lint",
           "namespace",
@@ -659,7 +659,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
         .trimIndent(),
       """
         androidLibrary {
-          dependenciesDcl {
+          dependencies {
               $caret
           }
         }"""
@@ -712,7 +712,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
     doCompletionTest(
       """
       androidLibrary {
-        dependenciesDcl {
+        dependencies {
           androidTestIm$caret
         }
       }
@@ -720,7 +720,7 @@ class DeclarativeCompletionContributorTest : UsefulTestCase() {
         .trimIndent(),
       """
     androidLibrary {
-      dependenciesDcl {
+      dependencies {
         androidTestImplementation($caret)
       }
     }

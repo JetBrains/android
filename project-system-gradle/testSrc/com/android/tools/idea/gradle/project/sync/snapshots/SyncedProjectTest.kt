@@ -225,6 +225,8 @@ abstract class SyncedProjectTest(selfTest: Boolean = false, agpVersion: AgpVersi
 
   @Test fun testTestSuites() = testProject(TestProject.TEST_SUITES)
 
+  @Test fun testSimpleApplicationWithBackups() = testProject(TestProject.SIMPLE_APPLICATION_WITH_BACKUPS)
+
   override fun getTestDefs(testProject: TestProject): List<SyncedProjectTestDef> {
     return tests[testProject].orEmpty()
   }

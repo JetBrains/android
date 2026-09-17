@@ -973,12 +973,12 @@ android-studio/plugins/Kotlin/lib/kotlinc.sam-with-receiver-compiler-plugin.jar
 android-studio/plugins/Kotlin/lib/kotlinc.scripting-compiler-plugin.jar
 android-studio/plugins/Kotlin/lib/vavr.jar
 android-studio/plugins/android-apk/lib/android-apk.jar
+android-studio/plugins/android-apk/lib/org.eclipse.cdt.core_6.8.1.201907021957.jar
+android-studio/plugins/android-apk/lib/org.eclipse.equinox.common_3.10.500.v20190815-1535.jar
 android-studio/plugins/android-compose-ide-plugin/lib/android-compose-ide-plugin.jar
 android-studio/plugins/android-compose-ide-plugin/lib/android-compose-ide-plugin.so.jar
 android-studio/plugins/android-ndk/lib/android-ndk.jar
 android-studio/plugins/android-ndk/lib/android-ndk.so.jar
-android-studio/plugins/android-ndk/lib/org.eclipse.cdt.core_6.8.1.201907021957.jar
-android-studio/plugins/android-ndk/lib/org.eclipse.equinox.common_3.10.500.v20190815-1535.jar
 android-studio/plugins/android-ndk/resources/lldb/LICENSE.TXT
 android-studio/plugins/android-ndk/resources/lldb/LICENSE.vcredist
 android-studio/plugins/android-ndk/resources/lldb/android/arm64-v8a/lldb-server
@@ -1549,7 +1549,6 @@ android-studio/plugins/android-ndk/resources/lldb/lib/zoneinfo/_common.py
 android-studio/plugins/android-ndk/resources/lldb/lib/zoneinfo/_tzpath.py
 android-studio/plugins/android-ndk/resources/lldb/lib/zoneinfo/_zoneinfo.py
 android-studio/plugins/android-ndk/resources/lldb/shared/jobject_printers/jstring_reader.py
-android-studio/plugins/android/lib/HdrHistogram-2.1.12.jar
 android-studio/plugins/android/lib/aapt2-proto-8.1.0-10154469.jar
 android-studio/plugins/android/lib/adt-ui.jar
 android-studio/plugins/android/lib/android-base-common.jar
@@ -1573,7 +1572,6 @@ android-studio/plugins/android/lib/backgroundtask_inspector_java_proto.jar
 android-studio/plugins/android/lib/build-analysis-results-proto.jar
 android-studio/plugins/android/lib/build-common.jar
 android-studio/plugins/android/lib/chime_kt_proto.jar
-android-studio/plugins/android/lib/commons-lang-2.6.jar
 android-studio/plugins/android/lib/compilerCommon.antlr.shaded_jar.jar
 android-studio/plugins/android/lib/compilerCommon.antlr_runtime.shaded_jar.jar
 android-studio/plugins/android/lib/core-3.5.0.jar
@@ -1676,9 +1674,9 @@ android-studio/plugins/android/lib/studio-grpc.jar
 android-studio/plugins/android/lib/studio-proto.jar
 android-studio/plugins/android/lib/tensorflow-lite-metadata-0.1.0-rc2.jar
 android-studio/plugins/android/lib/traceprocessor_protos.jar
-android-studio/plugins/android/lib/tracing-desktop-2.0.0-alpha01.jar
+android-studio/plugins/android/lib/tracing-desktop-2.0.0-alpha03.jar
 android-studio/plugins/android/lib/tracing-perfetto-handshake-1.0.0-beta02.jar
-android-studio/plugins/android/lib/tracing-wire-desktop-2.0.0-alpha01.jar
+android-studio/plugins/android/lib/tracing-wire-desktop-2.0.0-alpha03.jar
 android-studio/plugins/android/lib/transport_java_proto.jar
 android-studio/plugins/android/lib/ui-animation-tooling-internal.jar
 android-studio/plugins/android/lib/utp.jar
@@ -2068,6 +2066,7 @@ android-studio/plugins/cidr-base/lib/modules/intellij.cidr.util.jar
 android-studio/plugins/cidr-base/lib/modules/intellij.cidr.util.serializer.jar
 android-studio/plugins/cidr-base/lib/modules/intellij.cidr.util.ui.jar
 android-studio/plugins/cidr-base/lib/modules/intellij.cidr.workspaceModel.jar
+android-studio/plugins/cidr-base/lib/modules/intellij.cmake.psi.jar
 android-studio/plugins/cidr-clangd/bin/clang/win/x64/bin/clangd.exe
 android-studio/plugins/cidr-clangd/lib/LICENSE.txt
 android-studio/plugins/cidr-clangd/lib/cidr-clangd.jar
@@ -2396,13 +2395,7 @@ android-studio/plugins/gemini/lib/libfeedback_java_proto.jar
 android-studio/plugins/gemini/lib/libgoogle_auth_intellij_lib.jar
 android-studio/plugins/gemini/lib/libserviceusage_v1_java_lib.jar
 android-studio/plugins/gemini/lib/libv1internal_java_rest.jar
-android-studio/plugins/gemini/lib/lucene-backward-codecs-10.3.0.jar
-android-studio/plugins/gemini/lib/lucene-facet-10.3.0.jar
-android-studio/plugins/gemini/lib/lucene-highlighter-10.3.0.jar
-android-studio/plugins/gemini/lib/lucene-memory-10.3.0.jar
-android-studio/plugins/gemini/lib/lucene-queries-10.3.0.jar
-android-studio/plugins/gemini/lib/lucene-queryparser-10.3.0.jar
-android-studio/plugins/gemini/lib/lucene-sandbox-10.3.0.jar
+android-studio/plugins/gemini/lib/lucene-aiplugin-shaded.jar
 android-studio/plugins/gemini/lib/mcp-sdk-libraries.jar
 android-studio/plugins/gemini/lib/openai-java-client-okhttp-4.21.0.jar
 android-studio/plugins/gemini/lib/openai-java-core-4.21.0.jar

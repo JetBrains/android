@@ -180,12 +180,13 @@ class FakeScreenSharingAgent(
         listOf(
           DeviceState(0, "CLOSE"),
           DeviceState(1, "TENT"),
-          DeviceState(2, "HALF_FOLDED"),
-          DeviceState(3, "OPEN"),
-          DeviceState(4, "REAR_DISPLAY_STATE"),
-          DeviceState(5, "CONCURRENT_INNER_DEFAULT", systemProperties = setOf(PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP)),
-          DeviceState(6, "REAR_DUAL"),
-          DeviceState(7, "FLIPPED"),
+          DeviceState(2, "HALF_OPENED"),
+          DeviceState(3, "HALF_FOLDED"),
+          DeviceState(4, "OPEN"),
+          DeviceState(5, "REAR_DISPLAY_STATE"),
+          DeviceState(6, "CONCURRENT_INNER_DEFAULT", systemProperties = setOf(PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP)),
+          DeviceState(7, "CONCURRENT_OUTER_DEFAULT", systemProperties = setOf(PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP)),
+          DeviceState(8, "FLIPPED"),
         )
     }
 

@@ -52,7 +52,10 @@ open class CommonPreviewActionManager(
   }
 
   override fun getPopupMenuActions(leafComponent: NlComponent?, mouseEvent: MouseEvent): DefaultActionGroup =
-    DefaultActionGroup().apply { add(copyResultImageAction) }
+    DefaultActionGroup().apply {
+      add(copyResultImageAction)
+      add(ViewInFocusModeAction().visibleOnlyInDefaultPreview())
+    }
 
   override fun getToolbarActions(selection: MutableList<NlComponent>) = DefaultActionGroup()
 

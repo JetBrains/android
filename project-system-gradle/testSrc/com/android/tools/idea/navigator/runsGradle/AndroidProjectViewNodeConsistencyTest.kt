@@ -36,6 +36,7 @@ class AndroidProjectViewNodeConsistencyTest : AndroidProjectViewNodeConsistencyT
         TestProjectDef(TestProject.COMPOSITE_BUILD),
         TestProjectDef(TestProject.NON_STANDARD_SOURCE_SETS),
         TestProjectDef(TestProject.LINKED),
+        TestProjectDef(TestProject.SIMPLE_APPLICATION_WITH_BACKUPS),
       )
   }
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.integration.taskbased
 
+import com.android.tools.asdriver.tests.UIXpathGenerator
 import com.android.tools.profilers.integration.ProfilersTestBase
 import com.google.common.truth.Truth.assertThat
 import java.io.File
@@ -64,7 +65,7 @@ class ImportAndExportTraceTest : ProfilersTestBase() {
         // open recording tab
         openPastRecordingsTab(studio)
         selectLastRecordingFromRecordingList(studio)
-        studio.invokeComponent("Open profiler task")
+        studio.invokeComponentByXpath(UIXpathGenerator().setText("Open profiler task").build())
         // Verifying CpuAnalysisSummaryTab component, since the last recording listed should be cpu-simpleperf.trace,
         // as this was the first one opened in the test.
         studio.waitForComponentByClass("CpuAnalysisSummaryTab", "UsageInstructionsView")

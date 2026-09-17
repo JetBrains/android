@@ -495,6 +495,33 @@ public abstract class Ide implements AutoCloseable{
     }
   }
 
+  /**
+   * Waits for component using Xpath.
+   *
+   * @param xpath XPath to locate the component.
+   */
+  public void waitForComponentByXpath(String xpath) {
+    waitForComponentByXpath(xpath, false);
+  }
+
+  /**
+   * Waits for component using Xpath. If isEnabled true, checks if it is enabled.
+   *
+   * @param xpath XPath to locate the component.
+   * @param isEnabled Check if element is enabled.
+   */
+  public void waitForComponentByXpath(String xpath, boolean isEnabled) {
+    ASDriver.WaitForComponentByXpathRequest request =
+      ASDriver.WaitForComponentByXpathRequest.newBuilder().setXpath(xpath).setIsEnabled(isEnabled).build();
+    ASDriver.InvokeComponentByXpathResponse response = ide.waitForComponentByXpath(request);
+
+    if (response.getResult() == ASDriver.InvokeComponentByXpathResponse.Result.OK) {
+      return;
+    } else {
+      throw new IllegalStateException("Failed to wait for component by xpath: " + xpath + ". " + formatErrorMessage(response.getErrorMessage()));
+    }
+  }
+
   protected static String formatErrorMessage(String errorMessage) {
     if (StringUtil.isEmpty(errorMessage)) {
       return "Check the stderr log for the cause. See go/e2e-find-log-files for more info.";

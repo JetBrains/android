@@ -58,5 +58,9 @@ class StartupSystemTraceTaskTest : ProfilersStartupTaskTestBase() {
    * 5. Verify if the capture is parsed successfully.
    * 6. Verify UI components after capture is parsed.
    */
-  @Test fun test() = testStartUpTask()
+  @Test
+  fun test() {
+    system.installation.addVmOption("-Dprofiler.system.trace.in.editor=false")
+    testStartUpTask()
+  }
 }

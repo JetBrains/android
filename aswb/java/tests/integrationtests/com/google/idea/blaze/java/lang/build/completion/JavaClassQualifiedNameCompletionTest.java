@@ -47,18 +47,24 @@ public class JavaClassQualifiedNameCompletionTest extends BuildFileIntegrationTe
             "    name = 'binary',",
             "    main_class = 'com.google.bin.M',",
             ")");
+    com.intellij.openapi.vfs.VirtualFile sourceRoot = workspace.createPsiDirectory(new WorkspacePath("java")).getVirtualFile();
+    com.intellij.testFramework.PsiTestUtil.addSourceRoot(testFixture.getModule(), sourceRoot);
 
     Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
     editorTest.setCaretPosition(editor, 2, "    main_class = 'com.google.bin.M".length());
 
-    LookupElement[] completionItems = testFixture.complete(CompletionType.CLASS_NAME);
-    assertThat(completionItems).isNull();
-    assertFileContents(
-        file,
-        "java_binary(",
-        "    name = 'binary',",
-        "    main_class = 'com.google.bin.Main',",
-        ")");
+    try {
+      LookupElement[] completionItems = testFixture.complete(CompletionType.CLASS_NAME);
+      assertThat(completionItems).isNull();
+      assertFileContents(
+          file,
+          "java_binary(",
+          "    name = 'binary',",
+          "    main_class = 'com.google.bin.Main',",
+          ")");
+    } finally {
+      com.intellij.testFramework.PsiTestUtil.removeSourceRoot(testFixture.getModule(), sourceRoot);
+    }
   }
 
   @Test
@@ -76,13 +82,19 @@ public class JavaClassQualifiedNameCompletionTest extends BuildFileIntegrationTe
             "    name = 'binary',",
             "    main_clazz = 'com.google.bin.M',",
             ")");
+    com.intellij.openapi.vfs.VirtualFile sourceRoot = workspace.createPsiDirectory(new WorkspacePath("java")).getVirtualFile();
+    com.intellij.testFramework.PsiTestUtil.addSourceRoot(testFixture.getModule(), sourceRoot);
 
     Editor editor = editorTest.openFileInEditor(file.getVirtualFile());
     editorTest.setCaretPosition(editor, 2, "    main_clazz = 'com.google.bin.M".length());
 
-    LookupElement[] completionItems = testFixture.complete(CompletionType.CLASS_NAME);
-    assertThat(completionItems).isEmpty();
-    assertFileContents(
-        file, "java_binary(", "    name = 'binary',", "    main_clazz = 'com.google.bin.M',", ")");
+    try {
+      LookupElement[] completionItems = testFixture.complete(CompletionType.CLASS_NAME);
+      assertThat(completionItems).isEmpty();
+      assertFileContents(
+          file, "java_binary(", "    name = 'binary',", "    main_clazz = 'com.google.bin.M',", ")");
+    } finally {
+      com.intellij.testFramework.PsiTestUtil.removeSourceRoot(testFixture.getModule(), sourceRoot);
+    }
   }
 }

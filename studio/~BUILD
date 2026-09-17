@@ -1,9 +1,11 @@
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("@rules_java//java:defs.bzl", "java_binary")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
+load("//tools/adt/idea/studio:searchable-options/android-studio/content.bzl", "SEARCHABLE_OPTIONS")
 load("//tools/adt/idea/studio:studio.bzl", "android_studio", "android_studio_configuration", "studio_plugin")
 load("//tools/adt/idea/studio/rules:app-icon.bzl", "app_icon")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
+load("//tools/vendor/google/alt-lang:exports.bzl", "STUDIO_NDK_LSP_PLUGINS", "STUDIO_NDK_SEARCHABLE_OPTIONS_PLUGINS")
 load(":version.bzl", "STUDIO_CODENAME", "STUDIO_CONFIG", "STUDIO_MICRO_PATCH", "STUDIO_RELEASE_NUMBER", "STUDIO_VERSION")
 
 package(
@@ -78,7 +80,6 @@ studio_plugin(
         "//prebuilts/tools/common/m2:brotli-dec-0.1.2",
         "//prebuilts/tools/common/m2:eclipse-layout-kernel",
         "//prebuilts/tools/common/m2:juniversalchardet",
-        "//prebuilts/tools/common/m2:commons-lang",
         "//prebuilts/tools/common/m2:javapoet",
         "//prebuilts/tools/common/m2:auto-common",
         "//prebuilts/tools/common/m2:javax-servlet",
@@ -94,8 +95,8 @@ studio_plugin(
         "//prebuilts/tools/common/m2:shark-graph-2.14",
         "//prebuilts/tools/common/m2:shark-hprof-2.14",
         "//prebuilts/tools/common/m2:shark-log-2.14",
-        "//prebuilts/tools/common/m2:tracing-desktop-2.0.0-alpha01",
-        "//prebuilts/tools/common/m2:tracing-wire-desktop-2.0.0-alpha01",
+        "//prebuilts/tools/common/m2:tracing-desktop-2.0.0-alpha03",
+        "//prebuilts/tools/common/m2:tracing-wire-desktop-2.0.0-alpha03",
         "//prebuilts/tools/common/m2:wire-runtime-jvm-5.4.0",
         "//tools/adt/idea/.idea/libraries:aapt-proto",
         "//tools/adt/idea/.idea/libraries:agp-version",
@@ -108,7 +109,6 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:google-baksmali",
         "//tools/adt/idea/.idea/libraries:google-dexlib2",
         "//tools/adt/idea/.idea/libraries:gradle-shared-proto",
-        "//tools/adt/idea/.idea/libraries:HdrHistogram",
         "//tools/adt/idea/.idea/libraries:javax-inject",
         "//tools/adt/idea/.idea/libraries:jetty",
         "//tools/adt/idea/.idea/libraries:kotlin-multiplatform-android-models-proto",
@@ -320,7 +320,6 @@ studio_plugin(
             "//tools/vendor/google/android-keys:android-keys",
             "//tools/vendor/google/focus-plugin:declarative-gradle.focus-plugin",
             "//tools/vendor/google/marketing:marketing",
-            "//tools/adt/idea/glasses-pairing:glasses-pairing",
         ],
         "artwork.jar": [
             "//tools/adt/idea/artwork:intellij.android.artwork",
@@ -500,11 +499,11 @@ studio_plugin(
 studio_plugin(
     name = "com.android.tools.apk",
     directory = "android-apk",
+    libs = ["//tools/vendor/google/android-apk:org.eclipse.cdt"],
     modules = {"android-apk.jar": ["//tools/vendor/google/android-apk:android-apk"]},
     visibility = ["//visibility:public"],
     deps = [
         ":com.android.tools.idea.smali",
-        ":com.android.tools.ndk",
         ":org.jetbrains.android",
         "@intellij//:com.intellij.java",
     ],
@@ -513,7 +512,6 @@ studio_plugin(
 studio_plugin(
     name = "com.android.tools.ndk",
     directory = "android-ndk",
-    libs = ["//tools/vendor/google/android-ndk/lib:org.eclipse.cdt"],
     modules = {"android-ndk.jar": ["//tools/vendor/google/android-ndk:android-ndk"]},
     resources = {
         "resources/lldb": [
@@ -553,7 +551,6 @@ studio_plugin(
             "//tools/adt/idea/compose-designer:intellij.android.compose-designer",
             "//tools/adt/idea/design-plugin:intellij.android.design-plugin",
             "//tools/adt/idea/design-plugin/descriptor:intellij.android.design-plugin.descriptor",
-            "//tools/adt/idea/designer/customview:intellij.android.designer.customview",
             "//tools/adt/idea/designer:intellij.android.designer",
             "//tools/adt/idea/designer/gradle:intellij.android.designer.gradle",
             "//tools/adt/idea/glance-designer:intellij.android.glance-designer",
@@ -816,7 +813,7 @@ studio_plugin(
         "//tools/vendor/google/ml/aiplugin/core/aicore:aida_proto",
         "//tools/vendor/google/ml/aiplugin/core/aicore:aida_protobuf",
         "//tools/vendor/google/ml/aiplugin/core/aicore:gemini_plugin_proto",
-        "//tools/vendor/google/ml/aiplugin/rag/lucene/sdkcompat:lucene-lib",
+        "//tools/vendor/google/ml/aiplugin/rag/lucene:lucene-aiplugin",
         "//tools/vendor/modelcontextprotocol/kotlin-sdk:mcp-sdk-libraries",
         "//tools/vendor/google/ml/aiplugin/backends/aicode:aicode_grpc",
     ],
@@ -827,12 +824,18 @@ studio_plugin(
             "//tools/vendor/google/ml/aiplugin/core/terminal:aiplugin.core.terminal",
             "//tools/vendor/google/ml/aiplugin/core/aicore:aiplugin.core.aicore",
             "//tools/vendor/google/ml/aiplugin/agents/agents-core:aiplugin.agents.agents-core",
+            "//tools/vendor/google/ml/aiplugin/v2/agent-controller:aiplugin.v2.agent-controller",
             "//tools/vendor/google/ml/aiplugin/v2/agent-sdk:aiplugin.v2.agent-sdk",
             "//tools/vendor/google/ml/aiplugin/v2/agent-sdk-api:aiplugin.v2.agent-sdk-api",
+            "//tools/vendor/google/ml/aiplugin/v2/agent-ui:aiplugin.v2.agent-ui",
+            "//tools/vendor/google/ml/aiplugin/v2/agent-ui-container:aiplugin.v2.agent-ui-container",
+            "//tools/vendor/google/ml/aiplugin/v2/agent-ui-api:aiplugin.v2.agent-ui-api",
+            "//tools/vendor/google/ml:aiplugin.v2.agent-uistate",
             "//tools/vendor/google/ml/aiplugin/v2/datamodel:aiplugin.v2.datamodel",
             "//tools/vendor/google/ml/aiplugin/android:aiplugin.android",
             "//tools/vendor/google/ml/aiplugin/android/gradle:aiplugin.android.gradle",
             "//tools/vendor/google/ml/aiplugin/android/enterprise:aiplugin.android.enterprise",
+            "//tools/vendor/google/ml/aiplugin/android/onboarding-common:aiplugin.android.onboarding-common",
             "//tools/vendor/google/ml/aiplugin/android/journeys:aiplugin.android.journeys",
             "//tools/vendor/google/ml/aiplugin/android/journeys/gradle:aiplugin.android.journeys.gradle",
             "//tools/vendor/google/ml/aiplugin/android-plugin:aiplugin.android-plugin",
@@ -846,10 +849,8 @@ studio_plugin(
             "//tools/vendor/google/ml/aiplugin/mcp/client:aiplugin.mcp.client.sdkcompat",
             "//tools/vendor/google/ml/aiplugin/rag/indexer:aiplugin.rag.indexer",
             "//tools/vendor/google/ml/aiplugin/rag/kb:aiplugin.rag.kb",
-            "//tools/vendor/google/ml/aiplugin/rag/lucene/sdkcompat:aiplugin.rag.lucene.sdkcompat",
+            "//tools/vendor/google/ml/aiplugin/rag/lucene:aiplugin.rag.lucene",
             "//tools/vendor/google/ml/aiplugin/sdkcompat:aiplugin.sdkcompat",
-            "//tools/vendor/google/ml/aiplugin/v2/agent-ui:aiplugin.v2.agent-ui",
-            "//tools/vendor/google/ml/aiplugin/v2/agent-controller:aiplugin.v2.agent-controller",
             "//tools/vendor/google/ml/aiplugin/ui/ui-core:aiplugin.ui.ui-core",
             "//tools/vendor/google/ml/aiplugin/cloudcode-core:aiplugin.cloudcode-core",
             "//tools/vendor/google/ml/aiplugin/ij-platform:aiplugin.ij-platform",
@@ -873,11 +874,12 @@ studio_plugin(
         "@intellij//:intellij.libraries.compose.runtime.desktop",
         "@intellij//:intellij.libraries.grpc",
         "@intellij//:intellij.libraries.grpc.netty.shaded",
-        "@intellij//:intellij.libraries.lucene.common",
         "@intellij//:intellij.libraries.skiko",
         "@intellij//:intellij.platform.jewel.foundation",
         "@intellij//:intellij.platform.jewel.ideLafBridge",
         "@intellij//:intellij.platform.jewel.markdown.core",
+        "@intellij//:intellij.platform.jewel.markdown.extensions.gfmAlerts",
+        "@intellij//:intellij.platform.jewel.markdown.extensions.gfmStrikethrough",
         "@intellij//:intellij.platform.jewel.markdown.extensions.gfmTables",
         "@intellij//:intellij.platform.jewel.markdown.ideLafBridgeStyling",
         "@intellij//:intellij.platform.jewel.ui",
@@ -943,10 +945,9 @@ android_studio_configuration(
     version_type = STUDIO_VERSION,
 )
 
-STUDIO_BASE_PLUGINS = [
+STUDIO_CORE_PLUGINS = [
     "//tools/adt/idea/studio:org.jetbrains.android",
     "//tools/adt/idea/studio:com.android.tools.apk",
-    "//tools/adt/idea/studio:com.android.tools.ndk",
     "//tools/adt/idea/studio:com.android.tools.design",
     "//tools/adt/idea/studio:androidx.compose.plugins.idea",
     "//tools/adt/idea/studio:com.google.services.git4insights",
@@ -962,6 +963,12 @@ STUDIO_BASE_PLUGINS = [
     "//tools/adt/idea/studio:com.android.tools.gradle.dsl",
 ]
 
+STUDIO_BASE_PLUGINS = STUDIO_CORE_PLUGINS + STUDIO_NDK_LSP_PLUGINS
+
+# Searchable options can't be controlled by --//tools/vendor/google/alt-lang/lsp4ij/as-plugin:enabled flag
+# because select() objects cannot be iterated over in Starlark macros during the loading phase.
+STUDIO_SEARCHABLE_OPTIONS_PLUGINS = STUDIO_CORE_PLUGINS + STUDIO_NDK_SEARCHABLE_OPTIONS_PLUGINS
+
 android_studio(
     name = "android-studio",
     codesign_entitlements = "codesign/entitlements.xml",
@@ -975,6 +982,33 @@ android_studio(
     legacy_default_configuration = STUDIO_CONFIG,
     platform = "@intellij//:intellij-sdk",
     plugins = STUDIO_BASE_PLUGINS,
+    searchable_options_metadata = SEARCHABLE_OPTIONS,
+    searchable_options_plugin_lst = STUDIO_SEARCHABLE_OPTIONS_PLUGINS,
+    selector = "AndroidStudio",
+    update_message_template = ":update_message.html",
+    version_code_name = STUDIO_CODENAME,
+    version_micro_patch = STUDIO_MICRO_PATCH,
+    version_release_number = STUDIO_RELEASE_NUMBER,
+    visibility = ["//visibility:public"],
+)
+
+android_studio(
+    name = "android-studio-with-optional-plugins",
+    codesign_entitlements = "codesign/entitlements.xml",
+    configurations = [
+        ":canary",
+        ":nightly",
+        ":stable",
+    ],
+    generate_package_metadata = False,
+    jre = "//prebuilts/studio/jdk:jdk-bundle",
+    legacy_default_configuration = STUDIO_CONFIG,
+    platform = "@intellij//:intellij-sdk",
+    plugins = STUDIO_BASE_PLUGINS + [
+        "//tools/vendor/google/optional-plugins:plugins",
+    ],
+    searchable_options_metadata = SEARCHABLE_OPTIONS,
+    searchable_options_plugin_lst = STUDIO_SEARCHABLE_OPTIONS_PLUGINS,
     selector = "AndroidStudio",
     update_message_template = ":update_message.html",
     version_code_name = STUDIO_CODENAME,
@@ -998,6 +1032,10 @@ android_studio(
     plugins = STUDIO_BASE_PLUGINS + [
         "//tools/vendor/google/automation:com.android.tools.idea.automation",
     ],
+    searchable_options_deps = {
+        "nightly": [":android-studio.nightly.searchable-options"],
+        "canary": [":android-studio.canary.searchable-options"],
+    },
     selector = "AndroidStudio",
     update_message_template = "//tools/adt/idea/studio:update_message.html",
     version_code_name = STUDIO_CODENAME,
@@ -1263,6 +1301,7 @@ iml_module(
         "//tools/adt/idea/gradle-dsl-plugin:intellij.android.gradle.dsl.plugin",
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/vendor/google/optional-plugins",
     ],
 )
 
@@ -1448,6 +1487,7 @@ iml_module(
         "@intellij//:intellij.cidr.util.serializer",
         "@intellij//:intellij.cidr.util.ui",
         "@intellij//:intellij.cidr.workspaceModel",
+        "@intellij//:intellij.cmake.psi",
         "@intellij//:intellij.compose.ide.plugin.gradleTooling.rt",
         "@intellij//:intellij.debugger.streams.backend",
         "@intellij//:intellij.debugger.streams.core",
@@ -1659,6 +1699,7 @@ iml_module(
         "@intellij//:intellij.cidr.util.serializer",
         "@intellij//:intellij.cidr.util.ui",
         "@intellij//:intellij.cidr.workspaceModel",
+        "@intellij//:intellij.cmake.psi",
         "@intellij//:intellij.compose.ide.plugin.gradleTooling.rt",
         "@intellij//:intellij.debugger.streams.backend",
         "@intellij//:intellij.debugger.streams.core",
@@ -1825,4 +1866,16 @@ iml_module(
         "@intellij//:intellij.xml.langInjection.xpath",
         "@intellij//:intellij.yaml.backend",
     ],
+)
+
+exports_files([
+    "searchable-options/update_searchable_options.py",
+    "searchable-options/searchable_options_test.py",
+])
+
+# This target finds all the update_searchable_options target of all the
+# android_studio definitions in the workspace and run them sequentially.
+sh_binary(
+    name = "update_searchable_options",
+    srcs = ["//tools/adt/idea/studio:searchable-options/update_searchable_options.sh"],
 )

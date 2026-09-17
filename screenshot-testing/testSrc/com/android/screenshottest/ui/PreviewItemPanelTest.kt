@@ -353,6 +353,76 @@ class PreviewItemPanelTest {
     assertTrue("Flag should still be true", panel.isLoadedSuccessfully)
   }
 
+  @Test
+  fun verifyPlaceholderIsSetSynchronously() = runInEdtAndWait {
+    val details =
+      PreviewDetails(
+        testId = "test.id",
+        className = "TestClass",
+        methodName = "testMethod",
+        previewName = "preview",
+        testResult = AndroidTestCaseResult.PASSED,
+        diffImagePath = null,
+      )
+    val panel = PreviewItemPanel(details, projectRule.project)
+
+    // Trigger the view change.
+    panel.showImageForView(ScreenshotViewType.DIFF)
+
+    // NOT dispatching the events here! The UI must update synchronously
+    // to work correctly within a JBList CellRenderer.
+
+    val label = findLabel(panel)
+    assertNotNull("Placeholder label should be applied synchronously", label)
+    assertEquals("No Difference", label?.text)
+  }
+
+  @Test
+  fun verifyPanelReuseUpdatesPlaceholderSynchronously() = runInEdtAndWait {
+    // 1. Initial state: The panel is rendering a successful new image
+    val srcPath = temporaryFolder.newFile("image.png").absolutePath
+    val detailsWithImage =
+      PreviewDetails(
+        testId = "test.id1",
+        className = "TestClass",
+        methodName = "testMethod1",
+        previewName = "preview1",
+        testResult = AndroidTestCaseResult.FAILED,
+        srcImagePath = srcPath,
+      )
+    val panel =
+      PreviewItemPanel(
+        previewData = detailsWithImage,
+        project = projectRule.project,
+        showDetails = false,
+        appExecutorService = MoreExecutors.newDirectExecutorService(),
+        createImageIcon = { mock() },
+      )
+
+    panel.showImageForView(ScreenshotViewType.NEW)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    assertNull("There should be no placeholder label when an image is shown", findLabel(panel))
+
+    // 2. Re-use panel ("rubber stamp" simulation) for a second test without a diff image
+    val detailsWithoutImage =
+      PreviewDetails(
+        testId = "test.id2",
+        className = "TestClass",
+        methodName = "testMethod2",
+        previewName = "preview2",
+        testResult = AndroidTestCaseResult.PASSED,
+        diffImagePath = null,
+      )
+
+    // Switch the tab to Diff
+    panel.updateData(detailsWithoutImage, ScreenshotViewType.DIFF)
+
+    // Verify placeholder is present IMMEDIATELY without dispatching events
+    val label = findLabel(panel)
+    assertNotNull("Placeholder should be updated immediately upon panel reuse", label)
+    assertEquals("No Difference", label?.text)
+  }
+
   private fun findLabel(container: Container): JBLabel? {
     for (component in container.components) {
       if (component is JBLabel) {

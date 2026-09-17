@@ -31,9 +31,6 @@ public class DependenciesDslElement extends GradleDslElementList implements Desc
   public static final PropertiesElementDescription<DependenciesDslElement> DEPENDENCIES =
     new PropertiesElementDescription<>("dependencies", DependenciesDslElement.class, DependenciesDslElement::new);
 
-  public static final PropertiesElementDescription<DependenciesDslElement> DEPENDENCIES_DCL =
-    new PropertiesElementDescription<>("dependenciesDcl", DependenciesDslElement.class, DependenciesDslElement::new);
-
   @Override
   public @NotNull PropertiesElementDescription<DependenciesDslElement> getDescription() {
     return DEPENDENCIES;
@@ -153,7 +150,20 @@ public class DependenciesDslElement extends GradleDslElementList implements Desc
       .compound(Ordering.natural());
 
 
-  public static final Comparator comparator = Comparator.comparing(GradleDslElement::getName, CONFIGURATION_ORDERING);
+  public static final Comparator<GradleDslElement> comparator =
+    Comparator.comparing(GradleDslElement::getName, CONFIGURATION_ORDERING)
+      .thenComparing(DependenciesDslElement::isPlatformDependency)
+      .thenComparing(DependenciesDslElement::getDependencySortKey);
+
+  private static int isPlatformDependency(GradleDslElement element) {
+    if (element instanceof GradleDslMethodCall methodCall) {
+      String methodName = methodCall.getMethodName();
+      if ("platform".equals(methodName) || "enforcedPlatform".equals(methodName)) {
+        return 0;
+      }
+    }
+    return 1;
+  }
 
   public DependenciesDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
@@ -184,5 +194,25 @@ public class DependenciesDslElement extends GradleDslElementList implements Desc
   @Override
   public boolean isBlockElement() {
     return true;
+  }
+
+  private static String getDependencySortKey(GradleDslElement element) {
+    if (element instanceof GradleDslLiteral literal) {
+      Object value = literal.getValue();
+      return value != null ? value.toString() : "";
+    }
+    if (element instanceof GradleDslMethodCall methodCall) {
+      // e.g., implementation(libs.androidx.core.ktx)
+      // We only want the argument part for sorting: "libs.androidx.core.ktx"
+      if (!methodCall.getArguments().isEmpty()) {
+        // Assuming the first argument is the key for sorting
+        GradleDslElement arg = methodCall.getArguments().getFirst();
+        // The argument itself is often a GradleDslExpression, need its text representation
+        return arg.toString().trim();
+      }
+      // Fallback for multiple arguments or unexpected structure
+      return methodCall.getMethodName();
+    }
+    return element.getName();
   }
 }

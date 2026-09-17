@@ -154,7 +154,7 @@ class DeclarativeAnnotatorTest : UsefulTestCase() {
       """
     androidLibrary {
         namespace = "com.google.samples.apps.nowinandroid.feature.bookmarks"
-        dependenciesDcl {
+        dependencies {
             implementation(project(":core:data"))
         }
         buildFeatures {
@@ -175,7 +175,7 @@ class DeclarativeAnnotatorTest : UsefulTestCase() {
       """
     androidLibrary {
         ${"nameSpace" highlightedAs HighlightSeverity.ERROR} = "com.google.samples.apps.nowinandroid.feature.bookmarks"
-        dependenciesDcl {
+        dependencies {
             implementation(project(":core:data"))
         }
          buildFeatures {
@@ -264,7 +264,7 @@ class DeclarativeAnnotatorTest : UsefulTestCase() {
     doBuildFileTest(
       """
     androidLibrary {
-        dependenciesDcl {
+        dependencies {
             ${"implementation = \"dependency\"" highlightedAs HighlightSeverity.ERROR}
          }
     }
@@ -302,7 +302,7 @@ class DeclarativeAnnotatorTest : UsefulTestCase() {
     doBuildFileTest(
       """
       androidApp {
-        dependenciesDcl {
+        dependencies {
            ${"api = \"org.example:example:1.0\"".highlightedAs(HighlightSeverity.ERROR, "Element type should be of type: Factory")}
         }
       }

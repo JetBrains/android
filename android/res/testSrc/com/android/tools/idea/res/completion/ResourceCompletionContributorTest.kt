@@ -25,13 +25,14 @@ import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
-import com.intellij.codeInsight.lookup.LookupElementRenderer
+import com.intellij.codeInsight.lookup.SuspendingLookupElementRenderer
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.ImageUtil
 import java.awt.Color
 import java.awt.image.BufferedImage
 import javax.swing.Icon
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -113,7 +114,7 @@ class ResourceCompletionContributorTest {
   }
 
   @Test
-  fun drawableCompletion_java() {
+  fun drawableCompletion_java() = runTest {
     val file =
       fixture.addFileToProject(
         "/src/com/example/Foo.java",
@@ -154,7 +155,7 @@ class ResourceCompletionContributorTest {
   }
 
   @Test
-  fun drawableCompletion_kotlin() {
+  fun drawableCompletion_kotlin() = runTest {
     val file =
       fixture.addFileToProject(
         "/src/com/example/Foo.kt",
@@ -403,9 +404,9 @@ class ResourceCompletionContributorTest {
     return pres.icon
   }
 
-  private fun LookupElement.slowRenderedIcon(): Icon? {
+  private suspend fun LookupElement.slowRenderedIcon(): Icon? {
     val pres = LookupElementPresentation()
-    @Suppress("unchecked_cast") (expensiveRenderer as? LookupElementRenderer<LookupElement>)?.renderElement(this, pres)
+    @Suppress("unchecked_cast") (expensiveRenderer as? SuspendingLookupElementRenderer<LookupElement>)?.renderElement(this, pres)
     return pres.icon
   }
 

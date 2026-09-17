@@ -21,6 +21,7 @@ import com.android.tools.adtui.actions.createDataContext
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findAllDescendants
+import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.DEVICE_1
@@ -59,11 +60,12 @@ import com.android.tools.idea.layoutinspector.resource.SCREENLAYOUT_SIZE_SMALL
 import com.android.tools.idea.layoutinspector.resource.TOUCHSCREEN_STYLUS
 import com.android.tools.idea.layoutinspector.resource.UI_MODE_NIGHT_NO
 import com.android.tools.idea.layoutinspector.resource.UI_MODE_TYPE_NORMAL
+import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanel
 import com.android.tools.idea.layoutinspector.ui.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
+import com.android.tools.idea.layoutinspector.util.pressAndReleaseCtrlMinus
+import com.android.tools.idea.layoutinspector.util.pressAndReleaseCtrlPlus
 import com.android.tools.idea.layoutinspector.util.tab
-import com.android.tools.idea.layoutinspector.util.zoomIn
-import com.android.tools.idea.layoutinspector.util.zoomOut
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot
@@ -204,6 +206,11 @@ class AppInspectionSnapshotSupportTest {
       val focusManager = FakeKeyboardFocusManager(disposable)
       focusManager.setActiveWindow(SwingUtilities.getWindowAncestor(editorComponent))
 
+      // Show system nodes in the component tree:
+      layoutInspector.treeSettings.hideSystemNodes = false
+      val tree = editorComponent.componentTrees.single()
+      (ToolContent.getToolContent(tree) as LayoutInspectorTreePanel).refresh()
+
       // Start with focus on the editorComponent
       editorComponent.requestFocusInWindow()
       assertThat(focusManager.focusOwner).isEqualTo(editorComponent)
@@ -219,7 +226,7 @@ class AppInspectionSnapshotSupportTest {
       assertThat(focusManager.focusOwner).isInstanceOf(ActionButton::class.java)
 
       // Verify that the zoom controls shortcut keys are active from the action buttons
-      zoomOut()
+      pressAndReleaseCtrlMinus()
       assertThat(settings.scalePercent).isEqualTo(90)
 
       // Move out of the component tree toolbar
@@ -231,9 +238,14 @@ class AppInspectionSnapshotSupportTest {
       assertThat(focusManager.focusOwner).isInstanceOf(TreeTable::class.java)
 
       // Verify that the zoom controls shortcut keys are active from the component tree
-      // TODO(b/485272696) the keystrokes should cause expand all/collapse all in the component tree
-      zoomIn()
-      assertThat(settings.scalePercent).isEqualTo(100)
+      // The keystrokes should cause expand all/collapse all in the component tree, so zoom is NOT performed.
+      assertThat(tree.rowCount).isEqualTo(2)
+      pressAndReleaseCtrlPlus()
+      assertThat(settings.scalePercent).isEqualTo(90)
+      assertThat(tree.rowCount).isEqualTo(12)
+      pressAndReleaseCtrlMinus()
+      assertThat(tree.rowCount).isEqualTo(2)
+      assertThat(settings.scalePercent).isEqualTo(90)
 
       // Move out of the component tree
       ui.tab()
@@ -242,8 +254,8 @@ class AppInspectionSnapshotSupportTest {
       assertThat(focusManager.focusOwner).isInstanceOf(ActionButton::class.java)
 
       // Verify that the zoom controls shortcut keys are active from the zoom action buttons
-      zoomOut()
-      assertThat(settings.scalePercent).isEqualTo(90)
+      pressAndReleaseCtrlPlus()
+      assertThat(settings.scalePercent).isEqualTo(100)
 
       // Move out of the zoom buttons
       while (focusManager.focusOwner is ActionButton) {
@@ -254,8 +266,8 @@ class AppInspectionSnapshotSupportTest {
       assertThat(SwingUtilities.getAncestorOfClass(InspectorPanelImpl::class.java, focusManager.focusOwner)).isNotNull()
 
       // Verify that the zoom controls shortcut keys are active from the attributes table
-      zoomIn()
-      assertThat(settings.scalePercent).isEqualTo(100)
+      pressAndReleaseCtrlMinus()
+      assertThat(settings.scalePercent).isEqualTo(90)
 
       // Move out of the attributes table
       while (SwingUtilities.getAncestorOfClass(InspectorPanelImpl::class.java, focusManager.focusOwner) != null) {
@@ -551,4 +563,7 @@ class AppInspectionSnapshotSupportTest {
 
   private val Component.propertyTables: List<PTable>
     get() = findAllDescendants<PTable>().toList()
+
+  private val Component.componentTrees: List<TreeTable>
+    get() = findAllDescendants<TreeTable>().toList()
 }

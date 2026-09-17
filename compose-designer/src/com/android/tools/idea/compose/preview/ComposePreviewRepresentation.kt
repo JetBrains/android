@@ -17,8 +17,6 @@ package com.android.tools.idea.compose.preview
 
 import com.android.ide.common.rendering.api.Bridge
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
-import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.common.error.DesignerCommonIssuePanel
 import com.android.tools.idea.common.model.AccessibilityModelUpdater
@@ -29,6 +27,7 @@ import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
+import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationPreview
@@ -58,6 +57,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT
 import com.android.tools.idea.log.LoggerWithFixedInfo
 import com.android.tools.idea.preview.Colors
+import com.android.tools.idea.preview.CommonPreviewRenderQualityManager
 import com.android.tools.idea.preview.DefaultRenderQualityManager
 import com.android.tools.idea.preview.DefaultRenderQualityPolicy
 import com.android.tools.idea.preview.NavigatingInteractionHandler
@@ -73,8 +73,9 @@ import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.preview.essentials.essentialsModeFlow
 import com.android.tools.idea.preview.fast.CommonFastPreviewSurface
 import com.android.tools.idea.preview.fast.FastPreviewSurface
-import com.android.tools.idea.preview.find.findAnnotatedMethodsValues
+import com.android.tools.idea.preview.find.FilePreviewElementProvider
 import com.android.tools.idea.preview.flow.PreviewFlowManager
+import com.android.tools.idea.preview.flow.previewElementsOnFileChangesFlow
 import com.android.tools.idea.preview.focus.CommonFocusEssentialsModeManager
 import com.android.tools.idea.preview.focus.FocusMode
 import com.android.tools.idea.preview.groups.PreviewGroupManager
@@ -96,6 +97,9 @@ import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.rendering.RenderUtils
 import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility.FULL
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility.HIDDEN
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility.SPLIT
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -154,13 +158,18 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.android.uipreview.AndroidEditorSettings
+import org.jetbrains.android.uipreview.AndroidEditorSettings.EditorMode
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.psi.KtFile
@@ -177,6 +186,14 @@ private val defaultModelUpdater: NlModelUpdaterInterface = DefaultModelUpdater()
 private val accessibilityModelUpdater: NlModelUpdaterInterface = AccessibilityModelUpdater()
 
 /**
+ * The timeout after which the shared preview element flow will be stopped and its latest value lost. We use a non-zero value so the flow is
+ * not lost at instantiation time which saves some computations. At instantiation time, the [ComposePreviewRepresentation.hasPreviews]
+ * method will be called before the [PreviewFlowManager] is initialized. This also prevents new computations if a user switches tabs and
+ * comes back before the timeout.
+ */
+private const val SHARED_PREVIEW_FLOW_STOP_TIMEOUT_MS = 5_000L
+
+/**
  * [NlModel] associated preview data
  *
  * @param project the [Project] used by the current view.
@@ -184,7 +201,8 @@ private val accessibilityModelUpdater: NlModelUpdaterInterface = AccessibilityMo
  * @param previewFlowManager the [PreviewFlowManager] that manages flows of [ComposePreviewElementInstance]
  * @param previewElement the [ComposePreviewElementInstance] associated to this model
  * @param fastPreviewSurface the [FastPreviewSurface] of the preview
- * @param interactiveNavigationHandler the [InteractiveNavigationHandler] used to enable back navigation in Interactive mode
+ * @param interactivePreviewNavigationController the [InteractivePreviewNavigationController] used to manage the controls of the navigation
+ *   panel when [Interactive] mode is enabled.
  */
 private fun createPreviewElementDataProvider(
   project: Project,
@@ -192,7 +210,7 @@ private fun createPreviewElementDataProvider(
   previewFlowManager: PreviewFlowManager<out ComposePreviewElementInstance<*>>,
   previewElement: PsiComposePreviewElementInstance,
   fastPreviewSurface: FastPreviewSurface,
-  interactiveNavigationHandler: InteractiveNavigationHandler,
+  interactivePreviewNavigationController: InteractivePreviewNavigationController,
 ) =
   object :
     NlDataProvider(
@@ -207,7 +225,7 @@ private fun createPreviewElementDataProvider(
       PREVIEW_VIEW_MODEL_STATUS,
       FastPreviewSurface.KEY,
       PreviewInvalidationManager.KEY,
-      InteractiveNavigationHandler.KEY,
+      InteractivePreviewNavigationController.KEY,
     ) {
     override fun getData(dataId: String): Any? =
       when (dataId) {
@@ -222,7 +240,7 @@ private fun createPreviewElementDataProvider(
         PREVIEW_VIEW_MODEL_STATUS.name -> composePreviewManager.status()
         FastPreviewSurface.KEY.name -> fastPreviewSurface
         PreviewInvalidationManager.KEY.name -> composePreviewManager
-        InteractiveNavigationHandler.KEY.name -> interactiveNavigationHandler
+        InteractivePreviewNavigationController.KEY.name -> interactivePreviewNavigationController
         else -> null
       }
   }
@@ -297,14 +315,10 @@ fun configureLayoutlibSceneManager(
  * Layoutlib to render a `@Composable` functions.
  *
  * @param psiFile [PsiFile] pointing to the Kotlin source containing the code to preview.
- * @param preferredInitialVisibility preferred [PreferredVisibility] for this representation.
  * @param composePreviewViewProvider [ComposePreviewView] provider.
  */
-class ComposePreviewRepresentation(
-  psiFile: PsiFile,
-  override val preferredInitialVisibility: PreferredVisibility,
-  composePreviewViewProvider: ComposePreviewViewProvider,
-) : PreviewRepresentation, ComposePreviewManagerEx, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware, FastPreviewSurface {
+class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider: ComposePreviewViewProvider) :
+  PreviewRepresentation, ComposePreviewManagerEx, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware, FastPreviewSurface {
 
   private val log = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val isDisposed = AtomicBoolean(false)
@@ -320,7 +334,6 @@ class ComposePreviewRepresentation(
   private val project
     get() = psiFilePointer.project
 
-  private val interactiveNavigationHandler = InteractiveNavigationHandler()
   override val caretNavigationHandler = CaretNavigationHandlerImpl()
 
   private val previewBuildListenersManager =
@@ -375,6 +388,17 @@ class ComposePreviewRepresentation(
    * the preview has finished rendering with the new [PreviewMode].
    */
   private val isPreviewModeChanging = AtomicBoolean(true)
+
+  /**
+   * The flow of preview elements that are present in the [psiFilePointer] file. This flow is updated whenever changes are made to kotlin or
+   * java files.
+   *
+   * @see previewElementsOnFileChangesFlow
+   */
+  private val previewElementsFlow: SharedFlow<FlowableCollection<PsiComposePreviewElement>> =
+    previewElementsOnFileChangesFlow(psiFile.project) { FilePreviewElementProvider(psiFilePointer, AnnotationFilePreviewElementFinder) }
+      // share the flow to avoid re-computing previews between the hasPreviewsCached and the flow manager
+      .shareIn(this, SharingStarted.WhileSubscribed(SHARED_PREVIEW_FLOW_STOP_TIMEOUT_MS), replay = 1)
 
   @VisibleForTesting internal val composePreviewFlowManager = ComposePreviewFlowManager()
 
@@ -456,6 +480,16 @@ class ComposePreviewRepresentation(
       }
     }
 
+  override suspend fun preferredInitialVisibility(): PreferredVisibility? {
+    val hasPreviews = previewElementsFlow.filter { it !is FlowableCollection.Uninitialized }.first().asCollection().isNotEmpty()
+    val globalState = AndroidEditorSettings.getInstance().globalState
+    return if (globalState.showSplitViewForPreviewFiles && hasPreviews) {
+      SPLIT
+    } else {
+      globalState.preferredEditorMode.getVisibility(HIDDEN)
+    }
+  }
+
   private val postIssueUpdateListenerForUiCheck =
     object : Runnable {
       private var activated = false
@@ -512,7 +546,7 @@ class ComposePreviewRepresentation(
           composePreviewFlowManager,
           previewElement,
           this@ComposePreviewRepresentation,
-          interactiveNavigationHandler,
+          interactivePreviewNavigationController,
         )
 
       override fun toXml(previewElement: PsiComposePreviewElementInstance) =
@@ -522,13 +556,29 @@ class ComposePreviewRepresentation(
           .toolsAttribute("paintBounds", showDebugBoundaries.toString())
           .apply {
             if (mode.value is PreviewMode.AnimationInspection) {
-              // If the animation inspection is active, start the PreviewAnimationClock with
-              // the current epoch time.
+              // If the animation inspection is active, start the PreviewAnimationClock with the current epoch time.
               toolsAttribute("animationClockStartTime", System.currentTimeMillis().toString())
             }
           }
           .buildString()
     }
+
+  /**
+   * Controls the bottom panel responsible for managing back navigation within an [Interactive] Preview.
+   *
+   * This controller uses reflection to interface with the Android back press dispatcher APIs (supporting Navigation 3 predictive back
+   * gestures) through a hidden `BackPressDispatcherOwner` object obtained from the `ComposeViewAdapter`. It provides methods to simulate
+   * the start, progress, completion, and cancellation of a back gesture.
+   *
+   * The panel's visibility is tied to this controller. The provided lambda, when the panel state changes is triggered whenever the panel
+   * updates its state.
+   *
+   * @param onAfterPanelUpdate A callback invoked immediately after the controller's visibility state changes (i.e., after a show/hide
+   *   call).
+   */
+  private val interactivePreviewNavigationController by lazy {
+    InteractivePreviewNavigationController(onAfterPanelUpdate = { updateBottomPanelVisibility() })
+  }
 
   private suspend fun startInteractivePreview(instance: ComposePreviewElementInstance<*>) {
     log.debug("New single preview element focus: $instance")
@@ -607,18 +657,19 @@ class ComposePreviewRepresentation(
     invalidate()
   }
 
-  private fun updateAnimationPanelVisibility() {
+  private fun updateBottomPanelVisibility() {
     if (!hasRenderedAtLeastOnce.get()) return
 
-    // Always hide currentAnimationPreview if it's not PreviewMode.AnimationInspection even if
-    // preview is not rendered yet.
-    if (mode.value !is PreviewMode.AnimationInspection) {
+    // Always hide the bottom panel if it's not PreviewMode.AnimationInspection or PreviewMode.Interactive even if preview is not rendered
+    // yet.
+    if (mode.value !is PreviewMode.AnimationInspection || mode.value !is PreviewMode.Interactive) {
       composeWorkBench.bottomPanel = null
     }
     composeWorkBench.bottomPanel =
       when {
         status().hasErrors || project.needsBuild -> null
         mode.value is PreviewMode.AnimationInspection -> currentAnimationPreview?.component
+        mode.value is PreviewMode.Interactive -> interactivePreviewNavigationController.getBottomPanelComponent()
         else -> null
       }
   }
@@ -703,14 +754,16 @@ class ComposePreviewRepresentation(
   val surface: NlDesignSurface
     get() = composeWorkBench.mainSurface
 
+  private val previewModeManager: PreviewModeManager = CommonPreviewModeManager()
   private val allowQualityChangeIfInactive = AtomicBoolean(false)
   private val qualityPolicy = DefaultRenderQualityPolicy { surface.zoomController.screenScalingFactor }
   private val qualityManager: RenderQualityManager =
-    DefaultRenderQualityManager(surface, qualityPolicy) { requestRefresh(type = ComposePreviewRefreshType.QUALITY) }
+    CommonPreviewRenderQualityManager(
+      previewModeManager,
+      DefaultRenderQualityManager(surface, qualityPolicy) { requestRefresh(type = ComposePreviewRefreshType.QUALITY) },
+    )
 
   private val myPsiCodeFileOutOfDateStatusReporter = PsiCodeFileOutOfDateStatusReporter.getInstance(project)
-
-  private val previewModeManager: PreviewModeManager = CommonPreviewModeManager()
 
   private val focusEssentialsModeManager =
     CommonFocusEssentialsModeManager(
@@ -855,6 +908,7 @@ class ComposePreviewRepresentation(
         ::restorePrevious,
         { renderingBuildStatusManager.status },
         { composeWorkBench.updateVisibilityAndNotifications() },
+        previewElementsFlow = previewElementsFlow,
       )
     }
 
@@ -982,7 +1036,7 @@ class ComposePreviewRepresentation(
     composeWorkBench.hasRendered = true
     surface.sceneManagers.forEach {
       ComposeAnimationToolbarUpdater.update(this, it) { AnimationToolingUsageTracker.getInstance(surface) }
-      InteractivePreviewBackNavigationUpdater.update(this, it, interactiveNavigationHandler)
+      InteractivePreviewBackNavigationUpdater.update(this, it, interactivePreviewNavigationController)
     }
 
     // Only update the hasRenderedAtLeastOnce field if we rendered at least one preview. Otherwise,
@@ -1146,9 +1200,7 @@ class ComposePreviewRepresentation(
   ) = requestRefresh(type, completableDeferred)
 
   private fun requestVisibilityAndNotificationsUpdate() {
-    if (!hasRenderedAtLeastOnce.get()) return
-
-    composePreviewFlowManager.run { this@ComposePreviewRepresentation.updateVisibilityAndNotifications(::updateAnimationPanelVisibility) }
+    composePreviewFlowManager.run { this@ComposePreviewRepresentation.updateVisibilityAndNotifications(::updateBottomPanelVisibility) }
   }
 
   /**
@@ -1333,20 +1385,13 @@ class ComposePreviewRepresentation(
   override fun hasPreviewsCached() = hasPreviewsCachedValue.get()
 
   /**
-   * Iterate over the Composables of this file and returns true as soon as we find one with a `@Preview` or MultiPreview annotations. This
-   * function also updates the value of [hasPreviewsCachedValue] accordingly.
+   * This function checks if there are any previews by consuming the [previewElementsFlow] flow. This function also updates the value of
+   * [hasPreviewsCachedValue] accordingly.
    */
   override suspend fun hasPreviews(): Boolean {
-    val vFile = readAction { psiFilePointer.virtualFile } ?: return false
-    findAnnotatedMethodsValues(project, vFile, COMPOSABLE_ANNOTATION_FQ_NAME, COMPOSABLE_ANNOTATION_NAME) { methods -> methods.asFlow() }
-      .forEach { composableMethod ->
-        if (composableMethod.hasPreviewElements()) {
-          hasPreviewsCachedValue.set(true)
-          return@hasPreviews true
-        }
-      }
-    hasPreviewsCachedValue.set(false)
-    return false
+    val hasPreviews = previewElementsFlow.filter { it !is FlowableCollection.Uninitialized }.first().asCollection().isNotEmpty()
+    hasPreviewsCachedValue.set(hasPreviews)
+    return hasPreviews
   }
 
   /**
@@ -1441,7 +1486,7 @@ class ComposePreviewRepresentation(
             )
 
           ComposeAnimationSubscriber.setHandler(animationPreview)
-          updateAnimationPanelVisibility()
+          updateBottomPanelVisibility()
         }
         invalidateAndRefresh()
       }
@@ -1461,8 +1506,10 @@ class ComposePreviewRepresentation(
         else {
           // If file had one Preview, on Entering Focus mode render will not be invoked,
           // so [onAfterRender] and [updateResizePanel] will not be invoked either, we need to do it
-          // manually
+          // manually.
           surface.sceneManagers.singleOrNull()?.let { updateResizePanel() }
+          // as [onAfterRender] would not be invoked we also need to apply zoom-to-fit manually.
+          withContext(Dispatchers.EDT) { surface.zoomController.zoomToFit() }
         }
       }
     }
@@ -1478,6 +1525,7 @@ class ComposePreviewRepresentation(
       is PreviewMode.Default -> {}
       is PreviewMode.Interactive -> {
         log.debug("Stopping interactive")
+        withContext(Dispatchers.EDT) { interactivePreviewNavigationController.hideNavigationControls() }
         onInteractivePreviewStop()
       }
       is PreviewMode.UiCheck -> {
@@ -1580,3 +1628,11 @@ class ComposePreviewRepresentation(
     fun newAnimationPreviewIsOpening()
   }
 }
+
+private fun EditorMode?.getVisibility(defaultValue: PreferredVisibility) =
+  when (this) {
+    EditorMode.CODE -> HIDDEN
+    EditorMode.SPLIT -> SPLIT
+    EditorMode.DESIGN -> FULL
+    null -> defaultValue
+  }

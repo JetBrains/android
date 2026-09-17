@@ -328,9 +328,10 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     TestLogger.log("Emulator#runEmulator");
     String curEmulatorName = String.format("emu%d", emulators.size());
     Path systemImageDir = Workspace.getRoot(systemImage.path);
+    boolean useSnapshot = System.getProperty("emulator.test.snapshot.path") != null;
     Emulator.createEmulator(fileSystem, curEmulatorName, systemImageDir);
     // Increase grpc port by one after spawning an emulator to avoid conflict
-    Emulator emulator = Emulator.start(fileSystem, sdk, display, curEmulatorName, nextPort++, extraEmulatorFlags);
+    Emulator emulator = Emulator.start(fileSystem, sdk, display, curEmulatorName, nextPort++, extraEmulatorFlags, useSnapshot ? Emulator.BootMode.FROM_SNAPSHOT_NO_SNAPSHOT_SAVE : Emulator.BootMode.COLD_BOOT_NO_SNAPSHOT_SAVE);
     emulators.add(emulator);
     return emulator;
   }

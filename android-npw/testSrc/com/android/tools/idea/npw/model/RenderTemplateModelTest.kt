@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.npw.model
 
+import com.android.tools.idea.gradle.util.AGP_BUILT_IN_KOTLIN_VERSION
 import com.android.tools.idea.npw.SDK_VERSION_FOR_NPW_TESTS
 import com.android.tools.idea.npw.model.ProjectSyncInvoker.DefaultProjectSyncInvoker
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.fromFacet
-import com.android.tools.idea.npw.project.DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
 import com.android.tools.idea.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -70,7 +70,7 @@ class RenderTemplateModelTest {
     renderTemplateModel.handleFinished()
 
     val moduleTemplateData = captureTemplateData as ModuleTemplateData
-    assertThat(moduleTemplateData.projectTemplateData.kotlinVersion).isEqualTo(DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS)
+    assertThat(moduleTemplateData.projectTemplateData.kotlinVersion).isEqualTo(AGP_BUILT_IN_KOTLIN_VERSION)
   }
 
   @Test
@@ -121,7 +121,7 @@ class RenderTemplateModelTest {
     renderTemplateModel.handleFinished()
 
     val moduleTemplateData = captureTemplateData as ModuleTemplateData
-    assertThat(moduleTemplateData.projectTemplateData.kotlinVersion).isEqualTo(DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS)
+    assertThat(moduleTemplateData.projectTemplateData.kotlinVersion).isEqualTo(AGP_BUILT_IN_KOTLIN_VERSION)
   }
 
   private fun createRenderTemplateModel(): RenderTemplateModel {

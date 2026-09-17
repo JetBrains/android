@@ -58,7 +58,7 @@ def _cc_binary_test_impl(env, target):
     actual.compilation_context().contains_exactly(
         struct(
             copts = [],
-            external_includes = [],
+            external_includes = ["*"],
             framework_includes = [],
             includes = ["*"],
             quote_includes = ["*"],

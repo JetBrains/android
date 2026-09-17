@@ -18,7 +18,7 @@ package com.android.tools.idea.insights.model.vcs
 import com.android.tools.idea.insights.proto.RepositoryInfo
 
 /** Representation of the repository used and the HEAD revision captured when the app is built. */
-data class RepoInfo(val vcsKey: VCS_CATEGORY, val rootPath: String, val revision: String) {
+data class RepoInfo(val vcsKey: VcsCategory, val rootPath: String, val revision: String) {
   companion object {
     fun fromProto(proto: RepositoryInfo): RepoInfo? {
       val vcsKey = mapVcsCategoryFrom(proto.system) ?: return null

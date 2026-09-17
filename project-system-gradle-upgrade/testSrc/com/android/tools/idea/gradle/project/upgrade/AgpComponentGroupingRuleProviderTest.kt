@@ -69,31 +69,7 @@ class AgpComponentGroupingRuleProviderTest : AndroidTestCase() {
     val usages = processor.findUsages()
     assertThat(usages).hasLength(1)
     val group = getParentComponentGroupFor(usages[0])
-    assertThat(group.presentableGroupText).isEqualTo("Upgrade Gradle version to 6.7.1")
-  }
-
-  fun testCompileRuntimeConfigurationRefactoringProcessor() {
-    myFixture.addFileToProject(
-      "build.gradle",
-      """
-      plugins {
-        id 'com.android.application'
-      }
-      configurations {
-        paidReleaseCompile { }
-      }
-      dependencies {
-        androidTestCompile 'org.junit:junit:4.11'
-      }
-      """
-        .trimIndent(),
-    )
-    val processor = CompileRuntimeConfigurationRefactoringProcessor(myFixture.project, AgpVersion.parse("4.0.0"), AgpVersion.parse("5.0.0"))
-    assertTrue(processor.isEnabled)
-    val usages = processor.findUsages()
-    assertThat(usages).hasLength(2)
-    assertThat(usages.map { getParentComponentGroupFor(it).presentableGroupText }.toSet())
-      .containsExactly("Replace deprecated configurations")
+    assertThat(group.presentableGroupText).isEqualTo("Upgrade Gradle version to 7.0.2")
   }
 
   fun testMigrateToBuildFeaturesRefactoringProcessor() {

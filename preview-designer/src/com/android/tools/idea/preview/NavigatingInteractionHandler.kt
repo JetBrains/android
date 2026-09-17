@@ -166,7 +166,7 @@ class NavigatingInteractionHandler(
         val allowToggle = isShiftDown(modifiersEx)
         if (component != null) {
           val wasSelected = sceneView.selectionModel.isSelected(component)
-          sceneView.selectComponent(component, allowToggle, ignoreIfAlreadySelected = !allowToggle)
+          selectAndFocus(component, sceneView, allowToggle)
           // If the selection state changed, then force a hover state update
           if (wasSelected != sceneView.selectionModel.isSelected(component)) {
             forceHoverUpdate(sceneView, x, y)
@@ -221,8 +221,21 @@ class NavigatingInteractionHandler(
     surface.repaint()
   }
 
-  private fun selectComponent(comp: NlComponent, componentToSceneView: Map<NlComponent, SceneView>) {
-    componentToSceneView[comp]!!.selectComponent(component = comp, allowToggle = false, ignoreIfAlreadySelected = true)
+  /**
+   * Select the target [comp] and also request keyboard focus on the corresponding [SceneViewPeerPanel]. Focus is requested to allow the
+   * panel to handle keyboard events (like arrows) and to trigger the focus listener that ensures the panel is scrolled into view.
+   */
+  /**
+   * Select the target [component] and also request keyboard focus on the corresponding [SceneViewPeerPanel]. Focus is requested to allow
+   * the panel to handle keyboard events (like arrows) and to trigger the focus listener that ensures the panel is scrolled into view.
+   */
+  private fun selectAndFocus(component: NlComponent, sceneView: SceneView, allowToggle: Boolean = false) {
+    sceneView.selectComponent(component = component, allowToggle = allowToggle, ignoreIfAlreadySelected = !allowToggle)
+    (surface.interactionPane as? SceneViewPanel)
+      ?.components
+      ?.filterIsInstance<SceneViewPeerPanel>()
+      ?.firstOrNull { it.sceneView == sceneView }
+      ?.requestFocusInWindow()
   }
 
   private fun selectComponentToTheLeft(
@@ -237,12 +250,14 @@ class NavigatingInteractionHandler(
       .filter { componentToSceneView[it]!!.isLeftOf(selectedSceneView) }
       .maxByOrNull { componentToSceneView[it]!!.x }
       ?.let {
-        selectComponent(it, componentToSceneView)
+        selectAndFocus(it, componentToSceneView[it]!!)
         return@selectComponentToTheLeft
       }
 
     // Then, try to select the last component of the previous row.
-    otherComponents.lastOrNull { componentToSceneView[it]!!.y < selectedSceneView.y }?.let { selectComponent(it, componentToSceneView) }
+    otherComponents
+      .lastOrNull { componentToSceneView[it]!!.y < selectedSceneView.y }
+      ?.let { selectAndFocus(it, componentToSceneView[it]!!) }
   }
 
   private fun selectComponentToTheRight(
@@ -257,12 +272,14 @@ class NavigatingInteractionHandler(
       .filter { componentToSceneView[it]!!.isRightOf(selectedSceneView) }
       .minByOrNull { componentToSceneView[it]!!.x }
       ?.let {
-        selectComponent(it, componentToSceneView)
+        selectAndFocus(it, componentToSceneView[it]!!)
         return@selectComponentToTheRight
       }
 
     // Then, try to select the first component of the next row.
-    otherComponents.firstOrNull { componentToSceneView[it]!!.y > selectedSceneView.y }?.let { selectComponent(it, componentToSceneView) }
+    otherComponents
+      .firstOrNull { componentToSceneView[it]!!.y > selectedSceneView.y }
+      ?.let { selectAndFocus(it, componentToSceneView[it]!!) }
   }
 
   private fun selectComponentBelow(
@@ -280,7 +297,7 @@ class NavigatingInteractionHandler(
         val dy = sceneView.y - selectedSceneView.y
         dx * dx + dy * dy
       }
-      ?.let { selectComponent(it, componentToSceneView) }
+      ?.let { selectAndFocus(it, componentToSceneView[it]!!) }
   }
 
   private fun selectComponentAbove(
@@ -298,7 +315,7 @@ class NavigatingInteractionHandler(
         val dy = sceneView.y - selectedSceneView.y
         dx * dx + dy * dy
       }
-      ?.let { selectComponent(it, componentToSceneView) }
+      ?.let { selectAndFocus(it, componentToSceneView[it]!!) }
   }
 
   private fun SceneView.isRightOf(other: SceneView): Boolean = y == other.y && x > other.x

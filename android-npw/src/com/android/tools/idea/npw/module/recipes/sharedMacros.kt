@@ -154,7 +154,7 @@ fun androidConfig(
       "testInstrumentationRunner \"${getMaterialComponentName("android.support.test.runner.AndroidJUnitRunner", useAndroidX)}\""
     }
   val proguardConsumerBlock = renderIf(canUseProguard && isLibraryProject) { "consumerProguardFiles \"consumer-rules.pro\"" }
-  val proguardConfigBlock = renderIf(canUseProguard) { proguardConfig() }
+  val proguardConfigBlock = renderIf(canUseProguard && !isLibraryProject) { proguardConfig() }
   val lintOptionsBlock =
     renderIf(addLintOptions) {
       """

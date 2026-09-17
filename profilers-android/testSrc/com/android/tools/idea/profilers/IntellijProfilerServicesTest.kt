@@ -85,6 +85,7 @@ class IntellijProfilerServicesTest {
 
   @Before
   fun before() {
+    StudioFlags.PROFILER_LEAKCANARY.override(false)
     project = Mockito.spy(MockProjectEx(disposableRule.disposable))
     mockProjectAttributes(project)
     intellijProfilerServices = IntellijProfilerServices(project, Mockito.mock(SymbolFilesLocator::class.java))
@@ -134,6 +135,12 @@ class IntellijProfilerServicesTest {
   fun featureFlagSystemTraceInEditorDisabled() {
     StudioFlags.PROFILER_SYSTEM_TRACE_IN_EDITOR.override(false)
     assertFalse(IntellijProfilerServices.FeatureConfigProd().isSystemTraceInEditorEnabled)
+  }
+
+  @Test
+  fun featureFlagMethodTraceInEditorDisabled() {
+    StudioFlags.PROFILER_METHOD_TRACE_IN_EDITOR.override(false)
+    assertFalse(IntellijProfilerServices.FeatureConfigProd().isMethodTraceInEditorEnabled)
   }
 
   @Test
@@ -296,6 +303,7 @@ class IntellijProfilerServicesTest {
     val androidConfiguration = mock<AndroidRunConfigurationBase>()
     val configurationModule = mock<AndroidRunConfigurationModule>()
     val module = mock<Module>()
+    val featureTracker = mock<com.android.tools.profilers.analytics.FeatureTracker>()
 
     // Register services on the project so static helpers like ProjectSystemUtil can find them
     (project as MockProjectEx).registerService(ProjectSystemService::class.java, projectSystemService)
@@ -317,6 +325,7 @@ class IntellijProfilerServicesTest {
     val actualInstance = IntellijProfilerServices(project, mock<SymbolFilesLocator>())
     Disposer.register(disposableRule.disposable, actualInstance)
     val servicesSpy = spy(actualInstance)
+    doReturn(featureTracker).whenever(servicesSpy).featureTracker
     spiesToDispose.add(actualInstance)
 
     return DependencyMocks(servicesSpy, androidModuleSystem, registeringModuleSystem, syncManager, runManager, configurationModule)

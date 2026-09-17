@@ -20,7 +20,7 @@
         errorLine2="     ~~~~~~~~">
         <location
             file="src/main/res/layout/activity_main.xml"
-            line="21"
+            line="20"
             column="6"/>
     </issue>
 

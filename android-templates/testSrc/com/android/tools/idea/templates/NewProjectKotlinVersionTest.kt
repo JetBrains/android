@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.templates
 
-import com.android.tools.idea.npw.project.DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
+import com.android.tools.idea.gradle.util.AGP_BUILT_IN_KOTLIN_VERSION
 import com.android.tools.idea.npw.project.determineKotlinVersion
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
@@ -50,7 +50,7 @@ class NewProjectKotlinVersionTest {
     )
 
     val resolvedKotlinVersion = determineKotlinVersion(projectRule.project)!!
-    assertThat(resolvedKotlinVersion.toString()).isEqualTo(DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS)
+    assertThat(resolvedKotlinVersion.toString()).isEqualTo(AGP_BUILT_IN_KOTLIN_VERSION)
   }
 }
 

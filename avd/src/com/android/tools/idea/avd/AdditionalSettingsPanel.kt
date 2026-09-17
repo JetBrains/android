@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.CameraLocation
+import com.android.sdklib.internal.avd.AiGlassesDisplayMode
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
@@ -42,6 +43,7 @@ import com.android.tools.idea.avd.StorageCapacityFieldState.Overflow
 import com.android.tools.idea.avd.StorageCapacityFieldState.Result
 import com.android.tools.idea.avd.StorageCapacityFieldState.Valid
 import com.android.tools.idea.avdmanager.skincombobox.Skin
+import com.android.tools.idea.flags.StudioFlags
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.plus
 import kotlinx.collections.immutable.toImmutableList
@@ -55,7 +57,14 @@ internal fun AdditionalSettingsPanel(state: ConfigureDevicePanelState, modifier:
   val device = state.device
   Column(modifier, verticalArrangement = Arrangement.spacedBy(Padding.EXTRA_LARGE)) {
     when {
-      device.isEnvironmentAllowed() -> GlassesEnvironmentSelector(device, state)
+      device.isEnvironmentAllowed() -> {
+        if (device.aiGlassesDisplayMode != AiGlassesDisplayMode.NONE) {
+          GlassesEnvironmentSelector(device, state)
+        }
+        if (StudioFlags.AI_GLASSES_DISPLAY_SETTING_ENABLED.get()) {
+          GlassesDisplaySelector(device)
+        }
+      }
       else -> SkinSelector(device, state.skins())
     }
 
@@ -83,6 +92,26 @@ private fun SkinSelector(device: VirtualDevice, skins: Iterable<Skin>) {
       Modifier.alignByBaseline().testTag("DeviceSkinDropdown"),
       !device.isFoldable,
     )
+  }
+}
+
+@Composable
+private fun GlassesDisplaySelector(device: VirtualDevice) {
+  Row {
+    Text("Display mode", Modifier.padding(end = Padding.SMALL).alignByBaseline())
+
+    Dropdown(
+      Modifier.alignByBaseline().testTag("GlassesDisplayTypeDropdown"),
+      menuContent = {
+        AiGlassesDisplayMode.values().forEach { mode ->
+          selectableItem(device.aiGlassesDisplayMode == mode, onClick = { device.aiGlassesDisplayMode = mode }) {
+            Text(mode.displayName, Modifier.testTag("GlassesDisplayTypeDropdownMenuItem_${mode.name}"))
+          }
+        }
+      },
+    ) {
+      Text(device.aiGlassesDisplayMode.displayName)
+    }
   }
 }
 

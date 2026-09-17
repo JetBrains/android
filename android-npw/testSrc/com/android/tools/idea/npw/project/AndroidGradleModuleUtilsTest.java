@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.project;
 
 import static com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion;
-import static com.android.tools.idea.npw.project.AndroidGradleModuleUtils.DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS;
+import static com.android.tools.idea.gradle.util.KotlinGradleProjectSystemUtilKt.AGP_BUILT_IN_KOTLIN_VERSION;
 import static com.android.tools.idea.npw.project.AndroidGradleModuleUtils.determineKotlinVersion;
 import static com.android.tools.idea.npw.project.AndroidGradleModuleUtils.getContainingModule;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.requestSyncAndWait;
@@ -24,7 +24,6 @@ import static com.android.tools.idea.testing.TestProjectPaths.IMPORTING;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.join;
 
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor;
 import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.android.tools.idea.testing.TestProjectPaths;
 import com.intellij.openapi.module.Module;
@@ -90,6 +89,6 @@ public class AndroidGradleModuleUtilsTest {
 
     // Assert that the default Kotlin version for new projects is at least as recent as the resolved
     // Kotlin version
-    assertThat(KotlinGradlePluginVersionKt.compareTo(resolvedKotlinVersion, DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS)).isNotEqualTo(1);
+    assertThat(KotlinGradlePluginVersionKt.compareTo(resolvedKotlinVersion, AGP_BUILT_IN_KOTLIN_VERSION)).isNotEqualTo(1);
   }
 }

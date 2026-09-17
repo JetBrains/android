@@ -50,7 +50,7 @@ public class AndroidProfilerCaptureEditorProvider implements FileEditorProvider,
     // If canViewInUnifiedProfiler() returns true, the Unified provider is capable of handling the file,
     // so this Legacy provider explicitly steps aside by returning false.
     // We only consider accepting the file if the Unified provider returns false.
-    if (UnifiedProfilerEditorProvider.canViewInUnifiedProfiler(file)) {
+    if (UnifiedProfilerEditorProvider.canViewInUnifiedEditor(file)) {
       return false;
     }
     return true;

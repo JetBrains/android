@@ -2594,15 +2594,15 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     verifyFileContents(myBuildFile, TestFile.ADD_PLATFORM_DEPENDENCIES_EXPECTED);
     List<ArtifactDependencyModel> artifacts = buildModel.dependencies().artifacts();
     assertThat(artifacts).hasSize(8);
-    assertThat(artifacts.get(5)).isInstanceOf(PlatformDependencyModel.class);
-    assertThat(artifacts.get(5).compactNotation()).isEqualTo("androidx.compose:compose-bom:2022.10.0");
-    assertThat(((PlatformDependencyModel)artifacts.get(5)).enforced()).isFalse();
-    assertThat(artifacts.get(6)).isInstanceOf(PlatformDependencyModel.class);
-    assertThat(artifacts.get(6).compactNotation()).isEqualTo("org.springframework:spring-framework-bom:5.1.9.RELEASE");
-    assertThat(((PlatformDependencyModel)artifacts.get(6)).enforced()).isTrue();
-    assertThat(artifacts.get(7)).isInstanceOf(PlatformDependencyModel.class);
-    assertThat(artifacts.get(7).compactNotation()).isEqualTo("com.example:foo:3.14");
-    assertThat(((PlatformDependencyModel)artifacts.get(7)).enforced()).isFalse();
+    ArtifactDependencyModel androidx = artifacts.stream().filter(a -> "androidx.compose:compose-bom:2022.10.0".equals(a.compactNotation())).findFirst().get();
+    assertThat(androidx).isInstanceOf(PlatformDependencyModel.class);
+    assertThat(((PlatformDependencyModel)androidx).enforced()).isFalse();
+    ArtifactDependencyModel spring = artifacts.stream().filter(a -> "org.springframework:spring-framework-bom:5.1.9.RELEASE".equals(a.compactNotation())).findFirst().get();
+    assertThat(spring).isInstanceOf(PlatformDependencyModel.class);
+    assertThat(((PlatformDependencyModel)spring).enforced()).isTrue();
+    ArtifactDependencyModel example = artifacts.stream().filter(a -> "com.example:foo:3.14".equals(a.compactNotation())).findFirst().get();
+    assertThat(example).isInstanceOf(PlatformDependencyModel.class);
+    assertThat(((PlatformDependencyModel)example).enforced()).isFalse();
   }
 
   @Test
@@ -2618,12 +2618,12 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     verifyFileContents(myBuildFile, TestFile.ADD_PLATFORM_DEPENDENCIES_EXPECTED);
     List<ArtifactDependencyModel> artifacts = buildModel.dependencies().artifacts();
     assertThat(artifacts).hasSize(3);
-    assertThat(artifacts.get(1)).isInstanceOf(PlatformDependencyModel.class);
-    assertThat(artifacts.get(1).compactNotation()).isEqualTo("androidx.compose:compose-bom:2022.10.0");
-    assertThat(((PlatformDependencyModel)artifacts.get(1)).enforced()).isFalse();
-    assertThat(artifacts.get(2)).isInstanceOf(PlatformDependencyModel.class);
-    assertThat(artifacts.get(2).compactNotation()).isEqualTo("org.springframework:spring-framework-bom:5.1.9.RELEASE");
-    assertThat(((PlatformDependencyModel)artifacts.get(2)).enforced()).isTrue();
+    ArtifactDependencyModel androidx = artifacts.stream().filter(a -> "androidx.compose:compose-bom:2022.10.0".equals(a.compactNotation())).findFirst().get();
+    assertThat(androidx).isInstanceOf(PlatformDependencyModel.class);
+    assertThat(((PlatformDependencyModel)androidx).enforced()).isFalse();
+    ArtifactDependencyModel spring = artifacts.stream().filter(a -> "org.springframework:spring-framework-bom:5.1.9.RELEASE".equals(a.compactNotation())).findFirst().get();
+    assertThat(spring).isInstanceOf(PlatformDependencyModel.class);
+    assertThat(((PlatformDependencyModel)spring).enforced()).isTrue();
   }
 
   public static class ExpectedArtifactDependency extends ArtifactDependencySpecImpl {

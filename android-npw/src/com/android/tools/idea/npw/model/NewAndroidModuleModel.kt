@@ -43,6 +43,7 @@ import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.templates.determineVersionCatalogUseForNewModule
 import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.Category
+import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -69,7 +70,7 @@ class ExistingProjectModelData(
   override val applicationName: StringValueProperty = StringValueProperty()
   override val packageName: StringValueProperty = StringValueProperty()
   override val projectLocation: StringValueProperty = StringValueProperty(project.basePath!!)
-  override val useGradleKts = BoolValueProperty(project.hasKtsUsage())
+  override val dslLanguage: ObjectValueProperty<DslLanguage> = ObjectValueProperty(project.dclLanguageUsage())
   override val useVersionCatalog = BoolValueProperty(determineVersionCatalogUseForNewModule(project, isNewProject = false))
   override val viewBindingSupport = OptionalValueProperty<ViewBindingSupport>(project.isViewBindingSupported())
   override val isNewProject = false
@@ -86,7 +87,9 @@ class ExistingProjectModelData(
   override val additionalMavenRepos: ObjectValueProperty<List<URL>> = ObjectValueProperty(listOf())
   override val multiTemplateRenderer = MultiTemplateRenderer(::runRenderer)
   override val prompt = StringValueProperty()
+  override val displayText = StringValueProperty("")
   override val imageAttachments: ObjectValueProperty<List<VirtualFile>> = ObjectValueProperty(listOf())
+  override val sourceProjectType = ObjectValueProperty(SourceProjectType.OTHER)
 
   private fun runRenderer(renderer: (Project) -> Unit) {
     object : Task.Modal(project, message("android.compile.messages.generating.r.java.content.name"), false) {
@@ -171,45 +174,18 @@ class NewAndroidModuleModel(
       get() =
         when (formFactor.get()) {
           FormFactor.Mobile -> { data: TemplateData ->
-              generateAndroidModule(
-                data = data as ModuleTemplateData,
-                appTitle = applicationName.get(),
-                useKts = useGradleKts.get(),
-                useVersionCatalog = useVersionCatalog.get(),
-              )
+              generateAndroidModule(data = data as ModuleTemplateData, appTitle = applicationName.get())
             }
           FormFactor.Wear -> { data: TemplateData ->
-              generateWearModule(
-                data = data as ModuleTemplateData,
-                appTitle = applicationName.get(),
-                useKts = useGradleKts.get(),
-                useVersionCatalog = useVersionCatalog.get(),
-              )
+              generateWearModule(data = data as ModuleTemplateData, appTitle = applicationName.get())
             }
           FormFactor.Car -> { data: TemplateData ->
-              generateAutomotiveModule(
-                data = data as ModuleTemplateData,
-                appTitle = applicationName.get(),
-                useKts = useGradleKts.get(),
-                useVersionCatalog = useVersionCatalog.get(),
-              )
+              generateAutomotiveModule(data = data as ModuleTemplateData, appTitle = applicationName.get())
             }
-          FormFactor.Tv -> { data: TemplateData ->
-              generateTvModule(
-                data = data as ModuleTemplateData,
-                appTitle = applicationName.get(),
-                useKts = useGradleKts.get(),
-                useVersionCatalog = useVersionCatalog.get(),
-              )
-            }
+          FormFactor.Tv -> { data: TemplateData -> generateTvModule(data = data as ModuleTemplateData, appTitle = applicationName.get()) }
           FormFactor.XR,
           FormFactor.AiGlasses -> { data: TemplateData ->
-              generateXRModule(
-                data = data as ModuleTemplateData,
-                appTitle = applicationName.get(),
-                useKts = useGradleKts.get(),
-                useVersionCatalog = useVersionCatalog.get(),
-              )
+              generateXRModule(data = data as ModuleTemplateData, appTitle = applicationName.get())
             }
           FormFactor.Generic -> { data: TemplateData -> generateGenericModule(data as ModuleTemplateData) }
         }
@@ -282,6 +258,13 @@ private fun FormFactor.toModuleRenderingLoggingEvent() =
 
 internal fun Project.hasKtsUsage(): Boolean {
   return GradleProjectSystemUtil.projectBuildFilesTypes(this).contains(GradleProjectSystemUtil.BuildFileType.KOTLIN_SCRIPT)
+}
+
+internal fun Project.dclLanguageUsage(): DslLanguage {
+  return when {
+    this.hasKtsUsage() -> DslLanguage.KTS
+    else -> DslLanguage.GROOVY
+  }
 }
 
 internal fun Project.isViewBindingSupported(): ViewBindingSupport {

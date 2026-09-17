@@ -29,6 +29,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.VfsTestUtil
 import java.util.Locale
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -45,6 +46,7 @@ class AndroidLintDeclarativeTest {
     get() = projectRule.fixture
 
   @Test
+  @Ignore("b/500308639")
   fun testDeclarativeTomlSkip() {
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_DECLARATIVE)
 

@@ -1,6 +1,8 @@
-package(default_visibility = ["//visibility:public"])
-
+load("@rules_java//java:defs.bzl", "java_library")
 load("//tools/base/bazel:proto.bzl", "java_proto_library")
+load("//tools/base/bazel:utils.bzl", "java_jarjar")
+
+package(default_visibility = ["//visibility:public"])
 
 FILES = [
     "action_cache",
@@ -8,46 +10,73 @@ FILES = [
     "bazel_flags",
     "build",
     "builtin",
+    "cache_salt",
     "crosstool_config",
     "deps",
     "desugar_deps",
+    "execution_graph",
     "execution_statistics",
     "extra_actions_base",
+    "failure_details",
     "invocation_policy",
     "java_compilation",
     "memory_pressure",
+    "option_filters",
+    "remote_scrubbing",
     "test_status",
     "worker_protocol",
-    "execution_graph",
 ]
 
 [java_proto_library(
-    name = s + "_java_proto",
+    name = s + "_java_proto_internal",
     srcs = [":" + s + ".proto"],
 ) for s in FILES]
 
+[java_jarjar(
+    name = s + "_java_proto",
+    srcs = [":" + s + "_java_proto_internal"],
+    rules = "//tools/base/bazel:jarjar_rules.txt",
+) for s in FILES]
+
 java_proto_library(
-    name = "analysis_v2_java_proto",
+    name = "analysis_v2_java_proto_internal",
     srcs = ["analysis_v2.proto"],
-    java_deps = [":build_java_proto"],
-    proto_deps = [":build_java_proto_srcs"],
+    java_deps = [":build_java_proto_internal"],
+    proto_deps = [":build_java_proto_internal_srcs"],
+)
+
+java_jarjar(
+    name = "analysis_v2_java_proto",
+    srcs = [
+        ":analysis_v2_java_proto_internal",
+    ],
+    rules = "//tools/base/bazel:jarjar_rules.txt",
 )
 
 java_proto_library(
-    name = "failure_details_java_proto",
-    srcs = ["failure_details.proto"],
-)
-
-java_proto_library(
-    name = "option_filters_java_proto",
-    srcs = ["option_filters.proto"],
-)
-
-java_proto_library(
-    name = "command_line_java_proto",
+    name = "command_line_java_proto_internal",
     srcs = ["command_line.proto"],
-    java_deps = ["option_filters_java_proto"],
-    proto_deps = ["option_filters_java_proto_srcs"],
+    java_deps = ["option_filters_java_proto_internal"],
+    proto_deps = ["option_filters_java_proto_internal_srcs"],
+)
+
+java_jarjar(
+    name = "command_line_java_proto",
+    srcs = [
+        ":command_line_java_proto_internal",
+    ],
+    rules = "//tools/base/bazel:jarjar_rules.txt",
+)
+
+java_library(
+    name = "all_protos",
+    exports = [
+        "//tools/adt/idea/aswb/third_party/bazel/src/main/protobuf:%s_java_proto" % proto
+        for proto in FILES
+    ] + [
+        "//tools/adt/idea/aswb/third_party/bazel/src/main/protobuf:analysis_v2_java_proto",
+        "//tools/adt/idea/aswb/third_party/bazel/src/main/protobuf:command_line_java_proto",
+    ],
 )
 
 # Proto needed by singlejar and embedded into the java tools archive.
@@ -63,16 +92,6 @@ filegroup(
     name = "desugar_deps_filegroup",
     srcs = ["desugar_deps.proto"],
     visibility = ["//src/tools/singlejar:__pkg__"],
-)
-
-java_proto_library(
-    name = "cache_salt_java_proto",
-    srcs = ["cache_salt.proto"],
-)
-
-java_proto_library(
-    name = "remote_scrubbing_java_proto",
-    srcs = ["remote_scrubbing.proto"],
 )
 
 filegroup(

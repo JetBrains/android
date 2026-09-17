@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.templates
 
-import com.android.tools.idea.npw.project.DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
+import com.android.tools.idea.gradle.util.AGP_BUILT_IN_KOTLIN_VERSION
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.npw.template.TemplateResolver
@@ -43,7 +43,7 @@ class BasicWatchFaceAgp8TemplateTest {
   private fun withKotlin(): ProjectStateCustomizer = { _: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
     projectData.language = Language.Kotlin
     // Use the Kotlin version for tests
-    projectData.kotlinVersion = DEFAULT_KOTLIN_VERSION_FOR_NEW_PROJECTS
+    projectData.kotlinVersion = AGP_BUILT_IN_KOTLIN_VERSION
   }
 
   private fun withWatchFace(): ProjectStateCustomizer = { moduleData, _ -> moduleData.isWatchFace = true }

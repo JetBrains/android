@@ -70,6 +70,8 @@ interface AppInsightsTracker {
     failureType: FailureType,
   )
 
+  fun logGenerateInsightAction(unanonymizedAppId: String, insightsAction: AppQualityInsightsUsageEvent.GenerateInsightsAction.Action)
+
   enum class ProductType {
     CRASHLYTICS,
     PLAY_VITALS;

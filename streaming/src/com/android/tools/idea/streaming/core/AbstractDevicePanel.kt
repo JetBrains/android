@@ -69,7 +69,7 @@ private const val IS_TOOLBAR_HORIZONTAL = true
 
 /** Provides view of one Android device in the Running Devices tool window. */
 internal abstract class AbstractDevicePanel<T : AbstractDisplayPanel<*>>(
-  val id: DeviceId,
+  val id: StreamingDeviceId,
   mainToolbarId: String,
   secondaryToolbarId: String = STREAMING_SECONDARY_TOOLBAR_ID,
 ) : BorderLayoutPanel(), DevicePanel<DisplayViewContainer<*>>, UiDataProvider, DisplayOwner, Disposable {
@@ -216,7 +216,7 @@ internal abstract class AbstractDevicePanel<T : AbstractDisplayPanel<*>>(
     sink[SERIAL_NUMBER_KEY] = id.serialNumber
     sink[DEVICE_TYPE_KEY] = primaryDisplayView?.deviceType
     sink[STREAMING_CONTENT_PANEL_KEY] = centerPanel
-    sink[DEVICE_ID_KEY] = id
+    sink[STREAMING_DEVICE_ID_KEY] = id
     sink[DISPLAY_INFO_PROVIDER_KEY] = displayInfoProvider
   }
 

@@ -39,7 +39,7 @@ class UnifiedProfilerEditorProvider : FileEditorProvider, DumbAware {
       return false
     }
 
-    return canViewInUnifiedProfiler(file)
+    return canViewInUnifiedEditor(file)
   }
 
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {
@@ -59,20 +59,40 @@ class UnifiedProfilerEditorProvider : FileEditorProvider, DumbAware {
     const val ID = "UnifiedProfilerEditorProvider"
     private val log = Logger.getInstance(UnifiedProfilerEditorProvider::class.java)
 
+    /** Determines whether the given [file] can be parsed and rendered specifically by the Perfetto editor. */
     @JvmStatic
-    fun canViewInUnifiedProfiler(file: VirtualFile): Boolean {
-      // This is the feature/experiment flag
-      if (!StudioFlags.PROFILER_SYSTEM_TRACE_IN_EDITOR.get()) {
+    fun isSupportedByPerfettoEditor(file: VirtualFile): Boolean {
+      val formats = mutableListOf<SupportedFormat>()
+      if (StudioFlags.PROFILER_SYSTEM_TRACE_IN_EDITOR.get()) {
+        formats.add(PerfettoTraceFormat)
+      }
+      if (StudioFlags.PROFILER_METHOD_TRACE_IN_EDITOR.get()) {
+        formats.add(ArtTraceFormat)
+      }
+
+      if (formats.isEmpty()) {
         return false
       }
+
+      val lazyTraceType = getLazyTraceType(file)
+
       try {
-        val formats = listOf(PerfettoTraceFormat)
-        return formats.any { it.isSupported(file) }
+        return formats.any { it.isSupported(file, lazyTraceType) }
       } catch (e: Exception) {
         // Fallback to false if file cannot be read (e.g. FileNotFoundException)
         log.warn("Error checking file support: ${file.path}", e)
         return false
       }
+    }
+
+    /**
+     * Serves as a general support check to determine if the given [file] can be opened within the Unified Profiler. While currently this
+     * delegates to [isSupportedByPerfettoEditor], it is designed to support future file types that may be opened in the Unified Profiler
+     * but rendered by different, non-Perfetto editors.
+     */
+    @JvmStatic
+    fun canViewInUnifiedEditor(file: VirtualFile): Boolean {
+      return isSupportedByPerfettoEditor(file)
     }
   }
 }

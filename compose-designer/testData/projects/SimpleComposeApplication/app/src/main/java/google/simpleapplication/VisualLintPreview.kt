@@ -117,3 +117,17 @@ fun ThreeColorBlindErrorPreview() {
 fun WearPreview() {
   Column { Text("Hello world", modifier = Modifier.padding(10.dp)) }
 }
+
+@Preview
+@Composable
+fun SystemUiOverlapPreview() {
+  Text("Hello Android!")
+}
+
+@Preview
+@Composable
+fun NoSystemUiOverlapPreview() {
+  Column(modifier = Modifier.padding(top = 50.dp, bottom = 50.dp)) {
+    Text("Hello Android!")
+  }
+}

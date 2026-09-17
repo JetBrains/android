@@ -31,11 +31,11 @@ android {
 }
 
 dependencies {
+    implementation libs.annotation
     implementation libs.appcompat
     implementation libs.material
-    implementation libs.annotation
     implementation libs.slice.builders
     testImplementation libs.junit
-    androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
+    androidTestImplementation libs.ext.junit
 }

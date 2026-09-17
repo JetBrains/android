@@ -661,7 +661,7 @@
                             "simpleName": "BaseAppModuleExtensionInternal"
                         }
                     },
-                    "simpleName": "dependenciesDcl",
+                    "simpleName": "dependencies",
                     "parameters": [
                     ],
                     "isDirectAccessOnly": false,
@@ -11802,7 +11802,7 @@
                             "simpleName": "LibraryExtensionInternal"
                         }
                     },
-                    "simpleName": "dependenciesDcl",
+                    "simpleName": "dependencies",
                     "parameters": [
                     ],
                     "isDirectAccessOnly": false,

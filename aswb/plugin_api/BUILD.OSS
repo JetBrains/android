@@ -130,7 +130,7 @@ java_library(
 java_library(
     name = "guava_for_external_binaries",
     exports = [
-        "//tools/vendor/google/aswb/plugin_api/maven:guava",
+        "@maven//:com.google.guava.guava",
     ],
 )
 

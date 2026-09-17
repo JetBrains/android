@@ -36,7 +36,6 @@ import com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity
 import com.android.tools.idea.gradle.project.entities.attachDependenciesToModuleEntity
 import com.android.tools.idea.gradle.project.entities.gradleAndroidModel
 import com.android.tools.idea.gradle.project.entities.gradleModuleModel
-import com.android.tools.idea.gradle.project.entities.updateGradleAndroidModelMapping
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
@@ -450,17 +449,15 @@ internal class AndroidSourceRootSyncSourceSetPhaseContributor : GradleSyncContri
 
         val testSuiteSourceSetModules = sourceSetModuleEntitiesByArtifact.testSuites.values
 
-        updatedStorage
-          .modifyModuleEntity(holderModuleEntity) {
-            setJavaSettingsForHolderModule(this)
-            setSdkForHolderModule(this)
-            createAndroidGradleFacet(this)
-            createAndroidFacet(this)
-            linkModuleGroup(this, knownArtifactsModuleEntitiesByArtifact, testSuiteSourceSetModules)
-            // There seems to be a bug in workspace model implementation that requires doing this to update list of changed props
-            this.facets = facets
-          }
-          .also { updateGradleAndroidModelMapping(updatedStorage, it) }
+        updatedStorage.modifyModuleEntity(holderModuleEntity) {
+          setJavaSettingsForHolderModule(this)
+          setSdkForHolderModule(this)
+          createAndroidGradleFacet(this)
+          createAndroidFacet(this)
+          linkModuleGroup(this, knownArtifactsModuleEntitiesByArtifact, testSuiteSourceSetModules)
+          // There seems to be a bug in workspace model implementation that requires doing this to update list of changed props
+          this.facets = facets
+        }
         (knownArtifactsModuleEntities + testSuiteSourceSetModules).forEach { newModuleEntity -> updatedStorage addEntity newModuleEntity }
       }
     }

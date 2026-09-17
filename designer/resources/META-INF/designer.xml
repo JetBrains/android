@@ -258,6 +258,9 @@
     <globalInspection projectType="Android" hasStaticDescription="true" displayName="Wear margins" shortName="WearMargin" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.WearMarginAnalyzerInspection" language=""/>
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="System UI" shortName="SystemUi" groupPath="Android,Lint"
+                      groupName="Screen sizes" enabledByDefault="true" level="WARNING"
+                      implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.SystemUiAnalyzerInspection" language=""/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.rendering">

@@ -24,7 +24,7 @@ class FloatValidationTest {
 
   @Test
   fun testValidator() {
-    val validator: EditingValidation = FloatValidator
+    val validator: EditingValidation = FloatValidator()
     assertEquals(EDITOR_NO_ERROR, validator(""))
     assertEquals(EDITOR_NO_ERROR, validator("   "))
     assertEquals(EDITOR_NO_ERROR, validator("1.0f"))
@@ -68,5 +68,24 @@ class FloatValidationTest {
       ERROR_TOO_BIG(maxValue.toInt()),
       validateFloat(editedValue = "400", validateSuffix = false, canBeZero = true, maxValueAllowed = 10f),
     )
+  }
+
+  @Test
+  fun testFiniteValues() {
+    assertEquals(
+      ERROR_NOT_FLOAT,
+      validateFloat(editedValue = "1.23456789012345678901234567890e40", validateSuffix = false, canBeZero = true),
+    )
+    assertEquals(ERROR_NOT_FLOAT, validateFloat(editedValue = "Infinity", validateSuffix = false, canBeZero = true))
+    assertEquals(ERROR_NOT_FLOAT, validateFloat(editedValue = "-Infinity", validateSuffix = false, canBeZero = true))
+    assertEquals(ERROR_NOT_FLOAT, validateFloat(editedValue = "NaN", validateSuffix = false, canBeZero = true))
+  }
+
+  @Test
+  fun testValidatorWithMaxValue() {
+    val validator = FloatValidator(maxValueAllowed = 5.0f)
+    assertEquals(EDITOR_NO_ERROR, validator("4.9"))
+    assertEquals(EDITOR_NO_ERROR, validator("5.0"))
+    assertEquals(ERROR_TOO_BIG(5), validator("5.1"))
   }
 }

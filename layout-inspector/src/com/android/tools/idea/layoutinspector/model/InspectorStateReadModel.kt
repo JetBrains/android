@@ -45,6 +45,7 @@ class InspectorStateReadModel {
 
   fun stopShowingStateReads() {
     _stateReadRequested.value = null
+    stateReads.value = null
   }
 
   fun observeNode(node: ComposeViewNode) {

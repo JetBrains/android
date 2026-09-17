@@ -21,8 +21,8 @@ import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorMana
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManagerGlobalState
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.streaming.DEVICE_TYPE_KEY
-import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
+import com.android.tools.idea.streaming.core.STREAMING_DEVICE_ID_KEY
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.notification.NotificationGroupManager
@@ -65,7 +65,7 @@ class ToggleLayoutInspectorAction(
     }
 
     val project = e.project ?: return false
-    val deviceId = DEVICE_ID_KEY.getData(e.dataContext) ?: return false
+    val deviceId = STREAMING_DEVICE_ID_KEY.getData(e.dataContext) ?: return false
 
     return LayoutInspectorManager.getInstance(project).isEnabled(deviceId)
   }
@@ -76,7 +76,7 @@ class ToggleLayoutInspectorAction(
     }
 
     val project = e.project ?: return
-    val deviceId = DEVICE_ID_KEY.getData(e.dataContext) ?: return
+    val deviceId = STREAMING_DEVICE_ID_KEY.getData(e.dataContext) ?: return
 
     LayoutInspectorManager.getInstance(project).enableLayoutInspector(deviceId, state)
   }
@@ -87,7 +87,7 @@ class ToggleLayoutInspectorAction(
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    val deviceId = DEVICE_ID_KEY.getData(e.dataContext)
+    val deviceId = STREAMING_DEVICE_ID_KEY.getData(e.dataContext)
     if (deviceId == null) {
       showNotificationDiscovery(project)
     } else {
@@ -99,7 +99,7 @@ class ToggleLayoutInspectorAction(
     super.update(e)
 
     val project = e.project ?: return
-    val deviceId = DEVICE_ID_KEY.getData(e.dataContext) ?: return
+    val deviceId = STREAMING_DEVICE_ID_KEY.getData(e.dataContext) ?: return
     val isEnabled = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
     e.presentation.isVisible = isEnabled && LayoutInspectorManager.getInstance(project).isSupported(deviceId)
 
@@ -138,7 +138,7 @@ class ToggleLayoutInspectorAction(
    */
   private fun enforceOnlyOneLayoutInspectorPerDeviceAcrossProjects(e: AnActionEvent) {
     val project = e.project ?: return
-    val deviceId = DEVICE_ID_KEY.getData(e.dataContext) ?: return
+    val deviceId = STREAMING_DEVICE_ID_KEY.getData(e.dataContext) ?: return
     val isLayoutInspectorEnabledForTab = LayoutInspectorManager.getInstance(project).isEnabled(deviceId)
     if (!isLayoutInspectorEnabledForTab && LayoutInspectorManagerGlobalState.tabsWithLayoutInspector.contains(deviceId)) {
       // Disable the toggle button if Layout Inspector is already active for this device (across

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,10 @@ public enum ProfilingTechnology {
 
   SYSTEM_TRACE("System Trace Recording",
                "Traces Java/Kotlin and native code at the Android platform level.",
-               "Available for Android 7.0 (API level 24) and higher.");
+               "Available for Android 7.0 (API level 24) and higher."),
+
+  LEAKCANARY("LeakCanary",
+             "Finds memory leaks in your application.");
 
   @NotNull private final String myName;
 
@@ -159,6 +162,8 @@ public enum ProfilingTechnology {
       case ATRACE: // fall-through
       case PERFETTO:
         return SYSTEM_TRACE;
+      case LEAKCANARY:
+        return LEAKCANARY;
       default:
         throw new IllegalStateException("Error while trying to get the name of an unknown profiling configuration");
     }

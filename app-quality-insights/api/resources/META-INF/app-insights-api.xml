@@ -21,5 +21,11 @@
                     interface="com.android.tools.idea.insights.ai.FixSuggester"/>
     <extensionPoint qualifiedName="com.android.tools.idea.insights.ai.agentActionContributor"
                     interface="com.android.tools.idea.insights.ai.AgentActionContributor"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.insights.ai.aiInsightContributor"
+                    interface="com.android.tools.idea.insights.ai.AiInsightContributor" />
   </extensionPoints>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.insights.ai">
+    <aiInsightContributor implementation="com.android.tools.idea.insights.ai.StubAiInsightContributor" order="last"/>
+  </extensions>
 </idea-plugin>

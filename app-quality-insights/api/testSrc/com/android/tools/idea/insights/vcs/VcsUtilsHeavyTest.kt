@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.vcs
 
 import com.android.tools.idea.insights.model.vcs.RepoInfo
-import com.android.tools.idea.insights.model.vcs.VCS_CATEGORY
+import com.android.tools.idea.insights.model.vcs.VcsCategory
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RuleChain
@@ -31,7 +31,7 @@ class VcsUtilsHeavyTest {
 
   @Test
   fun `can locate repo`() {
-    val repoInfo = RepoInfo(vcsKey = VCS_CATEGORY.TEST_VCS, rootPath = PROJECT_ROOT_PREFIX, revision = "123")
+    val repoInfo = RepoInfo(vcsKey = VcsCategory.TEST_VCS, rootPath = PROJECT_ROOT_PREFIX, revision = "123")
 
     // Act
     val found = repoInfo.locateRepository(projectRule.project)
@@ -44,7 +44,7 @@ class VcsUtilsHeavyTest {
 
   @Test
   fun `can not locate repo due to invalid root path`() {
-    val repoInfo = RepoInfo(vcsKey = VCS_CATEGORY.TEST_VCS, rootPath = "", revision = "123")
+    val repoInfo = RepoInfo(vcsKey = VcsCategory.TEST_VCS, rootPath = "", revision = "123")
 
     // Act
     val found = repoInfo.locateRepository(projectRule.project)
@@ -56,7 +56,7 @@ class VcsUtilsHeavyTest {
   @Test
   fun `can not locate repo due to no Git support`() {
     // ... as in our test setup, we only registered [MockVcsForAppInsights].
-    val repoInfo = RepoInfo(vcsKey = VCS_CATEGORY.GIT, rootPath = PROJECT_ROOT_PREFIX, revision = "123")
+    val repoInfo = RepoInfo(vcsKey = VcsCategory.GIT, rootPath = PROJECT_ROOT_PREFIX, revision = "123")
 
     // Act
     val found = repoInfo.locateRepository(projectRule.project)
@@ -68,7 +68,7 @@ class VcsUtilsHeavyTest {
   @Test
   fun `create vcs document`() {
     val file = projectRule.fixture.configureByText("Foo.kt", "class Foo {}")
-    val document = createVcsDocument(VCS_CATEGORY.TEST_VCS, file.virtualFile, "1", projectRule.project)
+    val document = createVcsDocument(VcsCategory.TEST_VCS, file.virtualFile, "1", projectRule.project)
 
     assertThat(document).isNotNull()
     assertThat(document!!.text).isEqualTo("class Foo {}")

@@ -107,8 +107,7 @@ final class ToolWindowTabs {
   private Content createToolWindowContent(TasksTreeConsoleModel model, Task.Type type) {
     Disposable viewParentDisposable = Disposer.newDisposable();
     Content content =
-        ContentFactory.SERVICE
-            .getInstance()
+        ContentFactory.getInstance()
             .createContent(
                 new TasksTreeConsoleView(model, viewParentDisposable).getComponent(),
                 type.getDisplayName(),

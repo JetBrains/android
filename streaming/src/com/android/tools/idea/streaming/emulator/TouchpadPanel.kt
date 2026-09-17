@@ -174,7 +174,8 @@ internal class TouchpadPanel(private val emulator: EmulatorController, private v
     val pressure = if (withPressure) PRESSURE_RANGE_MAX else 0
     // Touchpad coordinates.
     val touchpadX = (x - insets.left).scaledUnbiased(w, touchpadSize.width)
-    val touchpadY = (y - insets.top).scaledUnbiased(h, touchpadSize.height)
+    // Touchpad's Y axis points in opposite direction compared to the computer screen.
+    val touchpadY = (h - 1 - (y - insets.top)).scaledUnbiased(h, touchpadSize.height)
     touchpadEvent.clearTouches()
     if (multiTouchMode) {
       addTouchWithAdjustments(0, touchpadX - FINGER_HALF_DISTANCE, touchpadY, pressure)

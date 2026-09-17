@@ -31,7 +31,7 @@ import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidMod
 import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.RESOURCE_PREFIX;
 import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.TARGET_PROJECT_PATH;
 import static com.android.tools.idea.gradle.dsl.android.model.android.AndroidModelImpl.TEST_NAMESPACE;
-import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES_DCL;
+import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.atLeast;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
@@ -98,7 +98,7 @@ public class AndroidDslElement extends GradleDslBlockElement {
   public static final ImmutableMap<String, PropertiesElementDescription<?>> DCL_CHILD_PROPERTIES_ELEMENTS_MAP =
     ImmutableMap.<String, PropertiesElementDescription<?>>builder()
       .putAll(CHILD_PROPERTIES_ELEMENTS_MAP)
-      .put("dependenciesDcl", DEPENDENCIES_DCL).build();
+      .put("dependencies", DEPENDENCIES).build();
 
   @Override
   @NotNull

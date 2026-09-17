@@ -1,8 +1,11 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.SdkConstants
+import com.android.Version
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.AGP_MAJOR_MINOR_TO_GRADLE_MAP
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_FOR_DEV
 import com.google.common.truth.Expect
 import com.intellij.testFramework.LightPlatformTestCase
 import org.gradle.util.GradleVersion
@@ -16,6 +19,13 @@ class AgpCompatibleVersionTest : LightPlatformTestCase() {
   @get:Rule val expect: Expect = Expect.createAndEnableStackTrace()
 
   @Test
+  fun testAgpToGradleMapConsistency() {
+    val currentMajorMinor = AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION).let { AgpVersion(it.major, it.minor) }
+    expect.that(AGP_MAJOR_MINOR_TO_GRADLE_MAP).containsKey(currentMajorMinor)
+    expect.that(AGP_MAJOR_MINOR_TO_GRADLE_MAP.values.filter { it == VERSION_FOR_DEV }).hasSize(1)
+  }
+
+  @Test
   fun testCompatibleVersions() {
     val data =
       mapOf(
@@ -25,15 +35,6 @@ class AgpCompatibleVersionTest : LightPlatformTestCase() {
          * comment should encourage the brave maintainer to do. Changes to GRADLE_LATEST_VERSION are both less likely to be disruptive and
          * more likely to be noticed quickly.
          */
-        "3.1" to GradleVersion.version("6.7.1"),
-        "3.2" to GradleVersion.version("6.7.1"),
-        "3.3" to GradleVersion.version("6.7.1"),
-        "3.4" to GradleVersion.version("6.7.1"),
-        "3.5" to GradleVersion.version("6.7.1"),
-        "3.6" to GradleVersion.version("6.7.1"),
-        "4.0" to GradleVersion.version("6.7.1"),
-        "4.1" to GradleVersion.version("6.7.1"),
-        "4.2" to GradleVersion.version("6.7.1"),
         "7.0" to GradleVersion.version("7.0.2"),
         "7.1" to GradleVersion.version("7.2"),
         "7.2" to GradleVersion.version("7.3.3"),

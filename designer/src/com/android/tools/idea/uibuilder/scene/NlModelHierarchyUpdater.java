@@ -52,25 +52,22 @@ public class NlModelHierarchyUpdater {
    * Update the hierarchy based on the render/inflate result.
    * @param result result after inflation. Must contain a valid ViewInfo.
    * @param model to be updated.
-   * @return whether update in component hierarchy caused a reverse update in the view hierarchy
    */
-  public static boolean updateHierarchy(@NotNull RenderResult result,
+  public static void updateHierarchy(@NotNull RenderResult result,
                                      @NotNull NlModel model) {
-    return updateHierarchy(getRootViews(result, model.getType()), model);
+    updateHierarchy(getRootViews(result, model.getType()), model);
   }
 
   /**
    * Update the hierarchy based on the inflated rootViews.
    * @param views list of views inflated that matches model file
    * @param model to be updated
-   * @return whether update in component hierarchy caused a reverse update in the view hierarchy
    */
-  public static boolean updateHierarchy(@NotNull List<ViewInfo> views, @NotNull NlModel model) {
+  public static void updateHierarchy(@NotNull List<ViewInfo> views, @NotNull NlModel model) {
     XmlTag root = getRootTag(model);
     if (root != null) {
-      return updateHierarchy(root, views, model);
+      updateHierarchy(root, views, model);
     }
-    return false;
   }
 
   /**
@@ -78,17 +75,16 @@ public class NlModelHierarchyUpdater {
    * @param rootTag xml tag of the root view from PsiFile (from model)
    * @param views list of views inflated that matches model file
    * @param model to be updated
-   * @return whether update in component hierarchy caused a reverse update in the view hierarchy
    */
-  public static boolean updateHierarchy(@NotNull XmlTag rootTag, @NotNull List<ViewInfo> views, @NotNull NlModel model) {
+  public static void updateHierarchy(@NotNull XmlTag rootTag, @NotNull List<ViewInfo> views, @NotNull NlModel model) {
     model.syncWithPsi(rootTag, ContainerUtil.map(views, ViewInfoTagSnapshotNode::new));
     model.updateAccessibility(views);
     updateBounds(views, model);
     ImmutableList<NlComponent> components = model.getTreeReader().getComponents();
-    if (!components.isEmpty()) {
-      return updateScroll(components.get(0));
+    if (!components.isEmpty() && handleScroll(components.getFirst())) {
+      // If there is scrolling involved, this will update the SceneManager to show the correct location for bounding boxes.
+      model.notifyListenersModelChangedOnLayout(false);
     }
-    return false;
   }
 
   /**
@@ -135,11 +131,11 @@ public class NlModelHierarchyUpdater {
   }
 
   /**
-   * Update the scroll in the View hierarchy from the saved scroll in the components' hierarchy. Returns whether there was any scroll
-   * update required or not.
+   * Updates the scroll in the View hierarchy from the saved scroll in the components' hierarchy. Returns whether the component
+   * or its children are scrolled by a non-zero amount.
    */
-  private static boolean updateScroll(@NotNull NlComponent component) {
-    boolean scrollHasChanged = false;
+  private static boolean handleScroll(@NotNull NlComponent component) {
+    boolean hasNonZeroScroll = false;
     ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(component);
     Object viewObject = viewInfo != null ? viewInfo.getViewObject() : null;
 
@@ -147,8 +143,8 @@ public class NlModelHierarchyUpdater {
       ViewGroup viewGroup = (ViewGroup)viewObject;
       int savedScrollX = NlComponentHelperKt.getScrollX(component);
       int savedScrollY = NlComponentHelperKt.getScrollY(component);
+      hasNonZeroScroll = savedScrollX != 0 || savedScrollY != 0;
       if (savedScrollX != viewGroup.getScrollX() || savedScrollY != viewGroup.getScrollY()) {
-        scrollHasChanged = true;
         viewGroup.setScrollX(savedScrollX);
         viewGroup.setScrollY(savedScrollY);
       }
@@ -156,9 +152,9 @@ public class NlModelHierarchyUpdater {
 
     List<NlComponent> children = component.getChildren();
     for (NlComponent child : children) {
-      scrollHasChanged = scrollHasChanged || updateScroll(child);
+      hasNonZeroScroll = hasNonZeroScroll || handleScroll(child);
     }
-    return scrollHasChanged;
+    return hasNonZeroScroll;
   }
 
   private static void updateBounds(@NotNull ViewInfo view,

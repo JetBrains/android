@@ -16,14 +16,9 @@
 package com.google.idea.blaze.base.settings;
 
 import com.google.idea.blaze.base.bazel.BuildSystemProvider;
-import com.google.idea.blaze.base.qsync.QuerySync;
 import com.google.idea.blaze.base.settings.BlazeImportSettings.ProjectType;
-import com.intellij.ide.DataManager;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import javax.annotation.Nullable;
-import javax.swing.SwingUtilities;
 
 /** Blaze project utilities. */
 public class Blaze {
@@ -31,11 +26,8 @@ public class Blaze {
   private Blaze() {}
 
   /**
-   * Returns whether this project was imported from blaze.
-   *
-   * @deprecated use {@link #getProjectType(Project)}.
+   * Returns whether the project is a Bazel or Blaze project currently assigned to BazelProjectSystem.
    */
-  @Deprecated
   public static boolean isBlazeProject(@Nullable Project project) {
     return project != null
         && BlazeImportSettingsManager.getInstance(project).getImportSettings() != null;

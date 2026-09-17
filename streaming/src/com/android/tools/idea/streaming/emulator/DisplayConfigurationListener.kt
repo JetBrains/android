@@ -20,6 +20,5 @@ import com.android.emulator.control.DisplayConfiguration
 /** Listener of emulator display configuration changes. */
 interface DisplayConfigurationListener {
   /** Called when the configuration of the AVD displays has been changed. */
-  // TODO: Make the parameter non-nullable after January 1, 2024.
-  fun displayConfigurationChanged(displayConfigs: List<DisplayConfiguration>?)
+  fun displayConfigurationChanged(displayConfigs: List<DisplayConfiguration>)
 }

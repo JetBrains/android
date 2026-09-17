@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.options.OptionsProvider;
 import com.android.tools.adtui.model.options.OptionsProperty;
 import com.android.tools.idea.protobuf.GeneratedMessageV3;
 import com.android.tools.profiler.proto.Trace;
+import com.android.tools.profilers.tasks.ProfilerTaskType;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,6 +46,7 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
     ATRACE("Atrace"),
     SIMPLEPERF("Simpleperf"),
     PERFETTO("Perfetto"),
+    LEAKCANARY("LeakCanary"),
     UNSPECIFIED("Unspecified");
 
     @NotNull
@@ -75,6 +77,16 @@ public abstract class ProfilingConfiguration implements OptionsProvider {
     @NotNull
     public String getDisplayName() {
       return myDisplayName;
+    }
+
+    @NotNull
+    public ProfilerTaskType toTaskType() {
+      return switch (this) {
+        case ART -> ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING;
+        case ATRACE, PERFETTO -> ProfilerTaskType.SYSTEM_TRACE;
+        case SIMPLEPERF -> ProfilerTaskType.CALLSTACK_SAMPLE;
+        default -> ProfilerTaskType.UNSPECIFIED;
+      };
     }
   }
 

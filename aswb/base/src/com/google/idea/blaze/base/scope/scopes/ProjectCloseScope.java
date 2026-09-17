@@ -47,9 +47,6 @@ public class ProjectCloseScope implements VetoableProjectManagerListener, BlazeS
   }
 
   @Override
-  public void projectOpened(Project project) {}
-
-  @Override
   public boolean canClose(Project project) {
     if (!project.equals(this.project)) {
       return true;
@@ -60,9 +57,6 @@ public class ProjectCloseScope implements VetoableProjectManagerListener, BlazeS
     }
     return false;
   }
-
-  @Override
-  public void projectClosed(Project project) {}
 
   @Override
   public void projectClosing(Project project) {

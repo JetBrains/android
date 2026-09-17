@@ -46,10 +46,6 @@ class AdbDelegateUsageTrackerImpl private constructor(session: AdbSession, priva
 
   companion object {
 
-    fun forAndroidDebugBridgeImpl(session: AdbSession): AdbDelegateUsageTracker {
-      return AdbDelegateUsageTrackerImpl(session, AdbDelegateUsageEvent.SourceType.ADB_IMPL)
-    }
-
     fun forAdbLibAndroidDebugBridge(session: AdbSession): AdbDelegateUsageTracker {
       return AdbDelegateUsageTrackerImpl(session, AdbDelegateUsageEvent.SourceType.ADBLIB_ADB)
     }

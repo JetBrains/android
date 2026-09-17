@@ -31,17 +31,28 @@ import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.ExternalResource
 import org.junit.rules.RuleChain
 
 class DeviceProvisionerAndroidDeviceTest {
   private val deviceProvisionerRule = DeviceProvisionerRule()
+
+  // AdbLibApplicationService claims the AndroidDebugBridge delegate for the whole JVM, and preInit accepts only one owner.
+  private val releaseAndroidDebugBridgeRule =
+    object : ExternalResource() {
+      override fun before() = AndroidDebugBridge.resetForTests()
+    }
 
   private val useAdbLibAndroidDebugBridgeRule = UseAdbLibAndroidDebugBridgeRule { deviceProvisionerRule.adbSession }
 
   private val initAndroidDebugBridgeRule = InitAndroidDebugBridgeRule { deviceProvisionerRule.fakeAdb.port }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(deviceProvisionerRule).around(useAdbLibAndroidDebugBridgeRule).around(initAndroidDebugBridgeRule)!!
+  val ruleChain =
+    RuleChain.outerRule(deviceProvisionerRule)
+      .around(releaseAndroidDebugBridgeRule)
+      .around(useAdbLibAndroidDebugBridgeRule)
+      .around(initAndroidDebugBridgeRule)!!
 
   lateinit var bridge: AndroidDebugBridge
 

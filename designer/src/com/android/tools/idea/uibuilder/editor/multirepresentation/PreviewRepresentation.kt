@@ -45,10 +45,10 @@ interface PreviewRepresentation : Disposable {
   val component: JComponent
 
   /**
-   * Optional preferred initial visibility of this editor when opening this representation. If null, the container of this representation
-   * will decide.
+   * Optional preferred initial visibility of this editor when opening this representation. If the method returns null, the container of
+   * this representation will decide.
    */
-  val preferredInitialVisibility: PreferredVisibility?
+  suspend fun preferredInitialVisibility(): PreferredVisibility?
 
   /** Used for propagating notification updates events down to the [PreviewRepresentation] from the parent [MultiRepresentationPreview]. */
   fun updateNotifications(parentEditor: FileEditor) {}

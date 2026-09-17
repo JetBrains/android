@@ -44,6 +44,7 @@ fun <T : Any> previewAnnotationToPreviewElement(
   previewElementDefinition: T?,
   parameterizedElementConstructor: (SingleComposePreviewElementInstance<T>, Collection<PreviewParameter>) -> ComposePreviewElement<T>,
   overrideGroupName: String? = null,
+  previewWrapperProviderFqn: String? = null,
   buildPreviewName: (nameParameter: String?) -> String,
   buildParameterName: (nameParameter: String?) -> String? = { it },
 ): ComposePreviewElement<T> {
@@ -91,6 +92,7 @@ fun <T : Any> previewAnnotationToPreviewElement(
       previewElementDefinition,
       annotatedMethod.methodBody,
       attributesToConfiguration(attributesProvider),
+      previewWrapperProviderFqn = previewWrapperProviderFqn,
     )
   return if (!parameters.isEmpty()) {
     parameterizedElementConstructor(basePreviewElement, parameters)

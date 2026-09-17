@@ -1,5 +1,5 @@
 androidApp {
-  dependenciesDcl {
+  dependencies {
     compile("")
     compile(" ")
     compile("""

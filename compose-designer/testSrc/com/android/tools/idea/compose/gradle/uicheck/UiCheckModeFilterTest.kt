@@ -21,6 +21,7 @@ import com.android.tools.idea.preview.uicheck.UiCheckModeFilter
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import org.junit.Rule
@@ -46,6 +47,7 @@ class UiCheckModeFilterTest {
     val previewElements = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val generatedDisplaySettings = previewElements.toList().map { it.displaySettings }
+    assertEquals(22, generatedDisplaySettings.size)
 
     // Show decoration flag shouldn't affect screen sizes previews because show previews on
     // different phone sizes:
@@ -75,9 +77,13 @@ class UiCheckModeFilterTest {
     assertFalse(generatedDisplaySettings[9].showDecoration)
     assertFalse(generatedDisplaySettings[10].showDecoration)
 
+    // System UI is not affected by show decoration flag change
+    assertTrue(generatedDisplaySettings[11].showDecoration)
+    assertTrue(generatedDisplaySettings[12].showDecoration)
+
     // Light/Dark are affected by show decoration flag
-    assertFalse(generatedDisplaySettings[11].showDecoration)
-    assertFalse(generatedDisplaySettings[12].showDecoration)
+    assertFalse(generatedDisplaySettings[13].showDecoration)
+    assertFalse(generatedDisplaySettings[14].showDecoration)
 
     // Colorblind filters are affected by show decoration flag
     // They show:
@@ -88,13 +94,13 @@ class UiCheckModeFilterTest {
     // - Tritanomaly
     // - Protanopes
     // - Protanomaly
-    assertFalse(generatedDisplaySettings[13].showDecoration)
-    assertFalse(generatedDisplaySettings[14].showDecoration)
     assertFalse(generatedDisplaySettings[15].showDecoration)
     assertFalse(generatedDisplaySettings[16].showDecoration)
     assertFalse(generatedDisplaySettings[17].showDecoration)
     assertFalse(generatedDisplaySettings[18].showDecoration)
     assertFalse(generatedDisplaySettings[19].showDecoration)
+    assertFalse(generatedDisplaySettings[20].showDecoration)
+    assertFalse(generatedDisplaySettings[21].showDecoration)
   }
 
   @Test
@@ -108,6 +114,7 @@ class UiCheckModeFilterTest {
     val previewElements = UiCheckModeFilter.Enabled.calculatePreviews(elementInstanceTest, isWearPreview = false)
 
     val generatedDisplaySettings = previewElements.toList().map { it.displaySettings }
+    assertEquals(22, generatedDisplaySettings.size)
 
     // Show decoration flag shouldn't affect screen sizes previews because show previews on
     // different phone sizes:
@@ -137,11 +144,15 @@ class UiCheckModeFilterTest {
     assertTrue(generatedDisplaySettings[9].showDecoration)
     assertTrue(generatedDisplaySettings[10].showDecoration)
 
-    // Light/Dark are affected by show decoration flag.
+    // System UI is not affected by show decoration flag change
     assertTrue(generatedDisplaySettings[11].showDecoration)
     assertTrue(generatedDisplaySettings[12].showDecoration)
 
-    // Colorblind filters are affected by show decoration flag.
+    // Light/Dark are affected by show decoration flag
+    assertTrue(generatedDisplaySettings[13].showDecoration)
+    assertTrue(generatedDisplaySettings[14].showDecoration)
+
+    // Colorblind filters are affected by show decoration flag
     // They show:
     // - Original
     // - Deuteranopes
@@ -150,13 +161,13 @@ class UiCheckModeFilterTest {
     // - Tritanomaly
     // - Protanopes
     // - Protanomaly
-    assertTrue(generatedDisplaySettings[13].showDecoration)
-    assertTrue(generatedDisplaySettings[14].showDecoration)
     assertTrue(generatedDisplaySettings[15].showDecoration)
     assertTrue(generatedDisplaySettings[16].showDecoration)
     assertTrue(generatedDisplaySettings[17].showDecoration)
     assertTrue(generatedDisplaySettings[18].showDecoration)
     assertTrue(generatedDisplaySettings[19].showDecoration)
+    assertTrue(generatedDisplaySettings[20].showDecoration)
+    assertTrue(generatedDisplaySettings[21].showDecoration)
   }
 
   @Test
@@ -191,6 +202,7 @@ class UiCheckModeFilterTest {
     previewElements: Collection<SingleComposePreviewElementInstance<SmartPsiElementPointer<PsiElement>>>
   ) {
     val generatedDisplaySettings = previewElements.toList().map { it.displaySettings }
+    assertEquals(15, generatedDisplaySettings.size)
 
     // Screen sizes are affected by show decoration flag because They show Wear sizes.
     // They show different Wear sizes:

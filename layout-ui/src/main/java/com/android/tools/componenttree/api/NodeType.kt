@@ -40,6 +40,10 @@ interface NodeType<T> {
    */
   fun createRenderer(): TreeCellRenderer
 
+  /** Left margin of the tree in unscaled pixels (will be scaled before use) */
+  val leftMargin: Int
+    get() = 0
+
   // region Drag and Drop Support
 
   /**

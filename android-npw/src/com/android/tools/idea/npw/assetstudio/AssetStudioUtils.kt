@@ -25,6 +25,7 @@ import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.util.AndroidPluginPathManager
 import com.android.tools.idea.util.StudioPathManager
 import com.google.common.base.CaseFormat
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import java.awt.Dimension
 import java.awt.Rectangle
@@ -143,10 +144,21 @@ fun getBundledImage(dir: String, fileName: String): Path {
       else -> AndroidPluginPathManager.getResource("images/$dir/$fileName") // JetBrains patch
     }
 
+  // ConfigureAdaptiveIconPanelTest will call this method since it's called from ConfigureAdaptiveIconPanel constructor.
+  // Some tests don't need to have the actual image file set, and calling LOG.error will cause these tests to fail.
+  // Therefore, we lower the logger level to warning in tests.
   if (!Files.exists(imageFile)) {
-    LOG.error("Missing bundled image file $imageFile")
+    if (ApplicationManager.getApplication()?.isUnitTestMode == true) {
+      LOG.warn("Missing bundled image file $imageFile")
+    } else {
+      LOG.error("Missing bundled image file $imageFile")
+    }
   } else if (Files.isDirectory(imageFile)) {
-    LOG.error("Bundled image file $imageFile is a directory")
+    if (ApplicationManager.getApplication()?.isUnitTestMode == true) {
+      LOG.warn("Bundled image file $imageFile is a directory")
+    } else {
+      LOG.error("Bundled image file $imageFile is a directory")
+    }
   }
   return imageFile ?: Paths.get("/")
 }

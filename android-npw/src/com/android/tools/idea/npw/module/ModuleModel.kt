@@ -105,7 +105,7 @@ abstract class ModuleModel(
       |Package name: ${packageName.get()}
       |Language: ${language.value}
       |Minimum SDK: ${androidSdkInfo.valueOrNull?.minApiLevel ?: "N/A"}
-      |Kotlin DSL: ${useGradleKts.get()}
+      |Kotlin DSL: ${dslLanguage.get().isKts}
     """
       .trimMargin()
   }
@@ -126,6 +126,7 @@ abstract class ModuleModel(
           if (agpVersion == null) {
             agpVersion = this@ModuleModel.agpVersionSelector.get().resolveVersion(AgpVersions::getAvailableVersions)
           }
+          dslLanguage = this@ModuleModel.dslLanguage.get()
         }
         formFactor = this@ModuleModel.formFactor.get()
         category = this@ModuleModel.category.get()
@@ -196,7 +197,7 @@ abstract class ModuleModel(
             minSdk = androidSdkInfo.valueOrNull?.minSdk?.majorVersion,
             targetSdk = androidSdkInfo.valueOrNull?.compileSdk?.majorVersion,
             bytecodeLevel = (this@ModuleModel as? NewAndroidModuleModel)?.bytecodeLevel?.valueOrNull,
-            useGradleKts = useGradleKts.get(),
+            dslLanguage = dslLanguage.get(),
             useAppCompat = false,
           )
         } else null

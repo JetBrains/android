@@ -105,6 +105,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
         isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
         openStates = openStates,
         onOpenStatesChange = { openStates = it },
+        onCopy = {},
       )
     }
     composeTestRule.onAllNodesWithContentDescription(LeakingStatus.YES.name).assertCountEquals(1) // 1 - yes leak icon
@@ -139,6 +140,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
         isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
         openStates = openStates,
         onOpenStatesChange = { openStates = it },
+        onCopy = {},
       )
     }
 
@@ -190,6 +192,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
         isDeclarationAvailableAsync = mockLeakCanaryModel::isDeclarationAvailableAsync,
         openStates = openStates,
         onOpenStatesChange = { openStates = it },
+        onCopy = {},
       )
     }
 
@@ -235,6 +238,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
         isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
         openStates = emptyList(),
         onOpenStatesChange = {},
+        onCopy = {},
       )
     }
     composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE).assertIsDisplayed()
@@ -252,6 +256,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
         isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
         openStates = emptyList(),
         onOpenStatesChange = {},
+        onCopy = {},
       )
     }
     composeTestRule.onNodeWithText(TaskBasedUxStrings.LEAKCANARY_LEAK_DETAIL_EMPTY_INITIAL_MESSAGE).assertDoesNotExist()
@@ -311,6 +316,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
         isDeclarationAvailableAsync = mockLeakCanaryModel::isDeclarationAvailableAsync,
         openStates = openStates,
         onOpenStatesChange = { openStates = it },
+        onCopy = {},
       )
     }
 
@@ -359,6 +365,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
         isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
         openStates = openStates,
         onOpenStatesChange = { openStates = it },
+        onCopy = {},
       )
     }
 
@@ -378,6 +385,7 @@ class LeakDetailsPanelTest : WithFakeTimer {
         isDeclarationAvailableAsync = leakCanaryModel::isDeclarationAvailableAsync,
         openStates = emptyList(),
         onOpenStatesChange = {},
+        onCopy = {},
       )
     }
 

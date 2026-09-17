@@ -15,17 +15,28 @@
  */
 package com.android.tools.idea.npw.assetstudio;
 
+import static com.android.tools.idea.testing.AndroidProjectRuleKt.onEdt;
 import static com.google.common.truth.Truth.assertThat;
-import static java.lang.Thread.sleep;
 
 import com.android.ide.common.util.PathString;
 import com.android.tools.idea.npw.assetstudio.IconGenerator.IconOptions;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.android.tools.idea.testing.EdtAndroidProjectRule;
+import com.intellij.openapi.application.WriteAction;
+import com.intellij.testFramework.RunsInEdt;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -40,9 +51,10 @@ import org.junit.runners.JUnit4;
  * Tests for {@link IconGenerator}.
  */
 @RunWith(JUnit4.class)
+@RunsInEdt
 public final class IconGeneratorTest {
   @Rule
-  public final AndroidProjectRule myProjectRule = AndroidProjectRule.inMemory();
+  public final EdtAndroidProjectRule myProjectRule = onEdt(AndroidProjectRule.inMemory());
 
   @Test
   public void generateIconsIsCancelledWhenDisposed() throws InterruptedException {
@@ -110,5 +122,38 @@ public final class IconGeneratorTest {
     generator.outputName().set("foo");
     Set<File> files = generator.generateIntoFileMap(new File("/app/main/res")).keySet();
     assertThat(files).containsExactly(new File("/app/main/res/drawable/foo.xml"));
+  }
+
+  @Test
+  public void writeTextToDisk_addsLicenseHeader() throws Exception {
+    IconGenerator iconGenerator = new IconGenerator(myProjectRule.getProject(), 1, new GraphicGeneratorContext(1)) {
+      @NotNull @Override public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull IconOptions options) { return PLACEHOLDER_IMAGE; }
+      @NotNull @Override public IconOptions createOptions(boolean forPreview) { return new IconOptions(forPreview); }
+      @NotNull @Override protected List<Callable<GeneratedIcon>> createIconGenerationTasks(@NotNull GraphicGeneratorContext context, @NotNull IconOptions options, @NotNull String name) { return Collections.emptyList(); }
+    };
+
+    File outputDir = FileUtilRt.createTempDirectory("IconGeneratorTest", null);
+    String xmlText = "<vector/>";
+    String fileName = "test_icon.xml";
+    GeneratedXmlResource resource = new GeneratedXmlResource("test", new PathString(fileName), IconCategory.REGULAR, xmlText);
+
+    generateIconsToDisk(iconGenerator, Collections.singletonList(resource), outputDir);
+    VirtualFile outputFile = VfsUtil.findFileByIoFile(new File(outputDir, fileName), true);
+    assertThat(outputFile).isNotNull();
+    String content = new String(outputFile.contentsToByteArray(), StandardCharsets.UTF_8);
+    assertThat(content).contains("Copyright (C)");
+    assertThat(content).contains("Licensed under the Apache License, Version 2.0");
+    assertThat(content).endsWith("<vector/>");
+  }
+
+  private void generateIconsToDisk(IconGenerator iconGenerator, Collection<? extends GeneratedIcon> icons, File outputDir) {
+    Map<File, GeneratedIcon> pathIconMap = new HashMap<>();
+    for (GeneratedIcon icon : icons) {
+      PathString iconPath = icon.getOutputPath();
+      if (iconPath != null) {
+        pathIconMap.put(new File(outputDir, iconPath.getNativePath()), icon);
+      }
+    }
+    WriteAction.run(() -> iconGenerator.writeIconsToDisk(pathIconMap));
   }
 }

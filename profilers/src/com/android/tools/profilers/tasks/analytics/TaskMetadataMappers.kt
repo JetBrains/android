@@ -18,8 +18,12 @@ package com.android.tools.profilers.tasks.analytics
 import com.android.tools.profiler.proto.Memory
 import com.android.tools.profiler.proto.Memory.TrackStatus
 import com.android.tools.profiler.proto.Trace
+import com.google.wireless.android.sdk.stats.LeakCanaryTaskMetadata.LeakAnalysis
+import com.google.wireless.android.sdk.stats.LeakCanaryTaskMetadata.UiAction
 import com.google.wireless.android.sdk.stats.TaskFailedMetadata.AllocationTrackStatus
 import com.google.wireless.android.sdk.stats.TaskFailedMetadata.HeapDumpStatus
+import com.google.wireless.android.sdk.stats.TaskFailedMetadata.LeakCanaryProcessingStatus
+import com.google.wireless.android.sdk.stats.TaskFailedMetadata.LeakCanaryStartStatus
 import com.google.wireless.android.sdk.stats.TaskFailedMetadata.TraceStartStatus
 import com.google.wireless.android.sdk.stats.TaskFailedMetadata.TraceStopStatus
 
@@ -100,4 +104,62 @@ fun Memory.HeapDumpStatus.toStatsProto(): HeapDumpStatus {
     }
 
   return HeapDumpStatus.newBuilder().setStatus(statsProtoStatus).setStartTimeNs(this.startTime).build()
+}
+
+fun LeakCanaryStartErrorCode.toStatsProto(): LeakCanaryStartStatus {
+  val statsProtoStatus =
+    when (this) {
+      LeakCanaryStartErrorCode.UNKNOWN_ERROR -> LeakCanaryStartStatus.ErrorCode.UNKNOWN_ERROR
+      LeakCanaryStartErrorCode.AGENT_ATTACH_FAILED -> LeakCanaryStartStatus.ErrorCode.AGENT_ATTACH_FAILED
+      LeakCanaryStartErrorCode.APP_CONTEXT_NULL -> LeakCanaryStartStatus.ErrorCode.APP_CONTEXT_NULL
+      LeakCanaryStartErrorCode.LIBRARY_NOT_INSTALLED_TIMEOUT -> LeakCanaryStartStatus.ErrorCode.LIBRARY_NOT_INSTALLED_TIMEOUT
+      LeakCanaryStartErrorCode.TRANSPORT_TIMEOUT -> LeakCanaryStartStatus.ErrorCode.TRANSPORT_TIMEOUT
+    }
+  return LeakCanaryStartStatus.newBuilder().setErrorCode(statsProtoStatus).build()
+}
+
+fun LeakCanaryProcessingErrorCode.toStatsProto(): LeakCanaryProcessingStatus {
+  val statsProtoStatus =
+    when (this) {
+      LeakCanaryProcessingErrorCode.UNKNOWN_ERROR -> LeakCanaryProcessingStatus.ErrorCode.UNKNOWN_ERROR
+      LeakCanaryProcessingErrorCode.BROADCAST_DELIVERY_FAILED -> LeakCanaryProcessingStatus.ErrorCode.BROADCAST_DELIVERY_FAILED
+      LeakCanaryProcessingErrorCode.HEAP_DUMP_GENERATION_FAILED -> LeakCanaryProcessingStatus.ErrorCode.HEAP_DUMP_GENERATION_FAILED
+      LeakCanaryProcessingErrorCode.HPROF_DOWNLOAD_FAILED -> LeakCanaryProcessingStatus.ErrorCode.HPROF_DOWNLOAD_FAILED
+      LeakCanaryProcessingErrorCode.SHARK_ANALYSIS_OOM -> LeakCanaryProcessingStatus.ErrorCode.SHARK_ANALYSIS_OOM
+      LeakCanaryProcessingErrorCode.SHARK_ANALYSIS_EXCEPTION -> LeakCanaryProcessingStatus.ErrorCode.SHARK_ANALYSIS_EXCEPTION
+      LeakCanaryProcessingErrorCode.PARSING_FAILURE -> LeakCanaryProcessingStatus.ErrorCode.PARSING_FAILURE
+    }
+  return LeakCanaryProcessingStatus.newBuilder().setErrorCode(statsProtoStatus).build()
+}
+
+fun LeakCanaryUiAction.toStatsProto(): UiAction {
+  return when (this) {
+    LeakCanaryUiAction.UNKNOWN_ACTION -> UiAction.UNKNOWN_ACTION
+    LeakCanaryUiAction.FORCE_DUMP_CLICKED -> UiAction.FORCE_DUMP_CLICKED
+    LeakCanaryUiAction.STOP_RECORDING_CLICKED -> UiAction.STOP_RECORDING_CLICKED
+    LeakCanaryUiAction.GO_TO_DECLARATION_CLICKED -> UiAction.GO_TO_DECLARATION_CLICKED
+    LeakCanaryUiAction.COPY_TRACE_CLICKED -> UiAction.COPY_TRACE_CLICKED
+    LeakCanaryUiAction.EXPAND_ALL_NODES_CLICKED -> UiAction.EXPAND_ALL_NODES_CLICKED
+    LeakCanaryUiAction.COLLAPSE_ALL_NODES_CLICKED -> UiAction.COLLAPSE_ALL_NODES_CLICKED
+    LeakCanaryUiAction.NEW_LEAK_SELECTED -> UiAction.NEW_LEAK_SELECTED
+    LeakCanaryUiAction.CANCELLED_DURING_ANALYSIS -> UiAction.CANCELLED_DURING_ANALYSIS
+  }
+}
+
+fun LeakCanaryLeakAnalysis.toStatsProto(): LeakAnalysis {
+  return LeakAnalysis.newBuilder()
+    .apply {
+      this@toStatsProto.retainedObjectsCount?.let { setRetainedObjectsCount(it) }
+      this@toStatsProto.occurrencesCount?.let { setOccurrencesCount(it) }
+      this@toStatsProto.estimatedMemoryLeakedBytes?.let { setEstimatedMemoryLeakedBytes(it) }
+      this@toStatsProto.leakingNoRows?.let { setLeakingNoRows(it) }
+      this@toStatsProto.leakingMaybeRows?.let { setLeakingMaybeRows(it) }
+      this@toStatsProto.leakingYesRows?.let { setLeakingYesRows(it) }
+      this@toStatsProto.heapDumpAnalysisTimeMs?.let { setHeapDumpAnalysisTimeMs(it) }
+      this@toStatsProto.totalRecordingTimeMs?.let { setTotalRecordingTimeMs(it) }
+      this@toStatsProto.isLibraryLeak?.let { setIsLibraryLeak(it) }
+      this@toStatsProto.hprofFileSizeBytes?.let { setHprofFileSizeBytes(it) }
+      this@toStatsProto.hprofDownloadDurationMs?.let { setHprofDownloadDurationMs(it) }
+    }
+    .build()
 }

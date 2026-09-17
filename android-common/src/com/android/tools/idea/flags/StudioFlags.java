@@ -53,8 +53,9 @@ import org.jetbrains.annotations.VisibleForTesting;
  * features entirely or branch internal logic of features, e.g. for experimentation or easy
  * rollback.
  * <p>
- * For information on how to add your own flags, see the README.md file under
- * "//tools/base/flags".
+ * For information on how to add your own flags, see tools/base/flags/README.md.
+ * <p>
+ * Values of Boolean flags are defined in tools/adt/idea/android-common/flags/resources/feature_flags.txt.
  */
 public final class StudioFlags {
   public static final Flags FLAGS = createFlags();
@@ -193,10 +194,6 @@ public final class StudioFlags {
     NPW, "show.fragment.gallery", "Show fragment gallery",
     "Show fragment gallery which contains fragment based templates");
 
-  public static final Flag<Boolean> NPW_SHOW_KTS_GRADLE_COMBO_BOX = new BooleanFlag(
-    NPW, "show.kts.gradle.combobox", "Show KTS/Gradle Combobox",
-    "Show KTS/Gradle Combobox to which build script is used for the generated code");
-
   public static final Flag<Boolean> NPW_PICK_LATEST_PATCH_AGP = new BooleanFlag(
     NPW, "use.patch.releases", "Use the latest patch release of AGP",
     "When enabled Studio will pick future patch releases of AGP for new projects.");
@@ -236,8 +233,8 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> NPW_ENABLE_GEMINI_FIREBASE_TEMPLATE = new BooleanFlag(
     NPW, "gemini.firebase.template",
-    "Enable 'Gemini API Starter with Firebase' template",
-    "Allows the 'Gemini API Starter with Firebase' template to be used.");
+    "Enable 'Gemini API Starter' template",
+    "Allows the 'Gemini API Starter' template to be used.");
 
   public static final Flag<Boolean> NPW_ENABLE_XR_TEMPLATE = new BooleanFlag(
     NPW, "xr.template",
@@ -377,16 +374,16 @@ public final class StudioFlags {
     PROFILER, "leakcanary", "LeakCanary",
     "Enables the integration of leakCanary and display of leaks");
 
-  public static final Flag<Boolean> PROFILER_LEAKCANARY_MILESTONE2 = new BooleanFlag(
-    PROFILER, "leakcanary.milestone2", "LeakCanary Milestone 2",
-    "Enables new features for the LeakCanary profiler as part of Milestone 2.");
-
   public static final Flag<Boolean> PROFILER_TRACEBOX =
     new BooleanFlag(PROFILER, "tracebox", "Tracebox", "Tracebox for versions M,N,O,P of Android");
 
   public static final Flag<Boolean> PROFILER_SYSTEM_TRACE_IN_EDITOR = new BooleanFlag(
     PROFILER, "system.trace.in.editor", "Open System Trace in Editor",
     "Opens System Trace files in a new editor tab");
+
+  public static final Flag<Boolean> PROFILER_METHOD_TRACE_IN_EDITOR = new BooleanFlag(
+    PROFILER, "method.trace.in.editor", "Open Method Trace in Editor",
+    "Opens Java/Kotlin Method Trace files in a new editor tab");
   //endregion
 
   //region Design Tools
@@ -1287,9 +1284,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> RUNNING_DEVICES_COLLAPSIBLE_FLOATING_TOOLBARS = new BooleanFlag(
     EMBEDDED_EMULATOR, "collapsible.floating.toolbars", "Make zoom and XR toolbars collapsible",
     "Make zoom and XR toolbars in the Running Devices window collapsible");
-  public static final Flag<Boolean> UI_SETTINGS_B475894230_LOGGING = new DebugFlag(
-    EMBEDDED_EMULATOR, "b475894230.logging", "Enable logging for investigation of b/475894230",
-    "Enable logging for investigation of b/475894230");
   //endregion
 
   //region Device Mirroring
@@ -1419,12 +1413,6 @@ public final class StudioFlags {
     "Synchronize translations editor with resource file updates",
     "If enabled, causes the translations editor to reload data when resource files are edited"
   );
-
-  public static final Flag<Boolean> COMPOSE_STATE_READ_INLAY_HINTS_ENABLED = new BooleanFlag(
-    EDITOR, "compose.state.read.inlay.hints.enabled",
-    "Enable inlay hints for State reads in @Composable functions",
-    "If enabled, calls out reads of variables of type State inside @Composable functions."
-    );
 
   public static final Flag<Boolean> REMOTE_SDK_DOCUMENTATION_FETCH_VIA_CONTENT_SERVING_API_ENABLED = new BooleanFlag(
     EDITOR, "remote.sdk.documentation.fetch.via.content.serving.api.enabled",
@@ -1631,12 +1619,6 @@ public final class StudioFlags {
     COMPOSE, "project.uses.compose.override", "Forces the Compose project detection",
     "If enabled, the project will be treated as a Compose project, showing Previews if available and enhancing the Compose editing");
 
-  public static final Flag<Boolean> COMPOSE_ALLOCATION_LIMITER = new BooleanFlag(
-    COMPOSE, "allocation.limiter", "If enabled, limits allocations per render",
-    "If enabled, limits the number of allocations that user code can do in a single render action"
-    );
-
-
   public static final Flag<Boolean> COMPOSE_PREVIEW_GENERATE_PREVIEW_AGENTIC = new BooleanFlag(
     COMPOSE, "preview.generate.preview.action.agentic", "Use agents to generate Compose Previews",
     "Uses agentic approach when generating Compose Previews corresponding to the selected @Composable."
@@ -1660,10 +1642,6 @@ public final class StudioFlags {
     COMPOSE, "transform.ui.with.ai.agentic", "Use agent for Transform UI with Gemini",
     "Uses agentic approach when performing transform UI with Gemini."
     );
-
-  public static final Flag<Boolean> COMPOSE_PREVIEW_SUBCOMPONENT_CONTEXT_CHANGE_UI = new BooleanFlag(
-    COMPOSE, "preview.subcomponent.change.ui", "Enable subcomponent context to be sent to AI",
-    "Enables the change UI to have subcomponent selection when entering through clicking on preview.");
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_SCREENSHOT_TO_CODE = new BooleanFlag(
     COMPOSE, "preview.screenshot.to.code", "Enable screenshot to code action",
@@ -1842,6 +1820,13 @@ public final class StudioFlags {
     "Enable the support of AI Glasses device in the device manager"
   );
 
+  public static final Flag<Boolean> AI_GLASSES_DISPLAY_SETTING_ENABLED = new BooleanFlag(
+    DEVICE_MANAGER,
+    "ai.glasses.display.setting.enabled",
+    "AI Glasses Display Setting Enabled",
+    "Enable the configuration of Display or Displayless for AI Glasses AVDs"
+  );
+
   public static final Flag<Boolean> XR_GLASSES_DEVICE_SUPPORT_ENABLED = new BooleanFlag(
     DEVICE_MANAGER,
     "xr.glasses.device.support.enabled",
@@ -1861,6 +1846,13 @@ public final class StudioFlags {
     "emulator.aehd.to.whpx.conversion",
     "Emulator AEHD to WHPX Conversion",
     "Migreate emulator AEHD users to use WHPX instead."
+  );
+
+  public static final Flag<Boolean> AI_GLASSES_PAIRING_RECONCILIATION_ENABLED = new BooleanFlag(
+    DEVICE_MANAGER,
+    "ai.glasses.pairing.reconciliation.enabled",
+    "Enable background reconciliation for AI Glasses pairing",
+    "If enabled, runs a background loop to reconcile AI Glasses pairing states."
   );
   // endregion
 
@@ -2050,6 +2042,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> MISSING_URLS_FEATURE =
     new BooleanFlag(APP_LINKS_ASSISTANT, "missing.urls.feature", "Missing URLs feature",
                     "Add a new tab to display missing URLs and help users fix them.");
+  public static final Flag<Boolean> APP_LINKS_ASSISTANT_USE_AGENT_SDK_V2 =
+    new BooleanFlag(APP_LINKS_ASSISTANT, "use.agent.sdk.v2",
+                    "Use the V2 agent SDK for deep linking AI features",
+                    "When enabled, the user will be redirected to use the trajectory based agent SDK.");
   // endregion App Links Assistant
 
   // region TargetSDKVersion Upgrade Assistant
@@ -2092,13 +2088,6 @@ public final class StudioFlags {
     "Enable the AVD Command-Line Options setting in the AVD advanced settings panel."
   );
   // endregion
-
-  // region PRIVACY_SANDBOX_SDK
-  private static final FlagGroup PRIVACY_SANDBOX_SDK = new FlagGroup(FLAGS, "privacysandboxsdk", "Privacy Sandbox SDK");
-  public static final Flag<Boolean> LAUNCH_SANDBOX_SDK_PROCESS_WITH_DEBUGGER_ATTACHED_ON_DEBUG = new BooleanFlag(
-    PRIVACY_SANDBOX_SDK, "launch.process.with.debugger.attached.on.debug", "Launch sandbox SDK process with debugger attached on debug",
-    "Whether or not sandbox SDK should launch a process with the debugger attached on debug action.");
-  // endregion PRIVACY_SANDBOX_SDK
 
   // region STUDIO_BOT
   private static final FlagGroup STUDIOBOT = new FlagGroup(FLAGS, "studiobot", "Gemini");
@@ -2413,6 +2402,11 @@ public final class StudioFlags {
                     "Enable planning mode",
                     "When enabled, planning mode will be enabled.");
 
+  public static final Flag<Boolean> STUDIOBOT_ASK_FOR_MORE_DETAIL_ENABLED =
+    new BooleanFlag(STUDIOBOT, "ask.for.more.detail.enabled",
+                    "Enable the 'ask for more detail' feature",
+                    "When enabled, users can ask for more detail in planning mode markdown artifacts.");
+
   public static final Flag<Boolean> STUDIOBOT_STOP_BUTTON_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.stop.button.enabled",
                     "Enable Stop Button",
@@ -2523,11 +2517,6 @@ public final class StudioFlags {
                 "Maximum number of LLM calls an agent can make in a single run.",
                 500);
 
-  public static final Flag<Boolean> STUDIOBOT_GENERATE_TEST_SCENARIOS =
-    new BooleanFlag(STUDIOBOT, "generate.test.scenarios",
-                    "Enable test scenario generation.",
-                    "When enabled, generate test scenarios and corresponding function names for the selected code.");
-
   public static final Flag<Boolean> STUDIOBOT_AGENTIC_TEST_GENERATION =
       new BooleanFlag(STUDIOBOT, "agentic.test.generation",
                       "Enable agentic automated unit test generation",
@@ -2628,6 +2617,11 @@ public final class StudioFlags {
                     "Enable agent mode.",
                     "When enabled, the agent mode will be enabled in the Gemini toolwindow.");
 
+  public static final Flag<Boolean> IS_GEMINI_ONBOARDING_V2_ENABLED =
+    new BooleanFlag(STUDIOBOT, "gemini.onboarding.v2.enabled",
+                    "Enable the Gemini onboarding V2 support.",
+                    "When enabled, the user will be shown the new V2 onboarding flow for Gemini.");
+
   public static final Flag<Boolean> GEMINI_VERSION_UPGRADE_AGENT =
     new BooleanFlag(STUDIOBOT, "version.upgrade.agent",
                     "Enable Gemini Version Upgrade Agent.",
@@ -2678,15 +2672,10 @@ public final class StudioFlags {
                     "Enable regenerating past chat queries.",
                     "Enable regenerating past chat queries by hovering and clicking a regenerate button.");
 
-  public static final Flag<Boolean> STUDIOBOT_TRAJECTORY_UI_TOOL_WINDOW_ENABLED =
-    new BooleanFlag(STUDIOBOT, "trajectory.ui.toolwindow.enabled",
-                    "Enable Trajectory UI in Tool Window",
-                    "Enables viewing the Trajectory based UI as a Tool Window");
-
-  public static final Flag<Boolean> STUDIOBOT_TRAJECTORY_UI_EDITOR_ACTION_ENABLED =
-    new BooleanFlag(STUDIOBOT, "trajectory.ui.editor.action.enabled",
-                    "Enable Trajectory UI in Editor Tabs",
-                    "Enables viewing the Trajectory based UI on Editor tabs through a global Action.");
+  public static final Flag<Boolean> STUDIOBOT_V2_UI_ENABLED =
+    new BooleanFlag(STUDIOBOT, "ui.v2.enabled",
+                    "Enable v2 agent UI (sessions in editor tabs)",
+                    "Disables the toolwindow-based v1 agent UI and replaces it with the v2 editor tabs-based agent UI. Requires restart.");
 
   public static final Flag<Boolean> GEMINI_DEBUGGER_TOOLS_ENABLED =
     new BooleanFlag(STUDIOBOT, "debugger.tools",
@@ -2700,6 +2689,11 @@ public final class StudioFlags {
   public static final Flag<String> NPA_MOCKUP_IMAGE_GENERATION_MODEL_NAME =
     new StringFlag(STUDIOBOT, "npa.mockup.image.generation.model.name",
                    "New Project agent Mockups generation model name", "The model name used for generating mockups inside new project agent", "gemini-3-pro-image-preview");
+
+  public static final Flag<Boolean> IMPORT_PROJECT_ENABLED =
+    new BooleanFlag(STUDIOBOT, "import.project.enabled",
+                    "Enable Import Project migration",
+                    "Enables the Import Project migration feature in the UI.");
 
   public enum DasherSupportMode {
     /**
@@ -3061,6 +3055,17 @@ public final class StudioFlags {
       "Enables the collection of usage data for Gemini marketing activation."
     );
   // endregion AGP Test Suites
+
+  // region What's New
+  private static final FlagGroup WHATS_NEW = new FlagGroup(FLAGS, "whatsnew", "What's New");
+  public static final Flag<Boolean> WHATS_NEW_V2 =
+    new BooleanFlag(
+      WHATS_NEW,
+      "use.whats.new.v2",
+      "Use What's New V2",
+      "Use What's New V2 with Compose"
+    );
+  // endregion What's New
 
   private StudioFlags() { }
 

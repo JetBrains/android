@@ -94,7 +94,7 @@ fun RecordingTable(recordingList: List<SessionItem>, selectedRecording: SessionI
       selectionMode = SelectionMode.Single,
       onSelectedIndexesChange = {
         // The - 1 is to account for the sticky header.
-        if (it.isNotEmpty() && recordingList[it.first() - 1] != selectedRecording) {
+        if (it.isNotEmpty() && it.first() > 0) {
           val newSelectedDeviceProcess = recordingList[it.first() - 1]
           onRecordingSelection(newSelectedDeviceProcess)
         }

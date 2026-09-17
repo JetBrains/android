@@ -20,7 +20,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import com.android.ddmlib.allocations.AllocationsParserTest;
+import com.android.tools.profilers.memory.AllocationsParserTest;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.TransportServiceUtils;

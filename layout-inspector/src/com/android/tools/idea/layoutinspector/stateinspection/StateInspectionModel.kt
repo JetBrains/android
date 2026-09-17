@@ -156,7 +156,6 @@ internal class StateInspectionModelImpl(
     Disposer.register(parentDisposable) {
       model.removeSelectionListener(listener)
       model.removeModificationListener(updateListener)
-      model.stateReadsModel.stateReads.value = null
     }
   }
 

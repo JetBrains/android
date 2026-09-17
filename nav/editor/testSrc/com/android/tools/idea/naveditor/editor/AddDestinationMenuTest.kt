@@ -676,8 +676,8 @@ class AddDestinationMenuDependencyTest : NavTestCase() {
         <?xml version="1.0" encoding="utf-8"?>
         <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:tools="http://schemas.android.com/tools"
-            tools:context="com.example.mylibrary.BlankFragment"
-        </FrameLayout>"
+            tools:context="com.example.mylibrary.BlankFragment">
+        </FrameLayout>
         """
           .trimIndent(),
       ) as XmlFile
@@ -685,7 +685,8 @@ class AddDestinationMenuDependencyTest : NavTestCase() {
     val model = NavModelBuilderUtil.model("nav.xml", myFacet, myFixture, { navigation("root") }).build()
 
     val surface = NavDesignSurface(project).also { Disposer.register(myFixture.testRootDisposable, it) }
-    DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
+    surface.setModel(model)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     val blankFragment = Destination.RegularDestination(model.treeReader.components[0], "fragment", null, psiClass, layoutFile = xmlFile)
     waitForResourceRepositoryUpdates()

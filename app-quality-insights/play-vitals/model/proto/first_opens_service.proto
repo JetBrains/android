@@ -43,6 +43,9 @@ service FirstOpensService {
 //     identifier is 'deviceBrand/device', where deviceBrand corresponds
 //     to Build.BRAND and device corresponds to Build.DEVICE, e.g.,
 //     google/coral.
+//  * `deviceBrand`
+//     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+//     unique identifier of the user's device brand, e.g., google.
 //  * `deviceType`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
 //     The form factor of the user's device (e.g., PHONE, TABLET, CHROMEBOOK).
@@ -105,6 +108,9 @@ message QueryFirstOpensMetricSetRequest {
   //     identifier is 'deviceBrand/device', where deviceBrand corresponds
   //     to Build.BRAND and device corresponds to Build.DEVICE, e.g.,
   //     google/coral.
+  //  * `deviceBrand`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     unique identifier of the user's device brand, e.g., google.
   //  * `deviceType`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
   //     The form factor of the user's device (e.g., PHONE, TABLET, CHROMEBOOK).

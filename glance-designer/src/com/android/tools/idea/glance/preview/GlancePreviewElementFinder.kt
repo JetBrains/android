@@ -23,7 +23,7 @@ import com.android.tools.idea.preview.find.FilePreviewElementFinder
 import com.android.tools.idea.preview.find.NodeInfo
 import com.android.tools.idea.preview.find.UAnnotationSubtreeInfo
 import com.android.tools.idea.preview.find.findAllAnnotationsInGraph
-import com.android.tools.idea.preview.find.findAnnotatedMethodsValues
+import com.android.tools.idea.preview.find.findAnnotatedMethods
 import com.android.tools.idea.preview.find.findPreviewDefaultValues
 import com.android.tools.idea.preview.find.getContainingUMethodAnnotatedWith
 import com.android.tools.idea.preview.find.toSmartPsiPointer
@@ -37,10 +37,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.concurrency.annotations.RequiresReadLock
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.toList
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UElement
@@ -68,27 +67,31 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asGlancePreviewNode(uMethod
   val annotation = element as UAnnotation
   if (readAction { !isGlancePreview(annotation) }) return null
 
-  val uClass = uMethod.uastParent as UClass
-  val methodFqn = "${uClass.qualifiedName}.${uMethod.name}"
-  val nameHelper = AnnotationPreviewNameHelper.create(this, uMethod.name) { readAction { isGlancePreviewAnnotation() } }
+  val uClass = readAction { uMethod.uastParent as UClass }
+  val methodName = readAction { uMethod.name }
+  val methodFqn = readAction { "${uClass.qualifiedName}.$methodName" }
+  val nameHelper = AnnotationPreviewNameHelper.create(this, methodName) { readAction { isGlancePreviewAnnotation() } }
   val displaySettings =
     PreviewDisplaySettings(
       name = nameHelper.buildPreviewName(),
-      baseName = uMethod.name,
+      baseName = methodName,
       parameterName = nameHelper.buildParameterName(),
       group = null,
       showDecoration = false,
       background = PreviewDisplaySettings.Background.None,
       organizationGroup = methodFqn,
-      organizationName = uMethod.name,
+      organizationName = methodName,
     )
   val defaultValues = readAction { annotation.findPreviewDefaultValues() }
-  val widthDp = annotation.findAttributeValue(PARAMETER_WIDTH_DP)?.evaluate() as? Int ?: defaultValues[PARAMETER_WIDTH_DP]?.toIntOrNull()
-  val heightDp = annotation.findAttributeValue(PARAMETER_HEIGHT_DP)?.evaluate() as? Int ?: defaultValues[PARAMETER_HEIGHT_DP]?.toIntOrNull()
+  val widthDp =
+    readAction { annotation.findAttributeValue(PARAMETER_WIDTH_DP)?.evaluate() } as? Int ?: defaultValues[PARAMETER_WIDTH_DP]?.toIntOrNull()
+  val heightDp =
+    readAction { annotation.findAttributeValue(PARAMETER_HEIGHT_DP)?.evaluate() } as? Int
+      ?: defaultValues[PARAMETER_HEIGHT_DP]?.toIntOrNull()
   return GlancePreviewElement(
     displaySettings,
-    (subtreeInfo?.topLevelAnnotation ?: annotation).toSmartPsiPointer(),
-    uMethod.uastBody.toSmartPsiPointer(),
+    readAction { (subtreeInfo?.topLevelAnnotation ?: annotation).toSmartPsiPointer() },
+    readAction { uMethod.uastBody.toSmartPsiPointer() },
     methodFqn,
     PreviewConfiguration.cleanAndGet(width = widthDp, height = heightDp),
   )
@@ -102,10 +105,12 @@ open class GlancePreviewElementFinder : FilePreviewElementFinder<PsiGlancePrevie
    * can return multiple preview elements.
    */
   override suspend fun findPreviewElements(project: Project, vFile: VirtualFile) =
-    findAnnotatedMethodsValues(project, vFile, COMPOSABLE_ANNOTATION_FQ_NAME, COMPOSABLE_ANNOTATION_NAME) { methods ->
-        methods.asFlow().flatMapConcat { method ->
-          method.findAllAnnotationsInGraph(filter = { readAction { isGlancePreview(it) } }).mapNotNull { it.asGlancePreviewNode(method) }
-        }
+    findAnnotatedMethods(project, vFile, COMPOSABLE_ANNOTATION_FQ_NAME, COMPOSABLE_ANNOTATION_NAME)
+      .flatMap { method ->
+        method
+          .findAllAnnotationsInGraph(filter = { readAction { isGlancePreview(it) } })
+          .mapNotNull { it.asGlancePreviewNode(method) }
+          .toList()
       }
       .distinct()
 

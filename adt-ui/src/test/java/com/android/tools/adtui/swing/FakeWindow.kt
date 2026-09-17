@@ -15,6 +15,8 @@
  */
 package com.android.tools.adtui.swing
 
+import com.android.mockito.kotlin.mockStatic
+import com.android.mockito.kotlin.whenever
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.runInEdtAndWait
@@ -26,6 +28,7 @@ import java.awt.event.WindowFocusListener
 import javax.swing.JComponent
 import javax.swing.RootPaneContainer
 import org.mockito.ArgumentMatchers.anyInt
+import org.mockito.MockedStatic
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.kotlin.any
@@ -36,6 +39,7 @@ internal inline fun <reified T : Window> createFakeWindow(root: JComponent, pare
   // Window or any of its subclasses due to checks in the Window constructor.
   val mockWindow = mock(T::class.java)
   wrapInFakeWindow(mockWindow, root, parentDisposable)
+  parentDisposable?.addWindow(mockWindow)
   return mockWindow
 }
 
@@ -45,6 +49,7 @@ private fun wrapInFakeWindow(mockWindow: Window, root: JComponent, parentDisposa
   whenever(mockWindow.treeLock).thenCallRealMethod()
   whenever(mockWindow.toolkit).thenReturn(fakeToolkit)
   whenever(mockWindow.isShowing).thenReturn(true)
+  whenever(mockWindow.isActive).thenReturn(true)
   whenever(mockWindow.isVisible).thenReturn(true)
   whenever(mockWindow.isEnabled).thenReturn(true)
   whenever(mockWindow.isLightweight).thenReturn(true)
@@ -76,4 +81,20 @@ private fun wrapInFakeWindow(mockWindow: Window, root: JComponent, parentDisposa
   }
 }
 
+private fun Disposable.addWindow(window: Window) {
+  windows.add(window)
+  if (windowStatic == null) {
+    windowStatic = mockStatic<Window>().apply { whenever<Array<Window>>(Window::getWindows).thenAnswer { windows.toTypedArray() } }
+  }
+  Disposer.register(this) {
+    windows.remove(window)
+    if (windows.isEmpty()) {
+      windowStatic?.close()
+      windowStatic = null
+    }
+  }
+}
+
 private val fakeToolkit = FakeUiToolkit()
+private val windows = mutableListOf<Window>()
+private var windowStatic: MockedStatic<Window>? = null

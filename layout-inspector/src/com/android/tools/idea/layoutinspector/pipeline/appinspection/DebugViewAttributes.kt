@@ -23,10 +23,8 @@ import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.NotificationModel
-import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.SetFlagResult.Failure.Reason.SECURITY_EXCEPTION
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.SetFlagResult.Failure.Reason.UNKNOWN
-import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel
@@ -73,8 +71,6 @@ sealed class SetFlagResult {
       SECURITY_EXCEPTION,
     }
   }
-
-  data object Cancelled : SetFlagResult()
 }
 
 /**
@@ -104,8 +100,8 @@ class DebugViewAttributes(private val project: Project, private val adbSession: 
         is AdbCommandResult.Failure -> SetFlagResult.Failure()
         AdbCommandResult.SecurityException -> SetFlagResult.Failure(SECURITY_EXCEPTION)
       }
-    } catch (cancellation: CancellationException) {
-      SetFlagResult.Cancelled
+    } catch (e: CancellationException) {
+      throw e
     } catch (t: Throwable) {
       Logger.getInstance(DebugViewAttributes::class.java).warn(t)
       SetFlagResult.Failure()
@@ -144,26 +140,19 @@ private const val ACTIVITY_RESTART_KEY = "activity.restart"
 private const val FAILED_TO_ENABLE_VIEW_ATTRIBUTES_INSPECTION = "failed.to.enable.view.attributes.inspection"
 private const val FAILED_TO_ENABLE_VIEW_ATTRIBUTES_INSPECTION_SECURITY_EXCEPTION =
   "failed.to.enable.view.attributes.inspection.security.exception"
-private const val DEBUG_VIEW_ATTRIBUTES_DOCUMENTATION_URL = "https://d.android.com/r/studio-ui/layout-inspector-activity-restart"
 
 /** Show a banner explaining why the activity was restarted after setting debug view attributes. */
 fun showActivityRestartedInBanner(notificationModel: NotificationModel) {
-  val learnMoreAction =
-    StatusNotificationAction(LayoutInspectorBundle.message("learn.more")) { BrowserUtil.browse(DEBUG_VIEW_ATTRIBUTES_DOCUMENTATION_URL) }
-
   notificationModel.addNotification(
     id = ACTIVITY_RESTART_KEY,
     text = LayoutInspectorBundle.message(ACTIVITY_RESTART_KEY),
     status = EditorNotificationPanel.Status.Info,
-    actions = listOf(learnMoreAction, notificationModel.dismissAction),
+    actions = listOf(notificationModel.dismissAction),
   )
 }
 
 /** Show a banner explaining why the activity was restarted after setting debug view attributes. */
 fun showUnableToSetDebugViewAttributesBanner(notificationModel: NotificationModel, reason: SetFlagResult.Failure.Reason) {
-  val learnMoreAction =
-    StatusNotificationAction(LayoutInspectorBundle.message("learn.more")) { BrowserUtil.browse(DEBUG_VIEW_ATTRIBUTES_DOCUMENTATION_URL) }
-
   val text =
     when (reason) {
       UNKNOWN -> LayoutInspectorBundle.message(FAILED_TO_ENABLE_VIEW_ATTRIBUTES_INSPECTION)
@@ -174,6 +163,6 @@ fun showUnableToSetDebugViewAttributesBanner(notificationModel: NotificationMode
     id = FAILED_TO_ENABLE_VIEW_ATTRIBUTES_INSPECTION,
     text = text,
     status = EditorNotificationPanel.Status.Error,
-    actions = listOf(learnMoreAction, notificationModel.dismissAction),
+    actions = listOf(notificationModel.dismissAction),
   )
 }

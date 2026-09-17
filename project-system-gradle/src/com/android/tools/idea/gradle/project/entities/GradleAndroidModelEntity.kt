@@ -28,8 +28,6 @@ import com.intellij.platform.workspace.jps.entities.ModuleEntity
 import com.intellij.platform.workspace.jps.entities.ModuleId
 import com.intellij.platform.workspace.jps.entities.modifyModuleEntity
 import com.intellij.platform.workspace.storage.EntityStorage
-import com.intellij.platform.workspace.storage.EqualsBy
-import com.intellij.platform.workspace.storage.ExternalMappingKey
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.platform.workspace.storage.SymbolicEntityId
 import com.intellij.platform.workspace.storage.WorkspaceEntity
@@ -37,9 +35,7 @@ import com.intellij.platform.workspace.storage.WorkspaceEntityWithSymbolicId
 import com.intellij.platform.workspace.storage.annotations.Parent
 import com.intellij.workspaceModel.ide.legacyBridge.findModuleEntity
 
-data class GradleAndroidModelEntityId(
-  val moduleId: @NlsSafe ModuleId,
-) : SymbolicEntityId<GradleAndroidModelEntity> {
+data class GradleAndroidModelEntityId(val moduleId: @NlsSafe ModuleId) : SymbolicEntityId<GradleAndroidModelEntity> {
   override val presentableName: String
     get() = "GradleAndroidModelEntity for ${moduleId.presentableName}"
 }
@@ -53,75 +49,71 @@ interface GradleAndroidModelEntity : WorkspaceEntityWithSymbolicId {
   val resolvedVariant: IdeVariantImpl?
 }
 
-private val GRADLE_ANDROID_MODEL_KEY = ExternalMappingKey.create<GradleAndroidModel>("GRADLE_ANDROID_MODEL_KEY")
-
 internal fun setGradleAndroidModelFromDataNode(
   storage: MutableEntityStorage,
   module: Module,
   coreModel: GradleAndroidModelImpl,
   resolver: IdeLibraryModelResolverImpl,
 ) {
-  val moduleEntity = checkNotNull(storage.resolve(ModuleId(module.name))) { "Can't find module entity for ${module.name}"}
-  val variant = coreModel.variants.find {
-    it.name == coreModel.selectedVariantName
-  }?.let { IdeVariantImpl(it, resolver) }
+  val moduleEntity = checkNotNull(storage.resolve(ModuleId(module.name))) { "Can't find module entity for ${module.name}" }
+  val variant = coreModel.variants.find { it.name == coreModel.selectedVariantName }?.let { IdeVariantImpl(it, resolver) }
 
-  updateGradleAndroidModelMapping(
-    storage,
-    modifyExistingEntity(storage, moduleEntity, coreModel, variant)
+  modifyExistingEntity(storage, moduleEntity, coreModel, variant)
     // We might still need to create a new entity when the module itself is not supported by sync contributors
     ?: createNewEntity(storage, moduleEntity, coreModel, variant)
-  )
-}
-internal fun attachDependenciesToModuleEntity(storage: MutableEntityStorage, moduleEntity: ModuleEntity, coreModel: GradleAndroidModelImpl, resolvedVariant: IdeVariantImpl) {
-  val gradleAndroidModel = moduleEntity.gradleAndroidModel ?: return
-  updateGradleAndroidModelMapping(
-    storage,
-    storage.modifyModuleEntity(moduleEntity) {
-      storage.modifyGradleAndroidModelEntity(gradleAndroidModel) {
-        this.gradleAndroidModel = coreModel
-        this.resolvedVariant = resolvedVariant
-      }
-    },
-  )
 }
 
-internal fun updateGradleAndroidModelMapping(storage: MutableEntityStorage, moduleEntity: ModuleEntity) {
+internal fun attachDependenciesToModuleEntity(
+  storage: MutableEntityStorage,
+  moduleEntity: ModuleEntity,
+  coreModel: GradleAndroidModelImpl,
+  resolvedVariant: IdeVariantImpl,
+) {
   val gradleAndroidModel = moduleEntity.gradleAndroidModel ?: return
-  val mappedModel: GradleAndroidModel =
-    gradleAndroidModel.resolvedVariant?.let {
-      GradleAndroidDependencyModel.createWithSingleVariant(gradleAndroidModel.gradleAndroidModel, it)
-    } ?: gradleAndroidModel.gradleAndroidModel
-  storage.getMutableExternalMapping(GRADLE_ANDROID_MODEL_KEY).addMapping(moduleEntity, mappedModel)
+  storage.modifyModuleEntity(moduleEntity) {
+    storage.modifyGradleAndroidModelEntity(gradleAndroidModel) {
+      this.gradleAndroidModel = coreModel
+      this.resolvedVariant = resolvedVariant
+    }
+  }
 }
 
 internal val ModuleEntity.gradleAndroidModel: GradleAndroidModelEntity? by WorkspaceEntity.extension()
 
-fun EntityStorage.getGradleAndroidModel(module: Module): GradleAndroidModel? =
-  if (module.isLinkedAndroidModule()) {
-    module.getHolderModule().findModuleEntity(this)?.let { getExternalMapping(GRADLE_ANDROID_MODEL_KEY).getDataByEntity(it) }
-  } else {
-    null
-  }
+fun EntityStorage.getGradleAndroidModel(module: Module): GradleAndroidModel? {
+  if (!module.isLinkedAndroidModule()) return null
 
-private fun createNewEntity(storage: MutableEntityStorage,
-                            moduleEntity: ModuleEntity,
-                            coreModel: GradleAndroidModelImpl,
-                            variant: IdeVariantImpl?): ModuleEntity = storage.modifyModuleEntity(moduleEntity) {
-  this.gradleAndroidModel = GradleAndroidModelEntity(
-    entitySource = moduleEntity.entitySource,
-    gradleAndroidModel = coreModel,
-  ) {
-    this.resolvedVariant = variant
-  }
+  val moduleEntity = module.getHolderModule().findModuleEntity(this) ?: return null
+  val gradleAndroidModelEntity = moduleEntity.gradleAndroidModel ?: return null
+
+  return gradleAndroidModelEntity.resolvedVariant?.let { variant ->
+    GradleAndroidDependencyModel.createWithSingleVariant(gradleAndroidModelEntity.gradleAndroidModel, variant)
+  } ?: gradleAndroidModelEntity.gradleAndroidModel
 }
 
-private fun modifyExistingEntity(storage: MutableEntityStorage,
-                                 moduleEntity: ModuleEntity,
-                                 coreModel: GradleAndroidModelImpl,
-                                 variant: IdeVariantImpl?): ModuleEntity? = storage.resolve(GradleAndroidModelEntityId(moduleEntity.symbolicId))?.let {
-  storage.modifyGradleAndroidModelEntity(it) {
-    gradleAndroidModel = coreModel
-    resolvedVariant = variant
+private fun createNewEntity(
+  storage: MutableEntityStorage,
+  moduleEntity: ModuleEntity,
+  coreModel: GradleAndroidModelImpl,
+  variant: IdeVariantImpl?,
+): ModuleEntity =
+  storage.modifyModuleEntity(moduleEntity) {
+    this.gradleAndroidModel =
+      GradleAndroidModelEntity(entitySource = moduleEntity.entitySource, gradleAndroidModel = coreModel) { this.resolvedVariant = variant }
   }
-}?.module
+
+private fun modifyExistingEntity(
+  storage: MutableEntityStorage,
+  moduleEntity: ModuleEntity,
+  coreModel: GradleAndroidModelImpl,
+  variant: IdeVariantImpl?,
+): ModuleEntity? =
+  storage
+    .resolve(GradleAndroidModelEntityId(moduleEntity.symbolicId))
+    ?.let {
+      storage.modifyGradleAndroidModelEntity(it) {
+        gradleAndroidModel = coreModel
+        resolvedVariant = variant
+      }
+    }
+    ?.module

@@ -34,6 +34,7 @@ import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.log.LoggerWithFixedInfo
 import com.android.tools.idea.preview.CommonPreviewRefreshRequest
 import com.android.tools.idea.preview.CommonPreviewRefreshType
+import com.android.tools.idea.preview.CommonPreviewRenderQualityManager
 import com.android.tools.idea.preview.DefaultRenderQualityManager
 import com.android.tools.idea.preview.DefaultRenderQualityPolicy
 import com.android.tools.idea.preview.DelegatingPreviewElementModelAdapter
@@ -58,6 +59,7 @@ import com.android.tools.idea.preview.find.MemoizedPreviewElementProvider
 import com.android.tools.idea.preview.find.PreviewElementProvider
 import com.android.tools.idea.preview.flow.CommonPreviewFlowManager
 import com.android.tools.idea.preview.flow.PreviewFlowManager
+import com.android.tools.idea.preview.flow.previewElementsOnFileChangesFlow
 import com.android.tools.idea.preview.focus.CommonFocusEssentialsModeManager
 import com.android.tools.idea.preview.focus.FocusMode
 import com.android.tools.idea.preview.groups.PreviewGroupManager
@@ -282,13 +284,17 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   /** [RenderQualityPolicy] used to configure the [qualityManager] */
   private val qualityPolicy = DefaultRenderQualityPolicy { surface.zoomController.screenScalingFactor }
 
+  private val previewModeManager = CommonPreviewModeManager()
+
   /**
    * Used for defining the target render quality of each preview and detecting the need of changing the quality the previews. See
    * [RenderQualityManager] for more details.
    */
   private val qualityManager: RenderQualityManager =
-    DefaultRenderQualityManager(surface, qualityPolicy) { requestRefresh(type = CommonPreviewRefreshType.QUALITY) }
-
+    CommonPreviewRenderQualityManager(
+      previewModeManager,
+      DefaultRenderQualityManager(surface, qualityPolicy) { requestRefresh(type = CommonPreviewRefreshType.QUALITY) },
+    )
   /** Whether the preview needs a full refresh or not. */
   private val invalidated = AtomicBoolean(true)
 
@@ -323,6 +329,13 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private val previewFlowManager = CommonPreviewFlowManager<T>()
 
   private val previewElementProvider = MemoizedPreviewElementProvider(previewProviderConstructor(psiFilePointer), previewFreshnessTracker)
+  /**
+   * The flow of preview elements that are present in the [psiFilePointer] file. This flow is updated whenever changes are made to kotlin or
+   * java files.
+   *
+   * @see previewElementsOnFileChangesFlow
+   */
+  private val previewElementsFlow = previewElementsOnFileChangesFlow(project) { previewElementProvider }
 
   private val previewElementModelAdapter =
     object : DelegatingPreviewElementModelAdapter<T, NlModel>(previewElementModelAdapterDelegate) {
@@ -356,8 +369,6 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
         }
       }
     }
-
-  private val previewModeManager = CommonPreviewModeManager()
 
   private val fpsLimitFlow = essentialsModeFlow(project, this).fpsLimitFlow(this, standardFpsLimit = 30)
 
@@ -407,7 +418,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   override val component: JComponent
     get() = previewView.component
 
-  override val preferredInitialVisibility: PreferredVisibility? = null
+  override suspend fun preferredInitialVisibility(): PreferredVisibility? = null
 
   override val caretNavigationHandler = PreviewRepresentation.CaretNavigationHandler.NoopCaretNavigationHandler()
 
@@ -743,7 +754,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
           isFastPreviewAvailable = ::isFastPreviewAvailable,
           requestFastPreviewRefresh = delegateFastPreviewSurface::requestFastPreviewRefreshSync,
           restorePreviousMode = ::restorePrevious,
-          previewElementProvider = previewElementProvider,
+          previewElementsFlow = previewElementsFlow,
         ) {
           it
         }

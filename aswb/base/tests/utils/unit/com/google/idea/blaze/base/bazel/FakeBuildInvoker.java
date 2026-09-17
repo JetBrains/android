@@ -24,6 +24,8 @@ import com.google.idea.blaze.base.bazel.BuildSystem.BuildInvoker;
 import com.google.idea.blaze.base.command.BlazeCommand;
 import com.google.idea.blaze.base.command.buildresult.bepparser.BuildEventStreamProvider;
 import com.google.idea.blaze.base.command.info.BlazeInfo;
+import com.google.idea.blaze.base.run.testlogs.BlazeTestResult;
+import com.google.idea.blaze.base.run.testlogs.BlazeTestResults;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.settings.BuildBinaryType;
 import com.google.idea.blaze.base.settings.BuildSystemName;
@@ -36,16 +38,20 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 import kotlin.Unit;
 
-/** Simple implementation of {@link BuildInvoker} for injecting dependencies in test code. */
+/**
+ * Simple implementation of {@link BuildInvoker} for injecting dependencies in test code.
+ */
 @AutoValue
 public abstract class FakeBuildInvoker implements BuildInvoker {
 
   public static Builder builder() {
     return new AutoValue_FakeBuildInvoker.Builder()
-        .type(BuildBinaryType.NONE)
-        .invokeCommand(ImmutableList.of(""))
-        .capabilities(ImmutableSet.of())
-        .buildSystem(FakeBuildSystem.builder(BuildSystemName.Blaze).build());
+      .type(BuildBinaryType.NONE)
+      .invokeCommand(ImmutableList.of(""))
+      .capabilities(ImmutableSet.of())
+      .buildSystem(FakeBuildSystem.builder(BuildSystemName.Blaze).build())
+      .testResults(null)
+      .bepStreamProvider(null);
   }
 
   @Override
@@ -58,6 +64,12 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
   public boolean getCanOverrideBinaryPath() {
     return false;
   }
+
+  @Nullable
+  public abstract BlazeTestResults getTestResults();
+
+  @Nullable
+  public abstract BuildEventStreamProvider getBepStreamProvider();
 
   @Override
   public <T> T invoke(
@@ -94,27 +106,13 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
   }
 
   public BuildEventStreamProvider fakeBuildEventStreamProvider() {
+    BuildEventStreamProvider provider = getBepStreamProvider();
+    if (provider != null) {
+      return provider;
+    }
     return new BuildEventStreamProvider() {
-      private UnmodifiableIterator<BuildEventStreamProtos.BuildEvent> messages =
-          ImmutableList.of(
-                  BuildEventStreamProtos.BuildEvent.newBuilder()
-                      .setId(
-                          BuildEventStreamProtos.BuildEventId.newBuilder()
-                              .setStarted(
-                                  BuildEventStreamProtos.BuildEventId.BuildStartedId
-                                      .getDefaultInstance()))
-                      .setStarted(
-                          BuildEventStreamProtos.BuildStarted.newBuilder().setUuid("buildId"))
-                      .build(),
-                  BuildEventStreamProtos.BuildEvent.newBuilder()
-                      .setId(
-                          BuildEventStreamProtos.BuildEventId.newBuilder()
-                              .setBuildFinished(
-                                  BuildEventStreamProtos.BuildEventId.BuildFinishedId
-                                      .getDefaultInstance()))
-                      .setFinished(BuildEventStreamProtos.BuildFinished.newBuilder())
-                      .build())
-              .iterator();
+      private final UnmodifiableIterator<BuildEventStreamProtos.BuildEvent> messages =
+        getBuildEvents().iterator();
 
       @Override
       public Object getId() {
@@ -140,6 +138,60 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
     };
   }
 
+  private ImmutableList<BuildEventStreamProtos.BuildEvent> getBuildEvents() {
+    ImmutableList.Builder<BuildEventStreamProtos.BuildEvent> events = ImmutableList.builder();
+    events.add(
+      BuildEventStreamProtos.BuildEvent.newBuilder()
+        .setId(
+          BuildEventStreamProtos.BuildEventId.newBuilder()
+            .setStarted(
+              BuildEventStreamProtos.BuildEventId.BuildStartedId
+                .getDefaultInstance()))
+        .setStarted(
+          BuildEventStreamProtos.BuildStarted.newBuilder().setUuid("buildId"))
+        .build());
+
+    if (getTestResults() != null) {
+      getTestResults()
+        .perTargetResults
+        .forEach(
+          (label, result) ->
+            events.add(
+              BuildEventStreamProtos.BuildEvent.newBuilder()
+                .setId(
+                  BuildEventStreamProtos.BuildEventId.newBuilder()
+                    .setTestResult(
+                      BuildEventStreamProtos.BuildEventId.TestResultId
+                        .newBuilder()
+                        .setLabel(label.toString())))
+                .setTestResult(
+                  BuildEventStreamProtos.TestResult.newBuilder()
+                    .setStatus(getTestStatus(result.getTestStatus())))
+                .build()));
+    }
+
+    events.add(
+      BuildEventStreamProtos.BuildEvent.newBuilder()
+        .setId(
+          BuildEventStreamProtos.BuildEventId.newBuilder()
+            .setBuildFinished(
+              BuildEventStreamProtos.BuildEventId.BuildFinishedId
+                .getDefaultInstance()))
+        .setFinished(BuildEventStreamProtos.BuildFinished.newBuilder())
+        .build());
+    return events.build();
+  }
+
+  private BuildEventStreamProtos.TestStatus getTestStatus(BlazeTestResult.TestStatus status) {
+    return switch (status) {
+      case PASSED -> BuildEventStreamProtos.TestStatus.PASSED;
+      case FAILED -> BuildEventStreamProtos.TestStatus.FAILED;
+      case TIMEOUT -> BuildEventStreamProtos.TestStatus.TIMEOUT;
+      case FAILED_TO_BUILD -> BuildEventStreamProtos.TestStatus.FAILED_TO_BUILD;
+      default -> BuildEventStreamProtos.TestStatus.NO_STATUS;
+    };
+  }
+
   /**
    * Builder class for instances of {@link com.google.idea.blaze.base.bazel.FakeBuildInvoker}.
    *
@@ -157,6 +209,10 @@ public abstract class FakeBuildInvoker implements BuildInvoker {
     public abstract Builder capabilities(com.google.common.collect.ImmutableSet<Capability> value);
 
     public abstract Builder buildSystem(BuildSystem buildSystem);
+
+    public abstract Builder testResults(@Nullable BlazeTestResults testResults);
+
+    public abstract Builder bepStreamProvider(@Nullable BuildEventStreamProvider value);
   }
 
   private static class FakeProcessHandler extends ProcessHandler {

@@ -17,7 +17,6 @@ package com.android.tools.idea.streaming.core
 
 import com.android.tools.adtui.util.scaled
 import com.intellij.ide.ActivityTracker
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Dimension
 import java.beans.PropertyChangeEvent
@@ -47,7 +46,7 @@ internal abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyC
     get() = Dimension(physicalWidth, physicalHeight)
 
   override val scale: Double
-    get() = roundDownIfNecessary(computeScaleToFit(computeMaxImageSize()))
+    get() = roundDownIfNecessary(computeScaleToFit(framing, computeMaxImageSize()))
 
   internal val explicitlySetPreferredSize: Dimension?
     get() = if (isPreferredSizeSet) preferredSize else null
@@ -60,8 +59,11 @@ internal abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyC
    */
   private var fractionalScaleRange: Double = 0.0
 
+  /** Indicates whether the view is scaled so that its inner part fits into the available space. */
+  protected open var framing: Framing = Framing.OUTER
+
   /** Returns the size of the content at 100% zoom. */
-  protected abstract fun computeActualSize(): Dimension
+  protected abstract fun computeActualSize(framing: Framing): Dimension
 
   /** Returns true if the panel contains zoomable content. */
   protected abstract fun canZoom(): Boolean
@@ -77,39 +79,48 @@ internal abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyC
     return if (roundedScale == fractionalScaleRange) scale else roundedScale
   }
 
-  override fun zoom(type: ZoomType): Boolean {
+  override fun zoom(zoomType: ZoomType): Boolean {
     val oldFractionalScaleRange = fractionalScaleRange
-    if (type == ZoomType.FIT) {
+    val newFraming = zoomType.toFraming()
+    if (zoomType == ZoomType.FIT || zoomType == ZoomType.FIT_INNER) {
       if (fractionalScaleRange == 0.0) {
-        fractionalScaleRange = roundDownIfGreaterThanOne(computeScaleToFitInParent()) // Allow fractional scale greater than one.
+        // Allow fractional scale greater than one.
+        fractionalScaleRange = roundDownIfGreaterThanOne(computeScaleToFitInParent(newFraming))
       }
     } else {
       fractionalScaleRange = 0.0
     }
-    val scaledSize = computeZoomedSize(type)
-    if (scaledSize == preferredSize && fractionalScaleRange == oldFractionalScaleRange) {
+    val scaledSize = computeZoomedSize(zoomType)
+    if (scaledSize == preferredSize && fractionalScaleRange == oldFractionalScaleRange && newFraming == framing) {
       return false
     }
     preferredSize = scaledSize
+    framing = newFraming
     revalidate()
     repaint()
     return true
   }
 
-  override fun canZoom(type: ZoomType): Boolean {
+  override fun canZoom(zoomType: ZoomType): Boolean {
     return canZoom() &&
-      when (type) {
-        ZoomType.IN -> computeZoomedSize(type) != explicitlySetPreferredSize
+      when (zoomType) {
+        ZoomType.IN -> computeZoomedSize(zoomType) != explicitlySetPreferredSize
+
         ZoomType.OUT,
-        ZoomType.ACTUAL -> computeZoomedSize(type) != explicitlySetPreferredSize || isFractionalGreaterThanOne(scale)
-        ZoomType.FIT -> {
-          if (isPreferredSizeSet) {
+        ZoomType.ACTUAL -> computeZoomedSize(zoomType) != explicitlySetPreferredSize || isFractionalGreaterThanOne(scale)
+
+        ZoomType.FIT,
+        ZoomType.FIT_INNER -> {
+          if (zoomType == ZoomType.FIT_INNER && !hasInnerPart) {
+            return false
+          }
+          if (isPreferredSizeSet || framing != zoomType.toFraming()) {
             return true
           }
           if (fractionalScaleRange != 0.0) {
             return false
           }
-          val scaleToFit = computeScaleToFitInParent()
+          val scaleToFit = computeScaleToFitInParent(zoomType.toFraming())
           val roundedScale = roundDownIfGreaterThanOne(scaleToFit)
           return roundedScale < scaleToFit
         }
@@ -125,11 +136,12 @@ internal abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyC
   override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
     val sizeChanged = width != this.width || height != this.height
     super.setBounds(x, y, width, height)
-    if (fractionalScaleRange != 0.0 && fractionalScaleRange != roundDownIfGreaterThanOne(computeScaleToFit(computeMaxImageSize()))) {
+    if (
+      fractionalScaleRange != 0.0 && fractionalScaleRange != roundDownIfGreaterThanOne(computeScaleToFit(framing, computeMaxImageSize()))
+    ) {
       fractionalScaleRange = 0.0
     }
     if (sizeChanged) {
-      thisLogger().info("ZoomablePanel.setBounds: triggering toolbar update") // b/479059316
       ActivityTracker.getInstance().inc() // Trigger a toolbar update.
     }
   }
@@ -155,6 +167,7 @@ internal abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyC
 
   /** Computes the preferred size in virtual pixels after the given zoom operation. The preferred size is null for zoom to fit. */
   private fun computeZoomedSize(zoomType: ZoomType): Dimension? {
+    val newFraming = zoomType.toFraming()
     val newScale =
       when (zoomType) {
         ZoomType.IN -> {
@@ -175,7 +188,7 @@ internal abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyC
               --index
             }
             val nextScale = ZOOM_LEVELS[index]
-            val fitScale = roundDownIfGreaterThanOne(computeScaleToFitInParent())
+            val fitScale = roundDownIfGreaterThanOne(computeScaleToFitInParent(newFraming))
             if (areSamePercentages(nextScale, fitScale) || (nextScale < fitScale && fitScale <= 1)) {
               return null
             }
@@ -185,26 +198,17 @@ internal abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyC
           }
         }
 
-        ZoomType.FIT -> return null
+        ZoomType.FIT,
+        ZoomType.FIT_INNER -> return null
 
         ZoomType.ACTUAL -> {
-          if (roundDownIfGreaterThanOne(computeScaleToFitInParent()) == 1.0) {
+          if (roundDownIfGreaterThanOne(computeScaleToFitInParent(newFraming)) == 1.0) {
             return null
           }
           1.0
         }
       }
-    val newScaledSize = computeActualSize().scaled(newScale)
-    return newScaledSize.scaled(1 / screenScalingFactor)
-  }
-
-  /** Computes the preferred size in virtual pixels after zooming to the given scale. The preferred size is null for zoom to fit. */
-  private fun computeZoomedSize(scale: Double): Dimension? {
-    val fitScale = roundDownIfGreaterThanOne(computeScaleToFitInParent())
-    if (scale <= fitScale) {
-      return null
-    }
-    val newScaledSize = computeActualSize().scaled(scale)
+    val newScaledSize = computeActualSize(newFraming).scaled(newScale)
     return newScaledSize.scaled(1 / screenScalingFactor)
   }
 
@@ -222,9 +226,10 @@ internal abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyC
   /** Checks is the two given numbers would look the same when expressed as integer percentages. */
   private fun areSamePercentages(d1: Double, d2: Double) = (d1 * 100).roundToInt() == (d2 * 100).roundToInt()
 
-  private fun computeScaleToFitInParent() = computeScaleToFit(computeAvailableSize())
+  private fun computeScaleToFitInParent(framing: Framing) = computeScaleToFit(framing, computeAvailableSize())
 
-  private fun computeScaleToFit(availableSize: Dimension): Double = computeScaleToFit(computeActualSize(), availableSize)
+  private fun computeScaleToFit(framing: Framing, availableSize: Dimension): Double =
+    computeScaleToFit(computeActualSize(framing), availableSize)
 
   private fun computeScaleToFit(actualSize: Dimension, availableSize: Dimension): Double {
     if (actualSize.width == 0 || actualSize.height == 0) {
@@ -239,4 +244,11 @@ internal abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable, PropertyC
 
   /** Returns the size of the containing scroll pane without insets. */
   private fun computeAvailableSize(): Dimension = parent?.parent?.sizeWithoutInsets?.scaled(screenScalingFactor) ?: Dimension(0, 0)
+
+  private fun ZoomType.toFraming(): Framing = if (this == ZoomType.FIT_INNER) Framing.INNER else Framing.OUTER
+
+  protected enum class Framing {
+    OUTER,
+    INNER,
+  }
 }

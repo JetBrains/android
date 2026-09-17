@@ -25,12 +25,14 @@ import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.util.Disposer
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.common.waitUntil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import kotlin.test.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertFalse
 import org.junit.Rule
@@ -126,5 +128,23 @@ class SourceCodeEditorWithMultiRepresentationPreviewTest {
     editor.selectNotify()
 
     assertTrue(editor.hasBeenActivatedForTest())
+  }
+
+  @Test
+  fun testSetStateCommitsDocument() = runTest {
+    val file = fixture.addFileToProject("src/Preview.kt", "")
+    val editorProvider = SourceCodeEditorProvider.forTesting(listOf(TestPreviewRepresentationProvider("Representation1", true)))
+    val document = PsiDocumentManager.getInstance(projectRule.project).getDocument(file)
+    val psiDocumentManager = PsiDocumentManager.getInstance(projectRule.project)
+    withContext(Dispatchers.EDT) {
+      fixture.openFileInEditor(file.virtualFile)
+      fixture.type("some text")
+      assertFalse(psiDocumentManager.isCommitted(fixture.editor.document))
+      // Modify document and open the editor in the same EDT block to check for the implicit commit
+      (editorProvider.createFileEditor(file.project, file.virtualFile, fixture.editor.document, backgroundScope)
+          as TextEditorWithMultiRepresentationPreview<*>)
+        .also { Disposer.register(projectRule.testRootDisposable, it) }
+      assertTrue(psiDocumentManager.isCommitted(fixture.editor.document))
+    }
   }
 }

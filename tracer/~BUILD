@@ -13,5 +13,6 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common",
         "@intellij//:intellij-sdk",
         "//tools/base/tracer:studio.android.sdktools.tracer",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
     ],
 )

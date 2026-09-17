@@ -17,4 +17,8 @@
   <extensions defaultExtensionNs="com.android.tools.idea">
     <deviceProvisioner implementation="com.android.tools.idea.avd.LocalEmulatorProvisionerFactory"/>
   </extensions>
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceImplementation="com.android.tools.idea.avdmanager.EnvironmentsUpdater"/>
+    <notificationGroup id="Glasses Pairing" displayType="BALLOON" />
+  </extensions>
 </idea-plugin>

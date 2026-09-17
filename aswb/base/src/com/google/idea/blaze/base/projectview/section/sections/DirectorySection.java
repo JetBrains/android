@@ -26,7 +26,7 @@ import com.google.idea.blaze.base.projectview.section.ProjectViewDefaultValuePro
 import com.google.idea.blaze.base.projectview.section.SectionKey;
 import com.google.idea.blaze.base.projectview.section.SectionParser;
 import com.google.idea.blaze.base.settings.BuildSystemName;
-import com.intellij.util.PathUtil;
+import com.intellij.openapi.util.io.FileUtil;
 import javax.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,7 +49,7 @@ public class DirectorySection {
       text = excluded ? text.substring(1) : text;
 
       // removes '.' path sections, traverses ".." without handling symlinks
-      text = PathUtil.getCanonicalPath(text);
+      text = FileUtil.toCanonicalPath(text);
 
       String error = WorkspacePath.validate(text);
       if (error != null) {

@@ -23,7 +23,7 @@ import com.android.adblib.tools.debugging.JdwpProcess
 import com.android.adblib.tools.debugging.getOrNull
 import com.android.adblib.tools.debugging.jdwpProcessTracker
 import com.android.adblib.tools.debugging.properties
-import com.android.adblib.tools.debugging.sendDdmsExit
+import com.android.adblib.tools.debugging.sendVmExit
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.devices.Device
@@ -128,7 +128,7 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) : DumbAwareA
     override fun actionPerformed(adbSession: AdbSession, process: JdwpProcess, packageName: String) {
       process.scope.launch {
         try {
-          process.sendDdmsExit(1)
+          process.sendVmExit(1)
         } catch (e: IOException) {
           thisLogger().warn("kill failed", e)
           notifyError("Kill process failed")

@@ -73,8 +73,11 @@ object TaskSelectionVerificationUtils {
   ): Boolean {
     val isProcessPreferred = isSelectedProcessPreferred(selectedProcess, profilers)
     val isTaskSupported =
-      profilers.ideServices.isTaskSupportedOnStartup(selectedTaskType) ||
-        (selectedTaskType == ProfilerTaskType.LEAKCANARY && profilers.ideServices.featureConfig.isLeakCanaryMilestone2Enabled)
+      if (selectedTaskType == ProfilerTaskType.LEAKCANARY) {
+        true
+      } else {
+        profilers.ideServices.isTaskSupportedOnStartup(selectedTaskType)
+      }
     return isProcessPreferred && isTaskSupported
   }
 
@@ -161,9 +164,17 @@ object TaskSelectionVerificationUtils {
   ): StartTaskSelectionError {
     assert(!canTaskStartFromProcessStart(selectedTaskType, selectedDevice, selectedProcess, profilers))
     assert(areSelectionsValid(selectedTaskType, selectedDevice, selectedProcess))
+
+    val isTaskSupported =
+      if (selectedTaskType == ProfilerTaskType.LEAKCANARY) {
+        true
+      } else {
+        profilers.ideServices.isTaskSupportedOnStartup(selectedTaskType)
+      }
+
     return if (!isSelectedProcessPreferred(selectedProcess, profilers)) {
       StartTaskSelectionError(StartTaskSelectionErrorCode.PREFERRED_PROCESS_NOT_SELECTED_FOR_STARTUP_TASK)
-    } else if (!profilers.ideServices.isTaskSupportedOnStartup(selectedTaskType)) {
+    } else if (!isTaskSupported) {
       StartTaskSelectionError(StartTaskSelectionErrorCode.TASK_UNSUPPORTED_ON_STARTUP)
     } else if (!TaskSupportUtils.doesDeviceSupportProfilingTaskFromProcessStart(selectedTaskType, selectedDevice!!.featureLevel)) {
       return StartTaskSelectionError(
@@ -282,6 +293,7 @@ data class StartTaskSelectionError(val startTaskSelectionErrorCode: StartTaskSel
     LEAKCANARY_NOT_FOUND,
     LEAKCANARY_CHECK_IN_PROGRESS,
     LEAKCANARY_CHECK_TIMEOUT,
+    TASK_HAS_DEBUGGER_ATTACHED,
     // Generalized error to cover the rest of task start errors.
     GENERAL_ERROR,
   }

@@ -52,10 +52,8 @@ const val MACROBENCHMARK_MIN_REV = "1.2.4"
 
 fun RecipeExecutor.generateBaselineProfilesModule(
   newModule: ModuleTemplateData,
-  useGradleKts: Boolean,
   targetModule: Module,
   useGmd: Boolean,
-  useVersionCatalog: Boolean = true,
   useConfigurationCaching: Boolean = true,
 ) {
   val targetModuleGradleModel = GradleAndroidModel.get(targetModule) ?: return
@@ -82,13 +80,11 @@ fun RecipeExecutor.generateBaselineProfilesModule(
 
   createModule(
     newModule = newModule,
-    useGradleKts = useGradleKts,
     macrobenchmarkMinRev = MACROBENCHMARK_MIN_REV,
     buildGradleContent =
       baselineProfilesBuildGradle(
         newModule = newModule,
         flavors = flavors,
-        useGradleKts = useGradleKts,
         targetModule = targetModule,
         useGmd = gmdSpec,
         useInstrumentationArgumentForAppId = useInstrumentationArgumentForAppId,

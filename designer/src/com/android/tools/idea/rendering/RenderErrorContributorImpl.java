@@ -62,6 +62,7 @@ import com.android.tools.rendering.RenderContext;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderProblem;
 import com.android.tools.rendering.RenderResult;
+import com.android.tools.rendering.classloading.TooManyAllocationsException;
 import com.android.tools.rendering.security.RenderSecurityException;
 import com.android.tools.rendering.security.RenderSecurityManager;
 import com.android.tools.sdk.AndroidPlatform;
@@ -103,6 +104,7 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -515,10 +517,14 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       HtmlBuilder builder = new HtmlBuilder();
 
       String html = message.getHtml();
-      Throwable throwable = message.getThrowable();
+      // Unwrap reflection-based exceptions to identify and deduplicate the real underlying cause.
+      Throwable throwable = ComposeRenderErrorContributor.unwrapIfInvocationTargetException(message.getThrowable());
 
       String summary = "Render problem";
-      if (throwable != null) {
+      if (reportTooManyAllocationsError(linkManager, builder, throwable)) {
+        summary = "Too many allocations during preview rendering";
+      }
+      else if (throwable != null) {
         if (!reportSandboxError(linkManager, throwable, false, true)) {
           if (ComposeRenderErrorContributor.isHandledByComposeContributor(throwable)) continue; // This is handled as a warning above.
           if (reportThrowable(linkManager, builder, throwable, !html.isEmpty() || !message.isDefaultHtml())) {
@@ -663,6 +669,35 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
   }
 
   //<editor-fold desc="Helper methods">
+
+  private boolean reportTooManyAllocationsError(@NotNull HtmlLinkManager linkManager, @NotNull HtmlBuilder builder, @Nullable Throwable throwable) {
+    if (throwable == null) return false;
+    final String tooManyAllocationsClassName = TooManyAllocationsException.class.getName();
+    // Iteratively check for TooManyAllocationsException in the cause chain
+    Throwable current = throwable;
+    var exploredSet = new HashSet<>();
+    while (current != null) {
+      if (!exploredSet.add(current)) return false;
+      // The TooManyAllocationsExceptions might be the actual exception or the cause. There are also cases where the exception has been
+      // thrown but wrapped in something else that doesn't have it as a cause.
+      // For example, if the exception happens during the initialization of a class, we will get here ExceptionInInitializerError but the
+      // cause will be null. The only way to detect this is by checking the message and seeing if it mentions TooManyAllocationsExceptions.
+      if (current instanceof TooManyAllocationsException ||
+          (current.getMessage() != null && current.getMessage().contains(tooManyAllocationsClassName))) {
+        builder.add("The preview has been interrupted because it has too many allocations. This usually means that your code has a long loop or is doing too many allocations per render action.");
+        builder.newline().newline();
+        LinkHandler linkHandler = myLinkHandler;
+        builder.addLink("Click here to disable the allocation limiter for this session.", linkManager.createActionLink(module -> {
+          System.setProperty("preview.allocation.limiter.max.threshold.count", String.valueOf(Long.MAX_VALUE));
+          linkHandler.forceUserRequestedRefresh();
+          linkManager.showNotification("Allocation limiter disabled.");
+        }));
+        return true;
+      }
+      current = current.getCause();
+    }
+    return false;
+  }
 
   /**
    * Returns a new {@link RenderErrorModel.Issue.Builder} that will add the created issue to the issues list when

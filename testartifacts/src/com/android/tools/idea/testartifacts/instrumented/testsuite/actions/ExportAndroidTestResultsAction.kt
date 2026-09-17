@@ -21,6 +21,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTe
 import com.android.tools.idea.testartifacts.instrumented.testsuite.export.exportAndroidTestMatrixResultXmlFile
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.intellij.CommonBundle
+import com.intellij.execution.ExecutionBundle
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.testframework.export.ExportTestResultsConfiguration
 import com.intellij.execution.testframework.export.ExportTestResultsDialog
@@ -100,7 +101,16 @@ class ExportAndroidTestResultsAction :
       if (!dialog.showAndGet()) {
         return null
       }
-      val file = getOutputFile(exportConfig, project, dialog.fileName)
+      val fileName = dialog.fileName.trim()
+      if (fileName.isEmpty()) {
+        Messages.showErrorDialog(
+          project,
+          ExecutionBundle.message("export.test.results.output.filename.empty"),
+          CommonBundle.getErrorTitle(),
+        )
+        continue
+      }
+      val file = getOutputFile(exportConfig, project, fileName)
       if (!file.exists()) {
         return file
       }

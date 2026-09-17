@@ -77,6 +77,7 @@ class InsightLinksPanelTest {
     whenever(controller.project).thenReturn(projectRule.project)
     whenever(controller.state).thenReturn(stateFlow)
     whenever(controller.provider).thenReturn(FAKE_INSIGHTS_PROVIDER)
+    whenever(controller.aiInsightToolkit).thenReturn(mock())
     ExtensionTestUtil.maskExtensions(AgentActionContributor.EP_NAME, listOf(contributor), projectRule.disposable)
   }
 

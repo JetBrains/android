@@ -21,40 +21,56 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTe
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.util.concurrency.AppExecutorUtil
+import java.util.concurrent.Executor
 
 /**
  * A listener that receives screenshot test results and passes them to the UI dialog.
  *
  * @param dialog The dialog to update with the test results.
  */
-class UpdateScreenshotTestResultsListener(private val dialog: UpdateReferenceImagesDialog) : AndroidTestResultListener {
+class UpdateScreenshotTestResultsListener(
+  private val dialog: UpdateReferenceImagesDialog,
+  private val executor: Executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("ScreenshotTestResults", 1),
+) : AndroidTestResultListener {
 
   override fun onTestCaseFinished(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase) {
-    ApplicationManager.getApplication().invokeLater {
-      val className = testCase.className
-      val methodName = testCase.additionalTestArtifacts["PreviewScreenshot.methodName"] ?: " "
-      val rawPreviewName = testCase.additionalTestArtifacts["PreviewScreenshot.previewName"] ?: " "
-      val previewName = cleanPreviewName(rawPreviewName)
-      val testId = "$className.$methodName.$previewName"
-      val previewDetails =
-        PreviewDetails(
-          testId = testId,
-          className = className,
-          methodName = methodName,
-          previewName = previewName,
-          testResult = testCase.result,
-          destImagePath = testCase.additionalTestArtifacts["PreviewScreenshot.refImagePath"],
-          srcImagePath = testCase.additionalTestArtifacts["PreviewScreenshot.newImagePath"],
-          diffImagePath = testCase.additionalTestArtifacts["PreviewScreenshot.diffImagePath"],
-          diffPercent = testCase.additionalTestArtifacts["PreviewScreenshot.diffPercent"],
-        )
-      dialog.updateDialogWithTestResult(previewDetails, true)
+    val className = testCase.className
+    val methodName = testCase.additionalTestArtifacts["PreviewScreenshot.methodName"] ?: " "
+    val rawPreviewName = testCase.additionalTestArtifacts["PreviewScreenshot.previewName"] ?: " "
+    val previewName = cleanPreviewName(rawPreviewName)
+    val testId = "$className.$methodName.$previewName"
+
+    executor.execute {
+      val destPath =
+        ScreenshotTestUtils.resolvePath(dialog.project, className, testCase.additionalTestArtifacts["PreviewScreenshot.refImagePath"])
+      val srcPath =
+        ScreenshotTestUtils.resolvePath(dialog.project, className, testCase.additionalTestArtifacts["PreviewScreenshot.newImagePath"])
+      val diffPath =
+        ScreenshotTestUtils.resolvePath(dialog.project, className, testCase.additionalTestArtifacts["PreviewScreenshot.diffImagePath"])
+
+      ApplicationManager.getApplication().invokeLater {
+        val previewDetails =
+          PreviewDetails(
+            testId = testId,
+            className = className,
+            methodName = methodName,
+            previewName = previewName,
+            testResult = testCase.result,
+            destImagePath = destPath,
+            srcImagePath = srcPath,
+            diffImagePath = diffPath,
+            diffPercent = testCase.additionalTestArtifacts["PreviewScreenshot.diffPercent"],
+          )
+        dialog.updateDialogWithTestResult(previewDetails, true)
+      }
     }
   }
 
   override fun onTestSuiteFinished(device: AndroidDevice, testSuite: AndroidTestSuite) {
-    ApplicationManager.getApplication().invokeLater { dialog.onTestSuiteFinished() }
+    executor.execute { ApplicationManager.getApplication().invokeLater { dialog.onTestSuiteFinished() } }
   }
 
   /**

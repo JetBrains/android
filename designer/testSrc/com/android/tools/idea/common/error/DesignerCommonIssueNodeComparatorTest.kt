@@ -153,6 +153,18 @@ class IssueNodeNameComparatorTest {
 
     assertEquals(listOf(nodeA, nodeAUpperCase, nodeB), listOf(nodeAUpperCase, nodeA, nodeB).sortedWith(IssueNodeNameComparator))
   }
+
+  @Test
+  fun testSortedByNameWithSameName() {
+    val node1 = IssueNode(null, TestIssue(summary = "aaa", description = "desc1"), null)
+    val node2 = IssueNode(null, TestIssue(summary = "aaa", description = "desc2"), null)
+    val node3 = IssueNode(null, TestIssue(summary = "aaa", description = "desc2", source = IssueSourceWithFile(mock(), "source1")), null)
+    val node4 = IssueNode(null, TestIssue(summary = "aaa", description = "desc2", source = IssueSourceWithFile(mock(), "source2")), null)
+
+    val comparator = IssueNodeNameComparator
+    val sorted = listOf(node4, node3, node2, node1).sortedWith(comparator)
+    assertEquals(listOf(node1, node2, node3, node4), sorted)
+  }
 }
 
 class PreprocessNodeComparatorTest {
@@ -190,6 +202,18 @@ class PreprocessNodeComparatorTest {
     val unsortedList = listOf(atfNodeA, atfNodeB, otherNode).shuffled()
 
     assertEquals(listOf(atfNodeA, atfNodeB, otherNode), unsortedList.sortedWith(PreprocessNodeComparator))
+  }
+
+  @Test
+  fun testSortedByNameWithSameName() {
+    val node1 = IssueNode(null, TestIssue(summary = "aaa", description = "desc1"), null)
+    val node2 = IssueNode(null, TestIssue(summary = "aaa", description = "desc2"), null)
+    val node3 = IssueNode(null, TestIssue(summary = "aaa", description = "desc2", source = IssueSourceWithFile(mock(), "source1")), null)
+    val node4 = IssueNode(null, TestIssue(summary = "aaa", description = "desc2", source = IssueSourceWithFile(mock(), "source2")), null)
+
+    val comparator = PreprocessNodeComparator
+    val sorted = listOf(node4, node3, node2, node1).sortedWith(comparator)
+    assertEquals(listOf(node1, node2, node3, node4), sorted)
   }
 }
 

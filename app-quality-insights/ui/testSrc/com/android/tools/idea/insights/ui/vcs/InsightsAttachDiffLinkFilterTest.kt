@@ -19,7 +19,7 @@ import com.android.tools.idea.insights.REPO_INFO
 import com.android.tools.idea.insights.REVISION_74081e5f
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.model.vcs.AppVcsInfo
-import com.android.tools.idea.insights.model.vcs.VCS_CATEGORY
+import com.android.tools.idea.insights.model.vcs.VcsCategory
 import com.android.tools.idea.insights.vcs.InsightsVcsTestRule
 import com.android.tools.idea.insights.vcs.toVcsFilePath
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -124,7 +124,7 @@ class InsightsAttachDiffLinkFilterTest {
         InsightsAttachInlayDiffLinkFilter.DiffLinkInlayResult(
           diffContextData =
             ContextDataForDiff(
-              vcsKey = VCS_CATEGORY.TEST_VCS,
+              vcsKey = VcsCategory.TEST_VCS,
               revision = REVISION_74081e5f,
               filePath = targetPsiFile.virtualFile.toVcsFilePath(),
               lineNumber = 4,
@@ -159,7 +159,7 @@ class InsightsAttachDiffLinkFilterTest {
         InsightsAttachInlayDiffLinkFilter.DiffLinkInlayResult(
           diffContextData =
             ContextDataForDiff(
-              vcsKey = VCS_CATEGORY.TEST_VCS,
+              vcsKey = VcsCategory.TEST_VCS,
               revision = REVISION_74081e5f,
               filePath = targetPsiFile.virtualFile.toVcsFilePath(),
               lineNumber = 4,

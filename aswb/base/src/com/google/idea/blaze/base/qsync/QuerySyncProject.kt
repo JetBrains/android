@@ -143,21 +143,18 @@ class QuerySyncProject(
     postQuerySyncData: PostQuerySyncData,
   ): QueryCoreSyncResult {
     val graph = buildGraphData(postQuerySyncData, context)
-    val projectStructureData = readProjectStructure(context, postQuerySyncData, graph)
+    val projectStructureData =
+      (if (readProjectStructureFromDirectory) {
+        readProjectStructureFromDirectory(context, postQuerySyncData.projectDefinition())
+      } else null) ?: GraphToProjectConverter.initializeProjectStructureData(graph)
     return QueryCoreSyncResult(postQuerySyncData, graph, projectStructureData)
   }
 
-  fun readProjectStructure(
+  private fun readProjectStructureFromDirectory(
     context: Context<*>,
-    postQuerySyncData: PostQuerySyncData,
-    graph: BuildGraphData,
-  ): ProjectStructureData {
-    return if (readProjectStructureFromDirectory) {
-      projectStructureReader.read(context, workspaceRoot.path(), postQuerySyncData.projectDefinition())
-    } else {
-      GraphToProjectConverter.initializeProjectStructureData(graph)
-    }
-  }
+    projectDefinition: ProjectDefinition,
+  ): ProjectStructureData? =
+    projectStructureReader.read(context, workspaceRoot.path(), projectDefinition)
 
   /**
    * Returns the list of project targets related to the given workspace file.

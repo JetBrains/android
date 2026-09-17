@@ -58,6 +58,14 @@ interface BackupManager {
   @UiThread fun restoreModal(serialNumber: String, backupFile: Path, source: Source, notify: Boolean = true): BackupResult
 
   /**
+   * Shows a File Chooser and restore an app from a selected file
+   *
+   * @param serialNumber Serial number of a connected device
+   * @param notify If true, will post a notification on completion
+   */
+  @UiThread fun restoreModal(serialNumber: String, source: Source, notify: Boolean = true)
+
+  /**
    * Restore an app from a local file
    *
    * @param serialNumber Serial number of a connected device

@@ -68,8 +68,6 @@ class NewLibraryModuleModel(project: Project, moduleParent: String, projectSyncI
   override val renderer =
     object : ModuleTemplateRenderer() {
       override val recipe: Recipe
-        get() = { td: TemplateData ->
-          generatePureLibrary(moduleData = td as ModuleTemplateData, className = className.get(), useGradleKts = useGradleKts.get())
-        }
+        get() = { td: TemplateData -> generatePureLibrary(moduleData = td as ModuleTemplateData, className = className.get()) }
     }
 }

@@ -39,7 +39,6 @@ fun <DeviceT : DeviceProfile> WizardPageScope.DeviceLoadingPage(
   when (val profiles = profiles) {
     LoadingState.Loading -> {
       nextAction = WizardAction.Disabled
-      finishAction = WizardAction.Disabled
       Box(Modifier.fillMaxSize()) { Text("Loading devices...", Modifier.align(Alignment.Center)) }
     }
     is LoadingState.Ready -> {
@@ -82,7 +81,6 @@ fun <DeviceT : DeviceProfile> WizardPageScope.DeviceGridPage(
   val selection = selectionState.selection
   if (selection == null || !filterState.apply(selection)) {
     nextAction = WizardAction.Disabled
-    finishAction = WizardAction.Disabled
   } else {
     onSelectionUpdated(selection)
   }

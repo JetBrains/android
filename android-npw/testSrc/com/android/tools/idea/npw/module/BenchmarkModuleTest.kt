@@ -24,6 +24,9 @@ import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.findAppModule
+import com.android.tools.idea.wizard.template.DslLanguage
+import com.android.tools.idea.wizard.template.DslLanguage.GROOVY
+import com.android.tools.idea.wizard.template.DslLanguage.KTS
 import com.intellij.testFramework.IndexingTestUtil
 import org.junit.After
 import org.junit.Assert.assertTrue
@@ -33,9 +36,9 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 @RunWith(Parameterized::class)
-class BenchmarkModuleTest(private val useGradleKts: Boolean) {
+class BenchmarkModuleTest(private val dslLanguage: DslLanguage) {
   companion object {
-    @JvmStatic @Parameterized.Parameters(name = "useGradleKts={0}") fun data() = listOf(false, true)
+    @JvmStatic @Parameterized.Parameters(name = "dslLanguage={0}") fun data() = listOf(GROOVY, KTS)
   }
 
   @get:Rule val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
@@ -58,7 +61,7 @@ class BenchmarkModuleTest(private val useGradleKts: Boolean) {
           androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(21)
           packageName.set("template.test.pkg")
           benchmarkModuleType.set(MICROBENCHMARK)
-          useGradleKts.set(this@BenchmarkModuleTest.useGradleKts)
+          dslLanguage.set(this@BenchmarkModuleTest.dslLanguage)
         }
 
     model.handleFinished() // Generate module files
@@ -81,7 +84,7 @@ class BenchmarkModuleTest(private val useGradleKts: Boolean) {
           androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(23)
           benchmarkModuleType.set(MACROBENCHMARK)
           targetModule.value = project.findAppModule()
-          useGradleKts.set(this@BenchmarkModuleTest.useGradleKts)
+          dslLanguage.set(this@BenchmarkModuleTest.dslLanguage)
         }
 
     model.handleFinished() // Generate module files

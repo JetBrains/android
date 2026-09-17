@@ -29,6 +29,9 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.wizard.template.Category
+import com.android.tools.idea.wizard.template.DslLanguage
+import com.android.tools.idea.wizard.template.DslLanguage.GROOVY
+import com.android.tools.idea.wizard.template.DslLanguage.KTS
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.intellij.openapi.module.Module
@@ -45,15 +48,15 @@ import org.junit.Test
  * This is deliberately un-parameterized to split Groovy vs KTS into different shards, since the overhead from Gradle sync with different
  * types causes timeouts
  */
-class GroovyAddNewModulesToAppTest : AddNewModulesToAppTest(false, false)
+class GroovyAddNewModulesToAppTest : AddNewModulesToAppTest(GROOVY, false)
 
-class GroovyVersionCatalogAddNewModulesToAppTest : AddNewModulesToAppTest(false, true)
+class GroovyVersionCatalogAddNewModulesToAppTest : AddNewModulesToAppTest(GROOVY, true)
 
-class KtsAddNewModulesToAppTest : AddNewModulesToAppTest(true, false)
+class KtsAddNewModulesToAppTest : AddNewModulesToAppTest(KTS, false)
 
-class KtsVersionCatalogAddNewModulesToAppTest : AddNewModulesToAppTest(true, true)
+class KtsVersionCatalogAddNewModulesToAppTest : AddNewModulesToAppTest(KTS, true)
 
-abstract class AddNewModulesToAppTest(private val useGradleKts: Boolean, private val useVersionCatalog: Boolean) {
+abstract class AddNewModulesToAppTest(private val dslLanguage: DslLanguage, private val useVersionCatalog: Boolean) {
   @get:Rule val projectRule = AndroidGradleProjectRule(agpVersionSoftwareEnvironment = getAgpVersion())
 
   // Ignore project sync (to speed up test), if later we are going to perform a gradle build anyway.
@@ -77,7 +80,7 @@ abstract class AddNewModulesToAppTest(private val useGradleKts: Boolean, private
     loadInitialProject()
 
     val project = projectRule.project
-    createDefaultDynamicFeatureModel(project, "feature1", project.findAppModule(), useGradleKts, emptyProjectSyncInvoker)
+    createDefaultDynamicFeatureModel(project, "feature1", project.findAppModule(), dslLanguage, emptyProjectSyncInvoker)
     checkAgpClasspathAndId("feature1", "com.android.dynamic-feature", "libs.plugins.android.dynamic.feature")
     checkModuleCompileSdkVersion("feature1")
     assembleDebugProject()
@@ -97,11 +100,11 @@ abstract class AddNewModulesToAppTest(private val useGradleKts: Boolean, private
         formFactor = FormFactor.Mobile,
         category = Category.Activity,
       )
-    generateModuleFiles(project, baseModuleModel, "base", useGradleKts = true) // Base module is always kts for this test
+    generateModuleFiles(project, baseModuleModel, "base", KTS) // Base module is always kts for this test
 
     val baseModule = project.findModule("base")
-    createDefaultDynamicFeatureModel(project, "feature1", baseModule, useGradleKts, emptyProjectSyncInvoker)
-    createDefaultDynamicFeatureModel(project, "feature2", baseModule, useGradleKts, emptyProjectSyncInvoker)
+    createDefaultDynamicFeatureModel(project, "feature1", baseModule, dslLanguage, emptyProjectSyncInvoker)
+    createDefaultDynamicFeatureModel(project, "feature2", baseModule, dslLanguage, emptyProjectSyncInvoker)
 
     checkBuildGradleJavaVersion("feature1")
     checkModuleCompileSdkVersion("feature1")
@@ -125,11 +128,53 @@ abstract class AddNewModulesToAppTest(private val useGradleKts: Boolean, private
         isLibrary = true,
       )
     val moduleName = "mylibrary"
-    generateModuleFiles(project, libModuleModel, moduleName, useGradleKts) // Base module is always kts for this test
+    generateModuleFiles(project, libModuleModel, moduleName, dslLanguage) // Base module is always kts for this test
 
     checkAgpClasspathAndId("mylibrary", "com.android.library", "libs.plugins.android.library")
     checkModuleCompileSdkVersion("mylibrary")
     checkBuildGradleJavaVersion(moduleName)
+    assembleDebugProject()
+  }
+
+  @Test
+  fun addNewAndroidLibraryModuleDoesNotContainProguardFiles() {
+    loadInitialProject()
+
+    val project = projectRule.project
+    val libModuleModel =
+      NewAndroidModuleModel.fromExistingProject(
+        project = project,
+        moduleParent = ":",
+        projectSyncInvoker = emptyProjectSyncInvoker,
+        formFactor = FormFactor.Mobile,
+        category = Category.Activity,
+        isLibrary = true,
+      )
+    val moduleName = "mylibrary"
+    generateModuleFiles(project, libModuleModel, moduleName, dslLanguage)
+
+    checkBuildGradleNoProguardFiles(moduleName)
+    assembleDebugProject()
+  }
+
+  @Test
+  fun addNewAndroidApplicationModuleContainsProguardFiles() {
+    loadInitialProject()
+
+    val project = projectRule.project
+    val appModuleModel =
+      NewAndroidModuleModel.fromExistingProject(
+        project = project,
+        moduleParent = ":",
+        projectSyncInvoker = emptyProjectSyncInvoker,
+        formFactor = FormFactor.Mobile,
+        category = Category.Activity,
+        isLibrary = false,
+      )
+    val moduleName = "myapp"
+    generateModuleFiles(project, appModuleModel, moduleName, dslLanguage)
+
+    checkBuildGradleHasProguardFiles(moduleName)
     assembleDebugProject()
   }
 
@@ -146,7 +191,7 @@ abstract class AddNewModulesToAppTest(private val useGradleKts: Boolean, private
     val module = "mylibrary"
     val libModuleModel = NewLibraryModuleModel(project, ":", emptyProjectSyncInvoker)
     libModuleModel.language.set(Optional.of(Language.Kotlin))
-    generateModuleFiles(project, libModuleModel, module, useGradleKts)
+    generateModuleFiles(project, libModuleModel, module, dslLanguage)
 
     checkBuildGradleJavaVersion(module)
     assembleDebugProject()
@@ -158,7 +203,7 @@ abstract class AddNewModulesToAppTest(private val useGradleKts: Boolean, private
     val pluginId = "org.jetbrains.kotlin.jvm"
     // settings must have no declared plugins
     assertFalse(File(project.basePath!!).resolve("settings.gradle").readText().contains("kotlin"))
-    if (useGradleKts) {
+    if (dslLanguage.isKts) {
       assertTrue(File(project.basePath!!).resolve(module).resolve("build.gradle.kts").readText().contains("id(\"$pluginId\")\n"))
     } else {
       assertTrue(File(project.basePath!!).resolve(module).resolve("build.gradle").readText().contains("id '$pluginId'\n"))
@@ -185,7 +230,7 @@ abstract class AddNewModulesToAppTest(private val useGradleKts: Boolean, private
       File(project.basePath!!).resolve("build.gradle").readText().contains("alias($pluginAlias) apply false")
     }
 
-    if (useGradleKts) {
+    if (dslLanguage.isKts) {
       assertTrue(
         File(project.basePath!!)
           .resolve(moduleName)
@@ -206,7 +251,7 @@ abstract class AddNewModulesToAppTest(private val useGradleKts: Boolean, private
 
   private fun checkBuildGradleJavaVersion(moduleName: String) {
     val project = projectRule.project
-    if (useGradleKts) {
+    if (dslLanguage.isKts) {
       assertTrue(
         File(project.basePath!!)
           .resolve(moduleName)
@@ -229,7 +274,7 @@ abstract class AddNewModulesToAppTest(private val useGradleKts: Boolean, private
     val project = projectRule.project
     val buildGradleFileName = "build.gradle"
     val text =
-      if (useGradleKts) {
+      if (dslLanguage.isKts) {
         File(project.basePath!!).resolve(moduleName).resolve("$buildGradleFileName.kts").readText()
       } else {
         File(project.basePath!!).resolve(moduleName).resolve(buildGradleFileName).readText()
@@ -248,6 +293,27 @@ abstract class AddNewModulesToAppTest(private val useGradleKts: Boolean, private
         )
     )
   }
+
+  private fun readBuildFile(moduleName: String): String {
+    val project = projectRule.project
+    val buildGradleFileName = if (dslLanguage.isKts) "build.gradle.kts" else "build.gradle"
+    val text = File(project.basePath!!).resolve(moduleName).resolve(buildGradleFileName).readText()
+    return text
+  }
+
+  private fun checkBuildGradleNoProguardFiles(moduleName: String) {
+    val text = readBuildFile(moduleName)
+    assertFalse("Generated build.gradle should not contain 'proguardFiles'", text.contains("proguardFiles"))
+    assertFalse("Generated build.gradle should not contain 'getDefaultProguardFile'", text.contains("getDefaultProguardFile"))
+    assertTrue("Generated build.gradle for library should contain 'consumerProguardFiles'", text.contains("consumerProguardFiles"))
+  }
+
+  private fun checkBuildGradleHasProguardFiles(moduleName: String) {
+    val text = readBuildFile(moduleName)
+    assertTrue("Generated build.gradle should contain 'proguardFiles'", text.contains("proguardFiles"))
+    assertTrue("Generated build.gradle should contain 'getDefaultProguardFile'", text.contains("getDefaultProguardFile"))
+    assertFalse("Generated build.gradle for application should not contain 'consumerProguardFiles'", text.contains("consumerProguardFiles"))
+  }
 }
 
 private fun String.removeSpaces() = replace("[ \\r\\t]+".toRegex(), "")
@@ -256,7 +322,7 @@ private fun createDefaultDynamicFeatureModel(
   project: Project,
   moduleName: String,
   baseModule: Module,
-  useGradleKts: Boolean,
+  dslLanguage: DslLanguage,
   projectSyncInvoker: ProjectSyncInvoker,
 ) {
   val model =
@@ -268,15 +334,15 @@ private fun createDefaultDynamicFeatureModel(
       templateDescription = "Dynamic Feature description",
     )
   model.baseApplication.value = baseModule // Dynamic Feature base module
-  generateModuleFiles(project, model, moduleName, useGradleKts)
+  generateModuleFiles(project, model, moduleName, dslLanguage)
 }
 
-private fun generateModuleFiles(project: Project, model: ModuleModel, moduleName: String, useGradleKts: Boolean) {
+private fun generateModuleFiles(project: Project, model: ModuleModel, moduleName: String, dslLanguage: DslLanguage) {
   model.androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(HIGHEST_KNOWN_STABLE_API)
   model.moduleName.set(moduleName)
   model.template.set(createDefaultModuleTemplate(project, moduleName))
   model.packageName.set("com.example")
-  model.useGradleKts.set(useGradleKts)
+  model.dslLanguage.set(dslLanguage)
 
   model.handleFinished() // Generate module files
 }

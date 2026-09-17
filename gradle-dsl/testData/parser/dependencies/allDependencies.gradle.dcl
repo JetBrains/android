@@ -1,5 +1,5 @@
 androidApp {
-  dependenciesDcl {
+  dependencies {
     implementation("com.example.libs:lib1:0.+")
     api("com.android.support:appcompat-v7:+")
     compile(files("lib1.jar"))

@@ -26,6 +26,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.IconLoader
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -121,6 +122,7 @@ protected constructor(
     callback: Runnable,
   ): JButton {
     val button: JButton = CommonButton()
+    button.disabledIcon = IconLoader.getDisabledIcon(baseIcon)
     button.name = label
     button.icon = baseIcon
     button.addActionListener { e: ActionEvent? ->

@@ -24,7 +24,6 @@ import com.android.builder.model.PROPERTY_BUILD_WITH_STABLE_IDS
 import com.android.builder.model.PROPERTY_DEPLOY_AS_INSTANT_APP
 import com.android.builder.model.PROPERTY_EXTRACT_INSTANT_APK
 import com.android.builder.model.PROPERTY_INJECTED_DYNAMIC_MODULES_LIST
-import com.android.builder.model.PROPERTY_SUPPORTS_PRIVACY_SANDBOX
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.tools.idea.IdeInfo
@@ -380,11 +379,6 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
           val deviceSerials = targetDeviceSpec.deviceSpec.deviceSerials.joinToString(separator = ",")
           val injectedProperty = AndroidGradleSettings.createProjectProperty("internal.android.inject.device.serials", deviceSerials)
           properties.add(injectedProperty)
-        }
-        if (configuration.supportsPrivacySandbox) {
-          properties.add(
-            AndroidGradleSettings.createProjectProperty(PROPERTY_SUPPORTS_PRIVACY_SANDBOX, targetDeviceSpec.deviceSpec.supportsSdkRuntime)
-          )
         }
       }
       return properties

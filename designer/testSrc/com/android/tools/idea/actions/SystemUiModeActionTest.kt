@@ -107,4 +107,30 @@ class SystemUiModeActionTest : AndroidTestCase() {
       selectionManager.clearSelectedPath()
     }
   }
+
+  /** Verifies that each dynamic color (wallpaper) item has a descriptive tooltip. */
+  fun testWallpaperTooltips() {
+    val file = myFixture.copyFileToProject("configurations/layout1.xml", "res/layout/layout1.xml")
+    val manager = ConfigurationManager.getOrCreateInstance(myModule)
+    val configuration = manager.getConfiguration(file)
+    val dataContext = SimpleDataContext.builder().add(CONFIGURATIONS, listOf(configuration)).add(CommonDataKeys.PROJECT, project).build()
+    val systemUiModeAction = SystemUiModeAction()
+
+    runInEdtAndWait {
+      val menu = systemUiModeAction.createPopupMenu(dataContext)
+      val wallpaperItems = mutableListOf<JMenuItem>()
+      for (i in 0 until menu.componentCount) {
+        val component = menu.getComponent(i)
+        if (component.javaClass.name.endsWith("WallpaperItem")) {
+          wallpaperItems.add(component as JMenuItem)
+        }
+      }
+
+      val expectedTooltips = listOf("Red dominated", "Green dominated", "Blue dominated", "Yellow dominated", "None")
+      assertEquals("Number of wallpaper items should match", expectedTooltips.size, wallpaperItems.size)
+      wallpaperItems.forEachIndexed { index, item ->
+        assertEquals("Tooltip for item $index should match", expectedTooltips[index], item.toolTipText)
+      }
+    }
+  }
 }

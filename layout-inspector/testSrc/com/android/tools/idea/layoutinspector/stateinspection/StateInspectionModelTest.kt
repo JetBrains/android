@@ -452,6 +452,7 @@ class StateInspectionModelTest {
     model.minimizeAction.perform()
     testScheduler.advanceUntilIdle()
     assertThat(model.show.value).isFalse()
+    assertThat(inspectorModel.stateReadsModel.stateReads.value).isNull()
   }
 
   @Test
@@ -473,8 +474,37 @@ class StateInspectionModelTest {
     assertThat(results).isEqualTo(1)
 
     Disposer.dispose(disposable)
-    // Verify that the stateReads were reset such that old data is not shown if LI is reconnected.
-    assertThat(inspectorModel.stateReadsModel.stateReads.value).isNull()
+    // Verify that the stateReads are not reset so that a new model can resume showing the state reads.
+    assertThat(inspectorModel.stateReadsModel.stateReads.value).isNotNull()
+  }
+
+  @Test
+  fun testRecreationShowsCachedStateReads() = runTestWithDisposable { disposable ->
+    var results = 0
+    val model1 = StateInspectionModelImpl(inspectorModel, this, disposable) { results++ }
+    assertThat(model1.show.value).isFalse()
+
+    inspectorModel.stateReadsModel.requestStateReadFor(compose1)
+    inspectorModel.stateReadsModel.stateReads.emit(RecomposeStateReadResult.Waiting)
+    inspectorModel.stateReadsModel.stateReads.emit(read2Anchor1.convert(compose1, 2))
+    testScheduler.advanceUntilIdle()
+    assertThat(model1.show.value).isTrue()
+    assertThat(results).isEqualTo(1)
+
+    // Dispose the first model, mimicking a UI teardown (e.g. from a layout swap)
+    Disposer.dispose(disposable)
+
+    // Create a new model, mimicking a UI reconstruction
+    val disposable2 = Disposer.newDisposable()
+    Disposer.register(disposableRule.disposable, disposable2)
+    val model2 = StateInspectionModelImpl(inspectorModel, this, disposable2) { results++ }
+    testScheduler.advanceUntilIdle()
+
+    // The new model should immediately show the cached result
+    assertThat(model2.show.value).isTrue()
+    assertThat(results).isEqualTo(2)
+
+    Disposer.dispose(disposable2)
   }
 
   private fun AnAction.isEnabled(): Boolean {

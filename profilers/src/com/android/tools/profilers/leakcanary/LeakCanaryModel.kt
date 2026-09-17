@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,16 +25,29 @@ import com.android.tools.leakcanarylib.data.AnalysisFailure
 import com.android.tools.leakcanarylib.data.AnalysisSuccess
 import com.android.tools.leakcanarylib.data.AnalysisUpdate
 import com.android.tools.leakcanarylib.data.Leak
+import com.android.tools.leakcanarylib.data.LeakType
 import com.android.tools.leakcanarylib.data.LeakingStatus
 import com.android.tools.leakcanarylib.data.Node
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Commands.StartLeakCanaryTaskData
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Common.LeakCanaryDeviceError.ErrorType.LEAKCANARY_ERROR_APP_CONTEXT_NULL
+import com.android.tools.profiler.proto.Common.LeakCanaryDeviceError.ErrorType.LEAKCANARY_ERROR_BROADCAST_DELIVERY_FAILED
+import com.android.tools.profiler.proto.Common.LeakCanaryDeviceError.ErrorType.LEAKCANARY_ERROR_LOGCAT_PARSING_FAILURE
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profilers.ModelStage
+import com.android.tools.profilers.Notification
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.cpu.config.LeakCanaryConfiguration
+import com.android.tools.profilers.cpu.config.LeakCanaryMode
+import com.android.tools.profilers.tasks.analytics.LeakCanaryLeakAnalysis
+import com.android.tools.profilers.tasks.analytics.LeakCanaryProcessingErrorCode
+import com.android.tools.profilers.tasks.analytics.LeakCanaryStartErrorCode
+import com.android.tools.profilers.tasks.analytics.LeakCanaryUiAction
 import com.android.tools.profilers.tasks.analytics.TaskFinishedState
+import com.android.tools.profilers.tasks.analytics.TaskProcessingFailedMetadata
+import com.android.tools.profilers.tasks.analytics.TaskStartFailedMetadata
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -43,6 +56,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.diagnostic.Logger
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.jetbrains.annotations.NotNull
@@ -52,16 +66,21 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
 
   private lateinit var statusListener: TransportEventListener
   private lateinit var objectCountListener: TransportEventListener
+  private lateinit var deviceErrorListener: TransportEventListener
   private val logger: Logger = Logger.getInstance(LeakCanaryModel::class.java)
   private var sessionData = profilers.session
   private val heapDumper: LeakCanaryHeapDumper
+  private var lastAnalysisTimestampMs: Long = 0
 
   init {
     this.heapDumper =
       heapDumper
         ?: LeakCanaryHeapDumper(profilers).apply {
-          onHostAnalysisFinished = { analysis -> handleLeakAnalysis(analysis) }
+          onHostAnalysisFinished = { analysis, size, duration, analysisDuration ->
+            handleLeakAnalysis(analysis, size, duration, analysisDuration)
+          }
           onAnalysisProgress = { progress -> setAnalysisProgress(progress) }
+          onFatalError = { error, message -> handleLeakCanaryFatalError(error, message) }
         }
   }
 
@@ -83,11 +102,72 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
   val isLeakCanaryPresent = _isLeakCanaryPresent.asStateFlow()
   private val _isStopping = MutableStateFlow(false)
   val isStopping = _isStopping.asStateFlow()
-  val isLeakCanaryMilestone2Enabled
-    get() = profilers.ideServices.featureConfig.isLeakCanaryMilestone2Enabled
 
-  // TODO: Use a real setting once settings UI is implemented.
   @VisibleForTesting var leakcanaryMode = StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE
+
+  private val _isBannerVisible = MutableStateFlow(false)
+  val isBannerVisible = _isBannerVisible.asStateFlow()
+
+  /** Sets the current LeakCanary mode (e.g., ON_DEVICE or ON_HOST) and updates the banner visibility accordingly. */
+  fun setLeakCanaryMode(mode: StartLeakCanaryTaskData.LeakCanaryMode) {
+    logger.info("LeakCanary running in ${mode.name} mode")
+    leakcanaryMode = mode
+    updateBannerVisibility()
+  }
+
+  /**
+   * Reads the current LeakCanary configuration from the profiler settings and updates the running mode and threshold. If the user has
+   * explicitly modified the settings from their defaults, it will also dismiss the new feature banner permanently.
+   */
+  fun updateModeFromSettings() {
+    val featureLevel = profilers.device?.featureLevel ?: 0
+    val configs = profilers.ideServices.getTaskCpuProfilerConfigs(featureLevel)
+    val config = configs.filterIsInstance<LeakCanaryConfiguration>().firstOrNull()
+    if (config != null) {
+      setLeakCanaryMode(config.mode)
+      if (config.source == LeakCanaryMode.STUDIO) {
+        _retainedObjectThreshold.value = config.threshold
+      }
+
+      // If the user has explicitly changed the settings from the default, suppress the banner permanently.
+      if (config.source != LeakCanaryMode.STUDIO || config.threshold != 5) {
+        setBannerDoNotShowAgain()
+      }
+    }
+  }
+
+  /**
+   * Evaluates all conditions to determine if the educational feature banner should be displayed.
+   *
+   * The banner is only shown if ALL the following conditions are met:
+   * 1. The user has not permanently suppressed the banner (by dismissing it or changing settings).
+   * 2. The current mode is Studio mode (ON_HOST).
+   */
+  private fun shouldShowEducationalBanner(): Boolean {
+    val doNotShowAgain = profilers.ideServices.persistentProfilerPreferences.getBoolean(KEY_LEAKCANARY_BANNER_DO_NOT_SHOW, false)
+    val isStudioMode = leakcanaryMode == StartLeakCanaryTaskData.LeakCanaryMode.ON_HOST
+
+    if (!isStudioMode || doNotShowAgain) {
+      return false
+    }
+    return true
+  }
+
+  /** Updates whether the feature banner should be displayed to the user. */
+  private fun updateBannerVisibility() {
+    _isBannerVisible.value = shouldShowEducationalBanner()
+  }
+
+  /** Temporarily dismisses the feature banner for the current session. */
+  fun dismissBanner() {
+    _isBannerVisible.value = false
+  }
+
+  /** Permanently hides the feature banner across all sessions by updating user preferences. */
+  fun setBannerDoNotShowAgain() {
+    profilers.ideServices.persistentProfilerPreferences.setBoolean(KEY_LEAKCANARY_BANNER_DO_NOT_SHOW, true)
+    updateBannerVisibility()
+  }
 
   override fun onEnter() {
     sessionData = profilers.session
@@ -104,15 +184,10 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
   }
 
   fun startListening() {
+    updateModeFromSettings()
     profilers.updater.register(this)
     setIsRecording(true)
-    if (!isLeakCanaryMilestone2Enabled) {
-      checkLeakCanaryPresence()
-    } else {
-      // TODO: While adding settings change (adding UI for choosing between on_device, on_host shark), code should be changed to pick the
-      // user inputed threshold for on_host shark flow.
-      _retainedObjectThreshold.value = profilers.ideServices.temporaryProfilerPreferences.getInt("LEAKCANARY_THRESHOLD", 5)
-    }
+    checkPresenceAndFetchThreshold()
     setObjectRetainedCount(0)
     setAnalysisProgress(0)
     registerLeakCanaryListeners()
@@ -128,15 +203,22 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     }
   }
 
-  fun stopListening() {
+  fun stopListening(isUserInitiated: Boolean = true) {
+    if (isUserInitiated) {
+      myTaskTracker.trackLeakCanaryUiAction(LeakCanaryUiAction.STOP_RECORDING_CLICKED)
+      if (heapDumper.isHeapDumpInProgress() || _analysisProgress.value in 1..99) {
+        myTaskTracker.trackLeakCanaryUiAction(LeakCanaryUiAction.CANCELLED_DURING_ANALYSIS)
+      }
+
+      // Track the successful completion of the user-initiated leakCanary recording task.
+      myTaskTracker.trackTaskFinished(TaskFinishedState.COMPLETED)
+    }
+
     _isStopping.value = false
     setIsRecording(false)
     toggleLeakCanaryTracking(profilers.session, enable = false, endSession = true)
     deregisterLeakCanaryListeners()
     profilers.updater.unregister(this)
-
-    // Track the successful completion of the user-initiated leakCanary recording task.
-    myTaskTracker.trackTaskFinished(TaskFinishedState.COMPLETED)
   }
 
   /**
@@ -146,11 +228,13 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
    * Studio-side heap dumper (LeakCanaryHeapDumper).
    */
   fun forceHeapDump() {
+    myTaskTracker.trackLeakCanaryUiAction(LeakCanaryUiAction.FORCE_DUMP_CLICKED)
     if (leakcanaryMode == StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE) {
       val forceDumpCommand =
         Commands.Command.newBuilder()
           .setStreamId(sessionData.streamId)
           .setPid(sessionData.pid)
+          .setSessionId(sessionData.sessionId)
           .setType(Commands.Command.CommandType.FORCE_DUMP_LEAKCANARY_ON_DEVICE)
           .build()
       profilers.ideServices.poolExecutor.execute {
@@ -185,12 +269,32 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
   }
 
   fun onLeakSelection(newLeak: Leak?) {
+    if (newLeak != null && _selectedLeak.value != newLeak) {
+      myTaskTracker.trackLeakCanaryUiAction(LeakCanaryUiAction.NEW_LEAK_SELECTED)
+    }
     _selectedLeak.value = newLeak
+  }
+
+  private fun checkPresenceAndFetchThreshold() {
+    if (leakcanaryMode == StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE) {
+
+      val thresholdValue = profilers.ideServices.temporaryProfilerPreferences.getInt("LEAKCANARY_THRESHOLD", -1)
+      if (thresholdValue != -1) {
+        _retainedObjectThreshold.value = thresholdValue
+      }
+
+      if (thresholdValue == -1) {
+        fetchRetainedVisibleThreshold()
+      }
+      // Reset the state to -1
+      profilers.ideServices.temporaryProfilerPreferences.setInt("LEAKCANARY_THRESHOLD", -1)
+    }
   }
 
   /** Creates and registers transport event listeners that run from the start of the session until the end. */
   private fun registerLeakCanaryListeners() {
     val startTime = profilers.session.startTimestamp
+    lastAnalysisTimestampMs = TimeUnit.NANOSECONDS.toMillis(startTime)
 
     if (leakcanaryMode == StartLeakCanaryTaskData.LeakCanaryMode.ON_DEVICE) {
       // This is for shark running on the device and sending logcat readings.
@@ -224,36 +328,75 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
         )
       profilers.transportPoller.registerListener(objectCountListener)
     }
+
+    deviceErrorListener =
+      TransportEventListener(
+        eventKind = Common.Event.Kind.LEAKCANARY_DEVICE_ERROR,
+        executor = profilers.ideServices.mainExecutor,
+        streamId = { profilers.session.streamId },
+        processId = { profilers.session.pid },
+        startTime = { startTime },
+        callback = { event ->
+          val errorType = event.leakcanaryDeviceError.errorType
+          when (errorType) {
+            LEAKCANARY_ERROR_APP_CONTEXT_NULL -> {
+              myTaskTracker.trackStartTaskFailed(TaskStartFailedMetadata(leakCanaryStartStatus = LeakCanaryStartErrorCode.APP_CONTEXT_NULL))
+              handleLeakCanaryFatalError(LeakCanaryProcessingErrorCode.UNKNOWN_ERROR, "Failed to get Application Context on device.")
+            }
+            LEAKCANARY_ERROR_BROADCAST_DELIVERY_FAILED -> {
+              handleLeakCanaryFatalError(LeakCanaryProcessingErrorCode.BROADCAST_DELIVERY_FAILED, "Failed to deliver broadcast to the app.")
+            }
+            LEAKCANARY_ERROR_LOGCAT_PARSING_FAILURE -> {
+              myTaskTracker.trackProcessingTaskFailed(
+                TaskProcessingFailedMetadata(leakCanaryProcessingStatus = LeakCanaryProcessingErrorCode.PARSING_FAILURE)
+              )
+              handleLeakCanaryFatalError(LeakCanaryProcessingErrorCode.PARSING_FAILURE, "Failed to parse LeakCanary logcat trace.")
+            }
+            else -> {}
+          }
+          false
+        },
+      )
+    profilers.transportPoller.registerListener(deviceErrorListener)
   }
 
-  private fun checkLeakCanaryPresence() {
-    val command =
+  private fun fetchRetainedVisibleThreshold() {
+    val fetchThresholdCommand =
       Commands.Command.newBuilder()
-        .apply {
-          streamId = profilers.session.streamId
-          pid = profilers.session.pid
-          type = Commands.Command.CommandType.CHECK_LEAKCANARY_PRESENT
-        }
+        .setStreamId(profilers.session.streamId)
+        .setPid(profilers.session.pid)
+        .setSessionId(profilers.session.sessionId)
+        .setType(Commands.Command.CommandType.GET_LEAKCANARY_THRESHOLD)
         .build()
 
     profilers.ideServices.poolExecutor.execute {
-      val response = profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())
-
+      val commandIdFuture = CompletableFuture<Int>()
       val listener =
         TransportEventListener(
-          eventKind = Common.Event.Kind.LEAKCANARY_PRESENCE_CHECK,
+          eventKind = Common.Event.Kind.LEAKCANARY_THRESHOLD,
           executor = profilers.ideServices.poolExecutor,
-          filter = { it.commandId == response.commandId },
           streamId = { profilers.session.streamId },
+          filter = { event ->
+            val targetCommandId = commandIdFuture.getNow(-1)
+            targetCommandId != -1 && event.commandId == targetCommandId
+          },
           processId = { profilers.session.pid },
           callback = { event ->
-            val isPresent = event.leakcanaryPresenceCheck.isPresent
-            logger.info("LeakCanary presence check returned: $isPresent")
-            profilers.ideServices.mainExecutor.execute { _isLeakCanaryPresent.value = isPresent }
-            true // Unregister listener after first event.
+            val threshold = event.leakcanaryThreshold.threshold
+            profilers.ideServices.mainExecutor.execute { _retainedObjectThreshold.value = threshold }
+            true // Unregister listener
           },
         )
       profilers.transportPoller.registerListener(listener)
+
+      try {
+        val response =
+          profilers.client.transportClient.execute(Transport.ExecuteRequest.newBuilder().setCommand(fetchThresholdCommand).build())
+        commandIdFuture.complete(response.commandId)
+      } catch (e: Exception) {
+        logger.warn("Failed to fetch retained visible threshold", e)
+        profilers.transportPoller.unregisterListener(listener)
+      }
     }
   }
 
@@ -263,6 +406,9 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     }
     if (::objectCountListener.isInitialized) {
       profilers.transportPoller.unregisterListener(objectCountListener)
+    }
+    if (::deviceErrorListener.isInitialized) {
+      profilers.transportPoller.unregisterListener(deviceErrorListener)
     }
   }
 
@@ -311,12 +457,26 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     } ?: false
   }
 
-  private fun handleLeakAnalysis(analysis: Analysis?) {
-    if (analysis == null) return
+  private fun handleLeakAnalysis(
+    analysis: Analysis?,
+    hprofFileSizeBytes: Long? = null,
+    downloadDurationMs: Long? = null,
+    heapDumpAnalysisTimeMs: Long? = null,
+  ) {
+    if (analysis == null) {
+      myTaskTracker.trackProcessingTaskFailed(
+        TaskProcessingFailedMetadata(leakCanaryProcessingStatus = LeakCanaryProcessingErrorCode.PARSING_FAILURE)
+      )
+      return
+    }
     setAnalysisProgress(0)
 
     if (analysis is AnalysisSuccess) {
       addLeaks(analysis.leaks)
+
+      val totalRecordingTimeMs = System.currentTimeMillis() - lastAnalysisTimestampMs
+      trackLeakAnalysisTelemetry(analysis, hprofFileSizeBytes, downloadDurationMs, heapDumpAnalysisTimeMs, totalRecordingTimeMs)
+      lastAnalysisTimestampMs = System.currentTimeMillis()
     } else if (analysis is AnalysisFailure) {
       // There is failure in leak analysis.
       logger.warn("Leak analysis failure", analysis.exception)
@@ -346,14 +506,12 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
       Commands.Command.newBuilder().apply {
         streamId = session.streamId
         pid = session.pid
+        sessionId = session.sessionId
         if (enable) {
           type = Commands.Command.CommandType.START_LEAKCANARY_TASK
           setStartLeakcanaryTask(startLeakCanaryTaskData)
         } else {
           type = Commands.Command.CommandType.STOP_LEAKCANARY_TASK
-          if (endSession) {
-            sessionId = session.sessionId
-          }
         }
       }
     profilers.ideServices.poolExecutor.execute {
@@ -391,7 +549,56 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     return eventList.mapNotNull { event -> Analysis.fromString(event.leakcanaryAnalysis.data) }
   }
 
+  private fun trackLeakAnalysisTelemetry(
+    analysis: AnalysisSuccess,
+    hprofFileSizeBytes: Long?,
+    downloadDurationMs: Long?,
+    heapDumpAnalysisTimeMs: Long?,
+    totalRecordingTimeMs: Long,
+  ) {
+    var totalRetainedBytes = 0L
+    var noCount = 0
+    var maybeCount = 0
+    var yesCount = 0
+    var occurrences = 0
+    var libraryLeak = false
+
+    for (leak in analysis.leaks) {
+      occurrences += leak.leakTraceCount
+      totalRetainedBytes += leak.retainedByteSize.toLong().coerceAtLeast(0L)
+      if (leak.type == LeakType.LIBRARY_LEAKS) {
+        libraryLeak = true
+      }
+
+      leak.displayedLeakTrace.firstOrNull()?.nodes?.forEach { node ->
+        when (node.leakingStatus) {
+          LeakingStatus.NO -> noCount++
+          LeakingStatus.UNKNOWN -> maybeCount++
+          LeakingStatus.YES -> yesCount++
+          else -> {}
+        }
+      }
+    }
+
+    val leakAnalysisPayload =
+      LeakCanaryLeakAnalysis(
+        retainedObjectsCount = analysis.leaks.size,
+        occurrencesCount = occurrences,
+        estimatedMemoryLeakedBytes = totalRetainedBytes,
+        leakingNoRows = noCount,
+        leakingMaybeRows = maybeCount,
+        leakingYesRows = yesCount,
+        heapDumpAnalysisTimeMs = heapDumpAnalysisTimeMs,
+        hprofFileSizeBytes = hprofFileSizeBytes,
+        hprofDownloadDurationMs = downloadDurationMs,
+        totalRecordingTimeMs = totalRecordingTimeMs,
+        isLibraryLeak = libraryLeak,
+      )
+    myTaskTracker.trackLeakCanaryAnalysis(leakAnalysisPayload)
+  }
+
   fun goToDeclaration(node: Node) {
+    myTaskTracker.trackLeakCanaryUiAction(LeakCanaryUiAction.GO_TO_DECLARATION_CLICKED)
     val codeLocationSupplier: () -> CodeLocation = { CodeLocation.Builder(node.className.removeSuffix("[]")).build() }
     val navigator = this.studioProfilers.ideServices.codeNavigator
     val action = NavigateToCodeAction(codeLocationSupplier, navigator)
@@ -403,6 +610,21 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     val codeLocationSupplier: CodeLocation = CodeLocation.Builder(node.className.removeSuffix("[]")).build()
     val navigator = this.studioProfilers.ideServices.codeNavigator
     return navigator.isNavigatableAsync(codeLocationSupplier)
+  }
+
+  fun handleLeakCanaryFatalError(error: LeakCanaryProcessingErrorCode, message: String) {
+    logger.error("LeakCanary Fatal Error ($error): $message")
+    myTaskTracker.trackProcessingTaskFailed(TaskProcessingFailedMetadata(leakCanaryProcessingStatus = error))
+
+    // Show IDE balloon notification
+    profilers.ideServices.showNotification(Notification(Notification.Severity.ERROR, "LeakCanary Task Failed", message, null))
+
+    // Safely tear down the task
+    stopListening(isUserInitiated = false)
+  }
+
+  fun trackUiAction(action: LeakCanaryUiAction) {
+    myTaskTracker.trackLeakCanaryUiAction(action)
   }
 
   companion object {
@@ -470,6 +692,8 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
         "${referenceField?.className ?: ""}.${referenceField?.referenceName ?: ""}"
       } ?: leakTrace.nodes.last().className
     }
+
+    private const val KEY_LEAKCANARY_BANNER_DO_NOT_SHOW = "leakcanary.banner.donotshow"
   }
 
   override fun update(elapsedNs: Long) {

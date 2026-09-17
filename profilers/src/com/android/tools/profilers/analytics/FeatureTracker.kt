@@ -24,6 +24,8 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager.SessionCreationSource
+import com.android.tools.profilers.tasks.analytics.LeakCanaryLeakAnalysis
+import com.android.tools.profilers.tasks.analytics.LeakCanaryUiAction
 import com.android.tools.profilers.tasks.analytics.TaskFinishedState
 import com.android.tools.profilers.tasks.analytics.TaskMetadata
 import com.android.tools.profilers.tasks.analytics.TaskProcessingFailedMetadata
@@ -355,6 +357,15 @@ interface FeatureTracker {
   fun trackTaskFailed(taskMetadata: TaskMetadata, taskStopFailedMetadata: TaskStopFailedMetadata)
 
   fun trackTaskFailed(taskMetadata: TaskMetadata, taskProcessingFailedMetadata: TaskProcessingFailedMetadata)
+
+  /** Tracks a single event inside an active LeakCanary task (e.g. clicking a UI button). */
+  fun trackLeakCanaryEvent(taskMetadata: TaskMetadata, uiAction: LeakCanaryUiAction)
+
+  /** Tracks the result of a completed LeakCanary Shark analysis parsing. */
+  fun trackLeakCanaryEvent(taskMetadata: TaskMetadata, leakAnalysis: LeakCanaryLeakAnalysis)
+
+  /** Tracks when the dependency auto-inject popup is shown to the user. This happens before a task exists. */
+  fun trackLeakCanaryAutoInjectPopup()
 }
 
 /**

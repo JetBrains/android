@@ -30,6 +30,8 @@ import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ROOT
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
+import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
@@ -41,7 +43,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.Layout
 import com.android.tools.idea.layoutinspector.runningdevices.ui.rendering.OnDeviceRendererPanel
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
-import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.android.tools.idea.testing.ui.createFakeToolWindow
@@ -88,7 +90,7 @@ class LayoutInspectorManagerTest {
   fun setUp() {
     tab1 =
       TabInfo(
-        deviceId = DeviceId.ofPhysicalDevice("tab1"),
+        streamingDeviceId = StreamingDeviceId.ofPhysicalDevice("tab1"),
         content = BorderLayoutPanel(),
         container = JPanel(),
         displays =
@@ -99,7 +101,7 @@ class LayoutInspectorManagerTest {
       )
     tab2 =
       TabInfo(
-        deviceId = DeviceId.ofPhysicalDevice("tab2"),
+        streamingDeviceId = StreamingDeviceId.ofPhysicalDevice("tab2"),
         content = BorderLayoutPanel(),
         container = JPanel(),
         displays =
@@ -110,7 +112,7 @@ class LayoutInspectorManagerTest {
       )
     xrTab =
       TabInfo(
-        deviceId = DeviceId.ofPhysicalDevice("tab3"),
+        streamingDeviceId = StreamingDeviceId.ofPhysicalDevice("tab3"),
         content = BorderLayoutPanel(),
         container = JPanel(),
         displays = listOf(displayViewRule.newEmulatorDisplayView(avdCreator = { path -> FakeEmulator.createXrHeadsetAvd(path) })),
@@ -151,7 +153,8 @@ class LayoutInspectorManagerTest {
         foregroundProcessDetection = fakeForegroundProcessDetection,
         inspectorClientSettings = InspectorClientSettings(displayViewRule.project),
         launcher = launcher,
-        layoutInspectorModel = model(displayViewRule.disposable) { view(ROOT, Rectangle(0, 0, 100, 100)) {} },
+        layoutInspectorModel =
+          model(displayViewRule.disposable) { view(ROOT, Rectangle(0, 0, 100, 100)) { view(VIEW1, Rectangle(0, 0, 100, 100)) } },
         notificationModel = notificationModel,
         treeSettings = FakeTreeSettings(),
       )
@@ -194,10 +197,13 @@ class LayoutInspectorManagerTest {
 
   @Test
   @RunsInEdt
-  fun testHideToolWindowRemovesUi() = withEmbeddedLayoutInspector {
+  fun testHideToolWindowDoesNotRemoveUi() = withEmbeddedLayoutInspector {
     addContent(fakeToolWindow, tab1)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     setSelectedContent(fakeToolWindow, tab1)
+
+    val model = layoutInspector.inspectorModel
+    model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
 
     fakeToolWindow.show()
     waitForCondition(2, TimeUnit.SECONDS) { fakeToolWindow.isVisible }
@@ -211,14 +217,16 @@ class LayoutInspectorManagerTest {
     fakeToolWindow.hide()
     waitForCondition(2, TimeUnit.SECONDS) { !fakeToolWindow.isVisible }
 
-    // Make sure that the UI is removed when the tool window is hidden.
-    verifyUiRemoved(tab1)
+    // Make sure that the UI is not removed when the tool window is hidden.
+    verifyUiInjected<EmbeddedRendererPanel>(tab1)
 
     fakeToolWindow.show()
     waitForCondition(2, TimeUnit.SECONDS) { fakeToolWindow.isVisible }
 
-    // The UI should be re-inject from scratch when the tool window is visible again.
     verifyUiInjected<EmbeddedRendererPanel>(tab1)
+
+    // Make sure the selection is intact
+    assertThat(model.selection?.drawId).isEqualTo(VIEW1)
   }
 
   @Test
@@ -260,7 +268,7 @@ class LayoutInspectorManagerTest {
     verifyUiRemoved(tab1)
     verifyUiInjected<EmbeddedRendererPanel>(tab2)
 
-    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, false)
+    layoutInspectorManager.enableLayoutInspector(tab1.streamingDeviceId, false)
 
     verifyUiRemoved(tab1)
     verifyUiInjected<EmbeddedRendererPanel>(tab2)
@@ -289,6 +297,8 @@ class LayoutInspectorManagerTest {
   fun testWorkbenchIsInjectedWhenSelectedTabChanges() = withEmbeddedLayoutInspector {
     enableLayoutInspector(tab1, true)
 
+    verifyUiInjected<EmbeddedRendererPanel>(tab1)
+
     enableLayoutInspector(tab2, true)
 
     verifyUiRemoved(tab1)
@@ -316,8 +326,10 @@ class LayoutInspectorManagerTest {
 
     setSelectedContent(fakeToolWindow, tab2)
 
-    assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(0)
-    assertThat(layoutInspector.processModel?.selectedProcessListeners).hasSize(1)
+    // Since tab1 is still in the existing tabs list, layout inspector and its listeners should still be active for it
+    verifyUiInjected<EmbeddedRendererPanel>(tab1)
+    assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(6)
+    assertThat(layoutInspector.processModel?.selectedProcessListeners).hasSize(3)
 
     enableLayoutInspector(tab2, true)
 
@@ -326,6 +338,7 @@ class LayoutInspectorManagerTest {
       waitForCondition(2.seconds) { display.component.allChildren().filterIsInstance<LayoutInspectorRenderer>().isNotEmpty() }
     }
 
+    // Now layout inspector is running on tab2, completely replacing tab1
     assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(6)
     assertThat(layoutInspector.processModel?.selectedProcessListeners).hasSize(3)
 
@@ -438,7 +451,7 @@ class LayoutInspectorManagerTest {
     enableLayoutInspector(tab1, true)
 
     verifyUiInjected<EmbeddedRendererPanel>(tab1)
-    assertThat(LayoutInspectorManagerGlobalState.tabsWithLayoutInspector).containsExactly(tab1.deviceId)
+    assertThat(LayoutInspectorManagerGlobalState.tabsWithLayoutInspector).containsExactly(tab1.streamingDeviceId)
 
     enableLayoutInspector(tab1, false)
 
@@ -452,7 +465,7 @@ class LayoutInspectorManagerTest {
     enableLayoutInspector(tab1, true)
 
     verifyUiInjected<EmbeddedRendererPanel>(tab1)
-    assertThat(LayoutInspectorManagerGlobalState.tabsWithLayoutInspector).containsExactly(tab1.deviceId)
+    assertThat(LayoutInspectorManagerGlobalState.tabsWithLayoutInspector).containsExactly(tab1.streamingDeviceId)
 
     Disposer.dispose(layoutInspectorManager)
 
@@ -498,8 +511,10 @@ class LayoutInspectorManagerTest {
 
     setSelectedContent(fakeToolWindow, tab2)
 
+    // Because we keep Layout Inspector connected in the background, selecting a different tab
+    // does not immediately stop the foreground process detection for the previous tab
     assertThat(fakeForegroundProcessDetection.startInvokeCounter).isEqualTo(1)
-    assertThat(fakeForegroundProcessDetection.stopInvokeCounter).isEqualTo(1)
+    assertThat(fakeForegroundProcessDetection.stopInvokeCounter).isEqualTo(0)
 
     enableLayoutInspector(tab2, true)
 
@@ -553,7 +568,7 @@ class LayoutInspectorManagerTest {
   fun testDisable() = withEmbeddedLayoutInspector {
     enableLayoutInspector(tab1, true)
     verifyUiInjected<EmbeddedRendererPanel>(tab1)
-    assertThat(LayoutInspectorManagerGlobalState.tabsWithLayoutInspector).containsExactly(tab1.deviceId)
+    assertThat(LayoutInspectorManagerGlobalState.tabsWithLayoutInspector).containsExactly(tab1.streamingDeviceId)
 
     layoutInspectorManager.disable()
 
@@ -563,7 +578,7 @@ class LayoutInspectorManagerTest {
 
   private fun enableLayoutInspector(tabInfo: TabInfo, enable: Boolean) {
     setSelectedContent(fakeToolWindow, tabInfo)
-    layoutInspectorManager.enableLayoutInspector(tabInfo.deviceId, enable)
+    layoutInspectorManager.enableLayoutInspector(tabInfo.streamingDeviceId, enable)
   }
 }
 

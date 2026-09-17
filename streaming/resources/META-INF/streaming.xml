@@ -142,6 +142,16 @@
         <keyboard-shortcut first-keystroke="meta shift B" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="meta shift B" keymap="Mac OS X 10.5+"/>
       </action>
+      <group id="android.emulator.environments" class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentActionGroup"
+             icon="icons.StudioIcons.Emulator.XR.ENVIRONMENT" text="Environment" description="Select environment for AI Glasses"
+             popup="true">
+        <action id="android.emulator.environment.empty" class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$Empty"
+                text="No Environment" description="Select no environment"/>
+        <action id="android.emulator.environment.default" class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$DefaultImage"
+                text="Default Environment" description="Select default environment"/>
+        <action id="android.emulator.environment.custom" class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$Custom"
+                text="Custom Environment..." description="Select a custom environment"/>
+      </group>
       <action id="android.device.home.button" class="com.android.tools.idea.streaming.actions.StreamingHomeButtonAction"
               icon="StudioIcons.Emulator.Toolbar.HOME" text="Home" description="Press the Home button of the device">
         <keyboard-shortcut first-keystroke="control shift H" keymap="$default"/>
@@ -155,27 +165,36 @@
         <keyboard-shortcut first-keystroke="meta shift W" keymap="Mac OS X 10.5+"/>
       </action>
       <action id="android.streaming.xr.interaction"
-              class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$Interaction"
+          class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$Interaction"
+          icon="StudioIcons.Emulator.XR.INTERACT"
+          text="Interact with Apps"
+          description="Mouse and keyboard are used to interact with running apps">
+        <keyboard-shortcut first-keystroke="control I" keymap="$default"/>
+        <keyboard-shortcut first-keystroke="control I" keymap="Mac OS X"/>
+        <keyboard-shortcut first-keystroke="control I" keymap="Mac OS X 10.5+"/>
+      </action>
+      <action id="android.streaming.xr.interaction.mouse"
+              class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$InteractionMouse"
               icon="StudioIcons.Emulator.XR.INTERACT"
-              text="Interact with Apps"
+              text="Interact with Apps - Mouse"
               description="Mouse and keyboard are used to interact with running apps">
         <keyboard-shortcut first-keystroke="control I" keymap="$default"/>
         <keyboard-shortcut first-keystroke="control I" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control I" keymap="Mac OS X 10.5+"/>
       </action>
-      <action id="android.streaming.xr.hand.tracking"
-              class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$HandTracking"
+      <action id="android.streaming.xr.interaction.hand"
+              class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$InteractionHand"
               icon="StudioIcons.Emulator.XR.HAND_TRACKING"
-              text="Hand Tracking"
+              text="Interact with Apps - Hand Tracking"
               description="Mouse is used to simulate hand tracking. The arrow keys control direction of the view.">
         <keyboard-shortcut first-keystroke="control H" keymap="$default"/>
         <keyboard-shortcut first-keystroke="control H" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="control H" keymap="Mac OS X 10.5+"/>
       </action>
-      <action id="android.streaming.xr.eye.tracking"
-              class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$EyeTracking"
+      <action id="android.streaming.xr.interaction.eye"
+              class="com.android.tools.idea.streaming.actions.StreamingXrInputModeAction$InteractionEye"
               icon="StudioIcons.Emulator.XR.EYE_GAZE"
-              text="Eye Tracking"
+              text="Interact with Apps - Eye Tracking"
               description="Mouse is used to simulate eye tracking. The arrow keys control direction of the view.">
         <keyboard-shortcut first-keystroke="control Y" keymap="$default"/>
         <keyboard-shortcut first-keystroke="control Y" keymap="Mac OS X"/>
@@ -300,11 +319,26 @@
         <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta SLASH" replace-all="true"/>
         <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta DIVIDE" />
       </action>
+      <action id="android.streaming.zoom.fit.inner"
+          icon="AllIcons.General.FitContent"
+          class="com.android.tools.idea.streaming.actions.ZoomAction$FitInner"
+          text="Zoom to Fit Display in Window"
+          description="Zoom the view to fit the display image in the available space">
+        <keyboard-shortcut keymap="$default" first-keystroke="control shift SLASH" />
+        <keyboard-shortcut keymap="$default" first-keystroke="control shift DIVIDE" />
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta shift SLASH" replace-all="true"/>
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta shift DIVIDE" />
+      </action>
     </group>
 
     <action id="android.streaming.benchmark" class="com.android.tools.idea.streaming.benchmark.StreamingBenchmarkAction"
             icon="StudioIcons.Shell.Menu.PROFILER" text="Benchmark Streaming Device"
             description="Benchmark embedded emulator or mirroring of physical device" internal="true">
+      <add-to-group group-id="Internal.Android"/>
+    </action>
+    <action id="android.streaming.glasses.pair.headsup" class="com.android.tools.idea.streaming.emulator.actions.PairHeadsUpAction"
+            icon="StudioIcons.DeviceExplorer.DEVICE_PAIRED" text="Trigger AI Glasses Pairing Heads Up"
+            description="Triggers an AI Glasses pairing heads-up event" internal="true">
       <add-to-group group-id="Internal.Android"/>
     </action>
 
@@ -316,9 +350,13 @@
 
     <group id="android.streaming.xr.navigation.group" class="com.android.tools.idea.streaming.actions.XrMainToolbarGroup">
       <group id="android.streaming.xr.input.mode.group" class="com.android.tools.idea.streaming.actions.StreamingXrOnlyGroup">
+        <group id="android.streaming.xr.input.mode.dropdown" class="com.android.tools.idea.streaming.actions.StreamingXrInputModePopupGroup"
+               text="Interact with Apps" description="Select mode of interaction with running apps" popup="true">
+          <reference ref="android.streaming.xr.interaction.mouse"/>
+          <reference ref="android.streaming.xr.interaction.hand"/>
+          <reference ref="android.streaming.xr.interaction.eye"/>
+        </group>
         <reference ref="android.streaming.xr.interaction"/>
-        <reference ref="android.streaming.xr.hand.tracking"/>
-        <reference ref="android.streaming.xr.eye.tracking"/>
         <reference ref="android.streaming.xr.view.direction"/>
         <reference ref="android.streaming.xr.location.in.space.xy"/>
         <reference ref="android.streaming.xr.location.in.space.z"/>
@@ -387,6 +425,8 @@
       <reference ref="android.device.back.button"/>
       <reference ref="android.device.home.button"/>
       <reference ref="android.device.overview.button"/>
+      <separator/>
+      <reference ref="android.emulator.environments"/>
       <separator/>
       <reference ref="android.streaming.xr.navigation.group"/>
       <reference ref="android.streaming.xr.passthrough.group"/>

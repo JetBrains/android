@@ -20,7 +20,7 @@ import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.streaming.core.AbstractDisplayView
-import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.android.tools.idea.streaming.core.interpolate
 import com.android.tools.idea.streaming.core.location
 import com.android.tools.idea.streaming.xr.AbstractXrInputController
@@ -495,7 +495,7 @@ class DeviceAdapterTest {
       Disposer.register(projectRule.disposable, this)
     }
 
-    override val deviceId: DeviceId = DeviceId.ofPhysicalDevice("test")
+    override val deviceId: StreamingDeviceId = StreamingDeviceId.ofPhysicalDevice("test")
     override val deviceType: DeviceType = DeviceType.HANDHELD
     override val apiLevel: Int = 0
     override val displayOrientationQuadrants = 0
@@ -506,7 +506,7 @@ class DeviceAdapterTest {
 
     override fun canZoom() = false
 
-    override fun computeActualSize() = deviceDisplaySize
+    override fun computeActualSize(framing: Framing) = deviceDisplaySize
 
     override fun dispose() {}
 

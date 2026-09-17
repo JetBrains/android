@@ -1,6 +1,6 @@
 package com.android.tools.idea.insights.ui.vcs
 
-import com.android.tools.idea.insights.model.vcs.VCS_CATEGORY
+import com.android.tools.idea.insights.model.vcs.VcsCategory
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.vcs.FilePath
 import com.intellij.testFramework.ProjectRule
@@ -16,8 +16,8 @@ class InsightsDiffVirtualFileTest {
   fun `check equal`() {
     val filePath = mock<FilePath>().apply { whenever(this.name).thenReturn("filename") }
 
-    val context1 = ContextDataForDiff(vcsKey = VCS_CATEGORY.TEST_VCS, revision = "123", filePath = filePath, lineNumber = 1, origin = null)
-    val context2 = ContextDataForDiff(vcsKey = VCS_CATEGORY.TEST_VCS, revision = "123", filePath = filePath, lineNumber = 3, origin = null)
+    val context1 = ContextDataForDiff(vcsKey = VcsCategory.TEST_VCS, revision = "123", filePath = filePath, lineNumber = 1, origin = null)
+    val context2 = ContextDataForDiff(vcsKey = VcsCategory.TEST_VCS, revision = "123", filePath = filePath, lineNumber = 3, origin = null)
 
     val provider1 = InsightsDiffViewProvider(context1, projectRule.project)
     val provider2 = InsightsDiffViewProvider(context2, projectRule.project)

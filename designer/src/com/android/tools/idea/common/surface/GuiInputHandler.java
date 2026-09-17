@@ -508,6 +508,12 @@ public class GuiInputHandler implements Disposable {
     @Override
     public void mouseExited(@NotNull MouseEvent event) {
       myHoverTimer.stop();
+      // When the mouse leaves the design surface, we want to reset the cursor to the default one.
+      // This prevents the cursor from being stuck in a state (like a resize cursor) when it's no longer over the surface.
+      Component cursorReceiver = myInteractable.getCursorReceiver();
+      if (cursorReceiver != null) {
+        cursorReceiver.setCursor(null);
+      }
       myInteractionHandler.mouseExited();
     }
 

@@ -105,7 +105,8 @@ internal class LogcatOccurrenceNavigator(private val project: Project, private v
   private fun getStackFrameHyperlinks(start: Int, end: Int): Collection<RangeHighlighter> {
     val processor = CollectStackFrameRanges(editor)
     markupModel.processRangeHighlightersOverlappingWith(start, end, processor)
-    return processor.results
+    // De-duplicate by line. Duplicates are possible following IntelliJ commit db5d3fb255.
+    return processor.results.distinctBy { document.getLineNumber(it.startOffset) }
   }
 
   companion object {

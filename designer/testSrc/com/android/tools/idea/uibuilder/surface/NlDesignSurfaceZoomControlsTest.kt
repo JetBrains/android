@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
+import com.android.flags.junit.FlagRule
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.testutils.delayUntilCondition
@@ -28,6 +29,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.common.surface.ZoomControlsPolicy
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.AndroidBuildTargetReference
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.rendering.StudioRenderService
@@ -76,6 +78,8 @@ import org.junit.rules.RuleChain
 class NlDesignSurfaceZoomControlsTest {
   private val androidProjectRule = AndroidProjectRule.withSdk()
   private val asyncDisplayRule = AsyncDisplayRule()
+
+  @get:Rule val flagRule = FlagRule(StudioFlags.NELE_BACKGROUND_DISPLAY_LIST, false)
 
   @get:Rule
   val ruleChain =
@@ -181,7 +185,7 @@ class NlDesignSurfaceZoomControlsTest {
   private fun getGoldenImagePath(testName: String) = Paths.get("${androidProjectRule.fixture.testDataPath}/zoomGoldenImages/$testName.png")
 
   private fun FakeUi.updateToolbardsAndFullRefresh() = invokeAndWaitIfNeeded {
-    updateToolbars()
+    updateToolbarsIfNecessary()
     layoutAndDispatchEvents()
     root.repaint()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()

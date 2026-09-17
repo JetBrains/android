@@ -15,63 +15,29 @@
  */
 package com.android.tools.configurations;
 
-import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
-import static com.android.tools.configurations.ConfigurationListener.CFG_ACTIVITY;
-import static com.android.tools.configurations.ConfigurationListener.CFG_ADAPTIVE_SHAPE;
-import static com.android.tools.configurations.ConfigurationListener.CFG_DEVICE;
-import static com.android.tools.configurations.ConfigurationListener.CFG_DEVICE_STATE;
-import static com.android.tools.configurations.ConfigurationListener.CFG_FONT_SCALE;
-import static com.android.tools.configurations.ConfigurationListener.CFG_LOCALE;
-import static com.android.tools.configurations.ConfigurationListener.CFG_NAME;
-import static com.android.tools.configurations.ConfigurationListener.CFG_NIGHT_MODE;
-import static com.android.tools.configurations.ConfigurationListener.CFG_TARGET;
-import static com.android.tools.configurations.ConfigurationListener.CFG_THEME;
-import static com.android.tools.configurations.ConfigurationListener.CFG_UI_MODE;
 import static com.android.tools.configurations.ConfigurationListener.MASK_FOLDERCONFIG;
 import static java.util.Locale.ROOT;
-
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceItemResolver;
-import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.DensityQualifier;
-import com.android.ide.common.resources.configuration.DeviceConfigHelper;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
-import com.android.ide.common.resources.configuration.NightModeQualifier;
-import com.android.ide.common.resources.configuration.ResourceQualifier;
-import com.android.ide.common.resources.configuration.ScreenOrientationQualifier;
-import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
-import com.android.ide.common.resources.configuration.UiModeQualifier;
-import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.Density;
-import com.android.resources.LayoutDirection;
 import com.android.resources.NightMode;
-import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenSize;
 import com.android.resources.UiMode;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
-import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.tools.idea.layoutlib.RenderingException;
-import com.android.tools.layoutlib.LayoutlibContext;
 import com.android.tools.res.FrameworkOverlay;
-import com.android.tools.res.ResourceRepositoryManager;
-import com.android.tools.res.ResourceUtils;
-import com.android.tools.sdk.AndroidPlatform;
-import com.android.tools.sdk.CompatibilityRenderTarget;
-import com.android.tools.sdk.LayoutlibFactory;
 import com.google.common.base.Enums;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -85,19 +51,10 @@ import org.jetbrains.annotations.Nullable;
 public class Configuration {
   public static final String CUSTOM_DEVICE_ID = "Custom";
 
-  // Set of constants from {@link android.content.res.Configuration} to be used in setUiModeFlagValue.
-  public static final int UI_MODE_TYPE_MASK = 0x0000000f;
-  private static final int UI_MODE_TYPE_APPLIANCE = 0x00000005;
-  private static final int UI_MODE_TYPE_CAR = 0x00000003;
-  private static final int UI_MODE_TYPE_DESK = 0x00000002;
-  private static final int UI_MODE_TYPE_NORMAL = 0x00000001;
-  private static final int UI_MODE_TYPE_TELEVISION = 0x00000004;
-  private static final int UI_MODE_TYPE_VR_HEADSET = 0x00000007;
-  private static final int UI_MODE_TYPE_WATCH = 0x00000006;
-
-  private static final int UI_MODE_NIGHT_MASK = 0x00000030;
-  public static final int UI_MODE_NIGHT_YES = 0x00000020;
-  public static final int UI_MODE_NIGHT_NO = 0x00000010;
+  // Aliases for external callers to preserve public API compatibility
+  public static final int UI_MODE_TYPE_MASK = UiModeState.UI_MODE_TYPE_MASK;
+  public static final int UI_MODE_NIGHT_YES = UiModeState.UI_MODE_NIGHT_YES;
+  public static final int UI_MODE_NIGHT_NO = UiModeState.UI_MODE_NIGHT_NO;
 
   private static final ResourceReference postSplashAttrReference = ResourceReference.attr(
     ResourceNamespace.RES_AUTO, "postSplashScreenTheme"
@@ -118,81 +75,8 @@ public class Configuration {
   @NotNull
   protected final FolderConfiguration myEditedConfig;
 
-  /**
-   * The target of the project of the file being edited.
-   */
-  @Nullable
-  private IAndroidTarget myTarget;
-
-  /**
-   * The theme style to render with
-   */
-  @Nullable
-  private String myTheme;
-
-  /**
-   * A specific device to render with
-   */
-  @Nullable
-  private Device mySpecificDevice;
-
-  /**
-   * The specific device state
-   */
-  @Nullable
-  private State myState;
-
-  /**
-   * The computed effective device; if this configuration does not have a hardcoded specific device,
-   * it will be computed based on the current device list; this field caches the value.
-   */
-  @Nullable
-  private Device myDevice;
-
-  /**
-   * The device state to use. Used to update {@link #getDeviceState()} such that it returns a state
-   * suitable with whatever {@link #getDevice()} returns, since {@link #getDevice()} updates dynamically,
-   * and the specific {@link State} instances are tied to actual devices (through the
-   * {@link State#getHardware()} accessor).
-   */
-  @Nullable
-  private String myStateName;
-
-  /**
-   * The activity associated with the layout. This is just a cached value of
-   * the true value stored on the layout.
-   */
-  @Nullable
-  private String myActivity;
-
-  /**
-   * The locale to use for this configuration
-   */
-  @Nullable
-  private Locale myLocale = null;
-
-  /**
-   * UI mode
-   */
-  @NotNull
-  private UiMode myUiMode = UiMode.NORMAL;
-
-  /**
-   * Night mode
-   */
-  @NotNull
-  private NightMode myNightMode = NightMode.NOTNIGHT;
-
-  /**
-   * The display name
-   */
-  private String myDisplayName;
-
-  /** For nesting count use by {@link #startBulkEditing()} and {@link #finishBulkEditing()} */
-  private int myBulkEditingCount;
-
-  /** Optional set of listeners to notify via {@link #updated(int)} */
-  private final List<ConfigurationListener> myListeners = new ArrayList<>();
+  /** Handles listener notifications and bulk editing count */
+  private final ConfigurationListeners myListeners = new ConfigurationListeners();
 
   /** Dirty flags since last notify: corresponds to constants in {@link ConfigurationListener} */
   protected int myNotifyDirty;
@@ -204,44 +88,15 @@ public class Configuration {
 
   private long myModificationCount;
 
-  private float myFontScale = 1f;
-  private int myUiModeFlagValue;
-  @NotNull private AdaptiveIconShape myAdaptiveShape = AdaptiveIconShape.getDefaultShape();
-  private boolean myUseThemedIcon = false;
-  private Wallpaper myWallpaper = null;
-  private final EnumMap<ImageTransformationType, Consumer<BufferedImage>> myImageTransformations = new EnumMap<>(ImageTransformationType.class);
-  private boolean myGestureNav = true;
-  private boolean myEdgeToEdge = true;
-  private FrameworkOverlay myCutoutOverlay = FrameworkOverlay.CUTOUT_NONE;
-  private FrameworkOverlay myDeviceOverlay = null;
+  private final SystemUiPreferences mySystemUiPrefs = new SystemUiPreferences();
 
-  private final ResourceItemResolver.ResourceProvider myResourceProvider = new ResourceItemResolver.ResourceProvider() {
-    @Override
-    public @Nullable ResourceResolver getResolver(boolean createIfNecessary) {
-      if (createIfNecessary) {
-        return getResourceResolver();
-      }
+  private final UiModeState myUiModeState = new UiModeState();
 
-      // Return the cached one if already there
-      return mySettings.getResolverCache().getCachedResourceResolver(
-        getTarget(), getTheme(), getFullConfig(), getOverlays()
-      );
-    }
+  private final DeviceStateResolver myDeviceStateResolver;
 
-    @Override
-    public @Nullable ResourceRepository getFrameworkResources() {
-      ResourceRepositoryManager resourceRepositoryManager = getConfigModule().getResourceRepositoryManager();
-      return resourceRepositoryManager != null ? resourceRepositoryManager.getFrameworkResources(
-        resourceRepositoryManager.getLanguagesInProject(), getOverlays()
-      ) : null;
-    }
+  private final EnvironmentContext myEnvContext;
 
-    @Override
-    public @Nullable ResourceRepository getAppResources() {
-      ResourceRepositoryManager resourceRepositoryManager = getConfigModule().getResourceRepositoryManager();
-      return resourceRepositoryManager != null ? resourceRepositoryManager.getAppResources() : null;
-    }
-  };
+  private final ResourceItemResolver.ResourceProvider myResourceProvider = new ConfigurationResourceProvider(this);
 
   /**
    * Creates a new {@linkplain Configuration}
@@ -250,17 +105,29 @@ public class Configuration {
     mySettings = settings;
     myEditedConfig = editedConfig;
 
+    myDeviceStateResolver = new DeviceStateResolver(new DeviceStateResolver.Context() {
+      @NotNull @Override public ConfigurationSettings getSettings() { return mySettings; }
+      @NotNull @Override public FolderConfiguration getEditedConfig() { return myEditedConfig; }
+      @Override public void updateDeviceOverlay() { Configuration.this.updateDeviceOverlay(); }
+      @Nullable @Override public Device computeBestDevice() { return Configuration.this.computeBestDevice(); }
+    });
+
+    myEnvContext = new EnvironmentContext(new EnvironmentContext.Context() {
+      @NotNull @Override public ConfigurationSettings getSettings() { return mySettings; }
+      @NotNull @Override public FolderConfiguration getEditedConfig() { return myEditedConfig; }
+      @Nullable @Override public String calculateActivity() { return Configuration.this.calculateActivity(); }
+      @NotNull @Override public String getPreferredTheme() { return Configuration.this.getPreferredTheme(); }
+      @Nullable @Override public IAndroidTarget getTargetForRendering(@Nullable IAndroidTarget target) {
+        return Configuration.getTargetForRendering(target, mySettings.getConfigModule());
+      }
+    });
+
     if (isLocaleSpecificLayout()) {
-      myLocale = Locale.create(editedConfig);
+      myEnvContext.initFromEditedConfig();
     }
 
     if (isOrientationSpecificLayout()) {
-      ScreenOrientationQualifier qualifier = editedConfig.getScreenOrientationQualifier();
-      assert qualifier != null; // because isOrientationSpecificLayout()
-      ScreenOrientation orientation = qualifier.getValue();
-      if (orientation != null) {
-        myStateName = orientation.getShortDisplayValue();
-      }
+      myDeviceStateResolver.initFromEditedConfig();
     }
   }
 
@@ -288,26 +155,11 @@ public class Configuration {
     myFullConfig.set(from.myFullConfig);
     myFolderConfigDirty = from.myFolderConfigDirty;
     myProjectStateVersion = from.myProjectStateVersion;
-    myTarget = from.myTarget; // avoid getTarget() since it fetches project state
-    myLocale = from.myLocale;  // avoid getLocale() since it fetches project state
-    myTheme = from.getTheme();
-    mySpecificDevice = from.mySpecificDevice;
-    myDevice = from.myDevice; // avoid getDevice() since it fetches project state
-    myStateName = from.myStateName;
-    myState = from.myState;
-    myActivity = from.getActivity();
-    myUiMode = from.getUiMode();
-    myNightMode = from.getNightMode();
-    myDisplayName = from.getDisplayName();
-    myFontScale = from.myFontScale;
-    myUiModeFlagValue = from.myUiModeFlagValue;
-    myAdaptiveShape = from.myAdaptiveShape;
-    myUseThemedIcon = from.myUseThemedIcon;
-    myWallpaper = from.myWallpaper;
-    myDeviceOverlay = from.myDeviceOverlay;
-    myGestureNav = from.myGestureNav;
-    myCutoutOverlay = from.myCutoutOverlay;
-    myEdgeToEdge = from.myEdgeToEdge;
+
+    myEnvContext.copyFrom(from.myEnvContext);
+    myUiModeState.copyFrom(from.myUiModeState);
+    myDeviceStateResolver.copyFrom(from.myDeviceStateResolver);
+    mySystemUiPrefs.copyFrom(from.mySystemUiPrefs);
   }
 
   @Override
@@ -319,7 +171,7 @@ public class Configuration {
 
   @Nullable
   protected String getStateName() {
-    return myStateName;
+    return myDeviceStateResolver.getStateName();
   }
 
   public void save() { }
@@ -346,22 +198,8 @@ public class Configuration {
    */
   @Nullable
   public final String getActivity() {
-    if (myActivity == NO_ACTIVITY) {
-      return null;
-    } else if (myActivity == null) {
-      myActivity = calculateActivity();
-      if (myActivity == null) {
-        myActivity = NO_ACTIVITY;
-        return null;
-      }
-    }
-
-    return myActivity;
+    return myEnvContext.getActivity();
   }
-
-  /** Special marker value which indicates that this activity has been checked and has no activity
-   * (whereas a null {@link #myActivity} field means that it has not yet been initialized */
-  private static final String NO_ACTIVITY = new String();
 
   /**
    * Returns the chosen device, computing the best one if the currently cached value is null.
@@ -371,19 +209,7 @@ public class Configuration {
   @Slow
   @Nullable
   public Device getDevice() {
-    Device cached = getCachedDevice();
-    if (cached != null) {
-      return cached;
-    }
-
-    if (mySpecificDevice != null) {
-      myDevice = mySpecificDevice;
-    }
-    else {
-      myDevice = computeBestDevice();
-    }
-    updateDeviceOverlay();
-    return myDevice;
+    return myDeviceStateResolver.getDevice();
   }
 
   /**
@@ -392,39 +218,13 @@ public class Configuration {
    */
   @Nullable
   public Device getCachedDevice() {
-    return myDevice;
+    return myDeviceStateResolver.getCachedDevice();
   }
 
   @Nullable
   public static FolderConfiguration getFolderConfig(@NotNull ConfigurationModelModule module, @NotNull State state, @NotNull Locale locale,
                                                     @Nullable IAndroidTarget target) {
-    FolderConfiguration currentConfig = DeviceConfigHelper.getFolderConfig(state);
-    if (currentConfig != null) {
-      if (locale.hasLanguage()) {
-        currentConfig.setLocaleQualifier(locale.qualifier);
-        LayoutLibrary layoutLib = getLayoutLibrary(target, module.getAndroidPlatform(), module.getLayoutlibContext());
-        if (layoutLib != null) {
-          if (layoutLib.isRtl(locale.toLocaleId())) {
-            currentConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.RTL));
-          }
-        }
-      }
-    }
-
-    return currentConfig;
-  }
-
-  private static LayoutLibrary getLayoutLibrary(
-    @Nullable IAndroidTarget target, @Nullable AndroidPlatform platform, @NotNull LayoutlibContext context) {
-    if (target == null || platform == null) {
-      return null;
-    }
-
-    try {
-      return LayoutlibFactory.getLayoutLibrary(target, platform, context);
-    } catch (RenderingException ignored) {
-      return null;
-    }
+    return FolderConfigSynchronizer.getFolderConfig(module, state, locale, target);
   }
 
   @Slow
@@ -440,12 +240,7 @@ public class Configuration {
    */
   @Nullable
   public State getDeviceState() {
-    if (myState == null) {
-      Device device = getDevice();
-      myState = DeviceState.getDeviceState(device, myStateName);
-    }
-
-    return myState;
+    return myDeviceStateResolver.getDeviceState();
   }
 
   /**
@@ -455,10 +250,7 @@ public class Configuration {
    */
   @NotNull
   public Locale getLocale() {
-    if (myLocale == null) {
-      return mySettings.getLocale();
-    }
-    return myLocale;
+    return myEnvContext.getLocale();
   }
 
   /**
@@ -468,7 +260,7 @@ public class Configuration {
    */
   @NotNull
   public UiMode getUiMode() {
-    return myUiMode;
+    return myUiModeState.getUiMode();
   }
 
   /**
@@ -478,7 +270,7 @@ public class Configuration {
    */
   @NotNull
   public NightMode getNightMode() {
-    return myNightMode;
+    return myUiModeState.getNightMode();
   }
 
   /**
@@ -488,11 +280,7 @@ public class Configuration {
    */
   @NotNull
   public String getTheme() {
-    if (myTheme == null) {
-      return getPreferredTheme();
-    }
-
-    return myTheme;
+    return myEnvContext.getTheme();
   }
 
   /**
@@ -502,21 +290,7 @@ public class Configuration {
    */
   @Nullable
   public IAndroidTarget getTarget() {
-    if (myTarget == null) {
-      IAndroidTarget target = mySettings.getTarget();
-
-      // If the project-wide render target isn't a match for the version qualifier in this layout
-      // (for example, the render target is at API 11, and layout is in a -v14 folder) then pick
-      // a target which matches.
-      VersionQualifier version = myEditedConfig.getVersionQualifier();
-      if (target != null && version != null && version.getVersion() > target.getVersion().getFeatureLevel()) {
-        target = mySettings.getTarget(version.getVersion());
-      }
-
-      return getTargetForRendering(target, mySettings.getConfigModule());
-    }
-
-    return myTarget;
+    return myEnvContext.getTarget();
   }
 
   /**
@@ -525,15 +299,7 @@ public class Configuration {
    */
   @Nullable
   public IAndroidTarget getRealTarget() {
-    IAndroidTarget target = getTarget();
-
-    if (target instanceof CompatibilityRenderTarget) {
-      CompatibilityRenderTarget compatTarget = (CompatibilityRenderTarget)target;
-      return compatTarget.getRealTarget();
-    }
-    else {
-      return target;
-    }
+    return myEnvContext.getRealTarget();
   }
 
   /**
@@ -543,7 +309,7 @@ public class Configuration {
    */
   @Nullable
   public String getDisplayName() {
-    return myDisplayName;
+    return myEnvContext.getDisplayName();
   }
 
   /**
@@ -589,7 +355,7 @@ public class Configuration {
 
   /**
    * Returns the edited {@link FolderConfiguration} (this is not a full configuration, so you can think of it as the "constraints" used by
-   * the {@link ConfigurationMatcher} to produce a full configuration.
+   * the {@code ConfigurationMatcher} to produce a full configuration.
    *
    * @return the constraints configuration
    */
@@ -604,10 +370,9 @@ public class Configuration {
    * @param activity the activity
    */
   public void setActivity(@Nullable String activity) {
-    if (!Objects.equals(myActivity, activity)) {
-      myActivity = activity;
-
-      updated(CFG_ACTIVITY);
+    int updateFlags = myEnvContext.setActivity(activity);
+    if (updateFlags != 0) {
+      updated(updateFlags);
     }
   }
 
@@ -618,112 +383,10 @@ public class Configuration {
    * @param preserveState if true, attempt to preserve the state associated with the config
    */
   public void setDevice(Device device, boolean preserveState) {
-    if (mySpecificDevice == device) {
-      // The specific device is already set to the correct device so simply clear myDevice
-      // which will be re-calculated to be the same as myDevice on the next query.
-      myDevice = null;
-      return;
+    int updateFlags = myDeviceStateResolver.setDevice(device, preserveState);
+    if (updateFlags != 0) {
+      updated(updateFlags);
     }
-
-    Device prevDevice = mySpecificDevice;
-    State prevState = myState;
-
-    myDevice = mySpecificDevice = device;
-    updateDeviceOverlay();
-
-    int updateFlags = CFG_DEVICE;
-
-    if (device != null) {
-      State state = null;
-      // Attempt to preserve the device state?
-      if (preserveState && prevDevice != null) {
-        if (prevState != null) {
-          FolderConfiguration oldConfig = DeviceConfigHelper.getFolderConfig(prevState);
-          if (oldConfig != null) {
-            String stateName = getClosestMatch(oldConfig, device.getAllStates());
-            state = device.getState(stateName);
-          } else {
-            state = device.getState(prevState.getName());
-          }
-        }
-      } else if (preserveState && myStateName != null) {
-        state = device.getState(myStateName);
-      }
-      if (state == null) {
-        state = device.getDefaultState();
-      }
-      if (myState != state) {
-        setDeviceStateName(state.getName());
-        myState = state;
-        updateFlags |= CFG_DEVICE_STATE;
-      }
-    }
-
-    updated(updateFlags);
-  }
-
-  /**
-   * Attempts to find a close state among a list
-   *
-   * @param oldConfig the reference config.
-   * @param states    the list of states to search through
-   * @return the name of the closest state match, or possibly null if no states are compatible
-   *         (this can only happen if the states don't have a single qualifier that is the same).
-   */
-  @Nullable
-  private static String getClosestMatch(@NotNull FolderConfiguration oldConfig, @NotNull List<State> states) {
-    // create 2 lists as we're going to go through one and put the
-    // candidates in the other.
-    List<State> list1 = new ArrayList<>(states.size());
-    List<State> list2 = new ArrayList<>(states.size());
-
-    list1.addAll(states);
-
-    final int count = FolderConfiguration.getQualifierCount();
-    for (int i = 0; i < count; i++) {
-      // compute the new candidate list by only taking states that have
-      // the same i-th qualifier as the old state
-      for (State s : list1) {
-        ResourceQualifier oldQualifier = oldConfig.getQualifier(i);
-
-        FolderConfiguration folderConfig = DeviceConfigHelper.getFolderConfig(s);
-        ResourceQualifier newQualifier = folderConfig != null ? folderConfig.getQualifier(i) : null;
-
-        if (oldQualifier == null) {
-          if (newQualifier == null) {
-            list2.add(s);
-          }
-        }
-        else if (oldQualifier.equals(newQualifier)) {
-          list2.add(s);
-        }
-      }
-
-      // at any moment if the new candidate list contains only one match, its name
-      // is returned.
-      if (list2.size() == 1) {
-        return list2.get(0).getName();
-      }
-
-      // if the list is empty, then all the new states failed. It is considered ok, and
-      // we move to the next qualifier anyway. This way, if a qualifier is different for
-      // all new states it is simply ignored.
-      if (!list2.isEmpty()) {
-        // move the candidates back into list1.
-        list1.clear();
-        list1.addAll(list2);
-        list2.clear();
-      }
-    }
-
-    // the only way to reach this point is if there's an exact match.
-    // (if there are more than one, then there's a duplicate state and it doesn't matter,
-    // we take the first one).
-    if (!list1.isEmpty()) {
-      return list1.get(0).getName();
-    }
-
-    return null;
   }
 
   /**
@@ -732,15 +395,9 @@ public class Configuration {
    * @param state the device state
    */
   public void setDeviceState(State state) {
-    if (myState != state) {
-      if (state != null) {
-        setDeviceStateName(state.getName());
-      } else {
-        myStateName = null;
-      }
-      myState = state;
-
-      updated(CFG_DEVICE_STATE);
+    int updateFlags = myDeviceStateResolver.setDeviceState(state);
+    if (updateFlags != 0) {
+      updated(updateFlags);
     }
   }
 
@@ -750,19 +407,9 @@ public class Configuration {
    * @param stateName the device state name
    */
   public void setDeviceStateName(@Nullable String stateName) {
-    ScreenOrientationQualifier qualifier = myEditedConfig.getScreenOrientationQualifier();
-    if (qualifier != null) {
-      ScreenOrientation orientation = qualifier.getValue();
-      if (orientation != null) {
-        stateName = orientation.getShortDisplayValue(); // Also used as state names
-      }
-    }
-
-    if (!Objects.equals(stateName, myStateName)) {
-      myStateName = stateName;
-      myState = null;
-
-      updated(CFG_DEVICE_STATE);
+    int updateFlags = myDeviceStateResolver.setDeviceStateName(stateName);
+    if (updateFlags != 0) {
+      updated(updateFlags);
     }
   }
 
@@ -772,10 +419,9 @@ public class Configuration {
    * @param locale the locale
    */
   public void setLocale(@NotNull Locale locale) {
-    if (!Objects.equals(myLocale, locale)) {
-      myLocale = locale;
-
-      updated(CFG_LOCALE);
+    int updateFlags = myEnvContext.setLocale(locale);
+    if (updateFlags != 0) {
+      updated(updateFlags);
     }
   }
 
@@ -785,9 +431,9 @@ public class Configuration {
    * @param target rendering target
    */
   public void setTarget(@Nullable IAndroidTarget target) {
-    if (myTarget != target) {
-      myTarget = getTargetForRendering(target, mySettings.getConfigModule());
-      updated(CFG_TARGET);
+    int updateFlags = myEnvContext.setTarget(target);
+    if (updateFlags != 0) {
+      updated(updateFlags);
     }
   }
 
@@ -797,9 +443,9 @@ public class Configuration {
    * @param displayName the new display name
    */
   public void setDisplayName(@Nullable String displayName) {
-    if (!Objects.equals(myDisplayName, displayName)) {
-      myDisplayName = displayName;
-      updated(CFG_NAME);
+    int updateFlags = myEnvContext.setDisplayName(displayName);
+    if (updateFlags != 0) {
+      updated(updateFlags);
     }
   }
 
@@ -809,13 +455,9 @@ public class Configuration {
    * @param night the night mode
    */
   public void setNightMode(@NotNull NightMode night) {
-    if (myNightMode != night) {
-      if (night == NightMode.NIGHT) {
-        setUiModeFlagValue((getUiModeFlagValue() & UI_MODE_TYPE_MASK) | UI_MODE_NIGHT_YES);
-      }
-      else {
-        setUiModeFlagValue((getUiModeFlagValue() & UI_MODE_TYPE_MASK) | UI_MODE_NIGHT_NO);
-      }
+    int updateFlags = myUiModeState.setNightMode(night);
+    if (updateFlags != 0) {
+      updated(updateFlags);
     }
   }
 
@@ -825,19 +467,9 @@ public class Configuration {
    * @param uiMode the UI mode
    */
   public void setUiMode(@NotNull UiMode uiMode) {
-    if (myUiMode != uiMode) {
-      int newUiTypeFlags = 0;
-      switch (uiMode) {
-        case NORMAL: newUiTypeFlags = UI_MODE_TYPE_NORMAL; break;
-        case DESK: newUiTypeFlags = UI_MODE_TYPE_DESK; break;
-        case WATCH: newUiTypeFlags = UI_MODE_TYPE_WATCH; break;
-        case TELEVISION: newUiTypeFlags = UI_MODE_TYPE_TELEVISION; break;
-        case APPLIANCE: newUiTypeFlags = UI_MODE_TYPE_APPLIANCE; break;
-        case CAR: newUiTypeFlags = UI_MODE_TYPE_CAR; break;
-        case VR_HEADSET: newUiTypeFlags = UI_MODE_TYPE_VR_HEADSET; break;
-      }
-
-      setUiModeFlagValue((getUiModeFlagValue() & UI_MODE_NIGHT_MASK) | newUiTypeFlags);
+    int updateFlags = myUiModeState.setUiMode(uiMode);
+    if (updateFlags != 0) {
+      updated(updateFlags);
     }
   }
 
@@ -845,38 +477,9 @@ public class Configuration {
    * Sets the raw value for uiMode. When setting it using this method, both UiMode and night mode might be updated as result.
    */
   public void setUiModeFlagValue(int uiMode) {
-    int modifiedElements = myUiModeFlagValue ^ uiMode;
-    myUiModeFlagValue = uiMode;
-
-    int updatedFlags = 0;
-
-    // Check if we need to update night mode
-    if ((modifiedElements & UI_MODE_NIGHT_MASK) != 0) {
-      if ((uiMode & UI_MODE_NIGHT_MASK) == UI_MODE_NIGHT_YES) {
-        myNightMode = NightMode.NIGHT;
-      }
-      else {
-        myNightMode = NightMode.NOTNIGHT;
-      }
-      updatedFlags |= CFG_NIGHT_MODE;
-    }
-
-    // Check if we need to update ui mode
-    if ((modifiedElements & UI_MODE_TYPE_MASK) != 0) {
-      switch (uiMode & UI_MODE_TYPE_MASK) {
-        case UI_MODE_TYPE_APPLIANCE: myUiMode = UiMode.APPLIANCE; break;
-        case UI_MODE_TYPE_CAR: myUiMode = UiMode.CAR; break;
-        case UI_MODE_TYPE_TELEVISION: myUiMode = UiMode.TELEVISION; break;
-        case UI_MODE_TYPE_WATCH: myUiMode = UiMode.WATCH; break;
-        case UI_MODE_TYPE_DESK: myUiMode = UiMode.DESK; break;
-        case UI_MODE_TYPE_VR_HEADSET: myUiMode = UiMode.VR_HEADSET; break;
-        default: myUiMode = UiMode.NORMAL;
-      }
-      updatedFlags |= CFG_UI_MODE;
-    }
-
-    if (updatedFlags != 0) {
-      updated(updatedFlags);
+    int updateFlags = myUiModeState.setUiModeFlagValue(uiMode);
+    if (updateFlags != 0) {
+      updated(updateFlags);
     }
   }
 
@@ -884,7 +487,7 @@ public class Configuration {
    * Returns the current flags for uiMode.
    */
   public int getUiModeFlagValue() {
-    return myUiModeFlagValue;
+    return myUiModeState.getUiModeFlagValue();
   }
 
   /**
@@ -893,43 +496,42 @@ public class Configuration {
    * @param theme the theme
    */
   public void setTheme(@Nullable String theme) {
-    if (!Objects.equals(myTheme, theme)) {
-      myTheme = theme;
-      checkThemePrefix();
-      updated(CFG_THEME);
+    int updateFlags = myEnvContext.setTheme(theme);
+    if (updateFlags != 0) {
+      updated(updateFlags);
     }
   }
 
   /**
    * Sets user preference for the scaling factor for fonts, relative to the base density scaling.
-   * See {@link android.content.res.Configuration#fontScale}
+   * See {@code android.content.res.Configuration#fontScale}
    *
    * @param fontScale The new scale. Must be greater than 0
    */
   public void setFontScale(float fontScale) {
     assert fontScale > 0f : "fontScale must be greater than 0";
 
-    if (myFontScale != fontScale) {
-      myFontScale = fontScale;
-      updated(CFG_FONT_SCALE);
+    if (mySystemUiPrefs.getFontScale() != fontScale) {
+      mySystemUiPrefs.setFontScale(fontScale);
+      updated(ConfigurationListener.CFG_FONT_SCALE);
     }
   }
 
   /**
    * Returns user preference for the scaling factor for fonts, relative to the base density scaling.
-   * See {@link android.content.res.Configuration#fontScale}
+   * See {@code android.content.res.Configuration#fontScale}
    */
   public float getFontScale() {
-    return myFontScale;
+    return mySystemUiPrefs.getFontScale();
   }
 
   /**
    * Sets the {@link AdaptiveIconShape} to use when rendering
    */
   public void setAdaptiveShape(@NotNull AdaptiveIconShape adaptiveShape) {
-    if (myAdaptiveShape != adaptiveShape) {
-      myAdaptiveShape = adaptiveShape;
-      updated(CFG_ADAPTIVE_SHAPE);
+    if (mySystemUiPrefs.getAdaptiveShape() != adaptiveShape) {
+      mySystemUiPrefs.setAdaptiveShape(adaptiveShape);
+      updated(ConfigurationListener.CFG_ADAPTIVE_SHAPE);
     }
   }
 
@@ -938,14 +540,14 @@ public class Configuration {
    */
   @NotNull
   public AdaptiveIconShape getAdaptiveShape() {
-    return myAdaptiveShape;
+    return mySystemUiPrefs.getAdaptiveShape();
   }
 
   public void setWallpaper(@Nullable Wallpaper wallpaper) {
-    if (!Objects.equals(myWallpaper, wallpaper)) {
-      myWallpaper = wallpaper;
-      myUseThemedIcon = wallpaper != null;
-      updated(CFG_THEME);
+    if (!Objects.equals(mySystemUiPrefs.getWallpaper(), wallpaper)) {
+      mySystemUiPrefs.setWallpaper(wallpaper);
+      mySystemUiPrefs.setUseThemedIcon(wallpaper != null);
+      updated(ConfigurationListener.CFG_THEME);
     }
   }
 
@@ -954,46 +556,46 @@ public class Configuration {
    */
   @Nullable
   public String getWallpaperPath() {
-    return myWallpaper != null ? myWallpaper.getResourcePath() : null;
+    return mySystemUiPrefs.getWallpaper() != null ? mySystemUiPrefs.getWallpaper().getResourcePath() : null;
   }
 
   /**
    * Sets whether the rendering should be edge-to-edge
    */
   public void setEdgeToEdge(boolean edgeToEdge) {
-    myEdgeToEdge = edgeToEdge;
+    mySystemUiPrefs.setEdgeToEdge(edgeToEdge);
   }
 
   /**
    * Returns whether the rendering should be edge-to-ege
    */
   public boolean isEdgeToEdge() {
-    return myEdgeToEdge;
+    return mySystemUiPrefs.isEdgeToEdge();
   }
 
   /**
    * Sets whether the rendering should use the gesture version of the navigation bar
    */
   public void setGestureNav(boolean gestureNav) {
-    myGestureNav = gestureNav;
+    mySystemUiPrefs.setGestureNav(gestureNav);
   }
 
   /**
    * Returns whether the rendering should use the gesture version of the navigation bar
    */
   public boolean isGestureNav() {
-    return myGestureNav;
+    return mySystemUiPrefs.isGestureNav();
   }
 
   /**
    * Sets the overlay to use for displaying the display cutout
    */
   public void setCutoutOverlay(FrameworkOverlay overlay) {
-    myCutoutOverlay = overlay;
+    mySystemUiPrefs.setCutoutOverlay(overlay);
   }
 
   public FrameworkOverlay getCutoutOverlay() {
-    return myCutoutOverlay;
+    return mySystemUiPrefs.getCutoutOverlay();
   }
 
   /**
@@ -1004,11 +606,7 @@ public class Configuration {
    */
   public void setImageTransformation(@NotNull ImageTransformationType type,
                                      @Nullable Consumer<BufferedImage> imageTransformation) {
-    if (imageTransformation == null) {
-      myImageTransformations.remove(type);
-    } else {
-      myImageTransformations.put(type, imageTransformation);
-    }
+    mySystemUiPrefs.setImageTransformation(type, imageTransformation);
   }
 
   /**
@@ -1019,10 +617,7 @@ public class Configuration {
    */
   @Nullable
   public Consumer<BufferedImage> getImageTransformation() {
-    if (myImageTransformations.isEmpty()) {
-      return null;
-    }
-    return (image) -> myImageTransformations.values().forEach(c -> c.accept(image));
+    return mySystemUiPrefs.getImageTransformation();
   }
 
 
@@ -1030,7 +625,7 @@ public class Configuration {
    * Returns whether to use the themed version of adaptive icons
    */
   public boolean getUseThemedIcon() {
-    return myUseThemedIcon;
+    return mySystemUiPrefs.getUseThemedIcon();
   }
 
   /**
@@ -1039,56 +634,17 @@ public class Configuration {
    * rendering target, etc.
    */
   protected void syncFolderConfig() {
-    Device device = getDevice();
-    if (device == null) {
-      return;
-    }
-
-    // get the device config from the device/state combos.
-    State deviceState = getDeviceState();
-    if (deviceState == null) {
-      deviceState = device.getDefaultState();
-    }
-    FolderConfiguration config = getFolderConfig(mySettings.getConfigModule(), deviceState, getLocale(), getTarget());
-
-    // replace the config with the one from the device
-    myFullConfig.set(config);
-
-    // sync the selected locale
-    Locale locale = getLocale();
-    myFullConfig.setLocaleQualifier(locale.qualifier);
-    LayoutDirectionQualifier layoutDirectionQualifier = myEditedConfig.getLayoutDirectionQualifier();
-    if (layoutDirectionQualifier != null && layoutDirectionQualifier != layoutDirectionQualifier.getNullQualifier()) {
-      myFullConfig.setLayoutDirectionQualifier(layoutDirectionQualifier);
-    } else if (!locale.hasLanguage()) {
-      // Avoid getting the layout library if the locale doesn't have any language.
-      myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.LTR));
-    } else {
-      ConfigurationModelModule configModule = mySettings.getConfigModule();
-      LayoutLibrary layoutLib = getLayoutLibrary(getTarget(), configModule.getAndroidPlatform(), configModule.getLayoutlibContext());
-      if (layoutLib != null) {
-        if (layoutLib.isRtl(locale.toLocaleId())) {
-          myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.RTL));
-        } else {
-          myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.LTR));
-        }
-      }
-    }
-
-    // Replace the UiMode with the selected one, if one is selected
-    UiMode uiMode = getUiMode();
-    myFullConfig.setUiModeQualifier(new UiModeQualifier(uiMode));
-
-    // Replace the NightMode with the selected one, if one is selected
-    NightMode nightMode = getNightMode();
-    myFullConfig.setNightModeQualifier(new NightModeQualifier(nightMode));
-
-    // replace the API level by the selection of the combo
-    IAndroidTarget target = getTarget();
-    if (target != null) {
-      int apiLevel = target.getVersion().getFeatureLevel();
-      myFullConfig.setVersionQualifier(new VersionQualifier(apiLevel));
-    }
+    FolderConfigSynchronizer.sync(
+      myFullConfig,
+      mySettings,
+      myEditedConfig,
+      getDevice(),
+      getDeviceState(),
+      getLocale(),
+      getTarget(),
+      getUiMode(),
+      getNightMode()
+    );
 
     myFolderConfigDirty = 0;
     myProjectStateVersion = mySettings.getStateVersion();
@@ -1097,45 +653,7 @@ public class Configuration {
   /** Returns the screen size required for this configuration */
   @Nullable
   public ScreenSize getScreenSize() {
-    // Look up the screen size for the current state
-
-    State deviceState = getDeviceState();
-    if (deviceState != null) {
-      FolderConfiguration folderConfig = DeviceConfigHelper.getFolderConfig(deviceState);
-      if (folderConfig != null) {
-        ScreenSizeQualifier qualifier = folderConfig.getScreenSizeQualifier();
-        assert qualifier != null;
-        return qualifier.getValue();
-      }
-    }
-
-    ScreenSize screenSize = null;
-    Device device = getDevice();
-    if (device != null) {
-      List<State> states = device.getAllStates();
-      for (State state : states) {
-        FolderConfiguration folderConfig = DeviceConfigHelper.getFolderConfig(state);
-        if (folderConfig != null) {
-          ScreenSizeQualifier qualifier = folderConfig.getScreenSizeQualifier();
-          assert qualifier != null;
-          screenSize = qualifier.getValue();
-          break;
-        }
-      }
-    }
-
-    return screenSize;
-  }
-
-  private void checkThemePrefix() {
-    if (myTheme != null && !myTheme.startsWith(PREFIX_RESOURCE_REF)) {
-      if (myTheme.isEmpty()) {
-        myTheme = getPreferredTheme();
-        return;
-      }
-
-      myTheme = ResourceUtils.getStyleResourceUrl(myTheme);
-    }
+    return myDeviceStateResolver.getScreenSize();
   }
 
   /**
@@ -1166,28 +684,7 @@ public class Configuration {
    */
   @Nullable
   public State getNextDeviceState(@Nullable State from) {
-    Device device = getDevice();
-    if (device == null) {
-      return null;
-    }
-    List<State> states = device.getAllStates();
-    for (int i = 0; i < states.size(); i++) {
-      if (states.get(i) == from) {
-        return states.get((i + 1) % states.size());
-      }
-    }
-
-    // Search by name instead
-    if (from != null) {
-      String name = from.getName();
-      for (int i = 0; i < states.size(); i++) {
-        if (states.get(i).getName().equals(name)) {
-          return states.get((i + 1) % states.size());
-        }
-      }
-    }
-
-    return null;
+    return myDeviceStateResolver.getNextDeviceState(from);
   }
 
   /**
@@ -1199,7 +696,7 @@ public class Configuration {
    */
   public void startBulkEditing() {
     synchronized (this) {
-      myBulkEditingCount++;
+      myListeners.startBulkEditing();
     }
   }
 
@@ -1211,10 +708,7 @@ public class Configuration {
   public void finishBulkEditing() {
     boolean notify = false;
     synchronized (this) {
-      myBulkEditingCount--;
-      if (myBulkEditingCount == 0) {
-        notify = true;
-      }
+      notify = myListeners.finishBulkEditing();
     }
 
     if (notify) {
@@ -1228,15 +722,9 @@ public class Configuration {
     myFolderConfigDirty |= flags;
     myModificationCount++;
 
-    if (myBulkEditingCount == 0) {
+    if (!myListeners.isBulkEditing()) {
       int changed = myNotifyDirty;
-      ImmutableList<ConfigurationListener> listeners;
-      synchronized (myListeners) {
-        listeners = ImmutableList.copyOf(myListeners);
-      }
-      for (ConfigurationListener listener : listeners) {
-        listener.changed(changed);
-      }
+      myListeners.notifyListeners(changed);
 
       myNotifyDirty = 0;
     }
@@ -1248,9 +736,7 @@ public class Configuration {
    * @param listener the listener to add
    */
   public void addListener(@NotNull ConfigurationListener listener) {
-    synchronized (myListeners) {
-      myListeners.add(listener);
-    }
+    myListeners.addListener(listener);
   }
 
   /**
@@ -1259,25 +745,23 @@ public class Configuration {
    * @param listener the listener to remove
    */
   public void removeListener(@NotNull ConfigurationListener listener) {
-    synchronized (myListeners) {
-      myListeners.remove(listener);
-    }
+    myListeners.removeListener(listener);
   }
 
   public void useDeviceForCutout(@NotNull String deviceId) {
     Optional<FrameworkOverlay> deviceOverlay = Enums.getIfPresent(FrameworkOverlay.class, deviceId.toUpperCase(ROOT));
     if (deviceOverlay.isPresent()) {
-      myDeviceOverlay = deviceOverlay.get();
+      mySystemUiPrefs.setDeviceOverlay(deviceOverlay.get());
     } else {
-      myDeviceOverlay = null;
+      mySystemUiPrefs.setDeviceOverlay(null);
     }
   }
 
   private void updateDeviceOverlay() {
-    if (myDevice == null) {
-      myDeviceOverlay = null;
+    if (myDeviceStateResolver.getCachedDevice() == null) {
+      mySystemUiPrefs.setDeviceOverlay(null);
     } else {
-      useDeviceForCutout(myDevice.getId());
+      useDeviceForCutout(myDeviceStateResolver.getCachedDevice().getId());
     }
   }
 
@@ -1303,11 +787,11 @@ public class Configuration {
   @NotNull
   public List<FrameworkOverlay> getOverlays() {
     List<FrameworkOverlay> overlays = new ArrayList<>(3);
-    overlays.add(myGestureNav ? FrameworkOverlay.NAV_GESTURE : FrameworkOverlay.NAV_3_BUTTONS);
-    if (myDeviceOverlay != null) {
-      overlays.add(myDeviceOverlay);
+    overlays.add(mySystemUiPrefs.isGestureNav() ? FrameworkOverlay.NAV_GESTURE : FrameworkOverlay.NAV_3_BUTTONS);
+    if (mySystemUiPrefs.getDeviceOverlay() != null) {
+      overlays.add(mySystemUiPrefs.getDeviceOverlay());
     }
-    overlays.add(myCutoutOverlay);
+    overlays.add(mySystemUiPrefs.getCutoutOverlay());
     return overlays;
   }
 
@@ -1316,23 +800,23 @@ public class Configuration {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this.getClass())
-      .add("display", myDisplayName)
-      .add("theme", myTheme)
-      .add("activity", myActivity)
-      .add("device", myDevice)
-      .add("state", myState)
-      .add("locale", myLocale)
-      .add("target", myTarget)
-      .add("uimode", myUiMode)
-      .add("nightmode", myNightMode)
-      .add("fontScale", myFontScale)
-      .add("adaptiveShape", myAdaptiveShape)
-      .add("useThemedIcon", myUseThemedIcon)
-      .add("wallpaper", myWallpaper)
-      .add("deviceOverlay", myDeviceOverlay)
-      .add("gestureNav", myGestureNav)
-      .add("cutoutOverlay", myCutoutOverlay)
-      .add("edgeToEdge", myEdgeToEdge)
+      .add("display", myEnvContext.getDisplayName())
+      .add("theme", myEnvContext.getTheme())
+      .add("activity", myEnvContext.getActivity())
+      .add("device", myDeviceStateResolver.getCachedDevice())
+      .add("state", myDeviceStateResolver.getCachedState())
+      .add("locale", myEnvContext.getLocale())
+      .add("target", myEnvContext.getTarget())
+      .add("uimode", myUiModeState.getUiMode())
+      .add("nightmode", myUiModeState.getNightMode())
+      .add("fontScale", mySystemUiPrefs.getFontScale())
+      .add("adaptiveShape", mySystemUiPrefs.getAdaptiveShape())
+      .add("useThemedIcon", mySystemUiPrefs.getUseThemedIcon())
+      .add("wallpaper", mySystemUiPrefs.getWallpaper())
+      .add("deviceOverlay", mySystemUiPrefs.getDeviceOverlay())
+      .add("gestureNav", mySystemUiPrefs.isGestureNav())
+      .add("cutoutOverlay", mySystemUiPrefs.getCutoutOverlay())
+      .add("edgeToEdge", mySystemUiPrefs.isEdgeToEdge())
       .toString();
   }
 
@@ -1342,19 +826,7 @@ public class Configuration {
   }
 
   public void setEffectiveDevice(@Nullable Device device, @Nullable State state) {
-    int updateFlags = 0;
-    if (myDevice != device) {
-      updateFlags = CFG_DEVICE;
-      myDevice = device;
-      updateDeviceOverlay();
-    }
-
-    if (myState != state) {
-      myState = state;
-      myStateName = state != null ? state.getName() : null;
-      updateFlags |= CFG_DEVICE_STATE;
-    }
-
+    int updateFlags = myDeviceStateResolver.setEffectiveDevice(device, state);
     if (updateFlags != 0) {
       updated(updateFlags);
     }

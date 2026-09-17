@@ -1,7 +1,6 @@
 load("//tools/adt/idea/aswb/build_defs:build_defs.bzl", "aswb_library")
-load("//tools/base/bazel:proto.bzl", "java_proto_library")
 
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = ["//tools/adt/idea/aswb/querysync:__subpackages__"])
 
 aswb_library(
     name = "update",
@@ -16,8 +15,5 @@ aswb_library(
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/shared/java/com/google/idea/blaze/common",
         "//tools/vendor/google/aswb/plugin_api",
-        "//tools/vendor/google/aswb/plugin_api/maven:grpc-protobuf",
-        "//tools/vendor/google/aswb/plugin_api/maven:grpc-protobuf-lite",
-        "//tools/vendor/google/aswb/plugin_api/maven:guava",
     ],
 )

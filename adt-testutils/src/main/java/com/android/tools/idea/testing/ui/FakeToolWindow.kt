@@ -18,8 +18,9 @@ package com.android.tools.idea.testing.ui
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowBalloonShowOptions
@@ -30,10 +31,35 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType
 import com.intellij.openapi.wm.impl.InternalDecorator
 import com.intellij.testFramework.replaceService
+import com.intellij.toolWindow.InternalDecoratorImpl
+import com.intellij.ui.components.JBPanelWithEmptyText
+import com.intellij.ui.content.Content
+import com.intellij.ui.content.ContentManager
 import com.intellij.ui.content.ContentManagerListener
+import com.intellij.ui.content.impl.ContentImpl
+import com.intellij.util.SmartList
 import com.intellij.util.ui.EmptyIcon
+import java.awt.Component
+import java.awt.Container
+import java.beans.PropertyChangeSupport
 import javax.swing.Icon
+import javax.swing.JComponent
+import javax.swing.JPanel
+import javax.swing.SwingConstants
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import org.mockito.ArgumentMatchers.anyInt
+import org.mockito.Mockito.CALLS_REAL_METHODS
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 /** Creates a [FakeToolWindow] for testing. */
 fun createFakeToolWindow(
@@ -59,8 +85,7 @@ internal constructor(
   private val manager: ToolWindowManager,
   project: Project,
   private val toolWindowId: String,
-  internalDecoratorFactory: ToolWindowHeadlessManagerImpl.InternalDecoratorFactory,
-) : ToolWindowHeadlessManagerImpl.MockToolWindow(project, internalDecoratorFactory) {
+) : ToolWindowHeadlessManagerImpl.MockToolWindow(project, FakeContentManager()) {
 
   var tabActions: List<AnAction> = emptyList()
     private set
@@ -154,12 +179,28 @@ internal constructor(
       publisher.toolWindowShown(this)
     }
   }
+
+  companion object {
+    fun split(content: Content, dropSide: Int, dropIndex: Int = -1) {
+      val contentManager = content.manager
+      if (contentManager != null) {
+        (contentManager as FakeContentManager).splitWithContent(content, dropSide, dropIndex)
+      }
+    }
+
+    fun unsplit(contentManager: ContentManager, toSelect: Content?) {
+      (contentManager as FakeContentManager).unsplit(toSelect)
+    }
+  }
 }
 
 private class FakeToolWindowManager(windowFactory: ToolWindowFactory, toolWindowId: String, icon: Icon, project: Project) :
-  ToolWindowHeadlessManagerImpl(project, FakeInternalDecoratorFactory()) {
+  ToolWindowHeadlessManagerImpl(project) {
 
-  val toolWindow = FakeToolWindow(windowFactory, icon, this, project, toolWindowId, internalDecoratorFactory)
+  val toolWindow = FakeToolWindow(windowFactory, icon, this, project, toolWindowId)
+  val projectScope = project.createCoroutineScope()
+
+  override fun doRegisterToolWindow(id: String): ToolWindow = doRegisterToolWindow(id, toolWindow)
 
   override fun getToolWindow(id: String?): ToolWindow? = if (id == toolWindow.id) toolWindow else super.getToolWindow(id)
 
@@ -168,7 +209,177 @@ private class FakeToolWindowManager(windowFactory: ToolWindowFactory, toolWindow
   }
 
   override fun invokeLater(runnable: Runnable) {
-    ApplicationManager.getApplication().invokeLater(runnable)
+    projectScope.launch(Dispatchers.EDT) { runnable.run() }
+  }
+}
+
+@Suppress("UnstableApiUsage")
+class FakeContentManager : ToolWindowHeadlessManagerImpl.MockContentManager() {
+  private val nestedManagers = SmartList<FakeContentManager>()
+  private var parent: FakeContentManager? = null
+  private var splitUnsplitInProgress = false
+  private val internalDecorator: InternalDecoratorImpl
+  private var splitter: Splitter? = null
+  private val panel: JComponent = JBPanelWithEmptyText()
+  private val treeLock: Any = JPanel().treeLock
+
+  init {
+    internalDecorator = createInternalDecorator(this)
+    internalDecorator.add(panel)
+  }
+
+  override fun getComponent(): JComponent {
+    return panel
+  }
+
+  override fun getContentsRecursively(): List<Content> {
+    val result = mutableListOf<Content>()
+    for (content in contents) {
+      result.add(content)
+    }
+
+    for (child in nestedManagers) {
+      result.addAll(child.getContentsRecursively())
+    }
+    return result
+  }
+
+  override fun getSelectedContents(): Array<Content> {
+    val result = mutableListOf<Content>()
+    selectedContent?.let { result.add(it) }
+    for (child in nestedManagers) {
+      for (content in child.getSelectedContents()) {
+        result.add(content)
+      }
+    }
+    return result.toTypedArray<Content>()
+  }
+
+  override fun getDecorator(): InternalDecorator = internalDecorator
+
+  fun splitWithContent(content: Content, dropSide: Int, dropIndex: Int) {
+    if (dropSide == -1 || dropSide == SwingConstants.CENTER || dropIndex >= 0) {
+      addContent(content, dropIndex)
+      return
+    }
+    val firstChild = FakeContentManager()
+    Disposer.register(this, firstChild)
+    val secondChild = FakeContentManager()
+    Disposer.register(this, secondChild)
+    addNestedManager(firstChild)
+    addNestedManager(secondChild)
+    val contents = contents.toMutableList()
+    if (!contents.contains(content)) {
+      contents.add(content)
+    }
+    for (c in contents) {
+      val first = dropSide == SwingConstants.LEFT || dropSide == SwingConstants.TOP
+      moveContent(c, if ((c !== content) xor first) firstChild else secondChild)
+    }
+
+    val isVertical = dropSide == SwingConstants.TOP || dropSide == SwingConstants.BOTTOM
+    splitter = Splitter(isVertical, 0.5f)
+    internalDecorator.remove(panel)
+    internalDecorator.add(splitter)
+    splitter!!.setFirstComponent(firstChild.internalDecorator)
+    splitter!!.setSecondComponent(secondChild.internalDecorator)
+  }
+
+  fun unsplit(toSelect: Content?) {
+    if (nestedManagers.isEmpty()) {
+      parent?.unsplit(toSelect)
+      return
+    }
+    if (splitUnsplitInProgress) {
+      return
+    }
+
+    splitUnsplitInProgress = true
+    try {
+      for (child in nestedManagers) {
+        if (child.isSplit()) {
+          raise(child)
+          return
+        }
+      }
+      for (child in nestedManagers) {
+        for (c in child.contents) {
+          child.moveContent(c, this)
+        }
+      }
+      toSelect?.manager?.setSelectedContent(toSelect)
+      for (child in nestedManagers) {
+        Disposer.dispose(child)
+      }
+      nestedManagers.clear()
+      splitter = null
+    } finally {
+      splitUnsplitInProgress = false
+    }
+  }
+
+  private fun isSplit(): Boolean {
+    return !nestedManagers.isEmpty()
+  }
+
+  private fun moveContent(content: Content, target: ToolWindowHeadlessManagerImpl.MockContentManager) {
+    val initialState = content.getUserData(Content.TEMPORARY_REMOVED_KEY)
+    try {
+      splitUnsplitInProgress = true
+      content.putUserData(Content.TEMPORARY_REMOVED_KEY, java.lang.Boolean.TRUE)
+      val owner = content.manager
+      owner?.removeContent(content, false)
+      (content as ContentImpl).setManager(target)
+      target.addContent(content)
+    } finally {
+      content.putUserData(Content.TEMPORARY_REMOVED_KEY, initialState)
+      splitUnsplitInProgress = false
+    }
+  }
+
+  private fun addNestedManager(manager: FakeContentManager) {
+    manager.parent = this
+    nestedManagers.add(manager)
+    Disposer.register(manager) { removeNestedManager(manager) }
+  }
+
+  private fun removeNestedManager(manager: FakeContentManager) {
+    nestedManagers.remove(manager)
+  }
+
+  @Suppress("UnstableApiUsage")
+  private fun createInternalDecorator(contentManager: FakeContentManager): InternalDecoratorImpl {
+    val mockDecorator = mock<InternalDecoratorImpl>(defaultAnswer = CALLS_REAL_METHODS)
+    try {
+      var field = Container::class.java.getDeclaredField("component")
+      field.isAccessible = true
+      field.set(mockDecorator, ArrayList<Any>())
+      field = Component::class.java.getDeclaredField("changeSupport")
+      field.isAccessible = true
+      field.set(mockDecorator, PropertyChangeSupport(mockDecorator))
+      field = Component::class.java.getDeclaredField("objectLock")
+      field.isAccessible = true
+      field.set(mockDecorator, Any())
+    } catch (e: Exception) {
+      throw RuntimeException(e)
+    }
+    doAnswer { "" }.whenever(mockDecorator).toString() // To avoid NPE while debugging.
+    doAnswer { treeLock }.whenever(mockDecorator).treeLock
+    doAnswer { contentManager }.whenever(mockDecorator).contentManager
+    doAnswer { true }.whenever(mockDecorator).isVisible
+
+    doAnswer { contentManager.unsplit(it.getArgument(0)) }.whenever(mockDecorator).unsplit(any())
+
+    doAnswer { contentManager.splitWithContent(it.getArgument(0), it.getArgument(1), it.getArgument(2)) }
+      .whenever(mockDecorator)
+      .splitWithContent(any(), anyInt(), anyInt())
+
+    doAnswer { false }.whenever(mockDecorator).isSplitUnsplitInProgress
+    return mockDecorator
+  }
+
+  private fun raise(child: FakeContentManager) {
+    throw NotImplementedError()
   }
 }
 
@@ -178,3 +389,40 @@ class SimpleToolWindowFactory : ToolWindowFactory {
 }
 
 val toolWindowBalloons = mutableListOf<ToolWindowBalloonShowOptions>()
+
+private fun Disposable.createCoroutineScope(
+  dispatcher: CoroutineContext = Dispatchers.Default,
+  extraContext: CoroutineContext = EmptyCoroutineContext,
+): CoroutineScope {
+  val job = SupervisorJob()
+  cancelJobOnDispose(job)
+  return CoroutineScope(job + dispatcher + extraContext)
+}
+
+/**
+ * Ensure [job] is canceled if it is still active when the disposable is disposed. If the disposable is already disposed, [job] will be
+ * canceled immediately.
+ */
+private fun Disposable.cancelJobOnDispose(job: Job) {
+  val disposableId = toString() // Don't capture the disposable inside the onDispose lambda.
+  val onDispose = {
+    if (!job.isCancelled) {
+      job.cancel(CancellationException("$disposableId has been disposed."))
+    }
+  }
+  val registered =
+    Disposer.tryRegister(
+      this@cancelJobOnDispose,
+      object : Disposable {
+        override fun dispose() {
+          onDispose()
+        }
+
+        override fun toString(): String {
+          return "$disposableId.cancelJobOnDispose(job=$job)"
+        }
+      },
+    )
+  // If the disposable was already disposed, cancel the job immediately.
+  if (!registered) onDispose()
+}

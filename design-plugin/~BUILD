@@ -11,7 +11,6 @@ iml_module(
         "//tools/adt/idea/nav/editor:intellij.android.nav.editor",
         "//tools/adt/idea/nav/editor:intellij.android.nav.editor.gradle",
         "//tools/adt/idea/compose-designer:intellij.android.compose-designer",
-        "//tools/adt/idea/designer/customview:intellij.android.designer.customview",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib",
         "//tools/adt/idea/glance-designer:intellij.android.glance-designer",
         "//tools/adt/idea/wear-designer:intellij.android.wear-designer",

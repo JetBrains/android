@@ -255,18 +255,17 @@ private class CapturePanelUi(
             return@let
           }
 
-          totalLeakLabel.apply {
-            val leakFilter = capture.activityFragmentLeakFilter
-            numValue = getFilteredInstanceCount(heap, selection.selectedClassTypeFilter, leakFilter)
-            isVisible = true
-            icon = if (numValue > 0) StudioIcons.Common.WARNING else null
+          fun updateLabel(label: StatLabel, filter: CaptureObjectInstanceFilter) {
+            // A local val is required for functionality because StatLabel.numValue doesn't store
+            // the value, it just updates the label and can't be used for any other purpose.
+            val count = getFilteredInstanceCount(heap, selection.selectedClassTypeFilter, filter)
+            label.numValue = count
+            label.isVisible = true
+            label.icon = if (count > 0) StudioIcons.Common.WARNING else null
           }
-          totalBitmapDuplicatesLabel.apply {
-            val dupeFilter = capture.bitmapDuplicationFilter
-            numValue = getFilteredInstanceCount(heap, selection.selectedClassTypeFilter, dupeFilter)
-            isVisible = true
-            icon = if (numValue > 0) StudioIcons.Common.WARNING else null
-          }
+
+          updateLabel(totalLeakLabel, capture.activityFragmentLeakFilter)
+          updateLabel(totalBitmapDuplicatesLabel, capture.bitmapDuplicationFilter)
         }
       }
 

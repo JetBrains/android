@@ -40,12 +40,7 @@ private const val EXAMPLE_BENCHMARK_NAME = "ExampleStartupBenchmark"
 private const val BENCHMARK_BUILD_TYPE_NAME = "benchmark"
 private const val MACROBENCHMARK_MIN_REV = "1.2.0-beta01"
 
-fun RecipeExecutor.generateMacrobenchmarkModule(
-  newModule: ModuleTemplateData,
-  useGradleKts: Boolean,
-  targetModule: Module,
-  useVersionCatalog: Boolean,
-) {
+fun RecipeExecutor.generateMacrobenchmarkModule(newModule: ModuleTemplateData, targetModule: Module) {
   val projectBuildModel = ProjectBuildModel.getOrLog(targetModule.project)
   val targetModuleAndroidModel = projectBuildModel?.getModuleBuildModel(targetModule)?.android() ?: return
   val targetModuleGradleModel = GradleAndroidModel.get(targetModule) ?: return
@@ -64,16 +59,13 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
 
   createModule(
     newModule = newModule,
-    useGradleKts = useGradleKts,
     macrobenchmarkMinRev = MACROBENCHMARK_MIN_REV,
     buildGradleContent =
       macrobenchmarksBuildGradle(
         newModule = newModule,
-        useGradleKts = useGradleKts,
         targetModule = targetModule,
         flavors = flavors,
         benchmarkBuildTypeName = benchmarkBuildTypeName,
-        useVersionCatalog = useVersionCatalog,
       ),
     customizeModule = { createTestClasses(newModule, targetApplicationId) },
   )

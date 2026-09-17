@@ -22,6 +22,7 @@ import com.android.tools.idea.npw.project.determineKotlinVersionOrDefault
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.PackageName
@@ -54,10 +55,10 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   var applicationName: String? = null
   var builtInKotlinDefaultEnabled = true
   var kotlinSupport: TemplateKotlinSupport? = null
+  var dslLanguage: DslLanguage = DslLanguage.KTS
 
   internal fun setEssentials(project: Project) {
     applicationName = project.name
-    kotlinVersion = determineKotlinVersionOrDefault(project, isNewProject)
     // If we create a new project, then we have a checkbox for androidX support
     if (!isNewProject) {
       androidXSupport = project.isAndroidx()
@@ -65,6 +66,7 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
       builtInKotlinDefaultEnabled = gradleProjectSystem.getBuiltInKotlinDefaultEnabled()
       if (agpVersion == null) agpVersion = gradleProjectSystem.getHeuristicAgpVersion()
     }
+    kotlinVersion = determineKotlinVersionOrDefault(project, isNewProject, agpVersion)
   }
 
   /** Sets basic information which is available in [Project]. */
@@ -104,5 +106,6 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
             !builtInKotlinDefaultEnabled -> TemplateKotlinSupport.EXPLICIT_BUILT_IN_KOTLIN
             else -> TemplateKotlinSupport.IMPLICIT_BUILT_IN_KOTLIN
           },
+      dslLanguage,
     )
 }

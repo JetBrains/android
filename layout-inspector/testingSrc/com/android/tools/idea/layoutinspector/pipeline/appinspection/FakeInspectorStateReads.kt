@@ -226,6 +226,7 @@ class FakeInspectorStateReads(private val composeInspector: FakeComposeLayoutIns
       4 -> addStateReadGroup4()
       102 -> addStateReadGroup102()
       103 -> addStateReadGroup103()
+      104 -> addStateReadGroup104()
       else -> return false
     }
     return true

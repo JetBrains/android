@@ -29,8 +29,6 @@ import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.ApplicationTerminator
 import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.execution.common.RunConfigurationNotifier
-import com.android.tools.idea.execution.common.adb.shell.tasks.launchSandboxSdk
-import com.android.tools.idea.execution.common.attachDebuggerToSandboxSdk
 import com.android.tools.idea.execution.common.clearAppStorage
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter
@@ -38,7 +36,6 @@ import com.android.tools.idea.execution.common.deploy.deployAndHandleError
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.execution.common.restoreAppFromFile
-import com.android.tools.idea.execution.common.shouldDebugSandboxSdk
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.track
 import com.android.tools.idea.flags.StudioFlags
@@ -245,12 +242,6 @@ class AndroidRunConfigurationExecutor(
 
     // Deploy
     if (configuration.DEPLOY) {
-      if (shouldDebugSandboxSdk(apkProvider, device, configuration.androidDebuggerContext.getAndroidDebuggerState()!!)) {
-        launchSandboxSdk(device, applicationId, LOG)
-        // TODO: b/305650392 When available, update to use application id given on launch.
-        attachDebuggerToSandboxSdk(device, applicationId, env, indicator, console)
-      }
-
       val restoreEnabled = configuration.isRestoreEnabled()
       val freshInstall = restoreEnabled && !BackupManager.getInstance(project).isInstalled(device.serialNumber, applicationId)
       val apks = apkInfosSafe(device)

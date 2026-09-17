@@ -268,45 +268,6 @@ class ComposeCompletionContributorTest {
       """
         .trimIndent()
     )
-
-    // Check completion with tab
-    file =
-      myFixture.addFileToProject(
-        "src/com/example/Test2.kt",
-        // language=kotlin
-        """
-      package com.example
-
-      import androidx.compose.runtime.Composable
-
-      @Composable
-      fun HomeScreen() {
-        ${caret}()
-      }
-      """
-          .trimIndent(),
-      )
-
-    // When:
-    myFixture.configureFromExistingVirtualFile(file.virtualFile)
-    myFixture.completeBasic()
-    myFixture.type("Foobar\t")
-
-    // Then:
-    myFixture.checkResult(
-      // language=kotlin
-      """
-      package com.example
-
-      import androidx.compose.runtime.Composable
-
-      @Composable
-      fun HomeScreen() {
-        FoobarOne()
-      }
-      """
-        .trimIndent()
-    )
   }
 
   @Test

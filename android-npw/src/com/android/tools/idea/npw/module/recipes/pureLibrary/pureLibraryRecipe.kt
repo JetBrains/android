@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.npw.module.recipes.pureLibrary
 
-import com.android.SdkConstants
-import com.android.SdkConstants.FN_BUILD_GRADLE
 import com.android.tools.idea.npw.module.recipes.addKotlinDependencies
 import com.android.tools.idea.npw.module.recipes.gitignore
 import com.android.tools.idea.npw.module.recipes.pureLibrary.src.placeholderJava
@@ -26,15 +24,16 @@ import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 
-fun RecipeExecutor.generatePureLibrary(moduleData: ModuleTemplateData, className: String, useGradleKts: Boolean) {
+fun RecipeExecutor.generatePureLibrary(moduleData: ModuleTemplateData, className: String) {
   val (projectData, srcOut) = moduleData
+  val dslLanguage = projectData.dslLanguage
   val moduleOut = moduleData.rootDir
   val language = projectData.language
   val packageName = moduleData.packageName
 
   addIncludeToSettings(moduleData.name)
 
-  val buildFile = if (useGradleKts) SdkConstants.FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
+  val buildFile = dslLanguage.buildFileName
   save(buildGradle(), moduleOut.resolve(buildFile))
   applyPlugin("java-library", null)
   save(

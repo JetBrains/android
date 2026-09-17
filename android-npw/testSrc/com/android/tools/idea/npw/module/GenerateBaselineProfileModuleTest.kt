@@ -34,6 +34,9 @@ import com.android.tools.idea.testing.resolve
 import com.android.tools.idea.testing.withCompileSdk
 import com.android.tools.idea.wizard.template.ApiTemplateData
 import com.android.tools.idea.wizard.template.Category
+import com.android.tools.idea.wizard.template.DslLanguage
+import com.android.tools.idea.wizard.template.DslLanguage.GROOVY
+import com.android.tools.idea.wizard.template.DslLanguage.KTS
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -69,7 +72,7 @@ class GenerateBaselineProfileModuleTest {
       runTemplateGeneration(
         agpVersion = AgpVersion.parse(projectRuleAgpVersion.resolve().agpVersion),
         sourceCodeLanguage = Language.Kotlin,
-        useGradleKts = true,
+        dslLanguage = KTS,
         useGmd = true,
         projectRuleAgpVersion = projectRuleAgpVersion,
       )
@@ -91,7 +94,7 @@ class GenerateBaselineProfileModuleTest {
       runTemplateGeneration(
         agpVersion = AgpVersion(8, 1, 0),
         sourceCodeLanguage = Language.Kotlin,
-        useGradleKts = true,
+        dslLanguage = KTS,
         useGmd = true,
         projectRuleAgpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_81.withCompileSdk(SDK_VERSION_FOR_NPW_TESTS),
       )
@@ -113,7 +116,7 @@ class GenerateBaselineProfileModuleTest {
       runTemplateGeneration(
         agpVersion = AgpVersion(8, 3, 0),
         sourceCodeLanguage = Language.Java,
-        useGradleKts = false,
+        dslLanguage = GROOVY,
         useGmd = false,
         projectRuleAgpVersion = getAgpVersion(),
       )
@@ -135,7 +138,7 @@ class GenerateBaselineProfileModuleTest {
       runTemplateGeneration(
         agpVersion = AgpVersion(8, 1, 0),
         sourceCodeLanguage = Language.Java,
-        useGradleKts = false,
+        dslLanguage = GROOVY,
         useGmd = false,
         projectRuleAgpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_81.withCompileSdk(SDK_VERSION_FOR_NPW_TESTS),
       )
@@ -153,7 +156,7 @@ class GenerateBaselineProfileModuleTest {
   private fun runTemplateGeneration(
     agpVersion: AgpVersion,
     sourceCodeLanguage: Language,
-    useGradleKts: Boolean,
+    dslLanguage: DslLanguage,
     useGmd: Boolean,
     projectRuleAgpVersion: AgpVersionSoftwareEnvironment,
     androidApi: AndroidApiLevel = StudioFlags.NPW_COMPILE_SDK_VERSION.get(),
@@ -197,6 +200,7 @@ class GenerateBaselineProfileModuleTest {
               this.kotlinVersion = kotlinVersion
               topOut = tmpFolderRule.root
               applicationPackage = packageName
+              this.dslLanguage = dslLanguage
             }
             .build(),
         themesData = ThemesData("appname"),
@@ -227,7 +231,6 @@ class GenerateBaselineProfileModuleTest {
       DefaultRecipeExecutor(renderingContext)
         .generateBaselineProfilesModule(
           newModule = newModuleTemplateData,
-          useGradleKts = useGradleKts,
           useGmd = useGmd,
           targetModule = projectRule.getModule(MODULE_NAME_APP),
         )

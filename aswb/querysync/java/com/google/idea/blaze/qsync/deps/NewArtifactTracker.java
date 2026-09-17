@@ -17,6 +17,7 @@ package com.google.idea.blaze.qsync.deps;
 
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
+import com.android.tools.idea.protobuf.ExtensionRegistry;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -53,7 +54,6 @@ import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcTargetI
 import com.google.idea.blaze.qsync.java.cc.CcCompilationInfoOuterClass.CcToolchainInfo;
 import com.google.idea.blaze.qsync.project.ProjectPath;
 import com.google.idea.common.experiments.FeatureRolloutExperiment;
-import com.google.protobuf.ExtensionRegistry;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;

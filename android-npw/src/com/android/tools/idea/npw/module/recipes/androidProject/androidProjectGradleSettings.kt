@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.module.recipes.androidProject
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.extensions.isDaemonJvmCriteriaRequiredForNewProjects
 import com.android.tools.idea.npw.builders.GradleSettingsBuilder
+import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.renderIf
 import java.net.URL
 import org.gradle.util.GradleVersion
@@ -27,11 +28,11 @@ fun androidProjectGradleSettings(
   appTitle: String,
   gradleVersion: GradleVersion,
   agpVersion: AgpVersion,
-  useGradleKts: Boolean,
   injectedRepositories: List<URL>,
+  dslLanguage: DslLanguage,
 ): String {
   return renderIf(appTitle.isNotBlank()) {
-    GradleSettingsBuilder(appTitle, useGradleKts) {
+    GradleSettingsBuilder(appTitle, dslLanguage) {
         withPluginManager(injectedRepositories)
         if (GradleDaemonJvmHelper.isDaemonJvmCriteriaRequiredForNewProjects(gradleVersion)) {
           withFoojayPlugin(gradleVersion)

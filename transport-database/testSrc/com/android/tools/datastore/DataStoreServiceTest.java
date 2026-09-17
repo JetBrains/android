@@ -25,14 +25,12 @@ import com.android.testutils.TestUtils;
 import com.android.tools.datastore.DataStoreService.BackingNamespace;
 import com.android.tools.datastore.database.DeviceProcessTable;
 import com.android.tools.datastore.database.UnifiedEventsTable;
-import com.android.tools.datastore.service.CpuService;
 import com.android.tools.datastore.service.EventService;
 import com.android.tools.datastore.service.MemoryService;
 import com.android.tools.datastore.service.ProfilerService;
 import com.android.tools.datastore.service.TransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
-import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.EventServiceGrpc;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
@@ -95,7 +93,6 @@ public class DataStoreServiceTest extends DataStorePollerTest {
       .addService(new FakeTransportService().bindService())
       .addService(new ProfilerServiceStub().bindService())
       .addService(new EventServiceStub().bindService())
-      .addService(new CpuServiceStub().bindService())
       .addService(new MemoryServiceStub().bindService())
       .build();
     myService.start();
@@ -119,7 +116,6 @@ public class DataStoreServiceTest extends DataStorePollerTest {
     expectedServices.add(TransportService.class);
     expectedServices.add(ProfilerService.class);
     expectedServices.add(EventService.class);
-    expectedServices.add(CpuService.class);
     expectedServices.add(MemoryService.class);
 
     List<ServicePassThrough> services = myDataStore.getRegisteredServices();
@@ -249,9 +245,6 @@ public class DataStoreServiceTest extends DataStorePollerTest {
   }
 
   private static class EventServiceStub extends EventServiceGrpc.EventServiceImplBase {
-  }
-
-  private static class CpuServiceStub extends CpuServiceGrpc.CpuServiceImplBase {
   }
 
   private static class ProfilerServiceStub extends ProfilerServiceGrpc.ProfilerServiceImplBase {

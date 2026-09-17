@@ -118,6 +118,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade",
         "@intellij//:org.jetbrains.kotlin",
         "@intellij//:com.intellij.gradle",
+        "@intellij//:org.jetbrains.idea.reposearch",
         "//tools/base/lint/libs/lint-tests:studio.android.sdktools.lint.testinfrastructure",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl",

@@ -907,12 +907,12 @@ Android Studio.app/Contents/plugins/Kotlin/lib/kotlinc.sam-with-receiver-compile
 Android Studio.app/Contents/plugins/Kotlin/lib/kotlinc.scripting-compiler-plugin.jar
 Android Studio.app/Contents/plugins/Kotlin/lib/vavr.jar
 Android Studio.app/Contents/plugins/android-apk/lib/android-apk.jar
+Android Studio.app/Contents/plugins/android-apk/lib/org.eclipse.cdt.core_6.8.1.201907021957.jar
+Android Studio.app/Contents/plugins/android-apk/lib/org.eclipse.equinox.common_3.10.500.v20190815-1535.jar
 Android Studio.app/Contents/plugins/android-compose-ide-plugin/lib/android-compose-ide-plugin.jar
 Android Studio.app/Contents/plugins/android-compose-ide-plugin/lib/android-compose-ide-plugin.so.jar
 Android Studio.app/Contents/plugins/android-ndk/lib/android-ndk.jar
 Android Studio.app/Contents/plugins/android-ndk/lib/android-ndk.so.jar
-Android Studio.app/Contents/plugins/android-ndk/lib/org.eclipse.cdt.core_6.8.1.201907021957.jar
-Android Studio.app/Contents/plugins/android-ndk/lib/org.eclipse.equinox.common_3.10.500.v20190815-1535.jar
 Android Studio.app/Contents/plugins/android-ndk/resources/lldb/LICENSE.TXT
 Android Studio.app/Contents/plugins/android-ndk/resources/lldb/android/arm64-v8a/lldb-server
 Android Studio.app/Contents/plugins/android-ndk/resources/lldb/android/armeabi/lldb-server
@@ -2272,7 +2272,6 @@ Android Studio.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb
 Android Studio.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/utils/in_call_stack.py
 Android Studio.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/utils/symbolication.py
 Android Studio.app/Contents/plugins/android-ndk/resources/lldb/shared/jobject_printers/jstring_reader.py
-Android Studio.app/Contents/plugins/android/lib/HdrHistogram-2.1.12.jar
 Android Studio.app/Contents/plugins/android/lib/aapt2-proto-8.1.0-10154469.jar
 Android Studio.app/Contents/plugins/android/lib/adt-ui.jar
 Android Studio.app/Contents/plugins/android/lib/android-base-common.jar
@@ -2296,7 +2295,6 @@ Android Studio.app/Contents/plugins/android/lib/backgroundtask_inspector_java_pr
 Android Studio.app/Contents/plugins/android/lib/build-analysis-results-proto.jar
 Android Studio.app/Contents/plugins/android/lib/build-common.jar
 Android Studio.app/Contents/plugins/android/lib/chime_kt_proto.jar
-Android Studio.app/Contents/plugins/android/lib/commons-lang-2.6.jar
 Android Studio.app/Contents/plugins/android/lib/compilerCommon.antlr.shaded_jar.jar
 Android Studio.app/Contents/plugins/android/lib/compilerCommon.antlr_runtime.shaded_jar.jar
 Android Studio.app/Contents/plugins/android/lib/core-3.5.0.jar
@@ -2399,9 +2397,9 @@ Android Studio.app/Contents/plugins/android/lib/studio-grpc.jar
 Android Studio.app/Contents/plugins/android/lib/studio-proto.jar
 Android Studio.app/Contents/plugins/android/lib/tensorflow-lite-metadata-0.1.0-rc2.jar
 Android Studio.app/Contents/plugins/android/lib/traceprocessor_protos.jar
-Android Studio.app/Contents/plugins/android/lib/tracing-desktop-2.0.0-alpha01.jar
+Android Studio.app/Contents/plugins/android/lib/tracing-desktop-2.0.0-alpha03.jar
 Android Studio.app/Contents/plugins/android/lib/tracing-perfetto-handshake-1.0.0-beta02.jar
-Android Studio.app/Contents/plugins/android/lib/tracing-wire-desktop-2.0.0-alpha01.jar
+Android Studio.app/Contents/plugins/android/lib/tracing-wire-desktop-2.0.0-alpha03.jar
 Android Studio.app/Contents/plugins/android/lib/transport_java_proto.jar
 Android Studio.app/Contents/plugins/android/lib/ui-animation-tooling-internal.jar
 Android Studio.app/Contents/plugins/android/lib/utp.jar
@@ -2790,6 +2788,7 @@ Android Studio.app/Contents/plugins/cidr-base/lib/modules/intellij.cidr.util.jar
 Android Studio.app/Contents/plugins/cidr-base/lib/modules/intellij.cidr.util.serializer.jar
 Android Studio.app/Contents/plugins/cidr-base/lib/modules/intellij.cidr.util.ui.jar
 Android Studio.app/Contents/plugins/cidr-base/lib/modules/intellij.cidr.workspaceModel.jar
+Android Studio.app/Contents/plugins/cidr-base/lib/modules/intellij.cmake.psi.jar
 Android Studio.app/Contents/plugins/cidr-clangd/bin/clang/mac/aarch64/bin/clangd
 Android Studio.app/Contents/plugins/cidr-clangd/lib/LICENSE.txt
 Android Studio.app/Contents/plugins/cidr-clangd/lib/cidr-clangd.jar
@@ -3118,13 +3117,7 @@ Android Studio.app/Contents/plugins/gemini/lib/libfeedback_java_proto.jar
 Android Studio.app/Contents/plugins/gemini/lib/libgoogle_auth_intellij_lib.jar
 Android Studio.app/Contents/plugins/gemini/lib/libserviceusage_v1_java_lib.jar
 Android Studio.app/Contents/plugins/gemini/lib/libv1internal_java_rest.jar
-Android Studio.app/Contents/plugins/gemini/lib/lucene-backward-codecs-10.3.0.jar
-Android Studio.app/Contents/plugins/gemini/lib/lucene-facet-10.3.0.jar
-Android Studio.app/Contents/plugins/gemini/lib/lucene-highlighter-10.3.0.jar
-Android Studio.app/Contents/plugins/gemini/lib/lucene-memory-10.3.0.jar
-Android Studio.app/Contents/plugins/gemini/lib/lucene-queries-10.3.0.jar
-Android Studio.app/Contents/plugins/gemini/lib/lucene-queryparser-10.3.0.jar
-Android Studio.app/Contents/plugins/gemini/lib/lucene-sandbox-10.3.0.jar
+Android Studio.app/Contents/plugins/gemini/lib/lucene-aiplugin-shaded.jar
 Android Studio.app/Contents/plugins/gemini/lib/mcp-sdk-libraries.jar
 Android Studio.app/Contents/plugins/gemini/lib/openai-java-client-okhttp-4.21.0.jar
 Android Studio.app/Contents/plugins/gemini/lib/openai-java-core-4.21.0.jar

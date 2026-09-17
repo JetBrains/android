@@ -37,6 +37,7 @@ import com.android.sdklib.deviceprovisioner.DeviceState.Disconnected
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.HideDeviceAction
 import com.android.sdklib.deviceprovisioner.PairDeviceAction
+import com.android.sdklib.deviceprovisioner.PairedGlassesInfo
 import com.android.sdklib.deviceprovisioner.PhysicalDeviceProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.sdklib.deviceprovisioner.awaitDisconnection
@@ -276,7 +277,7 @@ class WifiPairableDeviceProvisionerPlugin(
     override val disambiguator: String?,
     override val wearPairingId: String?,
     override val pairedPhoneId: DeviceId?,
-    override val pairedGlassesId: DeviceId?,
+    override val pairedGlassesInfos: List<PairedGlassesInfo>,
     override val connectionType: ConnectionType?,
     override val deviceInfoProto: DeviceInfo,
     val mdnsService: MdnsTrackServiceInfo,
@@ -315,7 +316,7 @@ class WifiPairableDeviceProvisionerPlugin(
           disambiguator = disambiguator,
           wearPairingId = wearPairingId,
           pairedPhoneId = pairedPhoneId,
-          pairedGlassesId = pairedGlassesId,
+          pairedGlassesInfos = pairedGlassesInfos,
           connectionType = connectionType,
           deviceInfoProto = deviceInfoProto.build(),
           mdnsService = checkNotNull(mdnsService),

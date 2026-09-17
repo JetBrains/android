@@ -1,5 +1,5 @@
 androidApp {
-  dependenciesDcl {
+  dependencies {
     // Dependency without a version
     compile("com.cool.company:artifact")
     // Dependency with blank group

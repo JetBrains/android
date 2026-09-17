@@ -58,7 +58,6 @@ import com.android.tools.idea.run.configuration.execution.findElementByText
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.testing.ui.createFakeToolWindow
-import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.SourceCodeEditorProvider
 import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
@@ -181,6 +180,27 @@ class ComposePreviewRepresentationTest {
   }
 
   @Test
+  fun testUpdateVisibilityAndNotificationsCalledOnBuildFailureWithoutRender() = runComposePreviewRepresentationTest {
+    val preview =
+      ComposePreviewRepresentation(previewPsiFile) { _, _, _, provider, _, _ ->
+        uiDataProvider = provider
+        composeView = TestComposePreviewView(mainSurface)
+        composeView
+      }
+    Disposer.register(fixture.testRootDisposable, preview)
+
+    withContext(Dispatchers.Default) {
+      preview.onActivate()
+      delayWhileRefreshingOrDumb(preview)
+
+      val countBefore = composeView.visibilityAndNotificationsCount
+      buildSystemServices.simulateArtifactBuild(ProjectSystemBuildManager.BuildStatus.FAILED)
+
+      waitForCondition(5.seconds) { composeView.visibilityAndNotificationsCount > countBefore }
+    }
+  }
+
+  @Test
   fun testPreviewInitialization() = runComposePreviewRepresentationTest {
     val preview = createPreviewAndCompile()
     mainSurface.models.forEach { assertTrue(preview.navigationHandler.defaultNavigationMap.contains(it)) }
@@ -268,7 +288,7 @@ class ComposePreviewRepresentationTest {
     delayUntilCondition(250) { UI_CHECK_LAYOUT_OPTION == mainSurface.layoutManagerSwitcher?.currentLayoutOption?.value }
 
     assertThat(preview.composePreviewFlowManager.availableGroupsFlow.value.map { it.displayName })
-      .containsExactly("Screen sizes", "Font scales", "Light/Dark", "Colorblind filters")
+      .containsExactly("Screen sizes", "Font scales", "System UI", "Light/Dark", "Colorblind filters")
       .inOrder()
     preview.renderedPreviewElementsInstancesFlowForTest().awaitStatus("Failed set uiCheckMode", 25.seconds) { it.asCollection().size > 2 }
     fun PsiComposePreviewElementInstance.print(): String {
@@ -315,6 +335,14 @@ class ComposePreviewRepresentationTest {
 
       TestKt.Preview1
       PreviewDisplaySettings(name=200% - Preview1, baseName=Preview1, parameterName=200%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=TestKt.Preview1Font scales, organizationName=Font scales - Preview1)
+
+      TestKt.Preview1
+      spec:parent=_device_class_phone,navigation=buttons,cutout=corner
+      PreviewDisplaySettings(name=3-button Navigation with Corner Cutout - Preview1, baseName=Preview1, parameterName=3-button Navigation with Corner Cutout, group=System UI, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=TestKt.Preview1System UI, organizationName=System UI - Preview1)
+
+      TestKt.Preview1
+      spec:parent=_device_class_phone,navigation=gesture,cutout=tall
+      PreviewDisplaySettings(name=Gesture Navigation with Tall Cutout - Preview1, baseName=Preview1, parameterName=Gesture Navigation with Tall Cutout, group=System UI, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=TestKt.Preview1System UI, organizationName=System UI - Preview1)
 
       TestKt.Preview1
       PreviewDisplaySettings(name=Light - Preview1, baseName=Preview1, parameterName=Light, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL, organizationGroup=TestKt.Preview1Light/Dark, organizationName=Light/Dark - Preview1)
@@ -498,7 +526,7 @@ class ComposePreviewRepresentationTest {
       }
       val mainSurface: NlDesignSurface = NlSurfaceBuilder.builder(fixture.project, fixture.testRootDisposable, false).build()
       val composeView = TestComposePreviewView(mainSurface)
-      val previewRepresentation = ComposePreviewRepresentation(composeTest, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> composeView }
+      val previewRepresentation = ComposePreviewRepresentation(composeTest) { _, _, _, _, _, _ -> composeView }
       Disposer.register(fixture.testRootDisposable, previewRepresentation)
       Disposer.register(fixture.testRootDisposable, mainSurface)
 
@@ -1205,11 +1233,11 @@ class ComposePreviewRepresentationTest {
   /** Wrapper class to perform operations and expose properties that are common to most tests in this test class. */
   private class ComposePreviewRepresentationTestContext(
     val scope: CoroutineScope,
-    private val previewPsiFile: PsiFile,
+    val previewPsiFile: PsiFile,
     val mainSurface: NlDesignSurface,
     private val fixture: CodeInsightTestFixture,
     private val logger: Logger,
-    private val buildSystemServices: FakeBuildSystemFilePreviewServices,
+    val buildSystemServices: FakeBuildSystemFilePreviewServices,
   ) {
 
     private lateinit var preview: ComposePreviewRepresentation
@@ -1239,7 +1267,7 @@ class ComposePreviewRepresentationTest {
       composeView = TestComposePreviewView(mainSurface, onRefreshCompletedCallback)
       preview =
         previewOverride
-          ?: ComposePreviewRepresentation(previewPsiFile, PreferredVisibility.SPLIT) { _, _, _, provider, _, _ ->
+          ?: ComposePreviewRepresentation(previewPsiFile) { _, _, _, provider, _, _ ->
             uiDataProvider = provider
             composeView
           }
@@ -1271,7 +1299,7 @@ class ComposePreviewRepresentationTest {
       delayUntilCondition(250, timeout = 5.seconds) { refresh && additionalCondition() }
     }
 
-    private suspend fun delayWhileRefreshingOrDumb(preview: ComposePreviewRepresentation) {
+    suspend fun delayWhileRefreshingOrDumb(preview: ComposePreviewRepresentation) {
       delayUntilCondition(250) { !(preview.status().isRefreshing || DumbService.getInstance(fixture.project).isDumb) }
     }
 

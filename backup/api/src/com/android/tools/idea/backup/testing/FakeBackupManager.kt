@@ -30,6 +30,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.util.ui.EDT
 import java.nio.file.Path
 import javax.swing.JPanel
+import kotlin.io.path.Path
 import org.jetbrains.annotations.TestOnly
 
 @TestOnly
@@ -50,6 +51,12 @@ class FakeBackupManager : BackupManager {
     assert(EDT.isCurrentThreadEdt())
     restoreModalInvocations.add(RestoreInvocation(serialNumber, backupFile, source, notify))
     return Success
+  }
+
+  @UiThread
+  override fun restoreModal(serialNumber: String, source: BackupManager.Source, notify: Boolean) {
+    assert(EDT.isCurrentThreadEdt())
+    restoreModalInvocations.add(RestoreInvocation(serialNumber, Path("foo.backup"), source, notify))
   }
 
   override suspend fun restore(

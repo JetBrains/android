@@ -9,5 +9,5 @@ java_library_for_test_data(
 
 java_library_for_test_data(
     name = "exported-collect",
-    exports = ["//tools/vendor/google/aswb/plugin_api/maven:guava"],
+    exports = ["@intellij//:intellij-sdk"],
 )

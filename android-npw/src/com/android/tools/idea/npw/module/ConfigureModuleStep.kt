@@ -60,6 +60,7 @@ import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule.Groovy
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule.KTS
+import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.ui.StudioWizardLayout
 import com.android.tools.idea.wizard.ui.WizardUtils.WIZARD_BORDER.SMALL
@@ -206,7 +207,12 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
   override fun onProceeding() {
     // Now that the module name was validated, update the model template
     model.template.set(GradleAndroidModuleTemplate.createDefaultModuleTemplate(model.project, model.moduleName.get()))
-    model.useGradleKts.set(buildConfigurationLanguage.value == KTS)
+    model.dslLanguage.set(
+      when (buildConfigurationLanguage.value) {
+        KTS -> DslLanguage.KTS
+        Groovy -> DslLanguage.GROOVY
+      }
+    )
 
     installRequests.clear()
     installLicenseRequests.clear()
@@ -232,10 +238,10 @@ fun ValidatorPanel.registerKtsAgpVersionValidation(model: ProjectModelData) {
   registerValidator(
     model.agpVersionSelector,
     createValidator { version ->
-      if (model.useGradleKts.get() && !version.willSelectAtLeast(minKtsAgpVersion))
+      if (model.dslLanguage.get().isKts && !version.willSelectAtLeast(minKtsAgpVersion))
         Validator.Result.fromNullableMessage(message("android.wizard.validate.module.needs.new.agp.kts", KTS_AGP_MIN_VERSION))
       else Validator.Result.OK
     },
-    model.useGradleKts,
+    model.dslLanguage,
   )
 }

@@ -49,6 +49,7 @@ import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.Language.Java
 import com.android.tools.idea.wizard.template.Language.Kotlin
@@ -101,12 +102,19 @@ import org.jetbrains.android.util.AndroidUtils
 private val logger: Logger
   get() = logger<NewProjectModel>()
 
+/** The source project type for migration/import. */
+enum class SourceProjectType {
+  IOS,
+  REACT_NATIVE,
+  OTHER,
+}
+
 interface ProjectModelData {
   val projectSyncInvoker: ProjectSyncInvoker
   val applicationName: StringProperty
   val packageName: StringProperty
   val projectLocation: StringProperty
-  val useGradleKts: BoolProperty
+  val dslLanguage: ObjectValueProperty<DslLanguage>
   val useVersionCatalog: BoolProperty
   val viewBindingSupport: OptionalValueProperty<ViewBindingSupport>
   var project: Project
@@ -117,6 +125,8 @@ interface ProjectModelData {
   val multiTemplateRenderer: MultiTemplateRenderer
   val projectTemplateDataBuilder: ProjectTemplateDataBuilder
   val prompt: StringProperty
+  val displayText: StringProperty
+  val sourceProjectType: ObjectValueProperty<SourceProjectType>
   val imageAttachments: ObjectValueProperty<List<VirtualFile>>
 }
 
@@ -125,7 +135,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val applicationName = StringValueProperty("My Application")
   override val packageName = StringValueProperty()
   override val projectLocation = StringValueProperty()
-  override val useGradleKts = BoolValueProperty()
+  override val dslLanguage = ObjectValueProperty<DslLanguage>(DslLanguage.KTS)
   override val useVersionCatalog = BoolValueProperty(true)
   // We can assume this is true for a new project because View binding is supported from AGP 3.6+
   override val viewBindingSupport = OptionalValueProperty<ViewBindingSupport>(ViewBindingSupport.SUPPORTED_4_0_MORE)
@@ -137,8 +147,11 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     ObjectValueProperty(findAndroidStudioLocalMavenRepoPaths().map { it.toURI().toURL() })
   override val multiTemplateRenderer = MultiTemplateRenderer(::runRenderer)
   override val prompt = StringValueProperty("")
+  override val displayText = StringValueProperty("")
   override val imageAttachments: ObjectValueProperty<List<VirtualFile>> = ObjectValueProperty(listOf())
   val launchFirebaseWizard = BoolValueProperty(false)
+  val isImportProject = BoolValueProperty(false)
+  override val sourceProjectType = ObjectValueProperty<SourceProjectType>(SourceProjectType.IOS)
 
   private fun runRenderer(renderer: (Project) -> Unit) {
     object : Task.Backgroundable(null, message("android.compile.messages.generating.r.java.content.name"), false) {
@@ -163,7 +176,18 @@ class NewProjectModel : WizardModel(), ProjectModelData {
               // ExternalToolWindowManager). We want the Gemini window to be shown instead, so
               // delay opening the Gemini window until after Gradle has finished.
               ToolWindowManager.getInstance(newProject).invokeLater {
-                GeminiPluginApi.getInstance().launchNewProjectAgent(newProject, prompt.get(), imageAttachments.get())
+                if (isImportProject.get()) {
+                  GeminiPluginApi.getInstance()
+                    .launchImportProjectAgent(
+                      newProject,
+                      prompt.get(),
+                      imageAttachments.get(),
+                      displayText.get().takeIf { it.isNotBlank() },
+                      sourceProjectType = sourceProjectType.get().name,
+                    )
+                } else {
+                  GeminiPluginApi.getInstance().launchNewProjectAgent(newProject, prompt.get(), imageAttachments.get())
+                }
               }
             }
 
@@ -267,6 +291,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
             language = this@NewProjectModel.language.value
             agpVersion = resolvedAgpVersion
             additionalMavenRepos = this@NewProjectModel.additionalMavenRepos.get()
+            dslLanguage = this@NewProjectModel.dslLanguage.get()
           }
           .build()
     }
@@ -304,12 +329,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         RenderingContext(project, null, "New Project", projectTemplateData, showErrors = true, dryRun = dryRun, moduleRoot = null)
       val executor = if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
       val recipe: Recipe = { data: TemplateData ->
-        androidProjectRecipe(
-          data = data as ProjectTemplateData,
-          appTitle = applicationName.get(),
-          language = language.value,
-          useGradleKts = useGradleKts.get(),
-        )
+        androidProjectRecipe(data = data as ProjectTemplateData, appTitle = applicationName.get(), language = language.value)
       }
 
       recipe.render(context, executor, AndroidStudioEvent.TemplateRenderer.ANDROID_PROJECT)

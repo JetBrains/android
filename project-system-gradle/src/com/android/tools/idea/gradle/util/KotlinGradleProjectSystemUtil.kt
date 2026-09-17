@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.util
 
+import com.android.ide.common.repository.AgpVersion
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.project.Project
@@ -53,3 +54,20 @@ object KotlinGradleProjectSystemUtil {
     return kotlinVersions.sortedWith { a, b -> b.compareTo(a) }
   }
 }
+
+/**
+ * Returns the Kotlin Gradle plugin version that AGP depends on since AGP 9.0. (Each AGP version may depend on a different Kotlin Gradle
+ * plugin version.)
+ *
+ * If the AGP version is lower than 9.0, this method returns null.
+ */
+fun AgpVersion.getKotlinVersion(): String? {
+  return when {
+    major < 9 -> null
+    major == 9 && minor <= 1 -> "2.2.10"
+    else -> AGP_BUILT_IN_KOTLIN_VERSION
+  }
+}
+
+/** The Kotlin Gradle plugin version that AGP @ HEAD depends on. */
+const val AGP_BUILT_IN_KOTLIN_VERSION = "2.2.10"

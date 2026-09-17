@@ -34,6 +34,8 @@ import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementDecorator
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.codeInsight.lookup.LookupElementRenderer
+import com.intellij.codeInsight.lookup.SuspendingLookupElementRenderer
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.vfs.VirtualFile
@@ -185,9 +187,9 @@ private class SlowDrawableResourceLookupElement(
   private val facet: AndroidFacet,
 ) : LookupElementDecorator<LookupElement>(original) {
   override fun getExpensiveRenderer(): LookupElementRenderer<out LookupElement> =
-    object : LookupElementRenderer<SlowDrawableResourceLookupElement>() {
-      override fun renderElement(element: SlowDrawableResourceLookupElement, presentation: LookupElementPresentation) {
-        this@SlowDrawableResourceLookupElement.renderElement(presentation)
+    object : SuspendingLookupElementRenderer<SlowDrawableResourceLookupElement>() {
+      override suspend fun renderElementSuspending(element: SlowDrawableResourceLookupElement, presentation: LookupElementPresentation) {
+        readAction { this@SlowDrawableResourceLookupElement.renderElement(presentation) }
 
         GutterIconCache.getInstance(facet.module.project).getIcon(file, resolver, facet)?.let(presentation::setIcon)
       }

@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.model
 
 import com.android.sdklib.AndroidMajorVersion
 import com.android.tools.idea.wizard.template.BytecodeLevel
+import com.android.tools.idea.wizard.template.DslLanguage
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateModule
 
@@ -27,6 +28,6 @@ data class TemplateMetrics(
   val minSdk: AndroidMajorVersion?,
   val targetSdk: AndroidMajorVersion?,
   val bytecodeLevel: BytecodeLevel?,
-  val useGradleKts: Boolean,
+  val dslLanguage: DslLanguage,
   val useAppCompat: Boolean,
 )

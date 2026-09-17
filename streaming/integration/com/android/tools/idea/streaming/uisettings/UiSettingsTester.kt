@@ -35,9 +35,9 @@ import com.android.tools.idea.streaming.uisettings.ui.GESTURE_NAVIGATION_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.RESET_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.SELECT_TO_SPEAK_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.TALKBACK_TITLE
-import com.android.tools.idea.streaming.uisettings.ui.UiSettingsDialog
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.popup.JBPopup
 import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
@@ -96,16 +96,16 @@ internal class UiSettingsTester(private val project: Project, deviceSerialNumber
     }
   }
 
-  suspend fun testSettings(dialog: UiSettingsDialog) {
+  suspend fun testSettings(popup: JBPopup) {
     checkInitialSettings()
-    changeDarkMode(dialog)
-    changeLocale(dialog)
-    changeTalkback(dialog)
-    changeSelectToSpeak(dialog)
-    changeFontSize(dialog)
-    changeDensity(dialog)
-    changeGestureNavigation(dialog)
-    changeDebugLayout(dialog)
+    changeDarkMode(popup)
+    changeLocale(popup)
+    changeTalkback(popup)
+    changeSelectToSpeak(popup)
+    changeFontSize(popup)
+    changeDensity(popup)
+    changeGestureNavigation(popup)
+    changeDebugLayout(popup)
 
     // Wait before calling/causing reset:
     waitForPreviousWriteToComplete()
@@ -126,13 +126,13 @@ internal class UiSettingsTester(private val project: Project, deviceSerialNumber
     }
   }
 
-  fun resetSettings(dialog: UiSettingsDialog) {
-    val button = dialog.contentPanel.getDescendant<JButton> { it.text == RESET_TITLE }
+  fun resetSettings(popup: JBPopup) {
+    val button = popup.content.getDescendant<JButton> { it.text == RESET_TITLE }
     button.doClick()
   }
 
-  private suspend fun changeDarkMode(dialog: UiSettingsDialog) {
-    val checkBox = dialog.contentPanel.getDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }
+  private suspend fun changeDarkMode(popup: JBPopup) {
+    val checkBox = popup.content.getDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }
     assertThat(checkBox.isShowing).isTrue()
     assertThat(checkBox.isSelected).isFalse()
 
@@ -149,8 +149,8 @@ internal class UiSettingsTester(private val project: Project, deviceSerialNumber
     waitForSetting(Setting.DARK_THEME, listOf("Night mode: yes"))
   }
 
-  private suspend fun changeLocale(dialog: UiSettingsDialog) {
-    val comboBox = dialog.contentPanel.getDescendant<JComboBox<AppLanguage>> { it.name == APP_LANGUAGE_TITLE }
+  private suspend fun changeLocale(popup: JBPopup) {
+    val comboBox = popup.content.getDescendant<JComboBox<AppLanguage>> { it.name == APP_LANGUAGE_TITLE }
     assertThat(comboBox.isShowing).isTrue()
     assertThat(comboBox.selectedIndex).isEqualTo(0)
     checkLocaleModel(comboBox.model)
@@ -168,8 +168,8 @@ internal class UiSettingsTester(private val project: Project, deviceSerialNumber
     waitForSetting(Setting.LOCALE, listOf("Locales for $APPLICATION_ID for user 0 are [es]"))
   }
 
-  private suspend fun changeTalkback(dialog: UiSettingsDialog) {
-    val checkBox = dialog.contentPanel.getDescendant<JCheckBox> { it.name == TALKBACK_TITLE }
+  private suspend fun changeTalkback(popup: JBPopup) {
+    val checkBox = popup.content.getDescendant<JCheckBox> { it.name == TALKBACK_TITLE }
     assertThat(checkBox.isVisible).isTrue()
     assertThat(checkBox.isSelected).isFalse()
 
@@ -179,8 +179,8 @@ internal class UiSettingsTester(private val project: Project, deviceSerialNumber
     waitForSetting(Setting.BUTTON_TARGETS, listOf("null"))
   }
 
-  private suspend fun changeSelectToSpeak(dialog: UiSettingsDialog) {
-    val checkBox = dialog.contentPanel.getDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }
+  private suspend fun changeSelectToSpeak(popup: JBPopup) {
+    val checkBox = popup.content.getDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }
     assertThat(checkBox.isShowing).isTrue()
     assertThat(checkBox.isSelected).isFalse()
 
@@ -202,8 +202,8 @@ internal class UiSettingsTester(private val project: Project, deviceSerialNumber
     )
   }
 
-  private suspend fun changeFontSize(dialog: UiSettingsDialog) {
-    val slider = dialog.contentPanel.getDescendant<JSlider> { it.name == FONT_SCALE_TITLE }
+  private suspend fun changeFontSize(popup: JBPopup) {
+    val slider = popup.content.getDescendant<JSlider> { it.name == FONT_SCALE_TITLE }
     assertThat(slider.value).isEqualTo(1)
 
     waitForPreviousWriteToComplete()
@@ -236,8 +236,8 @@ internal class UiSettingsTester(private val project: Project, deviceSerialNumber
     }
   }
 
-  private suspend fun changeDensity(dialog: UiSettingsDialog) {
-    val slider = dialog.contentPanel.getDescendant<JSlider> { it.name == DENSITY_TITLE }
+  private suspend fun changeDensity(popup: JBPopup) {
+    val slider = popup.content.getDescendant<JSlider> { it.name == DENSITY_TITLE }
     assertThat(slider.value).isEqualTo(1)
     assertThat(slider.maximum).isEqualTo(2)
 
@@ -254,8 +254,8 @@ internal class UiSettingsTester(private val project: Project, deviceSerialNumber
     waitForSetting(Setting.DENSITY, listOf("Physical density: 480", "Override density: 408"))
   }
 
-  private suspend fun changeGestureNavigation(dialog: UiSettingsDialog) {
-    val comboBox = dialog.contentPanel.getDescendant<JComboBox<AppLanguage>> { it.name == GESTURE_NAVIGATION_TITLE }
+  private suspend fun changeGestureNavigation(popup: JBPopup) {
+    val comboBox = popup.content.getDescendant<JComboBox<AppLanguage>> { it.name == GESTURE_NAVIGATION_TITLE }
     assertThat(comboBox.isShowing).isTrue()
     assertThat(comboBox.selectedIndex).isEqualTo(0)
     checkGestureModel(comboBox.model)
@@ -282,8 +282,8 @@ internal class UiSettingsTester(private val project: Project, deviceSerialNumber
     )
   }
 
-  private suspend fun changeDebugLayout(dialog: UiSettingsDialog) {
-    val checkBox = dialog.contentPanel.getDescendant<JCheckBox> { it.name == DEBUG_LAYOUT_TITLE }
+  private suspend fun changeDebugLayout(popup: JBPopup) {
+    val checkBox = popup.content.getDescendant<JCheckBox> { it.name == DEBUG_LAYOUT_TITLE }
     assertThat(checkBox.isVisible).isTrue()
     assertThat(checkBox.isSelected).isFalse()
 

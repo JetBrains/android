@@ -451,11 +451,11 @@ private val DeviceState.adjustedName: String
       when (adjustedName) {
         "CLOSE" -> "CLOSED"
         "OPENED" -> "OPEN"
-        "HALF_CLOSED" -> "HALF_OPEN"
-        "HALF_FOLDED" -> "HALF_OPEN"
+        "HALF_FOLDED" -> "HALF_CLOSED"
         "HALF_OPENED" -> "HALF_OPEN"
         "CONCURRENT_INNER_DEFAULT",
         "DUAL" -> "DUAL_DISPLAY_MODE"
+        "CONCURRENT_OUTER_DEFAULT",
         "REAR_DUAL" -> "REAR_DUAL_MODE"
         else -> adjustedName
       }

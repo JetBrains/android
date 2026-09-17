@@ -154,7 +154,7 @@ fun mockDeviceFor(androidVersion: AndroidVersion, abis: List<Abi>, density: Int?
   whenever(device.version).thenReturn(androidVersion)
   whenever(device.serialNumber).thenReturn("1234")
   whenever(device.isOnline).thenReturn(true)
-  whenever(device.services()).thenReturn(if (androidVersion.apiLevel >= 33) mapOf("sdk_sandbox" to null) else emptyMap())
+  whenever(device.services()).thenReturn(emptyMap())
   density?.let { whenever(device.density).thenReturn(density) }
   return device
 }

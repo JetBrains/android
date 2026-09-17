@@ -125,16 +125,13 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myLeakCanaryEnabled = true;
 
   /**
-   * Whether the LeakCanary milestone 2 features should be visible.
-   */
-  private boolean myLeakCanaryMilestone2Enabled = false;
-
-  /**
    * Whether the V2 of Task Title should be used.
    */
   private boolean myTaskTitleV2Enabled = false;
 
   private boolean mySystemTraceInEditorEnabled = false;
+
+  private boolean myMethodTraceInEditorEnabled = false;
 
   /**
    * Whether power and battery data tracks should be visible in system trace and if shown,
@@ -239,6 +236,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
     return new FeatureConfig() {
 
       @Override
+      public boolean isMethodTraceInEditorEnabled() {
+        return myMethodTraceInEditorEnabled;
+      }
+
+      @Override
       public boolean isMemoryCSVExportEnabled() {
         return false;
       }
@@ -271,11 +273,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isLeakCanaryEnabled() {
         return myLeakCanaryEnabled;
-      }
-
-      @Override
-      public boolean isLeakCanaryMilestone2Enabled() {
-        return myLeakCanaryMilestone2Enabled;
       }
 
       @Override
@@ -448,6 +445,17 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
     return myTraceProcessorService;
   }
 
+  private boolean myDebuggerAttached = false;
+
+  public void setDebuggerAttached(boolean debuggerAttached) {
+    myDebuggerAttached = debuggerAttached;
+  }
+
+  @Override
+  public boolean isDebuggerAttached(@NotNull String deviceId, int pid) {
+    return myDebuggerAttached;
+  }
+
   @Override
   public void buildAndLaunchAction(boolean profileableMode, ProcessListModel.@NotNull ProfilerDeviceSelection device) { }
 
@@ -472,12 +480,12 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
     myLeakCanaryEnabled = enabled;
   }
 
-  public void enableLeakCanaryMilestone2(boolean enabled) {
-    myLeakCanaryMilestone2Enabled = enabled;
-  }
-
   public void enableSystemTraceInEditor(boolean enabled) {
     mySystemTraceInEditorEnabled = enabled;
+  }
+
+  public void enableMethodTraceInEditor(boolean enabled) {
+    myMethodTraceInEditorEnabled = enabled;
   }
 
   @Override

@@ -29,6 +29,8 @@ import com.android.tools.module.AndroidModuleInfo;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Streams;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.IdeFocusManager;
@@ -39,11 +41,14 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.SortedListModel;
 import com.intellij.ui.components.JBList;
+import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import icons.StudioIcons;
+import java.awt.BorderLayout;
 import java.awt.Insets;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -92,16 +97,18 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
 
   @NotNull private final Configuration myConfiguration;
   @NotNull private final ThemeSelectionDialog myDialog;
-  private JBList<String> myThemeList;
-  private Tree myCategoryTree;
-  private JPanel myContentPanel;
-  private ThemeFilterComponent myFilter;
-  @NotNull private final List<String> myFrameworkThemes;
-  @NotNull private final List<String> myProjectThemes;
-  @NotNull private final List<String> myLibraryThemes;
+  private final JBList<String> myThemeList = new JBList<>();
+  private final JBLoadingPanel myThemeListLoadingPanel;
+  private final Tree myCategoryTree;
+  private final JPanel myContentPanel;
+  private final ThemeFilterComponent myFilter;
+  @NotNull private volatile List<String> myFrameworkThemes = Collections.emptyList();
+  @NotNull private volatile List<String> myProjectThemes = Collections.emptyList();
+  @NotNull private volatile List<String> myLibraryThemes = Collections.emptyList();
   @Nullable private static Deque<String> ourRecent;
+  private static final Object RECENT_LOCK = new Object();
   @Nullable private ThemeCategory myCategory = ThemeCategory.ALL;
-  @NotNull private Map<ThemeCategory, List<String>> myThemeMap = Maps.newEnumMap(ThemeCategory.class);
+  @NotNull private final Map<ThemeCategory, List<String>> myThemeMap = Collections.synchronizedMap(Maps.newEnumMap(ThemeCategory.class));
   @NotNull private final Set<String> myExcludedThemes;
   private boolean myIgnore;
 
@@ -116,26 +123,53 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
     myDialog = dialog;
     myConfiguration = configuration;
     myExcludedThemes = excludedThemes;
+    myThemeListLoadingPanel = new JBLoadingPanel(new BorderLayout(), this);
+    myThemeListLoadingPanel.startLoading();
+    myContentPanel = new JPanel();
+    myCategoryTree = new Tree();
+    myFilter = new ThemeFilterComponent("ANDROID_THEME_HISTORY", 10, true);
+    // Allow arrow up/down to navigate the filtered matches
+    myFilter.getTextEditor().addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyPressed(final KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_DOWN || e.getKeyCode() == KeyEvent.VK_UP) {
+          myThemeList.dispatchEvent(e);
+          e.consume();
+        }
+      }
+    });
 
-    ThemeResolver themeResolver = new ThemeResolver(configuration);
     setupUI();
-    StyleResourceValue[] baseThemes = themeResolver.requiredBaseThemes();
-    Function1<ConfiguredThemeEditorStyle, Boolean> filter = ThemeUtils.createFilter(themeResolver, myExcludedThemes, baseThemes);
-    myFrameworkThemes = baseThemes.length == 0
-                        ? ThemeUtils.getFrameworkThemeNames(themeResolver, filter)
-                        : Collections.emptyList();
-    myProjectThemes = ThemeUtils.getProjectThemeNames(themeResolver, filter);
-    myLibraryThemes = ThemeUtils.getLibraryThemeNames(themeResolver, filter);
-
     String currentTheme = ResolutionUtils.getQualifiedNameFromResourceUrl(configuration.getTheme());
     touchTheme(currentTheme, myExcludedThemes);
 
-    myCategoryTree.setModel(new CategoryModel());
-    myCategoryTree.setRootVisible(false);
-    myCategoryTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-    myCategoryTree.addTreeSelectionListener(this);
-    setInitialSelection(currentTheme);
-    myThemeList.addListSelectionListener(this);
+    // Population of the themes is a slow operation so moving to a non-blocking operation in the background.
+    // Creation of the CategoryModel also accesses the current app theme which is also slow so the creation also
+    // must happen in the background.
+    ReadAction.nonBlocking(() -> {
+        ThemeResolver themeResolver = new ThemeResolver(configuration);
+        StyleResourceValue[] baseThemes = themeResolver.requiredBaseThemes();
+        Function1<ConfiguredThemeEditorStyle, Boolean> filter = ThemeUtils.createFilter(themeResolver, myExcludedThemes, baseThemes);
+        myFrameworkThemes = baseThemes.length == 0
+                            ? ThemeUtils.getFrameworkThemeNames(themeResolver, filter)
+                            : Collections.emptyList();
+        myProjectThemes = ThemeUtils.getProjectThemeNames(themeResolver, filter);
+        myLibraryThemes = ThemeUtils.getLibraryThemeNames(themeResolver, filter);
+        return new CategoryModel();
+      })
+      .expireWith(this)
+      .finishOnUiThread(ModalityState.any(), model -> {
+        myCategoryTree.setModel(model);
+        myCategoryTree.setRootVisible(false);
+        myCategoryTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+        myCategoryTree.addTreeSelectionListener(this);
+        setInitialSelection(currentTheme);
+        myThemeList.addListSelectionListener(this);
+        myDialog.checkValidation();
+        myThemeListLoadingPanel.stopLoading();
+      })
+      .submit(AppExecutorUtil.getAppExecutorService());
+
     myThemeList.setCellRenderer(new ColoredListCellRenderer<String>() {
       @Override
       protected void customizeCellRenderer(@NotNull JList list, String style, int index, boolean selected, boolean hasFocus) {
@@ -246,8 +280,10 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
 
     switch (category) {
       case RECENT:
-        if (ourRecent != null) {
-          themes.addAll(ourRecent);
+        synchronized (RECENT_LOCK) {
+          if (ourRecent != null) {
+            themes.addAll(ourRecent);
+          }
         }
         break;
       case HOLO:
@@ -356,21 +392,17 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   }
 
   private void setupUI() {
-    createUIComponents();
-    myContentPanel = new JPanel();
     myContentPanel.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
-    myCategoryTree = new Tree();
     myContentPanel.add(myCategoryTree, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                            null, null, null, 0, false));
-    final JBScrollPane jBScrollPane1 = new JBScrollPane();
-    myContentPanel.add(jBScrollPane1, new GridConstraints(0, 1, 2, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+    final JBScrollPane jBScrollPane1 = new JBScrollPane(myThemeList);
+    myThemeListLoadingPanel.add(jBScrollPane1, BorderLayout.CENTER);
+    myContentPanel.add(myThemeListLoadingPanel, new GridConstraints(0, 1, 2, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
                                                           null, null, 0, false));
-    myThemeList = new JBList();
-    jBScrollPane1.setViewportView(myThemeList);
     myContentPanel.add(myFilter, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_HORIZONTAL,
                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, 1, null,
                                                      null, null, 0, false));
@@ -470,12 +502,14 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
 
   private static void touchTheme(@Nullable String selected, Set<String> excludedThemes) {
     if (selected != null) {
-      if (ourRecent == null || !ourRecent.contains(selected)) {
-        if (ourRecent == null) {
-          ourRecent = new LinkedList<>();
-        }
-        if (!excludedThemes.contains(selected)) {
-          ourRecent.addFirst(selected);
+      synchronized (RECENT_LOCK) {
+        if (ourRecent == null || !ourRecent.contains(selected)) {
+          if (ourRecent == null) {
+            ourRecent = new LinkedList<>();
+          }
+          if (!excludedThemes.contains(selected)) {
+            ourRecent.addFirst(selected);
+          }
         }
       }
     }
@@ -497,8 +531,10 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
       myLabels = Maps.newHashMap();
       List<ThemeCategory> topLevel = new ArrayList<>();
 
-      if (ourRecent != null) {
-        topLevel.add(ThemeCategory.RECENT);
+      synchronized (RECENT_LOCK) {
+        if (ourRecent != null) {
+          topLevel.add(ThemeCategory.RECENT);
+        }
       }
 
       addCategory(topLevel, ThemeCategory.MANIFEST);
@@ -623,20 +659,6 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
 
   private boolean haveAnyMatches(String filter) {
     return haveMatches(filter, myFrameworkThemes) || haveMatches(filter, myProjectThemes);
-  }
-
-  private void createUIComponents() {
-    myFilter = new ThemeFilterComponent("ANDROID_THEME_HISTORY", 10, true);
-    // Allow arrow up/down to navigate the filtered matches
-    myFilter.getTextEditor().addKeyListener(new KeyAdapter() {
-      @Override
-      public void keyPressed(final KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_DOWN || e.getKeyCode() == KeyEvent.VK_UP) {
-          myThemeList.dispatchEvent(e);
-          e.consume();
-        }
-      }
-    });
   }
 
   private class ThemeFilterComponent extends FilterComponent {

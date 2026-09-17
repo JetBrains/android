@@ -21,6 +21,7 @@ import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
+import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.adtui.swing.laf.HeadlessTableUI
 import com.android.tools.adtui.swing.laf.HeadlessTreeUI
 import com.android.tools.componenttree.api.ComponentTreeBuildResult
@@ -54,6 +55,7 @@ import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
 import icons.StudioIcons
 import java.awt.Color
+import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
@@ -63,6 +65,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JScrollPane
 import javax.swing.JTable
 import javax.swing.RepaintManager
@@ -451,6 +454,45 @@ class TreeTableImplTest {
   }
 
   @Test
+  fun testHoverCellCursor() {
+    val table = createTreeTable {
+      withColumn(
+        createIntColumn(
+          "c3",
+          Item::column2,
+          maxInt = { 6 },
+          foreground = JBColor.lightGray,
+          hasCustomCursor = true,
+          actionEnabled = { true },
+          action = column2::performAction,
+          popup = column2::showPopup,
+          tooltip = column2::tooltip,
+        )
+      )
+    }
+    setScrollPaneSize(table, 300, 800)
+    table.tree.expandRow(0)
+    table.tree.expandRow(1)
+    val ui = FakeUi(table)
+    UIUtil.dispatchAllInvocationEvents()
+    val rect0 = table.getCellRect(0, 0, true)
+    val rect3 = table.getCellRect(0, 3, true)
+    val rect4 = table.getCellRect(0, 4, true)
+
+    // Cursor in tree should default to default cursor
+    ui.mouse.moveTo(rect0.centerX.toInt(), rect0.centerY.toInt())
+    assertThat(table.cursor.type).isEqualTo(Cursor.DEFAULT_CURSOR)
+
+    // Move mouse over column 4
+    ui.mouse.moveTo(rect4.centerX.toInt(), rect4.centerY.toInt())
+    assertThat(table.cursor.type).isEqualTo(Cursor.HAND_CURSOR)
+
+    // Move mouse over column 3
+    ui.mouse.moveTo(rect3.centerX.toInt(), rect3.centerY.toInt())
+    assertThat(table.cursor.type).isEqualTo(Cursor.DEFAULT_CURSOR)
+  }
+
+  @Test
   fun testHoverCell() {
     val table = createTreeTable()
     setScrollPaneSize(table, 300, 800)
@@ -638,7 +680,7 @@ class TreeTableImplTest {
 
   @Test
   fun testExplicitExpansionWithModelUpdate() {
-    val result = createTree() { withExpandableRoot() }
+    val result = createTree { withExpandableRoot() }
     val table = result.focusComponent as TreeTableImpl
     val model = result.model
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -656,7 +698,7 @@ class TreeTableImplTest {
 
   @Test
   fun testCollapseCausesSelectionUpdate() {
-    val result = createTree() { withExpandableRoot() }
+    val result = createTree { withExpandableRoot() }
     val table = result.focusComponent as TreeTableImpl
     val selectionModel = result.selectionModel
     TreeUtil.expandAll(table.tree)
@@ -683,7 +725,7 @@ class TreeTableImplTest {
 
   @Test
   fun testCollapseAllCausesSelectionUpdate() {
-    val result = createTree() { withExpandableRoot() }
+    val result = createTree { withExpandableRoot() }
     val table = result.focusComponent as TreeTableImpl
     val selectionModel = result.selectionModel
     TreeUtil.expandAll(table.tree)
@@ -819,7 +861,8 @@ class TreeTableImplTest {
   private fun foregroundOf(table: JTable, column: Int, isSelected: Boolean, hasFocus: Boolean): Color {
     val renderer = table.getCellRenderer(0, column)
     val component = renderer.getTableCellRendererComponent(table, table.getValueAt(0, 2), isSelected, hasFocus, 0, column)
-    return component.foreground
+    val label = component.getDescendant<JLabel>()
+    return label.foreground
   }
 
   private fun setScrollPaneSize(table: TreeTableImpl, width: Int, height: Int): JScrollPane {

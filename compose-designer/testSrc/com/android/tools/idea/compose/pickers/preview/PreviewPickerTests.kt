@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.pickers.preview
 
 import com.android.sdklib.devices.Device
+import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.pickers.base.model.PsiPropertiesModel
@@ -275,6 +276,36 @@ class PreviewPickerTests {
 
   @RunsInEdt
   @Test
+  fun fontScaleValidation() = runBlocking {
+    @Language("kotlin")
+    val fileContent =
+      """
+      import $COMPOSABLE_ANNOTATION_FQN
+      import $PREVIEW_TOOLING_PACKAGE.Preview
+
+      @Composable
+      @Preview
+      fun PreviewNoParameters() {
+      }
+      """
+        .trimIndent()
+
+    val model = getFirstModel(fileContent)
+    val fontScaleProperty = model.properties["", "fontScale"]
+
+    fun assertValidationError(value: String) {
+      val result = fontScaleProperty.editingSupport.validation(value)
+      assertEquals(EditingErrorCategory.ERROR, result.first)
+    }
+
+    assertValidationError("123456789012345678901234567890")
+    assertValidationError("11")
+    assertValidationError("Infinity")
+    assertValidationError("NaN")
+  }
+
+  @RunsInEdt
+  @Test
   fun testUiModeImports() {
     runBlocking<Unit> {
       @Language("kotlin")
@@ -388,6 +419,10 @@ class PreviewPickerTests {
 
     val model = getFirstModel(fileContent)
     val preview = AnnotationFilePreviewElementFinder.findPreviewElements(fixture.project, fixture.findFileInTempDir("Test.kt")).first()
+
+    // When the parameter is not present, BooleanPsiCallParameter will assign "false" instead of "null"
+    assertEquals("false", model.properties["", "showBackground"].value)
+    assertEquals("false", model.properties["", "showSystemUi"].value)
 
     fun checkShowBackgroundChange(newValue: String?, expectedPropertyValue: String?) {
       model.properties["", "showBackground"].value = newValue

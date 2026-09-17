@@ -1722,6 +1722,10 @@ fun modelCacheV2Impl(
       )
     val desugarLibConfig = project.takeIf { modelVersions[ModelFeature.HAS_DESUGAR_LIB_CONFIG] }?.desugarLibConfig.orEmpty()
     val lintJar = project.takeIf { modelVersions[ModelFeature.HAS_LINT_JAR_IN_ANDROID_PROJECT] }?.lintJar?.deduplicateFile()
+    val compileTarget =
+      // Workaround for b/496661905 that was only fixed in AGP 9.2
+      if (androidDsl.compileTarget.startsWith("android-37") && !androidDsl.compileTarget.startsWith("android-37.")) "android-37.0"
+      else androidDsl.compileTarget
 
     return ModelResult.create {
       if (syncTestMode == SyncTestMode.TEST_EXCEPTION_HANDLING) error("**internal error for tests**")
@@ -1733,7 +1737,7 @@ fun modelCacheV2Impl(
         basicVariants = basicVariantsCopy.toList(),
         coreVariants = coreVariantsCopy,
         flavorDimensions = flavorDimensionCopy.toList(),
-        compileTarget = androidDsl.compileTarget,
+        compileTarget = compileTarget,
         bootClasspath = bootClasspathCopy.toList(),
         signingConfigs = signingConfigsCopy.toList(),
         lintOptions = lintOptionsCopy,

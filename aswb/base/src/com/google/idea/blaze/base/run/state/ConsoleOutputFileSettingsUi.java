@@ -20,7 +20,6 @@ import com.google.idea.common.experiments.BoolExperiment;
 import com.intellij.execution.configurations.RunConfigurationBase;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.options.SettingsEditor;
-import com.intellij.openapi.ui.TextComponentAccessor;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -45,9 +44,8 @@ public class ConsoleOutputFileSettingsUi<T extends RunConfigurationBase<?>>
     outputFile.addBrowseFolderListener(
         /* project= */ null,
         FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor()
-          .withTitle("Choose File to Save Console Output")
-          .withDescription("Console output would be saved to the specified file"),
-        TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT);
+            .withTitle("Choose File to Save Console Output")
+            .withDescription("Console output would be saved to the specified file"));
     saveToFile.addActionListener(e -> outputFile.setEnabled(uiEnabled && saveToFile.isSelected()));
   }
 

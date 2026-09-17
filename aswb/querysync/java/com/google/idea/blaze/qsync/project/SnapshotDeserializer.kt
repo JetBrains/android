@@ -15,29 +15,29 @@
  */
 package com.google.idea.blaze.qsync.project
 
-import com.google.common.collect.ImmutableBiMap
-import com.google.common.collect.ImmutableList
+import com.android.tools.idea.protobuf.ExtensionRegistry
 import com.google.common.collect.ImmutableSet
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.common.TargetPattern
 import com.google.idea.blaze.common.vcs.VcsState
 import com.google.idea.blaze.common.vcs.WorkspaceFileChange
+import com.google.idea.blaze.common.vcs.WorkspaceFileChange.Operation
+import com.google.idea.blaze.qsync.project.SnapshotProto.WorkspaceFileChange.VcsOperation
 import com.google.idea.blaze.qsync.query.Query
-import com.google.protobuf.ExtensionRegistry
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.Path
 import java.util.Optional
-import kotlin.jvm.optionals.getOrNull
 
-/** Deserializes a [PostQuerySyncData] instance from an input stream. */
+/** Deserializes a [PostQuerySyncData] and [ProjectStructureData] instance from an input stream. */
 class SnapshotDeserializer private constructor() {
-  private val snapshot: PostQuerySyncData.Builder = PostQuerySyncData.builder()
+  private val syncDataBuilder = PostQuerySyncData.builder()
+  private var projectStructureData: ProjectStructureData? = null
 
   companion object {
     @Throws(IOException::class)
-    fun readFrom(input: InputStream, context: Context<*>): PostQuerySyncData? {
+    fun readFrom(input: InputStream, context: Context<*>): SerializedProjectStructureAndQueryData? {
       val deserializer = SnapshotDeserializer()
       val proto = SnapshotProto.Snapshot.parseFrom(input, ExtensionRegistry.getEmptyRegistry())
       if (proto.version != SnapshotSerializer.PROTO_VERSION) {
@@ -49,47 +49,80 @@ class SnapshotDeserializer private constructor() {
         deserializer.visitVcsState(proto.vcsState)
       }
       if (!proto.getBazelVersion().isEmpty()) {
-        deserializer.snapshot.setBazelVersion(Optional.of(proto.getBazelVersion()))
+        deserializer.syncDataBuilder.setBazelVersion(Optional.of(proto.getBazelVersion()))
+      }
+      if (proto.hasProjectStructureData()) {
+        deserializer.projectStructureData =
+          deserializer.visitProjectStructureData(proto.projectStructureData)
       }
       deserializer.visitQuerySummay(proto.querySummary)
-      return deserializer.snapshot.build()
+      return SerializedProjectStructureAndQueryData(
+        deserializer.syncDataBuilder.build(),
+        deserializer.projectStructureData,
+      )
     }
   }
 
   private fun visitProjectDefinition(proto: SnapshotProto.ProjectDefinition) {
-    snapshot.setProjectDefinition(
+    syncDataBuilder.setProjectDefinition(
       ProjectDefinition(
-        projectIncludes = ImmutableSet.copyOf(proto.includePathsList.map { Path.of(it) }),
-        projectExcludes = ImmutableSet.copyOf(proto.excludePathsList.map { Path.of(it) }),
+        projectIncludes = proto.includePathsList.map { Path.of(it) }.toSet(),
+        projectExcludes = proto.excludePathsList.map { Path.of(it) }.toSet(),
         deriveTargetsFromDirectories = proto.deriveTargetsFromDirectories,
-        targetPatterns = ImmutableList.copyOf(proto.targetPatternsList.map { TargetPattern.parse(it) }),
+        targetPatterns = proto.targetPatternsList.map { TargetPattern.parse(it) },
         isAndroidWorkspace = proto.isAndroidWorkspace,
-        languageClasses = ImmutableSet.copyOf(proto.languageClassesList.mapNotNull { QuerySyncLanguage.fromProto(it).getOrNull() }),
-        testSources = ImmutableSet.copyOf(proto.testSourcesList),
-        systemExcludes = ImmutableSet.copyOf(proto.systemExcludesList.map { Path.of(it) }),
+        languageClasses = proto.languageClassesList.mapNotNull { it.toQuerySyncLanguage() }.toSet(),
+        testSources = proto.testSourcesList.toSet(),
+        systemExcludes = proto.systemExcludesList.map { Path.of(it) }.toSet(),
       )
     )
   }
 
   private fun visitVcsState(proto: SnapshotProto.VcsState) {
-    snapshot.setVcsState(Optional.of<VcsState?>(convertVcsState(proto)))
+    syncDataBuilder.setVcsState(Optional.of<VcsState?>(convertVcsState(proto)))
   }
 
   private fun visitQuerySummay(proto: Query.Summary?) {
-    snapshot.setQuerySummary(proto)
+    syncDataBuilder.setQuerySummary(proto)
+  }
+
+  private fun visitProjectStructureData(
+    proto: SnapshotProto.ProjectStructureData
+  ): ProjectStructureData {
+    val packageSourceSets =
+      proto.packageSourceSetsList.associate { sourceSet ->
+        Path.of(sourceSet.workspaceRelativePath) to
+          SourceSet(
+            javaSourceFiles = sourceSet.javaSourceFilesList.map { Path.of(it) },
+            nonJavaSourceFiles = sourceSet.nonJavaSourceFilesList.map { Path.of(it) },
+          )
+      }
+
+    val activeLanguages = proto.activeLanguagesList.mapNotNull { it.toQuerySyncLanguage() }.toSet()
+
+    return ProjectStructureData(packageSourceSets, activeLanguages)
   }
 }
-
-private val OP_MAP: ImmutableBiMap<SnapshotProto.WorkspaceFileChange.VcsOperation, WorkspaceFileChange.Operation> =
-  SnapshotSerializer.OP_MAP.inverse()
 
 private fun convertVcsState(proto: SnapshotProto.VcsState): VcsState {
   return VcsState(
     proto.getWorkspaceId(),
     proto.getUpstreamRevision(),
     ImmutableSet.copyOf(
-      proto.workingSetList.map { WorkspaceFileChange(OP_MAP.get(it.getOperation()), Path.of(it.getWorkspaceRelativePath())) }
+      proto.workingSetList.map {
+        WorkspaceFileChange(it.getOperation().toOperation(), Path.of(it.getWorkspaceRelativePath()))
+      }
     ),
-    if (proto.hasWorkspaceSnapshot()) Optional.of(Path.of(proto.workspaceSnapshot.getPath())) else Optional.empty(),
+    if (proto.hasWorkspaceSnapshot()) Optional.of(Path.of(proto.workspaceSnapshot.getPath()))
+    else Optional.empty(),
   )
 }
+
+private fun VcsOperation.toOperation(): Operation =
+  when (this) {
+    VcsOperation.ADD -> Operation.ADD
+    VcsOperation.DELETE -> Operation.DELETE
+    VcsOperation.MODIFY -> Operation.MODIFY
+    VcsOperation.UNSPECIFIED,
+    VcsOperation.UNRECOGNIZED -> error("Unknown VcsOperation: $this")
+  }

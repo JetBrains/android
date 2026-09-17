@@ -240,6 +240,7 @@ class DetailsViewContentViewTest {
     view.myBenchmarkView.waitAllRequests()
     assertThat(view.myBenchmarkView.text).isEqualTo("test benchmark message\n")
     assertThat(view.myBenchmarkTab.isHidden).isFalse()
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
     assertThat(view.tabs.selectedInfo).isEqualTo(view.myBenchmarkTab)
   }
 
@@ -284,6 +285,8 @@ class DetailsViewContentViewTest {
       .thenReturn(mapOf("PreviewScreenshot.newImagePath" to "/path/to/newImage"))
 
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.get()
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
     assertThat(view.myScreenshotTab.isHidden).isFalse()
     assertThat(view.myScreenshotAttributesTab.isHidden).isFalse()
@@ -299,6 +302,8 @@ class DetailsViewContentViewTest {
     whenever(mockTestResults.getLogcat(testDevice)).thenReturn("")
     whenever(mockTestResults.getErrorStackTrace(testDevice)).thenReturn("")
     view.setResults(testDevice, mockTestResults)
+    view.pathResolutionFuture?.get()
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
 
     view.myLogsView.waitAllRequests()
 
@@ -380,7 +385,49 @@ class DetailsViewContentViewTest {
 
     view.setResults(testDevice, mockTestResults)
 
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
     assertThat(view.tabs.selectedInfo).isEqualTo(view.myJourneyScreenshotsTab)
+  }
+
+  @Test
+  fun testTabFallbackWhenCurrentTabHidden() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val testDevice = device("device id", "device name")
+
+    whenever(mockTestResults.getBenchmark(testDevice)).thenReturn(BenchmarkOutput("test benchmark message"))
+    view.setResults(testDevice, mockTestResults)
+    view.myBenchmarkView.waitAllRequests()
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+
+    assertThat(view.tabs.selectedInfo).isEqualTo(view.myBenchmarkTab)
+
+    whenever(mockTestResults.getBenchmark(testDevice)).thenReturn(BenchmarkOutput.Empty)
+    view.setResults(testDevice, mockTestResults)
+    view.myBenchmarkView.waitAllRequests()
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+
+    assertThat(view.tabs.selectedInfo).isEqualTo(view.logsTab)
+  }
+
+  @Test
+  fun testSwapBeforeHideWhenDeviceInfoHidden() {
+    val view = DetailsViewContentView(disposableRule.disposable, projectRule.project, mockLogger, headerActions)
+    val testDevice = device("device id", "device name")
+
+    view.setResults(testDevice, mockTestResults)
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+
+    view.tabs.select(view.myDeviceInfoTab, false)
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+    assertThat(view.tabs.selectedInfo).isEqualTo(view.myDeviceInfoTab)
+
+    whenever(mockTestResults.getAdditionalTestArtifacts(testDevice))
+      .thenReturn(mapOf("PreviewScreenshot.newImagePath" to "/path/to/newImage"))
+
+    view.setResults(testDevice, mockTestResults)
+    com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents()
+
+    assertThat(view.tabs.selectedInfo).isEqualTo(view.myScreenshotTab)
   }
 
   private fun device(id: String, name: String): AndroidDevice {

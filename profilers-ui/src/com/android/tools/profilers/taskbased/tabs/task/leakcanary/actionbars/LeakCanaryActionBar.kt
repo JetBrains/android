@@ -69,10 +69,8 @@ fun LeakCanaryActionBar(leakCanaryModel: LeakCanaryModel) {
       Spacer(modifier = Modifier.weight(1f))
       HeapDumpAndAnalysisStatus(leakCanaryModel)
       Spacer(modifier = Modifier.width(8.dp))
-      if (leakCanaryModel.isLeakCanaryMilestone2Enabled) {
-        DefaultButton(onClick = { leakCanaryModel.forceHeapDump() }, enabled = isForceDumpEnabled) { Text(LEAKCANARY_FORCE_DUMP) }
-        Spacer(modifier = Modifier.width(8.dp))
-      }
+      DefaultButton(onClick = { leakCanaryModel.forceHeapDump() }, enabled = isForceDumpEnabled) { Text(LEAKCANARY_FORCE_DUMP) }
+      Spacer(modifier = Modifier.width(8.dp))
       DefaultButton(onClick = { leakCanaryModel.requestStopRecording() }, enabled = !isStopping) { Text(ACTION_BAR_STOP_RECORDING) }
     }
   }

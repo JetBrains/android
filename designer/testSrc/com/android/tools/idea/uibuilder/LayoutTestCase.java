@@ -118,6 +118,7 @@ public abstract class LayoutTestCase extends AndroidTestCase {
   protected RenderResult getRenderResultWithRootViews(ImmutableList<ViewInfo> rootViews) {
     RenderResult result = Mockito.mock(RenderResult.class);
     when(result.getRootViews()).thenReturn(rootViews);
+    when(result.getSystemRootViews()).thenReturn(rootViews);
     return result;
   }
 }

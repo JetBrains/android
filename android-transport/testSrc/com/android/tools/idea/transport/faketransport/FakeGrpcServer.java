@@ -17,17 +17,7 @@ package com.android.tools.idea.transport.faketransport;
 
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.CpuProfiler.CpuDataRequest;
-import com.android.tools.profiler.proto.CpuProfiler.CpuDataResponse;
-import com.android.tools.profiler.proto.CpuProfiler.CpuStartRequest;
-import com.android.tools.profiler.proto.CpuProfiler.CpuStartResponse;
-import com.android.tools.profiler.proto.CpuProfiler.CpuStopRequest;
-import com.android.tools.profiler.proto.CpuProfiler.CpuStopResponse;
-import com.android.tools.profiler.proto.CpuProfiler.GetThreadsRequest;
-import com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse;
-import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
-import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
-import com.android.tools.profiler.proto.CpuServiceGrpc;
+
 import com.android.tools.profiler.proto.EventProfiler.ActivityDataResponse;
 import com.android.tools.profiler.proto.EventProfiler.EventDataRequest;
 import com.android.tools.profiler.proto.EventProfiler.EventStartRequest;
@@ -75,13 +65,11 @@ public class FakeGrpcServer extends FakeGrpcChannel {
   public static FakeGrpcServer createFakeGrpcServer(String name, BindableService transportService, BindableService profilerService) {
     EventService eventService = new EventService();
     MemoryService memoryService = new MemoryService();
-    CpuService cpuService = new CpuService();
     FakeGrpcServer server =
-      new FakeGrpcServer(name, transportService, profilerService, eventService, memoryService, cpuService);
+      new FakeGrpcServer(name, transportService, profilerService, eventService, memoryService);
     // Set the links between the services and the server.
     eventService.myServer = server;
     memoryService.myServer = server;
-    cpuService.myServer = server;
     TransportService.setTestChannelName(server.getName());
     return server;
   }
@@ -191,40 +179,5 @@ public class FakeGrpcServer extends FakeGrpcChannel {
     }
   }
 
-  public static class CpuService extends CpuServiceGrpc.CpuServiceImplBase {
-    private final List<Trace.TraceInfo> myTraceInfos = new ArrayList<>();
-    private FakeGrpcServer myServer;
 
-    @Override
-    public void startMonitoringApp(CpuStartRequest request, StreamObserver<CpuStartResponse> response) {
-      myServer.addProfiledProcess(request.getSession());
-      response.onNext(CpuStartResponse.getDefaultInstance());
-      response.onCompleted();
-    }
-
-    @Override
-    public void stopMonitoringApp(CpuStopRequest request, StreamObserver<CpuStopResponse> response) {
-      myServer.removeProfiledProcess(request.getSession());
-      response.onNext(CpuStopResponse.getDefaultInstance());
-      response.onCompleted();
-    }
-
-    @Override
-    public void getData(CpuDataRequest request, StreamObserver<CpuDataResponse> response) {
-      response.onNext(CpuDataResponse.getDefaultInstance());
-      response.onCompleted();
-    }
-
-    @Override
-    public void getThreads(GetThreadsRequest request, StreamObserver<GetThreadsResponse> response) {
-      response.onNext(GetThreadsResponse.getDefaultInstance());
-      response.onCompleted();
-    }
-
-    @Override
-    public void getTraceInfo(GetTraceInfoRequest request, StreamObserver<GetTraceInfoResponse> response) {
-      response.onNext(GetTraceInfoResponse.newBuilder().addAllTraceInfo(myTraceInfos).build());
-      response.onCompleted();
-    }
-  }
 }

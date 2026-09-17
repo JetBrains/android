@@ -4,6 +4,7 @@ from pathlib import Path
 import json
 import os
 import shlex
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -41,13 +42,20 @@ def main():
     with ThreadPoolExecutor() as executor:
         executor.map(fetch_revision, projects)
 
-    # Sync.
-    with tempfile.NamedTemporaryFile(suffix='-intellij-update-draft-manifest.xml') as manifest:
+    # Write the manifest to disk so we can sync to it.
+    # Note: on Windows we need to close() the file before using it from another subprocess.
+    with tempfile.NamedTemporaryFile(suffix='-ij-update-manifest.xml', delete=False) as manifest:
+        manifest_path = manifest.name
         manifest.write(manifest_content.encode())
-        sync_cmd = ['repo', 'sync', '--detach', '-m', manifest.name, *args]
+
+    # Sync.
+    try:
+        sync_cmd = [which('repo'), 'sync', '--detach', '-m', manifest_path, *args]
         print('Running:', shlex.join(sync_cmd))
         if subprocess.run(sync_cmd).returncode != 0:
             sys.exit('ERROR: repo sync failed')
+    finally:
+        Path(manifest_path).unlink(missing_ok=True)
 
     print()
     print('Done. To return to studio-main, just run repo sync.')
@@ -80,9 +88,11 @@ def fetch_revision(project: ET.Element):
 
 
 def find_repo_root(cd: Path) -> Path:
-    while cd != cd.root:
+    while True:
         if cd.joinpath('.repo').is_dir():
             return cd
+        if cd == cd.parent:
+            break
         cd = cd.parent
     sys.exit('ERROR: failed to find repo root')
 
@@ -90,10 +100,20 @@ def find_repo_root(cd: Path) -> Path:
 # Like subprocess.check_output() but with logging.
 def run(*args: str):
     print('Running:', shlex.join(args))
+    args = [which(args[0]), *args[1:]]
     result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if result.returncode != 0:
         sys.exit(f'ERROR: command failed\n{result.stdout}\n{result.stderr}')
     return result.stdout
+
+
+# Uses shutil.which() to find the full path to a command. This is helpful on Windows
+# for supporting command suffixes beyond just .exe (such as .cmd, .bat, etc.).
+def which(command: str) -> str:
+    result = shutil.which(command)
+    if not result:
+        sys.exit(f"ERROR: '{command}' is missing from PATH, please install it")
+    return result
 
 
 if __name__ == '__main__':

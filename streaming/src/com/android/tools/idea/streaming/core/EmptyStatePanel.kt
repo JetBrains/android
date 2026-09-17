@@ -39,10 +39,8 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.util.concurrent.atomic.AtomicInteger
 import javax.swing.SwingConstants
 import javax.swing.event.HyperlinkEvent
-import org.jetbrains.annotations.TestOnly
 
 // As recommended at https://jetbrains.github.io/ui/principles/empty_state/#21.
 private const val TOP_MARGIN = 0.45
@@ -196,9 +194,4 @@ internal class EmptyStatePanel(private val project: Project, disposableParent: D
   }
 
   override fun dispose() {}
-
-  companion object {
-    @TestOnly
-    internal val asyncActivityCount: AtomicInteger? = if (ApplicationManager.getApplication().isUnitTestMode) AtomicInteger() else null
-  }
 }

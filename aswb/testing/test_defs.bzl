@@ -6,7 +6,7 @@ load(
     "api_version_txt",
 )
 load("//tools/adt/idea/studio:studio.bzl", "PluginInfo")
-load("//tools/base/bazel:bazel.bzl", "get_xbootclasspath_jvm_flags")
+load("//tools/base/bazel:bazel.bzl", "ImlModuleInfo", "get_xbootclasspath_jvm_flags")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 
 ADD_OPENS = [
@@ -110,8 +110,14 @@ def intellij_unit_test_suite(
       name: name of this rule.
       srcs: the test classes.
       test_package_root: only tests under this package root will be run.
+      deps: dependencies required for the test.
+      runtime_deps: runtime dependencies.
+      args: arguments to pass to the test tool.
+      friends: list of targets that can access internal members.
+      target_compatible_with: target compatibility constraint.
       class_rules: JUnit class rules to apply to these tests.
       size: the test size.
+      tags: list of tags to apply to the test target.
       **kwargs: Any other args to be passed to the java_test.
     """
     suite_class_name = name + "TestSuite"
@@ -155,6 +161,7 @@ def intellij_unit_test_suite(
     # NOTE: Do not replace with `kotlin_test` as it orders classpath in a way
     #       that puts test dependencies first. Integration tests need plugin
     #       `'jars` coming first.
+    # buildifier: disable=native-java-test
     native.java_test(
         name = name,
         size = size,
@@ -167,7 +174,16 @@ def intellij_unit_test_suite(
         **kwargs
     )
 
+def _module_to_java_info(m):
+    # buildifier: disable=native-java-info
+    if JavaInfo in m:
+        # buildifier: disable=native-java-info
+        return m[JavaInfo]
+    else:
+        return m[ImlModuleInfo].main_provider
+
 def _plugin_deps_impl(ctx):
+    # buildifier: disable=native-java-info
     java_infos = [p[JavaInfo] for p in ctx.attr.plugins if JavaInfo in p]
     modules = depset([], transitive = [p[PluginInfo].modules for p in ctx.attr.plugins])
     libs = depset(transitive = [p[PluginInfo].libs for p in ctx.attr.plugins])
@@ -181,7 +197,8 @@ def _plugin_deps_impl(ctx):
         })
 
     return [
-        java_common.merge([p[JavaInfo] for p in depset([], transitive = [modules, libs]).to_list()] + java_infos),
+        # buildifier: disable=native-java-common
+        java_common.merge([_module_to_java_info(m) for m in (modules.to_list() + libs.to_list())] + java_infos),
         DefaultInfo(files = depset(data.values())),
     ]
 
@@ -198,6 +215,7 @@ _plugin_deps = rule(
 DEFAULT_INTEGRATION_TEST_PLUGINS = [
     "//tools/vendor/google/aswb:com.google.idea.g3plugins",  # TODO: solodkyy - Consider switching to the non-repacked version of the plugin.
     "//tools/vendor/google/aswb/third_party/java/jetbrains/protobuf:idea.plugin.protoeditor",
+    "//tools/vendor/google/asfg/g3plugins/plugin-core:com.google.idea.g3plugins.core",
     "//tools/adt/idea/studio:org.jetbrains.android",
     "//tools/adt/idea/studio:com.android.tools.apk",
     "//tools/adt/idea/studio:com.android.tools.ndk",
@@ -246,6 +264,7 @@ def intellij_integration_test_suite(
       jvm_flags: extra flags to be passed to the test vm.
       shard_count: the number of parallel shards to use to run the test.
       runtime_deps: the required runtime dependencies, (e.g., intellij_plugin targets).
+      plugins: Any plugin dependencies to be loaded in the test environment.
       required_plugins: optional comma-separated list of plugin IDs. Integration tests will fail if
           these plugins aren't loaded at runtime.
       friends: Kotlin test friends
@@ -288,6 +307,9 @@ def intellij_integration_test_suite(
         "-Didea.classpath.index.enabled=false",
         "-Djava.awt.headless=true",
         "-Dblaze.idea.api.version.file=$(location %s)" % api_version_txt_name,
+        "-Dintellij.ext.binary=/dev/null",
+        "-Dintellij.objfs_fetcher.binary=/dev/null",
+        "-Dintellij.regurgitator.binary=/dev/null",
     ])
     jvm_flags.extend(ADD_OPENS)
 
@@ -331,6 +353,7 @@ def intellij_integration_test_suite(
     # NOTE: Do not replace with `kotlin_test` as it orders classpath in a way
     #       that puts test dependencies first. Integration tests need plugin
     #       `'jars` coming first.
+    # buildifier: disable=native-java-test
     native.java_test(
         name = name,
         size = size,
@@ -391,6 +414,7 @@ def aswb_test(
         target_compatible_with = target_compatible_with,
     )
 
+    # buildifier: disable=native-java-test
     native.java_test(
         name = name,
         runtime_deps = [

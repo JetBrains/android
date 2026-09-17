@@ -1,0 +1,2 @@
+# This file is used by ktfmt-cherry-pick.sh
+*.kt merge=ktfmt

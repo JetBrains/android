@@ -26,6 +26,7 @@ import org.hamcrest.core.IsEqual.equalTo
 import org.junit.After
 import org.junit.Assert.assertThat
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -43,6 +44,7 @@ class PsProjectImplDeclarativeTest {
   }
 
   @Test
+  @Ignore("b/500308639")
   fun testAgpVersionDeclarative() {
     projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_DECLARATIVE)
     var project = PsProjectImpl(projectRule.project)

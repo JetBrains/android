@@ -44,7 +44,7 @@ class NonComposeProjectTest {
           .trimIndent(),
       )
 
-    val previewProvider = ComposePreviewRepresentationProvider { AnnotationFilePreviewElementFinder }
+    val previewProvider = ComposePreviewRepresentationProvider()
     runBlocking { assertFalse(previewProvider.accept(project, file)) }
   }
 }

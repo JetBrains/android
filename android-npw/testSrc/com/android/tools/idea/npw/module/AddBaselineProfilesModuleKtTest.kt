@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.module
 
 import com.android.tools.idea.npw.NewProjectWizardTestUtils.getAgpVersion
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.wizard.template.DslLanguage.KTS
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -33,6 +34,6 @@ class AddBaselineProfilesModuleKtTest(private val useGmdParam: Boolean) {
 
   @Test
   fun addNewBaselineProfilesModuleTest() {
-    AddBaselineProfilesModuleTest.addNewBaselineProfilesModule(projectRule, useGmdParam, true)
+    AddBaselineProfilesModuleTest.addNewBaselineProfilesModule(projectRule, useGmdParam, KTS)
   }
 }

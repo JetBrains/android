@@ -16,13 +16,13 @@
 package com.android.tools.idea.avd
 
 import com.android.adblib.AdbSession
+import com.android.sdklib.deviceprovisioner.AvdScanner
 import com.android.sdklib.deviceprovisioner.DeviceIcons
 import com.android.sdklib.deviceprovisioner.DeviceProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.LocalEmulatorContext
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProvisionerPlugin
-import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.idea.adblib.AdbLibService
-import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.avdmanager.AvdScannerService
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerFactory
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
@@ -42,7 +42,7 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
     coroutineScope: CoroutineScope,
     adbSession: AdbSession,
     project: Project?,
-    avdScanner: () -> List<AvdInfo> = { AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(true) },
+    avdScanner: AvdScanner = AvdScannerService.instance,
   ): DeviceProvisionerPlugin {
     val icons =
       DeviceIcons(
@@ -56,7 +56,7 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
     return StudioLocalEmulatorProvisionerPlugin(
       scope = coroutineScope,
       basePlugin =
-        LocalEmulatorProvisionerPlugin(scope = coroutineScope, adbSession = adbSession, refreshAvds = avdScanner, deviceIcons = icons),
+        LocalEmulatorProvisionerPlugin(scope = coroutineScope, adbSession = adbSession, avdScanner = avdScanner, deviceIcons = icons),
       context =
         LocalEmulatorContext(
           logger = adbSession.host.loggerFactory.createLogger(StudioLocalEmulatorProvisionerPlugin::class.java),
@@ -64,6 +64,7 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
           clock = Clock.System,
         ),
       project = project,
+      avdScanner = avdScanner,
     )
   }
 }

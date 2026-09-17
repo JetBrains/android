@@ -54,10 +54,10 @@ public class RecommendedPluginVersionUpgradeTest {
       // Test for deprecated AGP versions, which should force (if a prerelease) or recommend (if not).  (Move these to the set
       // above and change the expectations to false when the minimum version changes, and possibly implement a new set of
       // deprecated expectations.)
-      {"7.0.0-alpha01", "7.1.0", false},
-      {"7.0.0-beta01", "7.1.0", false},
-      {"7.0.0-rc01", "7.1.0", true},
-      {"7.0.0", "7.1.0", true},
+      {"7.1.0-alpha01", "7.2.0", false},
+      {"7.1.0-beta01", "7.2.0", false},
+      {"7.1.0-rc01", "7.2.0", true},
+      {"7.1.0", "7.2.0", true},
       // We never suggest to upgrade from alpha/beta version to another alpha/beta version.
       // It is handled by force upgrade.
       {"7.3.0-alpha02", "7.3.0-alpha01", false},

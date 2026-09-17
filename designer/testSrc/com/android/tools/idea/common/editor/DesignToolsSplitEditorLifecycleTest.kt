@@ -28,6 +28,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertFalse
@@ -41,7 +42,7 @@ class DesignToolsSplitEditorLifecycleTest {
 
   @Suppress("UnstableApiUsage")
   @Test
-  fun testSelectNotifyForAsynchronousLoad() = runBlocking {
+  fun testSelectNotifyForAsynchronousLoad(): Unit = runBlocking {
     val project = projectRule.project
     // Use the real FileEditorManager
     project.putUserData(FileEditorManagerKeys.ALLOW_IN_LIGHT_PROJECT, true)
@@ -89,5 +90,8 @@ class DesignToolsSplitEditorLifecycleTest {
       "The surface must be active after the editor has completed loading",
       editor.designerEditor.component.surface.isActiveForTest(),
     )
+
+    // Wait for the surface to finish loading to avoid concurrent disposals while its activating
+    editor.designerEditor.component.surface.modelChanged.first()
   }
 }

@@ -11,5 +11,7 @@ iml_module(
         "@intellij//:com.intellij.properties",
         "@intellij//:com.intellij.modules.json",
         "@intellij//:Git4Idea",
+        "@intellij//:org.jetbrains.plugins.gradle",
+        "@intellij//:org.intellij.groovy",
     ],
 )

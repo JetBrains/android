@@ -1,27 +1,29 @@
 load("@community//build:tests-options.bzl", "jps_test")
-load("@community//platform/build-scripts/bazel-rules:dev_dist_plugin.bzl", "dev_dist_plugin")
-load("@jps_dynamic_deps_community//:targets.bzl", "MODULE_DESCRIPTORS", "MODULE_TARGETS")
+load("@jps_dynamic_deps_community//:targets.bzl", "dev_dist_plugin")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `dev intellij.android.gradle.declarative.lang.ide` start
 dev_dist_plugin(
+    content_modules = [
+        # do not sort,
+        "intellij.android.gradle.declarative.lang",
+        "intellij.android.gradle.declarative.lang.sync",
+        "intellij.android.gradle.declarative.lang.flags",
+    ],
     descriptor = "resources/META-INF/plugin.xml",
-    descriptor_index = MODULE_DESCRIPTORS,
     descriptor_modules = [
         "intellij.android.gradle.declarative.lang",
         "intellij.android.gradle.declarative.lang.flags",
         "intellij.android.gradle.declarative.lang.sync",
     ],
-    libraries = [
-        "@lib//:studio-platform",
-        "@lib//:studio-test-platform",
-    ],
+    jars = {
+        "lib/android-gradle-declarative-lang-ide.jar": ["intellij.android.gradle.declarative.lang.ide"],
+    },
     main_module = "intellij.android.gradle.declarative.lang.ide",
-    module_targets = MODULE_TARGETS,
-    prepacked_jars = {
-        "intellij.android.gradle.declarative.lang.flags": "intellij.android.gradle.declarative.lang.flags.jar",
-        "intellij.android.gradle.declarative.lang.sync": "intellij.android.gradle.declarative.lang.sync.jar",
-        "intellij.android.gradle.declarative.lang": "intellij.android.gradle.declarative.lang.jar",
+    module_jar_paths = {
+        "intellij.android.gradle.declarative.lang": "lib/intellij.android.gradle.declarative.lang.jar",
+        "intellij.android.gradle.declarative.lang.sync": "lib/intellij.android.gradle.declarative.lang.sync.jar",
+        "intellij.android.gradle.declarative.lang.flags": "lib/intellij.android.gradle.declarative.lang.flags.jar",
     },
     separate_jar = ["intellij.android.gradle.declarative.lang"],
 )

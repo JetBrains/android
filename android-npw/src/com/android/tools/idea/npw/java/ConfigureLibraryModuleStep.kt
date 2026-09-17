@@ -17,7 +17,6 @@ package com.android.tools.idea.npw.java
 
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.device.FormFactor
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.contextLabel
 import com.android.tools.idea.npw.module.ConfigureModuleStep
 import com.android.tools.idea.npw.module.generateBuildConfigurationLanguageRow
@@ -41,9 +40,7 @@ class ConfigureLibraryModuleStep(model: NewLibraryModuleModel, title: String) :
         row("Package name") { cell(packageName).align(AlignX.FILL) }
         row("Class name") { cell(className).align(AlignX.FILL) }
         row("Language") { cell(languageCombo).align(AlignX.FILL) }
-        if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
-          generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
-        }
+        generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
       }
       .withBorder(empty(6))
 

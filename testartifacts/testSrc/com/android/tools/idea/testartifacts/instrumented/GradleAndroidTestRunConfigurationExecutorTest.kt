@@ -16,7 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.ddmlib.IDevice
-import com.android.ddmlib.internal.DeviceImpl
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.AssumeUtil
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.execution.common.assertTaskPresentedInStats
@@ -39,10 +39,12 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
+import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 
 /** Unit tests for [GradleAndroidTestRunConfigurationExecutor]. */
@@ -56,7 +58,7 @@ class GradleAndroidTestRunConfigurationExecutorTest {
 
   @Mock lateinit var mockGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker
 
-  private val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
+  private val device = mock<IDevice>()
 
   private fun getEnv(executor: Executor): ExecutionEnvironment {
     val configSettings =
@@ -77,6 +79,10 @@ class GradleAndroidTestRunConfigurationExecutorTest {
   fun assumeNotWindows() {
     // Skip tests on Windows. AndroidProjectRule is flaky on Windows. b/375406411
     AssumeUtil.assumeNotWindows()
+
+    whenever(device.serialNumber).thenReturn("serial_number")
+    whenever(device.version).thenReturn(AndroidVersion(30))
+    whenever(device.isOnline).thenReturn(true)
   }
 
   @Test

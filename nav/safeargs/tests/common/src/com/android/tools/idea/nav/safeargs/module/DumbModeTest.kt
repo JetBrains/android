@@ -23,6 +23,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.testFramework.DumbModeTestUtils
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Assert.assertThrows
 import org.junit.Before
@@ -79,6 +80,7 @@ class DumbModeTest {
           .trimIndent()
       WriteCommandAction.runWriteCommandAction(project) { navFile.virtualFile.replaceWithSaving("</fragment>", replaceXmlContent, project) }
 
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
       // Fetching nav info during dumb mode is not allowed
       assertThrows(IndexNotReadyException::class.java) { moduleCache.args }
     }

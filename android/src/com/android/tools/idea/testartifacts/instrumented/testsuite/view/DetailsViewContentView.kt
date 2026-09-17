@@ -24,6 +24,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Journey
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkLinkListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.logScreenshotTestEvent
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.html.HtmlEscapers
@@ -54,6 +55,7 @@ import com.intellij.ui.components.panels.NonOpaquePanel
 import com.intellij.ui.tabs.JBTabs
 import com.intellij.ui.tabs.JBTabsFactory.createTabs
 import com.intellij.ui.tabs.TabInfo
+import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.messages.MessageBus
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -63,6 +65,7 @@ import java.awt.Dimension
 import java.awt.FlowLayout
 import java.util.Arrays
 import java.util.Locale
+import java.util.concurrent.Future
 import javax.accessibility.AccessibleContext
 import javax.accessibility.AccessibleRole
 import javax.swing.JPanel
@@ -286,10 +289,16 @@ class DetailsViewContentView(
               westPanel.add(AndroidTestSuiteView.MyItemSeparator())
               add(westPanel, BorderLayout.WEST)
 
-              // Wrap the error label in a scroll pane
+              // Wrap the error label in a FlowLayout identical to westPanel to vertically center it
+              val errorLabelContainer = NonOpaquePanel(FlowLayout(FlowLayout.LEFT, 0, 0))
+              errorLabelContainer.add(myTestResultLabel)
+              // Add a rigid area to force the row height to match the separator's 24px height.
+              errorLabelContainer.add(javax.swing.Box.createRigidArea(Dimension(0, com.intellij.ui.scale.JBUIScale.scale(24))))
+
+              // Wrap the error label container in a scroll pane
               val scrollPane =
                 JBScrollPane(
-                  myTestResultLabel,
+                  errorLabelContainer,
                   ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
                   ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED,
                 )
@@ -326,15 +335,11 @@ class DetailsViewContentView(
     myAndroidDevice = androidDevice
     refreshTestResultLabel()
     myDeviceInfoTableView.setAndroidDevice(androidDevice)
-
-    updateSelectedTab()
   }
 
   private fun setAndroidTestCaseResult(result: AndroidTestCaseResult?) {
     myAndroidTestCaseResult = result
     refreshTestResultLabel()
-
-    updateSelectedTab()
   }
 
   private fun setLogcat(logcat: String) {
@@ -343,8 +348,6 @@ class DetailsViewContentView(
     if (needsRefreshLogsView) {
       myLogcat = logcat
       refreshLogsView()
-
-      updateSelectedTab()
     }
   }
 
@@ -354,8 +357,6 @@ class DetailsViewContentView(
       myErrorStackTrace = errorStackTrace
       refreshTestResultLabel()
       refreshLogsView()
-
-      updateSelectedTab()
     }
   }
 
@@ -366,46 +367,63 @@ class DetailsViewContentView(
     }
     val benchmarkOutputIsEmpty = benchmarkText.lines.isEmpty()
     myBenchmarkTab.isHidden = benchmarkOutputIsEmpty
-
-    updateSelectedTab()
   }
 
+  @VisibleForTesting var pathResolutionFuture: Future<*>? = null
+
   private fun setAdditionalTestArtifacts(additionalTestArtifacts: Map<String, String>, testResults: AndroidTestResults?) {
-    val newImage = additionalTestArtifacts["PreviewScreenshot.newImagePath"]
-    val refImage = additionalTestArtifacts["PreviewScreenshot.refImagePath"]
-    val diffImage = additionalTestArtifacts["PreviewScreenshot.diffImagePath"]
-    val diffPercentString = additionalTestArtifacts["PreviewScreenshot.diffPercent"]?.takeIf { it.isNotBlank() }
-    val diffPercent: Double? = diffPercentString?.toDoubleOrNull()
+    val className = testResults?.className
 
-    val shouldButtonBeVisible = (newImage != null || refImage != null || diffImage != null)
+    // Perform path resolution in background to avoid blocking the UI thread
+    pathResolutionFuture =
+      AppExecutorUtil.getAppExecutorService().submit {
+        val newImage = ScreenshotTestUtils.resolvePath(project, className, additionalTestArtifacts["PreviewScreenshot.newImagePath"])
+        val refImage = ScreenshotTestUtils.resolvePath(project, className, additionalTestArtifacts["PreviewScreenshot.refImagePath"])
+        val diffImage = ScreenshotTestUtils.resolvePath(project, className, additionalTestArtifacts["PreviewScreenshot.diffImagePath"])
+        val diffPercentString = additionalTestArtifacts["PreviewScreenshot.diffPercent"]?.takeIf { it.isNotBlank() }
+        val diffPercent: Double? = diffPercentString?.toDoubleOrNull()
 
-    if (shouldButtonBeVisible) {
-      myScreenshotAttributesTab.isHidden = false
-      myScreenshotTab.isHidden = false
-      myDeviceInfoTab.isHidden = true
-      myScreenshotResultView.newImagePath = newImage ?: ""
-      myScreenshotResultView.refImagePath = refImage ?: ""
-      myScreenshotResultView.diffImagePath = diffImage ?: ""
-      myScreenshotResultView.testFailed = (myAndroidTestCaseResult == AndroidTestCaseResult.FAILED)
-      myScreenshotResultView.updateView()
-      myScreenshotAttributesView.updateData(
-        refImage,
-        newImage,
-        testResults?.methodName,
-        testResults?.className,
-        myAndroidTestCaseResult,
-        diffPercent,
-      )
-    } else {
-      myScreenshotTab.isHidden = true
-      myScreenshotAttributesTab.isHidden = true
-    }
+        ApplicationManager.getApplication().invokeLater {
+          val shouldButtonBeVisible = (newImage != null || refImage != null || diffImage != null)
 
+          if (shouldButtonBeVisible) {
+            myScreenshotAttributesTab.isHidden = false
+            myScreenshotTab.isHidden = false
+
+            // If we are about to hide Device Info but it was selected, swap to Screenshot first
+            if (tabs.selectedInfo == myDeviceInfoTab) {
+              tabs.select(myScreenshotTab, false)
+            }
+            myDeviceInfoTab.isHidden = true
+            myScreenshotResultView.newImagePath = newImage ?: ""
+            myScreenshotResultView.refImagePath = refImage ?: ""
+            myScreenshotResultView.diffImagePath = diffImage ?: ""
+            myScreenshotResultView.testFailed = (myAndroidTestCaseResult == AndroidTestCaseResult.FAILED)
+            myScreenshotResultView.updateView()
+            myScreenshotAttributesView.updateData(
+              refImage,
+              newImage,
+              testResults?.methodName,
+              testResults?.className,
+              myAndroidTestCaseResult,
+              diffPercent,
+            )
+          } else {
+            // If we are about to hide Screenshots but one was selected, swap to Logs first
+            val activeTab = tabs.selectedInfo
+            if (activeTab == myScreenshotTab || activeTab == myScreenshotAttributesTab) {
+              tabs.select(logsTab, false)
+            }
+
+            myScreenshotTab.isHidden = true
+            myScreenshotAttributesTab.isHidden = true
+            myDeviceInfoTab.isHidden = false
+          }
+        }
+      }
     val journeyActionArtifacts = JourneyActionArtifacts.parseFromAdditionalTestArtifacts(additionalTestArtifacts)
     myJourneysResultsPanel.updateArtifacts(journeyActionArtifacts)
     myJourneyScreenshotsTab.isHidden = journeyActionArtifacts.isEmpty()
-
-    updateSelectedTab()
   }
 
   fun setResults(androidDevice: AndroidDevice, testResults: AndroidTestResults) {
@@ -487,23 +505,25 @@ class DetailsViewContentView(
   }
 
   private fun updateSelectedTab() {
-    val lastSelectedTab = this.lastTabSelectedByUser
+    ApplicationManager.getApplication().invokeLater {
+      val lastSelectedTab = this.lastTabSelectedByUser
 
-    // Let's always default to the tab last selected by the user (if it's visible)
-    if (lastSelectedTab != null && !lastSelectedTab.isHidden) {
-      tabs.select(lastSelectedTab, false)
-      return
-    }
+      // Let's always default to the tab last selected by the user (if it's visible)
+      if (lastSelectedTab != null && !lastSelectedTab.isHidden) {
+        tabs.select(lastSelectedTab, false)
+        return@invokeLater
+      }
 
-    // Otherwise select the first visible tab in the ordered set defined below
-    for (tab in setOf(myJourneyScreenshotsTab, myScreenshotTab, myBenchmarkTab, logsTab, myDeviceInfoTab)) {
-      if (!tab.isHidden) {
-        tabs.select(tab, false)
+      // Otherwise select the first visible tab in the ordered set defined below
+      for (tab in setOf(myJourneyScreenshotsTab, myScreenshotTab, myBenchmarkTab, logsTab, myDeviceInfoTab)) {
+        if (!tab.isHidden) {
+          tabs.select(tab, false)
 
-        // We only want to track tabs selected by the user - so reset it to the previous value
-        this.lastTabSelectedByUser = lastSelectedTab
+          // We only want to track tabs selected by the user - so reset it to the previous value
+          this.lastTabSelectedByUser = lastSelectedTab
 
-        return
+          return@invokeLater
+        }
       }
     }
   }

@@ -58,7 +58,13 @@ def main(argv):
       help="Additional environment variables to be passed to studio.",
   )
 
-  args, unknown_args = parser.parse_known_args(argv)
+  parser.add_argument(
+      "remaining",
+      nargs="*",
+      help="Additional arguments to be passed to studio.",
+  )
+
+  args = parser.parse_args(argv)
 
   with open(os.path.join(script_dir, "files.lst"), "r") as f:
     runfiles = [l.strip() for l in f]
@@ -129,7 +135,7 @@ def main(argv):
 
   sys.exit(
       subprocess.call(
-          run_command_list + unknown_args,
+          run_command_list + args.remaining,
           env=env,
       )
   )

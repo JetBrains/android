@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.insights.ai.transform
 
+import com.android.tools.idea.insights.ai.FILE_PHRASE
 import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
-import com.android.tools.idea.insights.client.FILE_PHRASE
 import com.intellij.openapi.project.Project
 
 interface CodeTransformationDeterminer {

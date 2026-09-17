@@ -19,6 +19,7 @@ import com.android.adblib.ConnectedDevice
 import com.android.adblib.tools.aiglasses.AiGlassesPairing
 import com.android.sdklib.deviceprovisioner.ActivationAction
 import com.android.sdklib.deviceprovisioner.AvdDeviceError
+import com.android.sdklib.deviceprovisioner.AvdScanner
 import com.android.sdklib.deviceprovisioner.BootSnapshotAction
 import com.android.sdklib.deviceprovisioner.ColdBootAction
 import com.android.sdklib.deviceprovisioner.CreateDeviceAction
@@ -46,12 +47,14 @@ import com.android.sdklib.deviceprovisioner.ShowAction
 import com.android.sdklib.deviceprovisioner.Snapshot
 import com.android.sdklib.deviceprovisioner.UnpairGlassesAction
 import com.android.sdklib.deviceprovisioner.WipeDataAction
+import com.android.sdklib.deviceprovisioner.awaitReady
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus
 import com.android.sdklib.internal.avd.BootMode
 import com.android.sdklib.internal.avd.BootSnapshot
 import com.android.sdklib.internal.avd.ColdBoot
 import com.android.tools.idea.avd.EditVirtualDeviceDialog.Mode
+import com.android.tools.idea.avd.glassespairing.GlassesPairingWizard
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution
 import com.android.tools.idea.avdmanager.AvdManagerConnection
@@ -60,7 +63,6 @@ import com.android.tools.idea.avdmanager.checkAcceleration
 import com.android.tools.idea.avdmanager.logHypervisorMigrationEvent
 import com.android.tools.idea.deviceprovisioner.NotificationBannersExtension
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceActionPresentation
-import com.android.tools.idea.glassespairing.GlassesPairingWizard
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.google.wireless.android.sdk.stats.EmulatorWindowsHypervisorMigrationEvent
@@ -81,7 +83,6 @@ import java.awt.Component
 import java.io.IOException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -98,6 +99,7 @@ class StudioLocalEmulatorProvisionerPlugin(
   val basePlugin: LocalEmulatorProvisionerPlugin,
   val context: LocalEmulatorContext,
   val project: Project?,
+  val avdScanner: AvdScanner,
 ) : DeviceProvisionerPlugin by basePlugin {
   private val accelerationError = MutableStateFlow(AccelerationErrorCode.ALREADY_INSTALLED)
 
@@ -109,8 +111,8 @@ class StudioLocalEmulatorProvisionerPlugin(
     }
   }
 
-  fun refreshDevices() {
-    basePlugin.refreshDevices()
+  suspend fun refreshDevices() {
+    avdScanner.rescan()
   }
 
   override val devices: StateFlow<List<StudioLocalEmulatorDeviceHandle>> =
@@ -176,9 +178,8 @@ class StudioLocalEmulatorDeviceHandle(
   private val project: Project?,
   internal val baseDeviceHandle: LocalEmulatorDeviceHandle,
   private val context: LocalEmulatorContext,
-  private val deviceHandleFlow: Flow<List<StudioLocalEmulatorDeviceHandle>>,
+  private val deviceHandleFlow: StateFlow<List<StudioLocalEmulatorDeviceHandle>>,
 ) : DeviceHandle by baseDeviceHandle {
-  // Do not cache this; getDefaultAvdManagerConnection() changes when the local SDK path changes.
   private val avdManagerConnection
     get() = AvdManagerConnection.getDefaultAvdManagerConnection()
 
@@ -194,8 +195,8 @@ class StudioLocalEmulatorDeviceHandle(
   private val avdInfo by baseDeviceHandle::avdInfo
   private val onDiskAvdInfo by baseDeviceHandle::onDiskAvdInfo
 
-  private fun refreshDevices() {
-    baseDeviceHandle.refreshDevices()
+  private suspend fun refreshDevices() {
+    baseDeviceHandle.avdScanner.rescan()
   }
 
   private val defaultPresentation: DeviceAction.DefaultPresentation = StudioDefaultDeviceActionPresentation
@@ -207,8 +208,13 @@ class StudioLocalEmulatorDeviceHandle(
     }
   }
 
-  private suspend fun isUnpairedAiGlasses(): Boolean =
-    state.properties.deviceType == DeviceType.AI_GLASSES && state.connectedDevice?.isUnpaired() == true
+  private suspend fun isUnpairedAiGlasses(): Boolean {
+    if (state.properties.deviceType == DeviceType.AI_GLASSES) {
+      awaitReady()
+      return state.connectedDevice?.isUnpaired() == true
+    }
+    return false
+  }
 
   private suspend fun ConnectedDevice.isUnpaired() = with(AiGlassesPairing(session)) { getPairedBluetoothDeviceCount() == 0 }
 
@@ -331,7 +337,13 @@ class StudioLocalEmulatorDeviceHandle(
 
       override suspend fun wipeData() {
         withContext(Dispatchers.IO) {
-          if (!avdManagerConnection.wipeUserData(avdInfo)) {
+          if (avdManagerConnection.wipeUserData(avdInfo)) {
+            baseDeviceHandle.updatePairedPhone(null)
+            baseDeviceHandle.clearPairedGlasses()
+
+            // Then clean up companions
+            unpairFromCompanions()
+          } else {
             withContext(Dispatchers.EDT) {
               Messages.showErrorDialog(
                 project,
@@ -350,7 +362,9 @@ class StudioLocalEmulatorDeviceHandle(
 
       override suspend fun delete() {
         withContext(Dispatchers.IO) {
-          if (!avdManagerConnection.deleteAvd(avdInfo)) {
+          if (avdManagerConnection.deleteAvd(avdInfo)) {
+            unpairFromCompanions()
+          } else {
             withContext(Dispatchers.EDT) {
               if (
                 MessageDialogBuilder.okCancel(
@@ -371,6 +385,24 @@ class StudioLocalEmulatorDeviceHandle(
         }
       }
     }
+
+  private suspend fun unpairFromCompanions() {
+    val properties = state.properties
+    try {
+      val phoneId = properties.pairedPhoneId
+      if (phoneId != null) {
+        val phoneHandle = deviceHandleFlow.value.find { it.id == phoneId }
+        phoneHandle?.baseDeviceHandle?.removePairedGlasses(id)
+      }
+
+      properties.pairedGlassesInfos.forEach { glassesInfo ->
+        val glassesHandle = deviceHandleFlow.value.find { it.id == glassesInfo.id }
+        glassesHandle?.baseDeviceHandle?.updatePairedPhone(null)
+      }
+    } catch (e: Exception) {
+      logger.warn("Failed to unpair companions from $id", e)
+    }
+  }
 
   private val aiGlassesAutoPairingDisabledPropertyKey
     get() = "ai.glasses.auto.pairing.disabled.$id"
@@ -422,7 +454,8 @@ class StudioLocalEmulatorDeviceHandle(
     if (pairedPhone != null) {
       withContext(Dispatchers.IO) {
         glassesHandle.baseDeviceHandle.updatePairedPhone(pairedPhone.baseDeviceHandle)
-        pairedPhone.baseDeviceHandle.updatePairedGlasses(glassesHandle.baseDeviceHandle)
+        // TODO(b/487779278): Update Pairing Wizard to save BT MAC to persistent storage
+        pairedPhone.baseDeviceHandle.addPairedGlasses(glassesHandle.id, null)
       }
     }
     return pairedPhone != null
@@ -431,11 +464,17 @@ class StudioLocalEmulatorDeviceHandle(
   override val unpairGlassesAction =
     object : UnpairGlassesAction {
       override suspend fun unpairGlasses() {
-        // TODO(b/458470193): Implement unpairing
+        withContext(Dispatchers.IO) {
+          baseDeviceHandle.updatePairedPhone(null)
+          baseDeviceHandle.clearPairedGlasses()
+
+          // Then clean up companions
+          unpairFromCompanions()
+        }
       }
 
       override val presentation: StateFlow<DeviceAction.Presentation> =
-        defaultPresentation.fromContext().enabledIf { it.properties.pairedPhoneId != null || it.properties.pairedGlassesId != null }
+        defaultPresentation.fromContext().enabledIf { it.properties.pairedPhoneId != null || it.properties.pairedGlassesInfos.isNotEmpty() }
     }
 
   private fun DeviceAction.Presentation.enabledIf(condition: (DeviceState) -> Boolean) =

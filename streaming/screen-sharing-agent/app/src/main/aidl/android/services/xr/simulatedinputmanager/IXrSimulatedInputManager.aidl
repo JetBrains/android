@@ -12,7 +12,8 @@ interface IXrSimulatedInputManager {
     void placeholder2();
     void placeholder3();
     void placeholder4();
-    void placeholder5();
+    boolean getEyeStatus();
+    void dumpXrSimulatedInputManager();
 
     // Rotates head by [x, y, z] units
     void injectHeadRotation(in float[3] data);
@@ -26,7 +27,7 @@ interface IXrSimulatedInputManager {
     // Sets head's velocity with [x, y, z] units
     void injectHeadMovementVelocity(in float[3] data);
 
-    void placeholder6();
+    void placeholder5();
 
     // Recenters head's position and rotation
     void recenter();

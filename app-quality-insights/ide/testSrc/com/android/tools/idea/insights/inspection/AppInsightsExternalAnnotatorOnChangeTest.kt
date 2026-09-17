@@ -20,7 +20,7 @@ import com.android.tools.idea.insights.model.stacktrace.Frame
 import com.android.tools.idea.insights.model.vcs.AppVcsInfo
 import com.android.tools.idea.insights.model.vcs.GenerateErrorReason
 import com.android.tools.idea.insights.model.vcs.RepoInfo
-import com.android.tools.idea.insights.model.vcs.VCS_CATEGORY
+import com.android.tools.idea.insights.model.vcs.VcsCategory
 import com.android.tools.idea.insights.ui.AppInsightsGutterRenderer
 import com.android.tools.idea.insights.vcs.InsightsVcsTestRule
 import com.android.tools.idea.insights.vcs.PROJECT_ROOT_PREFIX
@@ -41,7 +41,7 @@ class AppInsightsExternalAnnotatorOnChangeTest {
 
   @Before
   fun setUp() {
-    validAppVcsInfo = AppVcsInfo.ValidInfo(listOf(RepoInfo(vcsKey = VCS_CATEGORY.TEST_VCS, rootPath = PROJECT_ROOT_PREFIX, revision = "1")))
+    validAppVcsInfo = AppVcsInfo.ValidInfo(listOf(RepoInfo(vcsKey = VcsCategory.TEST_VCS, rootPath = PROJECT_ROOT_PREFIX, revision = "1")))
 
     errorAppVcsInfo = AppVcsInfo.Error(GenerateErrorReason.NO_VALID_GIT_FOUND)
   }

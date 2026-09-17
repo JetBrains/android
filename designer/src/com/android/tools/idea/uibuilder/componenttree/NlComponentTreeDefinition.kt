@@ -94,6 +94,8 @@ private const val UPDATE_DELAY_MILLISECONDS = 250
 /** When dragging an item do not display a drag image */
 private val EMPTY_IMAGE = ImageUtil.createImage(1, 1, BufferedImage.TYPE_INT_ARGB)
 
+private const val LEFT_MARGIN = 10
+
 /** [ToolWindowDefinition] for the Nele component tree using the ComponentTreeBuilder. */
 class NlComponentTreeDefinition(project: Project, side: Side, split: Split, autoHide: AutoHide, isPassThroughQueue: Boolean = false) :
   ToolWindowDefinition<DesignSurface<*>>(
@@ -313,6 +315,9 @@ private class ComponentTreePanel(val project: Project, isPassThroughQueue: Boole
         else -> false
       }
 
+    override val leftMargin: Int
+      get() = LEFT_MARGIN
+
     override fun canInsert(node: NlComponent, data: Transferable): Boolean {
       val treeWriter = model?.treeWriter ?: return false
       if (!data.isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR)) return false
@@ -420,6 +425,9 @@ private class ComponentTreePanel(val project: Project, isPassThroughQueue: Boole
     }
 
     override fun createRenderer(): TreeCellRenderer = renderer
+
+    override val leftMargin: Int
+      get() = LEFT_MARGIN
   }
 
   /** A BadgeItem for displaying issue icons in the 2nd column of the component TreeTable. */

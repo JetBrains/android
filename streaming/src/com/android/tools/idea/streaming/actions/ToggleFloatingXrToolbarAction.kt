@@ -21,6 +21,7 @@ import com.intellij.ide.ActivityTracker
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.KeepPopupOnPerform
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
@@ -31,6 +32,10 @@ import java.util.EventListener
 
 internal class ToggleFloatingXrToolbarAction : ToggleAction("Floating XR Navigation Controls"), DumbAware {
 
+  init {
+    templatePresentation.keepPopupOnPerform = KeepPopupOnPerform.Never // Don't keep the popup open after toggling.
+  }
+
   override fun isSelected(event: AnActionEvent): Boolean = service<FloatingXrToolbarState>().floatingXrToolbarEnabled
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
@@ -39,10 +44,10 @@ internal class ToggleFloatingXrToolbarAction : ToggleAction("Floating XR Navigat
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    // Enabled only for XR devices.
-    event.presentation.isEnabledAndVisible =
-      event.toolWindowContents.find { it.isSelected && (it.component as? AbstractDevicePanel<*>)?.deviceType == DeviceType.XR_HEADSET } !=
-        null
+    if (!event.toolWindowContents.any { it.isSelected && (it.component as? AbstractDevicePanel<*>)?.deviceType == DeviceType.XR_HEADSET }) {
+      // Enabled only for XR devices.
+      event.presentation.isEnabledAndVisible = false
+    }
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT

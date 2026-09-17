@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.npw.module.recipes.baselineProfilesModule
 
-import com.android.SdkConstants
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
 import com.android.tools.idea.npw.module.recipes.gitignore
+import com.android.tools.idea.wizard.template.DslLanguage
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import java.util.Locale
@@ -38,7 +38,6 @@ object BaselineProfilesMacrobenchmarkCommon {
    */
   fun RecipeExecutor.createModule(
     newModule: ModuleTemplateData,
-    useGradleKts: Boolean,
     macrobenchmarkMinRev: String,
     buildGradleContent: String,
     minCompileSdk: AndroidVersion? = null,
@@ -47,7 +46,8 @@ object BaselineProfilesMacrobenchmarkCommon {
     addIncludeToSettings(newModule.name)
 
     // Create build.gradle(.kts) with the content from [buildGradle] lambda
-    val buildFile = if (useGradleKts) SdkConstants.FN_BUILD_GRADLE_KTS else SdkConstants.FN_BUILD_GRADLE
+    val dslLanguage = newModule.projectTemplateData.dslLanguage
+    val buildFile = dslLanguage.buildFileName
     save(buildGradleContent, newModule.rootDir.resolve(buildFile))
 
     addCompileSdk(listOfNotNull(minCompileSdk, newModule.apis.buildApi).max())
@@ -69,12 +69,12 @@ object BaselineProfilesMacrobenchmarkCommon {
     customizeModule()
   }
 
-  fun flavorsConfigurationsBuildGradle(flavors: ProductFlavorsWithDimensions, useGradleKts: Boolean): String {
+  fun flavorsConfigurationsBuildGradle(flavors: ProductFlavorsWithDimensions, dslLanguage: DslLanguage): String {
     return buildString {
       if (flavors.dimensions.isNotEmpty()) {
         val dimenString = flavors.dimensions.joinToString(",") { "\"$it\"" }
 
-        if (useGradleKts) {
+        if (dslLanguage.isKts) {
           appendLine("flavorDimensions += listOf(${dimenString})")
         } else {
           appendLine("flavorDimensions += [$dimenString]")
@@ -84,7 +84,7 @@ object BaselineProfilesMacrobenchmarkCommon {
       if (flavors.flavors.isNotEmpty()) {
         appendLine("productFlavors {")
         flavors.flavors.forEach { flavor ->
-          append(if (useGradleKts) "create(\"${flavor.name}\")" else flavor.name)
+          append(if (dslLanguage.isKts) "create(\"${flavor.name}\")" else flavor.name)
           flavor.dimension?.let { appendLine("""{ dimension = "$it" }""") }
         }
         append("}")

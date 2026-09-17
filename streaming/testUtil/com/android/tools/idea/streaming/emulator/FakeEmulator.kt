@@ -25,6 +25,7 @@ import com.android.emulator.control.DisplayConfigurationsChangedNotification
 import com.android.emulator.control.DisplayMode as DisplayModeMessage
 import com.android.emulator.control.EmulatorControllerGrpc
 import com.android.emulator.control.EmulatorStatus
+import com.android.emulator.control.Environment
 import com.android.emulator.control.ExtendedControlsStatus
 import com.android.emulator.control.FoldedDisplay
 import com.android.emulator.control.Image
@@ -56,15 +57,26 @@ import com.android.emulator.control.VmRunState
 import com.android.emulator.control.XrOptions
 import com.android.emulator.snapshot.SnapshotOuterClass.Image as SnapshotImage
 import com.android.emulator.snapshot.SnapshotOuterClass.Snapshot
+import com.android.io.readImage
 import com.android.io.writeImage
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceId
+import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
+import com.android.sdklib.deviceprovisioner.LocalEmulatorProvisionerPlugin
+import com.android.sdklib.deviceprovisioner.PairedGlassesInfo
 import com.android.sdklib.deviceprovisioner.ProcessHandleProvider
 import com.android.sdklib.deviceprovisioner.RunningAvd.RunType
 import com.android.sdklib.repository.targets.SystemImageManager
 import com.android.testutils.FakeProcessHandle
 import com.android.testutils.TestUtils
+import com.android.tools.adtui.ImageUtils.ALPHA_MASK
+import com.android.tools.adtui.ImageUtils.getCroppedImage
 import com.android.tools.adtui.ImageUtils.rotateByQuadrants
+import com.android.tools.adtui.ImageUtils.rotateByQuadrantsAndScale
+import com.android.tools.adtui.ImageUtils.scale
 import com.android.tools.adtui.util.normalizedRotation
 import com.android.tools.adtui.util.scaled
 import com.android.tools.idea.avdmanager.RunningAvdTracker
@@ -96,8 +108,10 @@ import com.intellij.openapi.util.text.StringUtil.parseInt
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.io.createDirectories
 import com.intellij.util.ui.UIUtil
+import icons.StudioIcons
 import java.awt.Color
 import java.awt.Dimension
+import java.awt.Rectangle
 import java.awt.RenderingHints
 import java.awt.RenderingHints.KEY_ANTIALIASING
 import java.awt.RenderingHints.KEY_RENDERING
@@ -122,10 +136,14 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Predicate
 import javax.imageio.ImageIO
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.time.Duration
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.invoke
 import org.junit.Assert.fail
 
@@ -221,6 +239,16 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
   val avdName: String
     get() = config.avdName
 
+  val deviceType: DeviceType
+    get() = config.deviceType
+
+  val deviceId: DeviceId = DeviceId(LocalEmulatorProvisionerPlugin.PLUGIN_ID, false, "path=$avdFolder")
+  val deviceHandle: FakeDeviceHandle = FakeDeviceHandle(this)
+
+  val environment = mutableMapOf<String, String>()
+
+  val environmentImage: BufferedImage? = config.environmentSize?.let { loadEnvironmentImage(it) }
+
   @Volatile var extendedControlsVisible = false
 
   @Volatile
@@ -238,6 +266,21 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
 
   val serialNumber: String
     get() = "emulator-$serialPort"
+
+  var pairedDevice: FakeEmulator? = null
+    set(value) {
+      if (field != value) {
+        require(
+          value == null ||
+            deviceType == DeviceType.AI_GLASSES && value.deviceType == DeviceType.HANDHELD ||
+            deviceType == DeviceType.HANDHELD && value.deviceType == DeviceType.AI_GLASSES
+        )
+        field?.pairedDevice = null
+        field = value
+        deviceHandle.setPair(value?.deviceId)
+        value?.pairedDevice = this
+      }
+    }
 
   val grpcCallLog = LinkedBlockingDeque<GrpcCallRecord>()
   private val grpcSemaphore = Semaphore(Int.MAX_VALUE)
@@ -397,6 +440,16 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
       .start()
   }
 
+  private fun loadEnvironmentImage(size: Dimension): BufferedImage {
+    val environmentFile = getDeviceArtFolder().resolve("ai_glasses_device/default-background-1.png")
+    val image = environmentFile.readImage()
+    val w = size.width
+    val h = size.height
+    val scale = max(w.toDouble() / image.width, h.toDouble() / image.height)
+    val scaledImage = scale(image, scale)
+    return getCroppedImage(scaledImage, Rectangle((scaledImage.width - w) / 2, (scaledImage.height - h) / 2, w, h), -1)
+  }
+
   private fun drawDisplayImage(size: Dimension, displayId: Int): BufferedImage {
     val image = BufferedImage(size.width, size.height, TYPE_INT_ARGB)
     val g = image.createGraphics()
@@ -494,8 +547,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
 
   private fun sendScreenshot(request: ImageFormat, responseObserver: StreamObserver<Image>) {
     val displayId = request.display
-    val size = getScaledAndRotatedDisplaySize(request.width, request.height, displayId)
-    val image = drawDisplayImage(size, displayId)
+    val image = environmentImage?.let { createScreenshotImage(request, displayId, it) } ?: createScreenshotImage(request, displayId)
     val rotatedImage = rotateByQuadrants(image, displayRotation.number)
     val imageBytes = ByteArray(rotatedImage.width * rotatedImage.height * 3)
     var i = 0
@@ -595,6 +647,13 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
 
     override fun getXrOptions(request: Empty, responseObserver: StreamObserver<XrOptions>) {
       executor.execute { sendResponse(responseObserver, xrOptions) }
+    }
+
+    override fun setEnvironment(request: Environment, responseObserver: StreamObserver<Empty>) {
+      executor.execute {
+        environment.clear()
+        environment.putAll(request.environmentMap)
+      }
     }
 
     override fun setMicrophoneState(request: MicrophoneState, responseObserver: StreamObserver<Empty>) {
@@ -744,6 +803,58 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
     val size = getScaledAndRotatedDisplaySize(request.width, request.height, displayId)
     return drawDisplayImage(size, displayId)
   }
+
+  /** Create a screenshot image overlayed on top of the environment background. */
+  private fun createScreenshotImage(request: ImageFormat, displayId: Int, environmentImage: BufferedImage): BufferedImage {
+    if (displayId != PRIMARY_DISPLAY_ID) {
+      return createScreenshotImage(request, displayId)
+    }
+    val size = computeConstrainedSize(environmentImage.width, environmentImage.height, 0, request.width, request.height)
+    val blendedImage = rotateByQuadrantsAndScale(environmentImage, 0, size.width, size.height)
+    val scale = max(blendedImage.width, blendedImage.height).toDouble() / max(environmentImage.width, environmentImage.height)
+    val displayImageSize = config.displaySize.scaled(scale)
+    val displayImage = drawDisplayImage(displayImageSize, PRIMARY_DISPLAY_ID)
+    val x = (blendedImage.width - displayImageSize.width) / 2
+    val y = (blendedImage.height - displayImageSize.height) / 2
+    val croppedImage = getCroppedImage(blendedImage, Rectangle(x, y, displayImageSize.width, displayImageSize.height), TYPE_INT_ARGB)
+    val blendedDisplayImage = screenBlend(croppedImage, displayImage)
+    val g = blendedImage.createGraphics()
+    g.drawImage(blendedDisplayImage, x, y, null)
+    g.dispose()
+    return blendedImage
+  }
+
+  /** Blends two same-size opaque images using "screen" blending. See https://en.wikipedia.org/wiki/Blend_modes. */
+  private fun screenBlend(image1: BufferedImage, image2: BufferedImage): BufferedImage {
+    require(image1.width == image2.width && image1.height == image2.height)
+    // This simple algorithm is sufficient for tests but production code would need to use the JavaCV library.
+    val width = image1.width
+    val height = image1.height
+    val result = BufferedImage(width, height, TYPE_INT_ARGB)
+
+    for (y in 0 until height) {
+      for (x in 0 until width) {
+        val rgb1: Int = image1.getRGB(x, y)
+        val r1 = (rgb1 shr 16) and 0xFF
+        val g1 = (rgb1 shr 8) and 0xFF
+        val b1 = rgb1 and 0xFF
+
+        val rgb2: Int = image2.getRGB(x, y)
+        val r2 = (rgb2 shr 16) and 0xFF
+        val g2 = (rgb2 shr 8) and 0xFF
+        val b2 = rgb2 and 0xFF
+
+        val r = screenBlendColor(r1, r2)
+        val g = screenBlendColor(g1, g2)
+        val b = screenBlendColor(b1, b2)
+
+        result.setRGB(x, y, ALPHA_MASK or (r shl 16) or (g shl 8) or b)
+      }
+    }
+    return result
+  }
+
+  private fun screenBlendColor(v1: Int, v2: Int): Int = 255 - (255 - v1) * (255 - v2) / 255
 
   private inner class EmulatorSnapshotService(private val executor: ExecutorService) : SnapshotServiceGrpc.SnapshotServiceImplBase() {
 
@@ -928,6 +1039,47 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, val registrationDirec
 
     fun or(vararg moreMethodNamesToIgnore: String): CallFilter {
       return CallFilter(*arrayOf(*methodNamesToIgnore) + arrayOf(*moreMethodNamesToIgnore))
+    }
+  }
+
+  class FakeDeviceHandle(private val emulator: FakeEmulator) : DeviceHandle {
+
+    override val id: DeviceId
+      get() = emulator.deviceId
+
+    override val stateFlow: MutableStateFlow<DeviceState>
+
+    override val scope = CoroutineScope(Dispatchers.Unconfined)
+
+    init {
+      val props =
+        LocalEmulatorProperties.Builder()
+          .apply {
+            avdName = emulator.avdName
+            avdPath = emulator.avdFolder
+            displayName = emulator.avdName
+            deviceType = emulator.deviceType
+            icon = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
+          }
+          .build()
+
+      val state = DeviceState.Disconnected(props)
+      stateFlow = MutableStateFlow(state)
+    }
+
+    fun setPair(pairedDeviceId: DeviceId?) {
+      val props =
+        state.properties
+          .toBuilder()
+          .apply {
+            when (deviceType) {
+              DeviceType.AI_GLASSES -> pairedPhoneId = pairedDeviceId
+              else -> pairedGlassesInfos = pairedDeviceId?.let { listOf(PairedGlassesInfo(pairedDeviceId, null)) } ?: emptyList()
+            }
+          }
+          .build()
+
+      stateFlow.value = DeviceState.Disconnected(props)
     }
   }
 

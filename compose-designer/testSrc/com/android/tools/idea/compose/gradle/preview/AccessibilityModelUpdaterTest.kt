@@ -26,7 +26,6 @@ import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.UiCheckInstance
-import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.model.w
 import com.android.tools.idea.uibuilder.model.y
 import com.google.common.truth.Truth.assertThat
@@ -111,7 +110,7 @@ class AccessibilityModelUpdaterTest {
   }
 
   private fun createComposePreviewRepresentation(psiFile: PsiFile, view: TestComposePreviewView): ComposePreviewRepresentation {
-    val previewRepresentation = ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> view }
+    val previewRepresentation = ComposePreviewRepresentation(psiFile) { _, _, _, _, _, _ -> view }
     Disposer.register(fixture.testRootDisposable, previewRepresentation)
 
     return previewRepresentation
@@ -145,7 +144,7 @@ class AccessibilityModelUpdaterTest {
     assertEquals(1, children.size)
     assertNotEquals(-1, children[0].accessibilityId)
     assertEquals(303, children[0].w)
-    assertEquals(147, children[0].y)
+    assertEquals(0, children[0].y)
 
     children = children[0].children
     assertEquals(2, children.size)
@@ -154,7 +153,7 @@ class AccessibilityModelUpdaterTest {
     assertEquals(0, textViewComponent.childCount)
     assertNotEquals(-1, textViewComponent.accessibilityId)
     assertEquals(139, textViewComponent.w)
-    assertEquals(147, textViewComponent.y)
+    assertEquals(0, textViewComponent.y)
     val textViewNavigatable = textViewComponent.navigatable as OpenFileDescriptor
     textViewNavigatable.rangeMarker.document.getLineNumber(textViewNavigatable.offset)
     assertEquals("MainActivity.kt 49:12", textViewNavigatable.toFileLineAndColumn())
@@ -166,7 +165,7 @@ class AccessibilityModelUpdaterTest {
     assertEquals(0, buttonTextViewComponent.childCount)
     assertNotEquals(-1, buttonTextViewComponent.accessibilityId)
     assertEquals(219, buttonTextViewComponent.w)
-    assertEquals(252, buttonTextViewComponent.y)
+    assertEquals(105, buttonTextViewComponent.y)
     val buttonTextViewNavigatable = buttonTextViewComponent.navigatable as OpenFileDescriptor
     assertEquals("MainActivity.kt 51:16", buttonTextViewNavigatable.toFileLineAndColumn())
 
@@ -174,7 +173,7 @@ class AccessibilityModelUpdaterTest {
     assertEquals(0, buttonComponent.childCount)
     assertNotEquals(-1, buttonComponent.accessibilityId)
     assertEquals(303, buttonComponent.w)
-    assertEquals(226, buttonComponent.y)
+    assertEquals(79, buttonComponent.y)
     val buttonNavigatable = buttonComponent.navigatable as OpenFileDescriptor
     assertEquals("MainActivity.kt 51:16", buttonNavigatable.toFileLineAndColumn())
   }

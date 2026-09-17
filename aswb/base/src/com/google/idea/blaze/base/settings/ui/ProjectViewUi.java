@@ -30,6 +30,7 @@ import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolverProvider;
 import com.google.idea.blaze.base.ui.UiUtil;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
@@ -76,7 +77,7 @@ public class ProjectViewUi {
    * @return the current, non-default project, if one exists, else the default project.
    */
   public static Project getProject() {
-    Project project = (Project) DataManager.getInstance().getDataContext().getData("project");
+    Project project = DataManager.getInstance().getDataContext().getData(CommonDataKeys.PROJECT);
     if (project != null && project instanceof ProjectImpl) {
       return project;
     }

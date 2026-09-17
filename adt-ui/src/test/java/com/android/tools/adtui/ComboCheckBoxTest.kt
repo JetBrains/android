@@ -16,10 +16,14 @@
 package com.android.tools.adtui
 
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import javax.swing.AbstractButton
+import org.junit.Rule
 import org.junit.Test
 
 class ComboCheckBoxTest {
+
+  @get:Rule val applicationRule = ApplicationRule()
 
   @Test
   fun `action performed with selected items`() {

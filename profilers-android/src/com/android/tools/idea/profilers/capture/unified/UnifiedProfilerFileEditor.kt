@@ -37,7 +37,7 @@ import org.jetbrains.annotations.Nls
 /** A [com.intellij.openapi.fileEditor.FileEditor] for displaying profiler captures in a main editor tab. */
 class UnifiedProfilerFileEditor(private val project: Project, private val file: VirtualFile) : UserDataHolderBase(), FileEditor {
   private val delegate: FileEditor? =
-    if (UnifiedProfilerEditorProvider.canViewInUnifiedProfiler(file)) {
+    if (UnifiedProfilerEditorProvider.isSupportedByPerfettoEditor(file)) {
       // PerfettoFileEditor lives in the sherlock.common module, which the monorepo does not carry
       // and for which no artifact is published, so the Sherlock trace viewer cannot be embedded in
       // this tree. The delegate stays null and the placeholder label below is shown instead.

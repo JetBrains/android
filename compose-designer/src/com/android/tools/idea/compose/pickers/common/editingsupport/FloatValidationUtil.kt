@@ -36,6 +36,10 @@ fun validateFloat(
   val numberValue =
     trimmedValue.toFloatOrNull() ?: return Pair(EditingErrorCategory.ERROR, message("picker.preview.input.validation.float.nan"))
 
+  if (!numberValue.isFinite()) {
+    return Pair(EditingErrorCategory.ERROR, message("picker.preview.input.validation.float.nan"))
+  }
+
   if (numberValue < 0f) {
     return Pair(EditingErrorCategory.ERROR, message("picker.preview.input.validation.positive.value"))
   }

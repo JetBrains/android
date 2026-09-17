@@ -29,6 +29,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
@@ -77,9 +78,15 @@ class ComposeWizard(
 
   private val coroutineScope = CoroutineScope(SupervisorJob())
 
-  private val pageStack = mutableStateListOf<@Composable WizardPageScope.() -> Unit>(initialPage)
+  /** Storage for dialog-scoped data, accessed from WizardPageScope.getOrCreateState(). */
+  private val state: SnapshotStateMap<Any, Any> = mutableStateMapOf()
+  private val pageStack = mutableStateListOf(WizardPage(WizardPageScope(coroutineScope, state), initialPage))
+
+  private val currentPageScope
+    get() = pageStack.last().pageScope
+
   private val currentPage
-    get() = pageStack.last()
+    get() = pageStack.last().content
 
   private val wizardDialogScope =
     object : WizardDialogScope {
@@ -87,7 +94,7 @@ class ComposeWizard(
         get() = window
 
       override fun pushPage(page: @Composable WizardPageScope.() -> Unit) {
-        pageStack.add(page)
+        pageStack.add(WizardPage(WizardPageScope(coroutineScope, state), page))
       }
 
       override fun popPage() {
@@ -104,17 +111,6 @@ class ComposeWizard(
         close(CANCEL_EXIT_CODE)
       }
 
-      override val coroutineScope by this@ComposeWizard::coroutineScope
-    }
-
-  private val prevButton = WizardButton("Previous")
-  private val nextButton = WizardButton("Next")
-  private val finishButton = WizardButton("Finish")
-
-  private val wizardPageScope =
-    object : WizardPageScope() {
-      override var nextAction by nextButton::action
-      override var finishAction by finishButton::action
       override val coroutineScope by this@ComposeWizard::coroutineScope
     }
 
@@ -138,8 +134,7 @@ class ComposeWizard(
     @OptIn(ExperimentalJewelApi::class) (enableNewSwingCompositing())
     val component = StudioComposePanel {
       CompositionLocalProvider(LocalProject provides project) {
-        prevButton.action = if (pageStack.size > 1) WizardAction { pageStack.removeLast() } else WizardAction.Disabled
-        wizardPageScope.apply { WizardPageScaffold(wizardDialogScope, currentPage) }
+        currentPageScope.apply { WizardPageScaffold(wizardDialogScope, currentPage) }
       }
     }
     component.preferredSize = preferredSize
@@ -164,7 +159,7 @@ internal fun WizardPageScope.WizardPageScaffold(wizardDialogScope: WizardDialogS
     Modifier.onKeyEvent { event ->
       when {
         event.type == KeyEventType.KeyUp && event.key == Key.Enter -> {
-          finishAction.action?.let { with(wizardDialogScope) { it() } }
+          nextAction.action?.let { with(wizardDialogScope) { it() } }
           true
         }
         else -> false
@@ -185,10 +180,10 @@ internal fun WizardPageScope.WizardButtonBar(wizardDialogScope: WizardDialogScop
         OutlinedButton(onClick = { with(button.action) { invoke() } }) { Text(button.name) }
       }
       Spacer(Modifier.weight(1f))
+
       OutlinedButton(onClick = { cancel() }, enabled = cancelButtonEnabled) { Text("Cancel") }
       OutlinedButton(onClick = { popPage() }, enabled = prevButtonEnabled && pageStackSize() > 1) { Text("Previous") }
-      OutlinedButton(onClick = { with(nextAction) { invoke() } }, enabled = nextAction.enabled) { Text("Next") }
-      DefaultButton(onClick = { with(finishAction) { invoke() } }, enabled = finishAction.enabled) { Text("Finish") }
+      DefaultButton(onClick = { with(nextButton.action) { invoke() } }, enabled = nextButton.action.enabled) { Text(nextButton.name) }
     }
   }
 }
@@ -236,33 +231,39 @@ class WizardAction(val action: (WizardDialogScope.() -> Unit)?) {
   }
 }
 
+/** Holder for the page state and its renderer together on the page stack. */
+internal class WizardPage(val pageScope: WizardPageScope, val content: @Composable WizardPageScope.() -> Unit)
+
 /** Scope providing access to wizard buttons, allowing pages to enable / disable buttons and define their behavior. */
-abstract class WizardPageScope {
-  var prevButtonEnabled by mutableStateOf(true)
+class WizardPageScope(val coroutineScope: CoroutineScope, private val state: SnapshotStateMap<Any, Any>) {
   var cancelButtonEnabled by mutableStateOf(true)
+  var prevButtonEnabled by mutableStateOf(true)
+  /**
+   * The rightmost button of the wizard, used to advance. By default, this is labeled Next, but it should typically change to Finish on the
+   * last page of the wizard. It may take other names as appropriate.
+   */
+  val nextButton = WizardButton("Next")
+  var nextActionName by nextButton::name
+  var nextAction by nextButton::action
 
-  abstract var nextAction: WizardAction
-  abstract var finishAction: WizardAction
-
-  fun enterFinishedState() {
+  /**
+   * Disables all buttons except the [nextButton], sets the [nextButton]'s name to the given value, and makes [nextAction] close the wizard.
+   * This is only a convenience method for wizards which have a terminal page; many wizards will not need to use this.
+   */
+  fun enterTerminalState(buttonText: String = "Finish") {
     prevButtonEnabled = false
     cancelButtonEnabled = false
-    nextAction = WizardAction.Disabled
-    finishAction = WizardAction { close() }
+    nextAction = WizardAction { close() }
+    nextActionName = buttonText
   }
 
   var leftSideButtons by mutableStateOf(emptyList<WizardButton>())
-
-  private val state = mutableStateMapOf<Any, Any>()
 
   @Suppress("UNCHECKED_CAST")
   fun <T : Any> getOrCreateState(key: Class<T>, defaultState: () -> T): T = state.computeIfAbsent(key) { defaultState() } as T
 
   /** Retrieves wizard-scoped state of the given type, or creates it if it has not yet been created in this wizard. */
   inline fun <reified T : Any> getOrCreateState(noinline defaultState: () -> T): T = getOrCreateState(T::class.java, defaultState)
-
-  /** A CoroutineScope tied to the lifecycle of this dialog. */
-  abstract val coroutineScope: CoroutineScope
 }
 
 val LocalFileSystem = staticCompositionLocalOf<FileSystem> { FileSystems.getDefault() }

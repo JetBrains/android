@@ -34,7 +34,6 @@ import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.junit4.OldAgpSuite
 import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.LATEST
-import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_4_2
 import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_7_0
 import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_7_1
 import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.V_7_2
@@ -44,6 +43,7 @@ import com.android.tools.idea.gradle.project.upgrade.integration.TestAGPVersion.
 import com.android.tools.idea.gradle.project.upgrade.integration.TestProject.FROM_AGP_40_ALL_DEPRECATIONS
 import com.android.tools.idea.gradle.project.upgrade.integration.TestProject.FROM_AGP_40_BASIC
 import com.android.tools.idea.gradle.project.upgrade.integration.TestProject.FROM_AGP_80_BASIC
+import com.android.tools.idea.gradle.util.AGP_BUILT_IN_KOTLIN_VERSION
 import com.android.utils.FileUtils
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 
@@ -67,14 +67,13 @@ enum class TestAGPVersion(
   val kotlinVersion: String = "1.3.72",
   val compileSdkVersion: AndroidVersion = AndroidVersion(AndroidApiLevel(34)),
 ) {
-  V_4_2("4.2.2", jdkVersion = JavaSdkVersion.JDK_11),
   V_7_0("7.0.0", jdkVersion = JavaSdkVersion.JDK_11),
   V_7_1("7.1.0", jdkVersion = JavaSdkVersion.JDK_11),
   V_7_2("7.2.0", jdkVersion = JavaSdkVersion.JDK_11),
   V_7_3("7.3.0", jdkVersion = JavaSdkVersion.JDK_11, kotlinVersion = "1.6.21"),
   V_8_0("8.0.2", jdkVersion = JavaSdkVersion.JDK_17, kotlinVersion = "1.6.21"),
   V_8_11("8.11.0", jdkVersion = JavaSdkVersion.JDK_17, kotlinVersion = "1.6.21"),
-  LATEST(null, jdkVersion = JavaSdkVersion.JDK_17, kotlinVersion = "2.2.10"),
+  LATEST(null, jdkVersion = JavaSdkVersion.JDK_17, kotlinVersion = AGP_BUILT_IN_KOTLIN_VERSION),
 }
 
 /**
@@ -91,7 +90,6 @@ enum class AUATestProjectState(
   val basePath: String,
   val patchPath: String? = null,
 ) {
-  BASIC_4_2(FROM_AGP_40_BASIC, V_4_2, minimalState = true, basePath = "4.0.0", patchPath = "4.2.0"),
   BASIC_7_0(FROM_AGP_40_BASIC, V_7_0, minimalState = true, basePath = "4.0.0", patchPath = "7.0.0"),
   // No changes from 7.0 apart from versions so reuse the same files.
   BASIC_7_1(FROM_AGP_40_BASIC, V_7_1, minimalState = true, basePath = "4.0.0", patchPath = "7.0.0"),
@@ -101,14 +99,6 @@ enum class AUATestProjectState(
   BASIC_7_3(FROM_AGP_40_BASIC, V_7_3, minimalState = true, basePath = "4.0.0", patchPath = "7.0.0"),
   BASIC_8_11_MIN(FROM_AGP_40_BASIC, V_8_11, minimalState = true, basePath = "4.0.0", patchPath = "dev-minimal"),
   BASIC_8_11_FULL(FROM_AGP_40_BASIC, V_8_11, minimalState = false, basePath = "4.0.0", patchPath = "dev-upgraded"),
-  ALL_DEPRECATIONS_4_2_MIN(FROM_AGP_40_ALL_DEPRECATIONS, V_4_2, minimalState = true, basePath = "4.2.0-base"),
-  ALL_DEPRECATIONS_4_2_FULL(
-    FROM_AGP_40_ALL_DEPRECATIONS,
-    V_4_2,
-    minimalState = false,
-    basePath = "4.2.0-base",
-    patchPath = "4.2.0-upgraded",
-  ),
   ALL_DEPRECATIONS_7_0_MIN(FROM_AGP_40_ALL_DEPRECATIONS, V_7_0, minimalState = true, basePath = "4.2.0-base", patchPath = "7.0.0-minimal"),
   ALL_DEPRECATIONS_7_0_FULL(
     FROM_AGP_40_ALL_DEPRECATIONS,

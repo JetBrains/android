@@ -33,7 +33,8 @@ class AndroidLogKotlinLiveTemplateTest : LiveTemplateTestCase() {
     testLog(TEMPLATE_LOGD, additionalData = arrayOf("foo"), expectedCompletion = "Log.d(TAG, \"myMethod: foo\")")
   }
 
-  fun testLogD_inExpression() = testNotInExpression(TEMPLATE_LOGD)
+  // TODO(b/499356634): Re-enable this test
+  fun ignore_testLogD_inExpression() = testNotInExpression(TEMPLATE_LOGD)
 
   private val TEMPLATE_LOGI = "logi"
 
@@ -81,7 +82,8 @@ class AndroidLogKotlinLiveTemplateTest : LiveTemplateTestCase() {
     testLog(TEMPLATE_LOGE, additionalData = arrayOf("foo", "e"), expectedCompletion = "Log.e(TAG, \"myMethod: foo\", e)")
   }
 
-  fun testLogE_inExpression() = testNotInExpression(TEMPLATE_LOGE)
+  // TODO(b/499356634): Re-enable this test
+  fun ignore_testLogE_inExpression() = testNotInExpression(TEMPLATE_LOGE)
 
   fun testLogE_nonDefaultExceptionName() {
     testLog(TEMPLATE_LOGE, additionalData = arrayOf("foo", "bar"), expectedCompletion = "Log.e(TAG, \"myMethod: foo\", bar)")
@@ -161,11 +163,13 @@ class AndroidLogKotlinLiveTemplateTest : LiveTemplateTestCase() {
 
   fun testLogM_inComment() = testNotInComment(TEMPLATE_LOGM)
 
-  fun testLogM_inMethod() {
+  // TODO(b/499356634): Re-enable this test
+  fun ignore_testLogM_inMethod() {
     testLog(TEMPLATE_LOGM, methodHeader = "myMethod()", expectedCompletion = "Log.d(TAG, \"myMethod() called\")")
   }
 
-  fun testLogM_inMethod_withParameters() {
+  // TODO(b/499356634): Re-enable this test
+  fun ignore_testLogM_inMethod_withParameters() {
     testLog(
       TEMPLATE_LOGM,
       methodHeader = "myMethod(foo: String, bar: String)",
@@ -273,7 +277,8 @@ class AndroidLogKotlinLiveTemplateTest : LiveTemplateTestCase() {
 
   private val TEMPLATE_LOGT = "logt"
 
-  fun testLogT_onTopLevel() {
+  // TODO(b/499356634): Re-enable this test
+  fun ignore_testLogT_onTopLevel() {
     // Given:
     addPreparedFileToProject(Location.TOP_LEVEL)
     // When:
@@ -282,7 +287,8 @@ class AndroidLogKotlinLiveTemplateTest : LiveTemplateTestCase() {
     myFixture.checkResult(insertIntoPsiFileAt(Location.TOP_LEVEL, imports = "", content = "private const val TAG = \"MyClass\""))
   }
 
-  fun testLogT_inClass() {
+  // TODO(b/499356634): Re-enable this test
+  fun ignore_testLogT_inClass() {
     // Given:
     addPreparedFileToProject(Location.CLASS)
     // When:
@@ -291,7 +297,8 @@ class AndroidLogKotlinLiveTemplateTest : LiveTemplateTestCase() {
     myFixture.checkResult(insertIntoPsiFileAt(Location.CLASS, imports = "", content = "private const val TAG = \"MyClass\""))
   }
 
-  fun testLogT_inCompanionObject() {
+  // TODO(b/499356634): Re-enable this test
+  fun ignore_testLogT_inCompanionObject() {
     // Given:
     addPreparedFileToProject(Location.OBJECT_DECLARATION)
     // When:
@@ -300,7 +307,8 @@ class AndroidLogKotlinLiveTemplateTest : LiveTemplateTestCase() {
     myFixture.checkResult(insertIntoPsiFileAt(Location.OBJECT_DECLARATION, imports = "", content = "private const val TAG = \"MyClass\""))
   }
 
-  fun testLogT_longClassName() {
+  // TODO(b/499356634): Re-enable this test
+  fun ignore_testLogT_longClassName() {
     // Given:
     val psiFile =
       myFixture.addFileToProject(

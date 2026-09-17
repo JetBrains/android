@@ -33,8 +33,13 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.Device
+import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.internal.avd.AvdInfo
+import com.android.sdklib.internal.avd.AvdManager
+import com.android.sdklib.internal.avd.AvdNames
+import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.adtui.compose.ComposeWizard
 import com.android.tools.adtui.compose.WizardAction
 import com.android.tools.adtui.compose.WizardButton
@@ -54,8 +59,13 @@ import com.android.tools.idea.adddevicedialog.DeviceTable
 import com.android.tools.idea.adddevicedialog.DeviceTableColumns
 import com.android.tools.idea.adddevicedialog.DeviceTableShowDetailsState
 import com.android.tools.idea.adddevicedialog.FormFactor
+import com.android.tools.idea.adddevicedialog.LoadingState
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.checkAcceleration
+import com.android.tools.idea.avdmanager.skincombobox.NoSkin
+import com.android.tools.idea.avdmanager.skincombobox.Skin
+import com.android.tools.idea.avdmanager.skincombobox.SkinCollector
+import com.android.tools.idea.avdmanager.skincombobox.SkinComboBoxModel
 import com.android.tools.idea.avdmanager.ui.CloneDeviceAction
 import com.android.tools.idea.avdmanager.ui.CreateDeviceAction
 import com.android.tools.idea.avdmanager.ui.DeleteDeviceAction
@@ -63,7 +73,10 @@ import com.android.tools.idea.avdmanager.ui.DeviceUiAction
 import com.android.tools.idea.avdmanager.ui.EditDeviceAction
 import com.android.tools.idea.avdmanager.ui.ExportDeviceAction
 import com.android.tools.idea.avdmanager.ui.ImportDevicesAction
+import com.android.tools.idea.avdmanager.ui.NameComparator
+import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.idea.sdk.getOrSetupValidSdk
+import com.android.tools.sdk.DeviceManagers
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent
 import com.intellij.openapi.application.EDT
@@ -73,8 +86,15 @@ import com.intellij.openapi.ui.JBPopupMenu
 import com.intellij.util.ui.JBUI
 import icons.StudioIconsCompose
 import java.awt.Component
+import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.jewel.foundation.LocalComponent
@@ -88,12 +108,33 @@ import org.jetbrains.jewel.ui.component.Icon
  *
  * @return the AvdInfo of the created AVD, or null if the dialog was cancelled.
  */
-suspend fun showAddDeviceDialog(project: Project?, parent: Component?): AvdInfo? {
+suspend fun showAddDeviceDialog(
+  project: Project?,
+  parent: Component?,
+  virtualDeviceFilter: (VirtualDeviceProfile) -> Boolean = { true },
+  systemImageFilter: (ISystemImage) -> Boolean = { true },
+): AvdInfo? {
   val sdkHandler = getOrSetupValidSdk(project, "An Android SDK is required to create an AVD.") ?: return null
-  val source = withContext(Dispatchers.Default) { LocalVirtualDeviceSource.create(sdkHandler) }
+  val skins =
+    withContext(Dispatchers.Default) {
+      SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect()).toImmutableList()
+    }
   return withContext(Dispatchers.EDT) {
     var avdInfo: AvdInfo? = null
-    val wizard = AddDeviceWizard(source, project, accelerationCheck = { checkAcceleration(source.sdkHandler) }, onAdd = { avdInfo = it })
+    val wizard =
+      AddDeviceWizard(
+        project,
+        skins,
+        sdkHandler = sdkHandler,
+        avdManager = IdeAvdManagers.getAvdManager(sdkHandler),
+        systemImageFlow =
+          ISystemImages.systemImageFlow(sdkHandler).map { imageState ->
+            imageState.copy(images = imageState.images.filter(systemImageFilter).toImmutableList())
+          },
+        accelerationCheck = { checkAcceleration(sdkHandler) },
+        virtualDeviceFilter = virtualDeviceFilter,
+        onAdd = { avdInfo = it },
+      )
     val created = wizard.createDialog(parent = parent).showAndGet()
     if (created) {
       UsageTracker.log(
@@ -107,11 +148,37 @@ suspend fun showAddDeviceDialog(project: Project?, parent: Component?): AvdInfo?
 }
 
 internal class AddDeviceWizard(
-  val source: LocalVirtualDeviceSource,
   val project: Project?,
+  private val skins: ImmutableCollection<Skin>,
+  val sdkHandler: AndroidSdkHandler,
+  val avdManager: AvdManager,
+  val systemImageFlow: Flow<SystemImageState>,
   val accelerationCheck: () -> AccelerationErrorCode,
+  val virtualDeviceFilter: (VirtualDeviceProfile) -> Boolean = { true },
   val onAdd: (AvdInfo) -> Unit = {},
 ) {
+  val profiles: Flow<LoadingState<List<VirtualDeviceProfile>>> =
+    callbackFlow {
+        send(LoadingState.Loading)
+
+        val deviceManager = DeviceManagers.getDeviceManager(sdkHandler)
+
+        fun sendDevices() {
+          val profiles = deviceManager.getDevices(DeviceManager.ALL_DEVICES).mapTo(mutableListOf()) { it.toVirtualDeviceProfile() }
+          profiles.sortWith(compareBy(NameComparator()) { it.device })
+
+          // Cannot fail due to conflate() below
+          trySend(LoadingState.Ready(profiles))
+        }
+
+        val listener = DeviceManager.DevicesChangedListener { sendDevices() }
+        deviceManager.registerListener(listener)
+
+        sendDevices()
+
+        awaitClose { deviceManager.unregisterListener(listener) }
+      }
+      .conflate()
 
   fun createDialog(parent: Component? = null): ComposeWizard {
     return ComposeWizard(project, "Add Device", parent = parent, minimumSize = DEVICE_DIALOG_MIN_SIZE) { DeviceGridPage() }
@@ -132,8 +199,8 @@ internal class AddDeviceWizard(
     val filterState = getOrCreateState { VirtualDeviceFilterState() }
     val selectionState = getOrCreateState { TableSelectionState<VirtualDeviceProfile>() }
 
-    val profilesFlow = remember { source.profiles }
-    DeviceLoadingPage(profilesFlow) { profiles ->
+    DeviceLoadingPage(profiles) { profiles ->
+      val profiles = remember(profiles) { profiles.filter(virtualDeviceFilter) }
       // Holds a Device that should be selected as a result of a DeviceUiAction; e.g. when a new
       // Device is created, we select it automatically.
       var dialogSelectedDevice by remember { mutableStateOf<Device?>(null) }
@@ -184,7 +251,7 @@ internal class AddDeviceWizard(
         DeviceGridPage(
           filterState = filterState,
           selectionState = selectionState,
-          onSelectionUpdated = { with(source) { selectionUpdated(it, ::finish) } },
+          onSelectionUpdated = { selectionUpdated(it, ::finish) },
         ) {
           DeviceTable(
             profiles,
@@ -224,14 +291,33 @@ internal class AddDeviceWizard(
     }
   }
 
+  fun WizardPageScope.selectionUpdated(profile: VirtualDeviceProfile, finish: suspend (VirtualDevice) -> Boolean) {
+    nextAction = WizardAction {
+      pushPage {
+        val deviceNameValidator = remember { DeviceNameValidator.createForAvdManager(avdManager) }
+        val device =
+          remember(profile) {
+            VirtualDevice(profile.device).apply {
+              initializeFromProfile()
+              name = deviceNameValidator.uniquify(AvdNames.cleanDisplayName(profile.name))
+            }
+          }
+        ConfigurationPage(device, systemImageFlow, skins, deviceNameValidator, sdkHandler, finish)
+      }
+    }
+  }
+
   private suspend fun finish(device: VirtualDevice): Boolean {
-    val avdInfo = withContext(Dispatchers.IO) { VirtualDevices(source.avdManager).add(device) }
+    val avdInfo = withContext(Dispatchers.IO) { VirtualDevices(avdManager).add(device) }
     if (avdInfo != null) {
       onAdd(avdInfo)
     }
     return true
   }
 }
+
+internal fun Device.toVirtualDeviceProfile(): VirtualDeviceProfile =
+  VirtualDeviceProfile.Builder().apply { initializeFromDevice(this@toVirtualDeviceProfile) }.build()
 
 private class VirtualDeviceFilterState : DeviceFilterState<VirtualDeviceProfile>() {
   var showDeprecated: Boolean by mutableStateOf(false)

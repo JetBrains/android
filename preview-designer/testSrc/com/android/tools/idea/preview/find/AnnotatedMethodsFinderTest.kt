@@ -18,17 +18,11 @@ package com.android.tools.idea.preview.find
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.openapi.application.runReadAction
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.uast.UMethod
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-
-private fun identity(methods: List<UMethod>) = methods.asFlow()
-
-private fun nameLetters(methods: List<UMethod>) = methods.flatMap { it.name.toList() }.asFlow()
 
 class AnnotatedMethodsFinderTest {
 
@@ -107,57 +101,17 @@ class AnnotatedMethodsFinderTest {
           .trimIndent(),
       )
 
-    val nLetters = 10 // There are 10 letters in "abcde and "fghia" altogether
     assertEquals(0, CacheKeysManager.getInstance(project).map().size)
-    assertEquals(
-      nLetters,
-      findAnnotatedMethodsValues(
-          project,
-          sourceFile.virtualFile,
-          "com.android.annotations.MyAnnotationA",
-          "MyAnnotationA",
-          toValues = ::nameLetters,
-        )
-        .size,
-    )
+    assertEquals(2, findAnnotatedMethods(project, sourceFile.virtualFile, "com.android.annotations.MyAnnotationA", "MyAnnotationA").size)
     assertTrue("Unexpectedly no new cache keys", CacheKeysManager.getInstance(project).map().size > 0)
     val cacheKeys = CacheKeysManager.getInstance(project).map().size
-    assertEquals(
-      nLetters,
-      findAnnotatedMethodsValues(
-          project,
-          sourceFile.virtualFile,
-          "com.android.annotations.MyAnnotationA",
-          "MyAnnotationA",
-          toValues = ::nameLetters,
-        )
-        .size,
-    )
+    assertEquals(2, findAnnotatedMethods(project, sourceFile.virtualFile, "com.android.annotations.MyAnnotationA", "MyAnnotationA").size)
     // Check that call with the same args combination does not create new keys and reuses the cache:
     assertEquals(cacheKeys, CacheKeysManager.getInstance(project).map().size)
-    assertEquals(
-      2,
-      findAnnotatedMethodsValues(
-          project,
-          sourceFile.virtualFile,
-          "com.android.annotations.MyAnnotationA",
-          "MyAnnotationA",
-          toValues = ::identity,
-        )
-        .size,
-    )
+
+    // A different parameter combination should add a new cache key
+    assertEquals(0, findAnnotatedMethods(project, sourceFile.virtualFile, "com.android.annotations.MyAnnotationB", "MyAnnotationB").size)
     assertTrue("Unexpectedly no new cache keys", cacheKeys < CacheKeysManager.getInstance(project).map().size)
-    assertEquals(
-      0,
-      findAnnotatedMethodsValues(
-          project,
-          sourceFile.virtualFile,
-          "com.android.annotations.MyAnnotationB",
-          "MyAnnotationB",
-          toValues = ::identity,
-        )
-        .size,
-    )
   }
 
   @Test

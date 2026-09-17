@@ -71,20 +71,36 @@ fun WearApp(greetingName: String) {
                         }
                     }
                     item {
-                        Button(onClick = { /*TODO*/ }, modifier = Modifier.fillMaxWidth()) {
+                        Button(
+                            onClick = { /*TODO*/ },
+                            modifier = Modifier.fillMaxWidth()
+                                .transformedHeight(this, transformationSpec),
+                            transformation = SurfaceTransformation(transformationSpec),
+                        ) {
                             Text("Button A")
                         }
                     }
                     item {
-                        Button(onClick = { /*TODO*/ }, modifier = Modifier.fillMaxWidth()) {
+                        Button(
+                            onClick = { /*TODO*/ },
+                            modifier = Modifier.fillMaxWidth()
+                                .transformedHeight(this, transformationSpec),
+                            transformation = SurfaceTransformation(transformationSpec),
+                        ) {
                             Text("Button B")
                         }
                     }
                     item {
-                        Button(onClick = { /*TODO*/ }, modifier = Modifier.fillMaxWidth()) {
+                        Button(
+                            onClick = { /*TODO*/ },
+                            modifier = Modifier.fillMaxWidth()
+                                .transformedHeight(this, transformationSpec),
+                            transformation = SurfaceTransformation(transformationSpec),
+                        ) {
                             Text("Button C")
                         }
                     }
+
                 }
             }
         }

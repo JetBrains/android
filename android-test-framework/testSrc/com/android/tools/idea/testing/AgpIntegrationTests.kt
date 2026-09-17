@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.testing
 
+import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.junit4.OldAgpSuite
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.util.AGP_BUILT_IN_KOTLIN_VERSION
+import com.android.tools.idea.gradle.util.getKotlinVersion
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_11
@@ -26,11 +29,11 @@ import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
 
 // This Gradle version is exclusively used for the Sync Comparison Benchmarks and gets updated
 // frequently. Please do not use for other purposes
-const val GRADLE_SNAPSHOT_VERSION = "9.5.0-20260304001725+0000"
-const val GRADLE_DECLARATIVE_SNAPSHOT_VERSION = "9.5.0-milestone-5"
+const val GRADLE_SNAPSHOT_VERSION = "9.5.0-20260330013839+0000"
+const val GRADLE_DECLARATIVE_SNAPSHOT_VERSION = "9.4.1"
 // For available versions:
 // https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml
-const val KOTLIN_SNAPSHOT_VERSION = "2.4.0-dev-5614"
+const val KOTLIN_SNAPSHOT_VERSION = "2.4.0-dev-8268"
 
 /** An AGP Version definition to be used in AGP integration tests. */
 enum class AgpVersionSoftwareEnvironmentDescriptor(
@@ -337,5 +340,8 @@ private fun AgpVersionSoftwareEnvironmentDescriptor.gradleSuffix(): String {
 
 /** Returns the built-in Kotlin version associated with the AGP version. */
 fun AgpVersionSoftwareEnvironmentDescriptor.getBuiltInKotlinVersion(): String? {
-  return if (agpVersion == null) "2.2.10" else null
+  return when {
+    agpVersion == null -> AGP_BUILT_IN_KOTLIN_VERSION
+    else -> AgpVersion.parse(agpVersion).getKotlinVersion()
+  }
 }

@@ -105,6 +105,7 @@ class StateInspectionPanelIntegrationTest {
     val state = FakeInspectorStateReads(inspectionRule.composeInspector)
     state.createFakeStateReads()
 
+    populateModelAndMakeSelection()
     requestStateReads()
     waitForCondition(10.seconds) { panel.findAllDescendants<ActionButton>({ true }).toList().size == 3 }
 
@@ -180,18 +181,30 @@ class StateInspectionPanelIntegrationTest {
     clickOnStackTrace(ui, panel)
     clickOnAILink(ui, panel)
 
+    // Navigate to last recomposition
+    ui.click(next)
+    waitForCondition(10.seconds) { recompositionText.text == "Recomposition 103" }
+    ui.click(next)
+    waitForCondition(10.seconds) { recompositionText.text == "Recomposition 104" }
+
+    // Click on minimize button should close the panel:
     assertThat(SwingUtilities.isDescendingFrom(recompositionText, panel)).isTrue()
     assertThat(minimize.isEnabled).isTrue()
     ui.click(minimize)
     waitForCondition(10.seconds) { !panel.isVisible }
     assertThat(SwingUtilities.isDescendingFrom(recompositionText, panel)).isFalse()
 
+    // Imitate clicking on the same recomposition. Make sure the state reads are shown again:
+    requestStateReads()
+    waitForCondition(10.seconds) { panel.isVisible }
+    waitForCondition(10.seconds) { recompositionText.text == "Recomposition 104" }
+
     val data = DynamicLayoutInspectorSession.newBuilder()
     inspectorRule.inspectorClient.stats.save(data)
     assertThat(data.stateReads.prevRecompositionChosen).isEqualTo(2)
-    assertThat(data.stateReads.nextRecompositionChosen).isEqualTo(3)
+    assertThat(data.stateReads.nextRecompositionChosen).isEqualTo(5)
     assertThat(data.stateReads.pagesShownObservingAll).isEqualTo(5)
-    assertThat(data.stateReads.pagesShownObservingById).isEqualTo(1)
+    assertThat(data.stateReads.pagesShownObservingById).isEqualTo(4)
     assertThat(data.stateReads.stackTraceLinksClicked).isEqualTo(2)
     assertThat(data.stateReads.aiLinksClicked).isEqualTo(1)
   }
@@ -255,7 +268,7 @@ class StateInspectionPanelIntegrationTest {
     return panel
   }
 
-  private fun requestStateReads() {
+  private fun populateModelAndMakeSelection() {
     val model = inspectorRule.inspectorModel
     val window =
       window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
@@ -264,7 +277,11 @@ class StateInspectionPanelIntegrationTest {
         }
       }
     model.update(window, listOf(ROOT), 0)
-    model.stateReadsModel.requestStateReadFor(model[COMPOSE1] as ComposeViewNode)
     model.setSelection(model[COMPOSE1], SelectionOrigin.INTERNAL)
+  }
+
+  private fun requestStateReads() {
+    val model = inspectorRule.inspectorModel
+    model.stateReadsModel.requestStateReadFor(model[COMPOSE1] as ComposeViewNode)
   }
 }

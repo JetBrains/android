@@ -93,6 +93,23 @@ class ComposePreviewElementTest {
           null,
           PreviewConfiguration.cleanAndGet(),
         ),
+        SingleComposePreviewElementInstance(
+          "composableMethodName",
+          PreviewDisplaySettings(
+            name = "A name",
+            baseName = "A base name",
+            parameterName = null,
+            group = "group1",
+            showDecoration = true,
+            background = PreviewDisplaySettings.Background.None,
+            organizationName = "organizationName",
+            organizationGroup = "organizationGroup",
+          ),
+          null,
+          null,
+          PreviewConfiguration.cleanAndGet(),
+          previewWrapperProviderFqn = "com.example.Wrapper",
+        ),
       )
 
     val factory = DocumentBuilderFactory.newDefaultInstance()
@@ -130,6 +147,7 @@ $t
       override val previewElementDefinition: Unit?,
       override val previewBody: Unit?,
       override val configuration: PreviewConfiguration,
+      override val previewWrapperProviderFqn: String? = null,
     ) : ComposePreviewElementInstance<Unit>() {
       override var hasAnimations = false
 
@@ -141,6 +159,7 @@ $t
           previewElementDefinition = previewElementDefinition,
           previewBody = previewBody,
           configuration = config,
+          previewWrapperProviderFqn = previewWrapperProviderFqn,
         )
     }
 
@@ -244,5 +263,47 @@ $t
     assertNotEquals(composable0, composable1)
     assertNotEquals(composable0, composable2)
     assertNotEquals(composable2, composable3)
+
+    // Different wrapper
+    val composableWithWrapper =
+      SingleComposePreviewElementInstance(
+        "composableMethodName",
+        PreviewDisplaySettings(
+          name = "A name",
+          baseName = "A base name",
+          parameterName = null,
+          group = null,
+          showDecoration = false,
+          background = PreviewDisplaySettings.Background.None,
+          organizationName = "organizationName",
+          organizationGroup = "organizationGroup",
+        ),
+        null,
+        null,
+        PreviewConfiguration.cleanAndGet(),
+        previewWrapperProviderFqn = "com.example.Wrapper",
+      )
+
+    val composableWithWrapper2 =
+      SingleComposePreviewElementInstance(
+        "composableMethodName",
+        PreviewDisplaySettings(
+          name = "A name",
+          baseName = "A base name",
+          parameterName = null,
+          group = null,
+          showDecoration = false,
+          background = PreviewDisplaySettings.Background.None,
+          organizationName = "organizationName",
+          organizationGroup = "organizationGroup",
+        ),
+        null,
+        null,
+        PreviewConfiguration.cleanAndGet(),
+        previewWrapperProviderFqn = "com.example.Wrapper",
+      )
+
+    assertNotEquals(composable0, composableWithWrapper)
+    assertEquals(composableWithWrapper, composableWithWrapper2)
   }
 }

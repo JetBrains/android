@@ -34,6 +34,7 @@ import com.android.tools.idea.testing.withCompileSdk
 import com.android.tools.idea.testing.withKotlin
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.Category
+import com.android.tools.idea.wizard.template.DslLanguage.KTS
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -148,7 +149,7 @@ class KotlinBomPlatformDependencyTest {
     model.moduleName.set(myModule)
     model.template.set(GradleAndroidModuleTemplate.createDefaultModuleTemplate(project, myModule))
     model.packageName.set("com.example")
-    model.useGradleKts.set(true)
+    model.dslLanguage.set(KTS)
 
     model.handleFinished() // Generate module files
   }

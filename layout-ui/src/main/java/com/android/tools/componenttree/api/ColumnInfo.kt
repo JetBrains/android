@@ -67,6 +67,10 @@ interface ColumnInfo {
   val insets: Insets
     get() = DEFAULT_INSETS
 
+  /** This column renderer may use custom cursors */
+  val hasCustomCursor: Boolean
+    get() = false
+
   /** Return true if the performAction can be performed. */
   fun isActionEnabled(item: Any): Boolean
 

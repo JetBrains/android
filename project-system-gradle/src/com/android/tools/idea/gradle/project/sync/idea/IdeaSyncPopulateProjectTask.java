@@ -67,9 +67,10 @@ public class IdeaSyncPopulateProjectTask {
       throw ex;
     }
     catch (Throwable ex) {
-      GradleSyncMessages.getInstance(myProject).report(new SyncMessage(SyncMessage.DEFAULT_GROUP, MessageType.ERROR, ex.getMessage()));
+      @NotNull String exceptionMessage = ex.getMessage() == null ? ex.toString() : ex.getMessage();
+      GradleSyncMessages.getInstance(myProject).report(new SyncMessage(SyncMessage.DEFAULT_GROUP, MessageType.ERROR, exceptionMessage));
       if (syncListener != null) {
-        syncListener.syncFailed(myProject, ex.getMessage());
+        syncListener.syncFailed(myProject, exceptionMessage);
       }
       throw ex;
     }

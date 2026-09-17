@@ -30,7 +30,7 @@ import kotlin.math.max
 
 /** A [DeviceProfile] based on a [Device], used for creating an AVD. */
 @Immutable
-internal data class VirtualDeviceProfile(
+data class VirtualDeviceProfile(
   val device: Device,
   override val apiRange: Range<Int>,
   override val manufacturer: String,

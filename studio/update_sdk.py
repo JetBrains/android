@@ -92,7 +92,7 @@ def write_xml_files(workspace, sdk, ides):
     if set.intersection(*sets):
       common_plugins_with_jars.add(plugin)
     jars = sorted(set.union(*sets))
-    if len(jars) == 1 and "/lib/modules/" in jars[0]:
+    if len(jars) == 1 and ("/modules/" in jars[0] or jars[0].startswith("/lib/")):
       v2_modules.add(plugin)
     paths = [ rel_workspace + sdk + f"/$SDK_PLATFORM$" + j for j in jars]
     gen_lib(project_dir, "studio-plugin-" + plugin, paths, [workspace + sdk + "/android-studio-sources.zip"])

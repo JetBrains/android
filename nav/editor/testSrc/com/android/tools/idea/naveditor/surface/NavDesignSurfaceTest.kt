@@ -546,11 +546,9 @@ class NavDesignSurfaceTest : NavTestCase() {
 
   private fun updateContent(psiClass: PsiClass, @Language("JAVA") newContent: String) {
     WriteCommandAction.runWriteCommandAction(project) {
-      try {
-        psiClass.containingFile.virtualFile.setBinaryContent(newContent.toByteArray())
-      } catch (e: Exception) {
-        fail(e.message)
-      }
+      val document = PsiDocumentManager.getInstance(project).getDocument(psiClass.containingFile)!!
+      document.setText(newContent)
+      PsiDocumentManager.getInstance(project).commitDocument(document)
     }
     WriteAction.runAndWait<RuntimeException> { PsiDocumentManager.getInstance(myModule.project).commitAllDocuments() }
     val dumbService = DumbService.getInstance(project)

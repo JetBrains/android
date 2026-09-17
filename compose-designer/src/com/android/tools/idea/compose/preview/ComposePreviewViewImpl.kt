@@ -319,14 +319,16 @@ internal class ComposePreviewViewImpl(
     }
 
   /** Method called to ask all notifications to update. */
-  private fun updateNotifications() =
+  private fun updateNotifications() {
+    val virtualFile = psiFilePointer.virtualFile
     UIUtil.invokeLaterIfNeeded {
       actionsToolbar.updateActions()
       // Make sure all notifications are cleared-up
       if (!project.isDisposed) {
-        psiFilePointer.virtualFile?.let { EditorNotifications.getInstance(project).updateNotifications(it) }
+        virtualFile?.let { EditorNotifications.getInstance(project).updateNotifications(it) }
       }
     }
+  }
 
   /** Shows an error message saying a successful build is needed and a link to trigger a new build. */
   private fun showNeedsToBuildErrorPanel() {
@@ -371,7 +373,7 @@ internal class ComposePreviewViewImpl(
             workbench.hideLoading()
             workbench.showContent()
           } else {
-            val extraActions = listOfNotNull(createGeneratePreviewsActionData(), createScreenshotToCodeActionData())
+            val extraActions = listOfNotNull(createScreenshotToCodeActionData(), createGeneratePreviewsActionData())
             workbench.hideLoading()
             workbench.hideContent()
             workbench.loadingStopped(

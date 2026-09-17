@@ -26,9 +26,11 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.rendering.RenderLogger
 import com.intellij.icons.AllIcons
 import com.intellij.lang.annotation.HighlightSeverity
+import java.lang.reflect.InvocationTargetException
 import javax.swing.event.HyperlinkListener
 import kotlin.test.assertNotNull
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -43,6 +45,19 @@ class ComposeRenderErrorContributorTest {
   @Before
   fun setup() {
     linkManager = StudioHtmlLinkManager()
+  }
+
+  @Test
+  fun `test unwrap recursive`() {
+    val rootCause = Exception("Root Cause")
+    val wrapper1 = InvocationTargetException(rootCause)
+    val wrapper2 = InvocationTargetException(wrapper1)
+    val wrapperNoCause = InvocationTargetException(null)
+
+    assertSame(rootCause, ComposeRenderErrorContributor.unwrapIfInvocationTargetException(wrapper2))
+    assertSame(rootCause, ComposeRenderErrorContributor.unwrapIfInvocationTargetException(wrapper1))
+    assertSame(rootCause, ComposeRenderErrorContributor.unwrapIfInvocationTargetException(rootCause))
+    assertSame(wrapperNoCause, ComposeRenderErrorContributor.unwrapIfInvocationTargetException(wrapperNoCause))
   }
 
   @Test

@@ -6,21 +6,17 @@ load(
 load(
     "//tools/adt/idea/aswb/build_defs:build_defs.bzl",
     "aswb_library",
-    "intellij_plugin",
     "intellij_plugin_library",
     "optional_plugin_xml",
-    "stamped_plugin_xml",
 )
 load(
     "//tools/adt/idea/aswb/testing:test_defs.bzl",
     "intellij_integration_test_suite",
     "intellij_unit_test_suite",
 )
-load("//tools/adt/idea/studio:studio.bzl", "intellij_plugin_import")
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 aswb_library(
-    name = "java",
+    name = "java_lib",
     srcs = glob(
         [
             "src/**/*.java",
@@ -28,10 +24,12 @@ aswb_library(
         ],
     ),
     javacopts = ["-Xep:FutureReturnValueIgnored:OFF"],
-    visibility = PLUGIN_PACKAGES_VISIBILITY,
+    visibility = [
+        "//tools/adt/idea/aswb:__subpackages__",
+        "//tools/vendor/google3/aswb:__subpackages__",
+    ],
     deps = [
         "//tools/adt/idea/aswb/base",
-        "//tools/adt/idea/aswb/base/src/com/google/idea/blaze/base/command/buildresult/bepparser",
         "//tools/adt/idea/aswb/common/actions",
         "//tools/adt/idea/aswb/common/experiments",
         "//tools/adt/idea/aswb/common/settings",
@@ -62,14 +60,14 @@ optional_plugin_xml(
 )
 
 intellij_plugin_library(
-    name = "plugin_library",
+    name = "java",
     optional_plugin_xmls = [
         ":optional_java",
         ":optional_coverage",
     ],
     plugin_xmls = ["src/META-INF/blaze-java.xml"],
     visibility = PLUGIN_PACKAGES_VISIBILITY,
-    deps = [":java"],
+    deps = [":java_lib"],
 )
 
 intellij_unit_test_suite(
@@ -95,7 +93,7 @@ intellij_unit_test_suite(
     test_package_root = "com.google.idea.blaze.java",
     visibility = DEFAULT_TEST_VISIBILITY,
     deps = [
-        ":java",
+        ":java_lib",
         "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:unit_test_utils",
         "//tools/adt/idea/aswb/common/experiments",
@@ -103,12 +101,12 @@ intellij_unit_test_suite(
         "//tools/adt/idea/aswb/proto:proto_deps",
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/third_party/java/junit",
+        "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:coverage_for_tests",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "//tools/vendor/google/aswb/plugin_api:test_libs",
         "//tools/vendor/google/aswb/plugin_api:truth",
-        "//tools/vendor/google/aswb/plugin_api/maven:guava",
     ],
 )
 
@@ -129,7 +127,7 @@ java_binary(
     testonly = True,
     main_class = "None",
     runtime_deps = [
-        "//tools/vendor/google/aswb/plugin_api/maven:guava",
+        "@maven//:com.google.guava.guava",
     ],
 )
 
@@ -142,53 +140,18 @@ java_binary(
     ],
 )
 
-stamped_plugin_xml(
-    name = "java_plugin_xml",
-    testonly = 1,
-    plugin_id = "com.google.idea.blaze.java",
-    plugin_name = "com.google.idea.blaze.java",
-)
-
-intellij_plugin(
-    name = "java_integration_test_plugin",
-    testonly = 1,
-    plugin_xml = ":java_plugin_xml",
-    deps = [
-        ":plugin_library",
-        "//tools/adt/idea/aswb/base:plugin_library",
-    ],
-)
-
-jvm_import(
-    name = "java_plugin_import",
-    testonly = 1,
-    jars = [
-        ":java_integration_test_plugin",
-    ],
-)
-
-intellij_plugin_import(
-    name = "com.google.idea.blaze.java",
-    testonly = 1,
-    overwrite_plugin_version = True,
-    target_dir = "java",
-    exports = [":java_plugin_import"],
-)
-
 intellij_integration_test_suite(
     name = "integration_tests",
     srcs = glob(
         ["tests/integrationtests/**/*.java"],
     ),
-    plugins = [":com.google.idea.blaze.java"],
-    required_plugins = "com.google.idea.blaze.java",
     tags = [
         "noci:studio-win",
     ],
     test_package_root = "com.google.idea.blaze.java",
     visibility = DEFAULT_TEST_VISIBILITY,
     deps = [
-        ":java",
+        ":java_lib",
         "//tools/adt/idea/aswb/base",
         "//tools/adt/idea/aswb/base:integration_test_utils",
         "//tools/adt/idea/aswb/base:unit_test_utils",
@@ -199,9 +162,9 @@ intellij_integration_test_suite(
         "//tools/adt/idea/aswb/shared",
         "//tools/adt/idea/aswb/third_party/java/junit",
         "//tools/adt/idea/aswb/third_party/java/truth",
+        "//tools/vendor/google/aswb/plugin_api",
         "//tools/vendor/google/aswb/plugin_api:jsr305",
         "//tools/vendor/google/aswb/plugin_api:plugin_api_for_tests",
         "//tools/vendor/google/aswb/plugin_api:test_libs",
-        "//tools/vendor/google/aswb/plugin_api/maven:guava",
     ],
 )

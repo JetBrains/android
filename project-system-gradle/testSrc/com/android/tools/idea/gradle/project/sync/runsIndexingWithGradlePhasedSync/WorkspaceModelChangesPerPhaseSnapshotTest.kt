@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity
 import com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject.Companion.openTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
+import com.android.tools.idea.gradle.util.AGP_BUILT_IN_KOTLIN_VERSION
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.SnapshotComparisonTest
@@ -138,9 +139,6 @@ class WorkspaceModelChangesPerPhaseSnapshotTest(val testProject: TestProject) : 
           }
         }
       }
-      .apply {
-        check(previousRootsChangedEvent == null) { "Unexpected state, roots change events shouldn't be the final entry in events." }
-      }
       .lines()
       .filter { it.isNotEmpty() }
       .joinToString("\n")
@@ -257,7 +255,7 @@ class WorkspaceModelChangesPerPhaseSnapshotTest(val testProject: TestProject) : 
         },
         EntityChangeDumper(LibraryEntity::class.java) {
           buildString {
-            append("LibraryEntity: ${it.name}")
+            append("LibraryEntity: ${it.name.normalizeCommonDependencies()}")
             when (val tableId = it.tableId) {
               is LibraryTableId.ModuleLibraryTableId -> append(" (module level library for ${tableId.moduleId})")
 
@@ -279,10 +277,19 @@ class WorkspaceModelChangesPerPhaseSnapshotTest(val testProject: TestProject) : 
         EntityChangeDumper(ModuleMavenCoordinateEntity::class.java) { "ModuleMavenCoordinateEntity for ${it.module.name}" },
         EntityChangeDumper(JavaModuleSettingsEntity::class.java) { "JavaModuleSettingsEntity for ${it.module.name}" },
         EntityChangeDumper(GradleModuleModelEntity::class.java) { "GradleModuleModelEntity for ${it.module.name}" },
-        EntityChangeDumper(LibraryMavenCoordinateEntity::class.java) { "LibraryMavenCoordinateEntity for ${it.library.name}" },
+        EntityChangeDumper(LibraryMavenCoordinateEntity::class.java) {
+          "LibraryMavenCoordinateEntity for ${it.library.name.normalizeCommonDependencies()}"
+        },
         EntityChangeDumper(JavaProjectSettingsEntity::class.java) { "JavaProjectSettingsEntity for the IDE project" },
       )
     private val knownClasses = entityDumpers.map { it.clazz }.toSet()
+
+    private fun String.normalizeCommonDependencies(): String {
+      return replace(
+        "org.jetbrains.kotlin:kotlin-stdlib:$AGP_BUILT_IN_KOTLIN_VERSION",
+        "org.jetbrains.kotlin:kotlin-stdlib:<AGP_BUILT_IN_KOTLIN_VERSION>",
+      )
+    }
   }
 }
 

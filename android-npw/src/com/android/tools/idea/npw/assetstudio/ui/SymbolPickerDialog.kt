@@ -30,6 +30,7 @@ import com.android.tools.idea.material.icons.common.SymbolConfiguration
 import com.android.tools.idea.material.icons.common.Symbols
 import com.android.tools.idea.material.icons.common.SymbolsSdkUrlProvider
 import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
+import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
 import com.android.tools.idea.npw.assetstudio.assets.MaterialSymbolsVirtualFile
 import com.android.tools.idea.ui.resourcemanager.plugin.LayoutRenderOptions
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerImpl
@@ -39,6 +40,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.IdeActions
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
@@ -79,7 +81,9 @@ import javax.swing.event.ListSelectionEvent
 import javax.swing.table.AbstractTableModel
 import kotlin.math.min
 import kotlin.reflect.KClass
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.PropertyKey
 import org.jetbrains.annotations.TestOnly
@@ -91,13 +95,22 @@ private const val COLUMN_COUNT: Int = 6
 private const val EXPECTED_NUMBER_OF_ICONS: Int = 6000
 private const val ICON_HEIGHT = 64
 private const val TEXT_HEIGHT = 16
+private const val PADDING_BOTTOM = 8
 private const val MAX_CACHE_SIZE = 2048
 
-class SymbolPickerDialog(
+open class SymbolPickerDialog
+@JvmOverloads
+constructor(
   facet: AndroidFacet,
   parentDisposable: Disposable,
   materialSymbolsUrlProvider: MaterialSymbolsUrlProvider? = null,
   materialIconsMetadataUrlProvider: MaterialIconsMetadataUrlProvider? = null,
+  @VisibleForTesting
+  private val vdIconLoader:
+    suspend (SymbolConfiguration, MaterialMetadataIcon, MaterialIconsMetadata, MaterialSymbolsUrlProvider) -> VdIcon =
+    { sc, im, ims, sup ->
+      MaterialSymbolsLoader.loadVdIcon(sc, im, ims, sup)
+    },
 ) : DialogWrapper(false) {
 
   // The following arrays are the possible values for the visual customizations of Material Symbols
@@ -107,16 +120,25 @@ class SymbolPickerDialog(
   private val opticalSizeSliderValues = arrayOf(20, 24, 40, 48)
   private val categoriesBoxNameMap: MutableMap<String, String> = HashMap(EXPECTED_NUMBER_OF_ICONS)
 
+  companion object {
+    @VisibleForTesting const val DEFAULT_WEIGHT_INDEX = 3 // 400
+
+    @VisibleForTesting const val DEFAULT_GRADE_INDEX = 1 // 0
+
+    @VisibleForTesting const val DEFAULT_OPTICAL_SIZE_INDEX = 1 // 24
+  }
+
   private val loadingPanel = JBLoadingPanel(BorderLayout(), myDisposable)
   private val searchField = SearchTextField(false)
   private val contentPanel = SearchFieldProviderPanel(searchField)
 
   private val categoriesBox = ComboBox<String>()
   private val stylesBox = ComboBox<String>()
-  private val weightSlider = JSlider(0, weightSliderValues.size - 1)
-  private val gradeSlider = JSlider(0, gradeSliderValues.size - 1)
-  private val opticalSizeSlider = JSlider(0, opticalSizeSliderValues.size - 1)
+  private val weightSlider = JSlider(0, weightSliderValues.size - 1, DEFAULT_WEIGHT_INDEX)
+  private val gradeSlider = JSlider(0, gradeSliderValues.size - 1, DEFAULT_GRADE_INDEX)
+  private val opticalSizeSlider = JSlider(0, opticalSizeSliderValues.size - 1, DEFAULT_OPTICAL_SIZE_INDEX)
   private val refreshButton = JButton(AllIcons.General.Refresh)
+  private val resetButton = JButton(AllIcons.General.Reset)
   private val filledCheckBox = JCheckBox()
   private val iconsPanel = JPanel()
   private val licensePanel = JPanel()
@@ -127,12 +149,15 @@ class SymbolPickerDialog(
     fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any) = bundleRef.message(key, *params)
   }
 
-  private val weightLabel = JLabel(SymbolsBundle.message("label.weight").format(400))
-  private val gradeLabel = JLabel(SymbolsBundle.message("label.grade").format(0))
-  private val opticalSizeLabel = JLabel(SymbolsBundle.message("label.optical_size").format(24))
+  private val weightLabel = JLabel(SymbolsBundle.message("label.weight").format(weightSliderValues[DEFAULT_WEIGHT_INDEX]))
+  private val gradeLabel = JLabel(SymbolsBundle.message("label.grade").format(gradeSliderValues[DEFAULT_GRADE_INDEX]))
+  private val opticalSizeLabel =
+    JLabel(SymbolsBundle.message("label.optical_size").format(opticalSizeSliderValues[DEFAULT_OPTICAL_SIZE_INDEX]))
 
   init {
     super.init()
+    // Since no icon is selected when opening the dialog, disable the OK button initially
+    isOKActionEnabled = false
     setupUI()
     title = SymbolsBundle.message("title")
     Disposer.register(parentDisposable, myDisposable)
@@ -162,8 +187,6 @@ class SymbolPickerDialog(
   private val imageCache = ImageCache.createImageCache(myDisposable, null)
   private val materialSymbolsUrlProvider = materialSymbolsUrlProvider ?: SymbolsSdkUrlProvider()
   private val materialIconsMetadataUrlProvider = materialIconsMetadataUrlProvider ?: SdkMetadataUrlProvider()
-  private val resourceResolver =
-    ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(LightVirtualFile()).getResourceResolver()
 
   // The default panel color in darcula mode is too dark given that our icons are all black.
   // We provide a lighter color for higher contrast.
@@ -178,9 +201,6 @@ class SymbolPickerDialog(
       }
     }
   private val renderingOptions = LayoutRenderOptions(SessionParams.RenderingMode.SHRINK, true, transparentBackground = true)
-  private val assetPreviewManager = AssetPreviewManagerImpl(facet, imageCache, resourceResolver, null, renderingOptions, placeholderImage)
-  private val layoutRenderer =
-    IconPickerCellLayoutRenderer(assetPreviewManager.getPreviewProvider(ResourceType.LAYOUT) as SlowResourcePreviewManager)
 
   private val layoutModel = TableModel(MaterialSymbolsVirtualFile::class, filteredSymbolList)
 
@@ -188,33 +208,50 @@ class SymbolPickerDialog(
   private var isBusy = true
 
   init {
-    isBusy = true
     setupTable()
     setStylesBoxModel() // We must ensure the styles box is initialized before loading the metadata to avoid a potential NPE
     setCategoriesBoxModel()
+    coroutineScope
+      .launch {
+        loadingPanel.startLoading()
+        try {
+          val resourceResolver =
+            withContext(Dispatchers.IO) {
+              ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(LightVirtualFile()).getResourceResolver()
+            }
+          val assetPreviewManager = AssetPreviewManagerImpl(facet, imageCache, resourceResolver, null, renderingOptions, placeholderImage)
+          val layoutRenderer =
+            IconPickerCellLayoutRenderer(assetPreviewManager.getPreviewProvider(ResourceType.LAYOUT) as SlowResourcePreviewManager)
 
-    ensureFontsAndMetadataAreDownloaded(false)
+          withContext(Dispatchers.Main) { iconTable.setDefaultRenderer(MaterialSymbolsVirtualFile::class.java, layoutRenderer) }
 
-    val stylesBoxListener = { e: ItemEvent ->
-      if (e.getStateChange() != ItemEvent.DESELECTED && e.getItem() != null) {
-        val categoryCurrentIndex: Int = categoriesBox.getSelectedIndex()
-        setCategoriesBoxModel()
-        updateIconList()
-        layoutModel.fireTableDataChanged()
-        if (categoryCurrentIndex >= 0 && categoryCurrentIndex < categoriesBox.itemCount) {
-          categoriesBox.setSelectedIndex(categoryCurrentIndex)
+          ensureFontsAndMetadataAreDownloaded(false)
+
+          val stylesBoxListener = { e: ItemEvent ->
+            if (e.getStateChange() != ItemEvent.DESELECTED && e.getItem() != null) {
+              val categoryCurrentIndex: Int = categoriesBox.getSelectedIndex()
+              setCategoriesBoxModel()
+              updateIconList()
+              layoutModel.fireTableDataChanged()
+              if (categoryCurrentIndex >= 0 && categoryCurrentIndex < categoriesBox.itemCount) {
+                categoriesBox.setSelectedIndex(categoryCurrentIndex)
+              }
+            }
+          }
+
+          val categoriesBoxListener = { e: ItemEvent ->
+            if (e.getStateChange() != ItemEvent.DESELECTED && e.getItem() != null) {
+              updateFilter()
+            }
+          }
+
+          stylesBox.addItemListener(stylesBoxListener)
+          categoriesBox.addItemListener(categoriesBoxListener)
+        } finally {
+          loadingPanel.stopLoading()
         }
       }
-    }
-
-    val categoriesBoxListener = { e: ItemEvent ->
-      if (e.getStateChange() != ItemEvent.DESELECTED && e.getItem() != null) {
-        updateFilter()
-      }
-    }
-
-    stylesBox.addItemListener(stylesBoxListener)
-    categoriesBox.addItemListener(categoriesBoxListener)
+      .invokeOnCompletion { _ -> isBusy = false }
   }
 
   private fun setStylesBoxModel() {
@@ -238,10 +275,8 @@ class SymbolPickerDialog(
   }
 
   private fun selectVdIcon(icon: MaterialSymbolsVirtualFile) {
-    isOKActionEnabled = false
-
     coroutineScope.launch {
-      val vdIcon = MaterialSymbolsLoader.loadVdIcon(icon.symbolConfiguration, icon.metadata, metadata, materialSymbolsUrlProvider)
+      val vdIcon = vdIconLoader(icon.symbolConfiguration, icon.metadata, metadata, materialSymbolsUrlProvider)
       selectedIcon = vdIcon
       isOKActionEnabled = true
     }
@@ -316,17 +351,16 @@ class SymbolPickerDialog(
           categoriesBox.selectedItem == SymbolsBundle.message("categories.all") ||
             it.metadata.categories.contains(categoriesBoxNameMap[categoriesBox.selectedItem])
         }
-        .filter { it.metadata.name.contains(searchField.text) }
+        .filter { it.metadata.name.contains(searchField.text.trim(), true) || it.displayName.contains(searchField.text.trim(), true) }
     filteredSymbolList.addAll(filtered)
     layoutModel.fireTableDataChanged()
 
     if (filteredSymbolList.isEmpty()) {
       iconTable.emptyText.text = SymbolsBundle.message("table.empty")
     }
-
-    pack()
-    repaint()
   }
+
+  @TestOnly fun getCurrentSymbolNames() = filteredSymbolList.map { it.displayName }
 
   @VisibleForTesting
   public override fun createCenterPanel(): JComponent {
@@ -342,45 +376,44 @@ class SymbolPickerDialog(
     return isBusy
   }
 
+  @TestOnly
+  fun isRefreshButtonEnabled(): Boolean {
+    return refreshButton.isEnabled
+  }
+
   /**
    * Function that, if required, downloads missing font files and metadata to the Sdk
    *
-   * @param forceMetadataDownload even though some automatic checks for updates are in-place, we allow the user to manually trigger a
-   *   redownload through the [refreshButton]
+   * @param forceDownload even though some automatic checks for updates are in-place, we allow the user to manually trigger a redownload
+   *   through the [refreshButton]
    */
-  private fun ensureFontsAndMetadataAreDownloaded(forceDownload: Boolean) {
-    coroutineScope.launch {
-      loadingPanel.startLoading()
-      try {
-        getMaterialSymbolsFontsAndMetadata(
-          materialSymbolsUrlProvider,
-          materialIconsMetadataUrlProvider,
-          coroutineScope,
-          forceDownload,
-          ({
-            // Metadata contains duplicates of entries with the same codepoint, some only allowing
-            // for Material Symbols, others only for Material Icons. Since these have the same name,
-            // codepoint, but different unsupported families and categories, they spoil the metadata
-            // causing issues, so we need to filter them out
-            val displayNames = Symbols.entries.map { it.displayName }
-            val icons = it.icons.filter { icon -> !icon.unsupportedFamilies.toMutableList().containsAll(displayNames) }
-            val categories = icons.flatMap { icon -> icon.categories.toList() }.distinct().sorted().toTypedArray()
-            metadata =
-              MaterialIconsMetadata(
-                it.host,
-                urlPattern = it.urlPattern,
-                families = displayNames.toTypedArray(),
-                icons = icons.toTypedArray(),
-                categories = categories,
-              )
-          }),
-        )
-        isBusy = false
-      } catch (e: Exception) {
-        println("Error: " + e.message)
-      } finally {
-        loadingPanel.stopLoading()
-      }
+  private suspend fun ensureFontsAndMetadataAreDownloaded(forceDownload: Boolean) {
+    try {
+      getMaterialSymbolsFontsAndMetadata(
+        materialSymbolsUrlProvider,
+        materialIconsMetadataUrlProvider,
+        coroutineScope,
+        forceDownload,
+        ({
+          // Metadata contains duplicates of entries with the same codepoint, some only allowing
+          // for Material Symbols, others only for Material Icons. Since these have the same name,
+          // codepoint, but different unsupported families and categories, they spoil the metadata
+          // causing issues, so we need to filter them out
+          val displayNames = Symbols.entries.map { it.displayName }
+          val icons = it.icons.filter { icon -> !icon.unsupportedFamilies.toMutableList().containsAll(displayNames) }
+          val categories = icons.flatMap { icon -> icon.categories.toList() }.distinct().sorted().toTypedArray()
+          metadata =
+            MaterialIconsMetadata(
+              it.host,
+              urlPattern = it.urlPattern,
+              families = displayNames.toTypedArray(),
+              icons = icons.toTypedArray(),
+              categories = categories,
+            )
+        }),
+      )
+    } catch (e: Exception) {
+      thisLogger().error("Error loading fonts and metadata", e)
     }
   }
 
@@ -390,7 +423,7 @@ class SymbolPickerDialog(
     // Setup table visual properties and selection mode
     iconTable.background = iconBackgroundColor
     iconTable.tableHeader = null
-    iconTable.rowHeight = JBUI.scale(ICON_HEIGHT + TEXT_HEIGHT)
+    iconTable.rowHeight = JBUI.scale(ICON_HEIGHT + TEXT_HEIGHT + PADDING_BOTTOM)
     iconTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
     iconTable.setCellSelectionEnabled(true)
 
@@ -411,13 +444,12 @@ class SymbolPickerDialog(
 
     // Setup table model with expected data type and selection models
     iconTable.model = layoutModel
-    iconTable.setDefaultRenderer(MaterialSymbolsVirtualFile::class.java, layoutRenderer)
     val rowSelModel = iconTable.selectionModel
     val colSelModel = iconTable.columnModel.selectionModel
 
     iconTable.getColumnModel().columnSelectionAllowed = true
     iconTable.setGridColor(iconBackgroundColor)
-    iconTable.setIntercellSpacing(JBUI.size(3, 3))
+    iconTable.setIntercellSpacing(JBUI.size(3, 0))
     iconTable.setRowMargin(0)
 
     // Add listeners for selecting icons
@@ -482,7 +514,25 @@ class SymbolPickerDialog(
     filledCheckBox.addItemListener { updateIconList() }
 
     // Add listeners for the refresh button and the search field
-    refreshButton.addActionListener { ensureFontsAndMetadataAreDownloaded(true) }
+    refreshButton.addActionListener {
+      coroutineScope.launch {
+        // Disable the refresh button while download is in progress
+        UIUtil.invokeLaterIfNeeded { refreshButton.isEnabled = false }
+        try {
+          ensureFontsAndMetadataAreDownloaded(true)
+        } finally {
+          // Re-enable the button when refresh finishes or fails
+          UIUtil.invokeLaterIfNeeded { refreshButton.isEnabled = true }
+        }
+      }
+    }
+
+    // Add listeners for the reset button, so the sliders are reset when clicking on it
+    resetButton.addActionListener {
+      weightSlider.value = DEFAULT_WEIGHT_INDEX
+      gradeSlider.value = DEFAULT_GRADE_INDEX
+      opticalSizeSlider.value = DEFAULT_OPTICAL_SIZE_INDEX
+    }
 
     searchField.addDocumentListener(
       object : DocumentAdapter() {
@@ -527,8 +577,14 @@ class SymbolPickerDialog(
     // Add the filled checkbox and forced refresh button to the right of the 1st and 2nd rows of the
     // sliderPanel
     filledCheckBox.text = SymbolsBundle.message("label.filled")
-    slidersPanel.add(filledCheckBox, gridConstraintsHelper(3, 1, 0.0, fill = GridBagConstraints.NONE, insets = JBUI.emptyInsets()))
+    refreshButton.toolTipText = SymbolsBundle.message("tooltip.refresh")
+    resetButton.toolTipText = SymbolsBundle.message("tooltip.reset")
+    slidersPanel.add(
+      filledCheckBox,
+      gridConstraintsHelper(3, 1, 0.0, fill = GridBagConstraints.NONE, insets = JBUI.emptyInsets(), gridWidth = 2),
+    )
     slidersPanel.add(refreshButton, gridConstraintsHelper(3, 0, 0.0, fill = GridBagConstraints.NONE, insets = JBUI.emptyInsets()))
+    slidersPanel.add(resetButton, gridConstraintsHelper(4, 0, 0.0, fill = GridBagConstraints.NONE, insets = JBUI.emptyInsets()))
 
     // Add the sliders panel to the main component of the contentPanel
     panel1.add(

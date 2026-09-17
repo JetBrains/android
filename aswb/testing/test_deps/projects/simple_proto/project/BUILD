@@ -19,6 +19,7 @@ proto_library(
     name = "lib_proto_2024",
     srcs = [
         "lib_edition_2024.proto",
+        "lib_edition_2024_with_outer_class.proto",
     ],
     option_deps = ["@protobuf//:java_features_proto"],
     deps = ["//simple_proto/external:external_proto"],

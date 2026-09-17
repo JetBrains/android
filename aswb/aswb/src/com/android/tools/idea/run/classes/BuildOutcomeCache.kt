@@ -63,9 +63,11 @@ class BuildOutcomeCache {
     return labels.mapNotNull { cache[it] }.maxByOrNull { it.timestamp }?.status ?: ProjectSystemBuildManager.BuildStatus.UNKNOWN
   }
 
-  fun cacheOutput(project: Project, label: Label, output: OutputInfo, context: BlazeContext) {
+  fun cacheOutput(project: Project, label: Label, output: OutputInfo, context: BlazeContext): BuildOutcome {
     val outcome = buildOutcome(project, label, output, context)
     put(label, outcome)
+
+    return outcome
   }
 
   fun invalidate(label: Label, status: ProjectSystemBuildManager.BuildStatus) {

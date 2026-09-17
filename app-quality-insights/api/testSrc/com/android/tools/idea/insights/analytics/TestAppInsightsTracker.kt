@@ -79,4 +79,9 @@ object TestAppInsightsTracker : AppInsightsTracker {
     unanonymizedAppId: String,
     failureType: FailureType,
   ) = Unit
+
+  override fun logGenerateInsightAction(
+    unanonymizedAppId: String,
+    insightsAction: AppQualityInsightsUsageEvent.GenerateInsightsAction.Action,
+  ) = Unit
 }

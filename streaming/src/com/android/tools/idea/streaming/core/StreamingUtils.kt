@@ -15,7 +15,12 @@
  */
 package com.android.tools.idea.streaming.core
 
+import com.android.adblib.deviceInfo
 import com.android.sdklib.SystemImageTags
+import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceId
+import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.adtui.util.scaled
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
@@ -27,6 +32,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.AnActionHolder
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.ui.ComponentUtil
 import com.intellij.ui.dsl.builder.HyperlinkEventAction
 import com.intellij.ui.dsl.builder.MAX_LINE_LENGTH_WORD_WRAP
 import com.intellij.ui.dsl.builder.components.DslLabel
@@ -44,6 +50,7 @@ import java.awt.Rectangle
 import java.awt.event.MouseEvent
 import java.awt.geom.Ellipse2D
 import java.nio.ByteBuffer
+import java.nio.file.Path
 import javax.swing.Icon
 import javax.swing.JEditorPane
 import javax.swing.event.HyperlinkEvent
@@ -226,6 +233,8 @@ internal fun Component.containsFocus(): Boolean {
   return false
 }
 
+internal inline fun <reified T : Any> Component.findAncestor(): T? = ComponentUtil.getStrictParentOfType(T::class.java, this)
+
 internal fun createCircle(center: Point, radius: Int): Ellipse2D {
   val diameter = radius * 2.0
   return Ellipse2D.Double((center.x - radius).toDouble(), (center.y - radius).toDouble(), diameter, diameter)
@@ -238,3 +247,28 @@ internal fun Graphics.drawCircle(center: Point, radius: Int) {
 internal fun Graphics.fillCircle(center: Point, radius: Int) {
   fillOval(center.x - radius, center.y - radius, radius * 2, radius * 2)
 }
+
+internal fun Iterable<DeviceHandle>.findByStreamingDeviceId(deviceId: StreamingDeviceId): DeviceHandle? {
+  return when (deviceId) {
+    is StreamingDeviceId.EmulatorDeviceId -> findByAvdFolder(deviceId.emulatorId.avdFolder)
+    is StreamingDeviceId.PhysicalDeviceId -> findBySerialNumber(deviceId.serialNumber)
+  }
+}
+
+internal fun Iterable<DeviceHandle>.findByAvdFolder(avdFolder: Path): DeviceHandle? = find { it.avdFolder == avdFolder }
+
+internal fun Iterable<DeviceHandle>.findBySerialNumber(serialNumber: String): DeviceHandle? = find { it.serialNumber == serialNumber }
+
+/** AVD folder corresponding to the device handle, or null if the device is not an AVD. */
+internal val DeviceHandle.avdFolder: Path?
+  get() = (state.properties as? LocalEmulatorProperties)?.avdPath
+
+/** The serial number of the device, or null if the device is not connected. */
+internal val DeviceHandle.serialNumber: String?
+  get() = state.connectedDevice?.deviceInfo?.serialNumber
+
+internal val DeviceHandle.pairedPhoneId: DeviceId?
+  get() = state.properties.pairedPhoneId
+
+internal val DeviceHandle.deviceType: DeviceType?
+  get() = state.properties.deviceType

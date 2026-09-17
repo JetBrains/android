@@ -37,8 +37,8 @@ class AndroidGradleKtsSpellcheckingStrategy : SpellcheckingStrategy(), DumbAware
   }
 
   override fun getTokenizer(element: PsiElement?): Tokenizer<*> {
-    if (element is KtLiteralStringTemplateEntry && !isPrint(element)) {
-      return EMPTY_TOKENIZER
+    if (element is KtLiteralStringTemplateEntry) {
+      return if (isPrint(element) && !isInjectedLanguageFragment(element.parent)) TEXT_TOKENIZER else EMPTY_TOKENIZER
     }
     return kotlinSpellcheckingStrategy?.getTokenizer(element) ?: super.getTokenizer(element)
   }

@@ -3,7 +3,7 @@ androidApp {
     buildType("custom") {
     }
   }
-  dependenciesDcl {
+  dependencies {
     customImplementation("com.example:artifact:1.0")
   }
 }

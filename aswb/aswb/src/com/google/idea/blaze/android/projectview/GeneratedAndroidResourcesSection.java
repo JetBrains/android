@@ -22,7 +22,7 @@ import com.google.idea.blaze.base.projectview.section.ListSectionParser;
 import com.google.idea.blaze.base.projectview.section.SectionKey;
 import com.google.idea.blaze.base.projectview.section.SectionParser;
 import com.google.idea.blaze.base.ui.BlazeValidationError;
-import com.intellij.util.PathUtil;
+import com.intellij.openapi.util.io.FileUtil;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
@@ -44,7 +44,7 @@ public class GeneratedAndroidResourcesSection {
     @Nullable
     @Override
     protected GenfilesPath parseItem(ProjectViewParser parser, ParseContext parseContext) {
-      String canonicalPath = PathUtil.getCanonicalPath(parseContext.current().text);
+      String canonicalPath = FileUtil.toCanonicalPath(parseContext.current().text);
 
       List<BlazeValidationError> errors = new ArrayList<>();
       if (!GenfilesPath.validate(canonicalPath, errors)) {

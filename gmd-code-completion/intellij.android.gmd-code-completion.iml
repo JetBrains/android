@@ -38,7 +38,6 @@
     <orderEntry type="module" module-name="google-login" />
     <orderEntry type="library" name="studio-plugin-org.intellij.groovy" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" />
-    <orderEntry type="library" name="google-api-client" level="project" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="library" name="cloudresourcemanager" level="project" />

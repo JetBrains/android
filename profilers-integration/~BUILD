@@ -1,4 +1,5 @@
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
+load("//tools/adt/idea/emulator-snapshots:emulator_test_env.bzl", "emulator_snapshot_data", "emulator_snapshot_jvm_flags")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 
@@ -21,22 +22,23 @@ iml_module(
     deps = ["@intellij//:com.intellij.java"],
 )
 
-profilers_test_common_data = [
+profilers_test_common_data_base = [
     ":minapp",
     ":minapp_deps",
     "//prebuilts/studio/sdk:build-tools/33.0.1",
     "//prebuilts/studio/sdk:emulator",
     "//prebuilts/studio/sdk:platform-tools",
+    "//prebuilts/studio/sdk:system_image_android-33_default",
     INTEGRATION_TEST_GRADLE_VERSION,
-    "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
 ]
+
+profilers_test_common_data = profilers_test_common_data_base + emulator_snapshot_data("//prebuilts/studio/sdk:system_image_android-33_default")
 
 iml_test(
     name = "ProfileWithCompleteDataTest",
     timeout = "long",
-    data = profilers_test_common_data + [
-        "@system_image_android-31_default_x86_64//:x86_64-android-31-images",
-    ],
+    data = profilers_test_common_data,
+    jvm_flags = emulator_snapshot_jvm_flags("//prebuilts/studio/sdk:system_image_android-33_default"),
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = ["block-network"],
@@ -51,7 +53,7 @@ iml_test(
 iml_test(
     name = "ProfileWithLowOverheadTest",
     timeout = "long",
-    data = profilers_test_common_data + [
+    data = profilers_test_common_data_base + [
         "@system_image_android-33PlayStore_default_x86_64//:x86_64-android-33PlayStore-images",
     ],
     module = ":intellij.android.profilers.integration",
@@ -73,6 +75,7 @@ iml_test(
     name = "SystemTraceTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
+    jvm_flags = emulator_snapshot_jvm_flags("//prebuilts/studio/sdk:system_image_android-33_default"),
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = ["block-network"],
@@ -85,9 +88,25 @@ iml_test(
 )
 
 iml_test(
+    name = "SystemTraceInEditorTaskTest",
+    timeout = "long",
+    data = profilers_test_common_data,
+    module = ":intellij.android.profilers.integration",
+    tags = ["studio-e2e-test"],
+    tags_linux = ["block-network"],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.SystemTraceInEditorTaskTest",
+)
+
+iml_test(
     name = "HeapDumpTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
+    jvm_flags = emulator_snapshot_jvm_flags("//prebuilts/studio/sdk:system_image_android-33_default"),
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
@@ -105,6 +124,7 @@ iml_test(
     name = "CallstackSampleTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
+    jvm_flags = emulator_snapshot_jvm_flags("//prebuilts/studio/sdk:system_image_android-33_default"),
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = ["block-network"],
@@ -120,6 +140,7 @@ iml_test(
     name = "NativeAllocationsTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
+    jvm_flags = emulator_snapshot_jvm_flags("//prebuilts/studio/sdk:system_image_android-33_default"),
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
@@ -137,6 +158,7 @@ iml_test(
     name = "JavaKotlinMethodRecordingTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
+    jvm_flags = emulator_snapshot_jvm_flags("//prebuilts/studio/sdk:system_image_android-33_default"),
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [],
@@ -152,6 +174,7 @@ iml_test(
     name = "LiveViewTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
+    jvm_flags = emulator_snapshot_jvm_flags("//prebuilts/studio/sdk:system_image_android-33_default"),
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = ["block-network"],
@@ -167,6 +190,7 @@ iml_test(
     name = "LeakCanaryTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
+    jvm_flags = emulator_snapshot_jvm_flags("//prebuilts/studio/sdk:system_image_android-33_default"),
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = ["block-network"],
@@ -182,6 +206,7 @@ iml_test(
     name = "JavaKotlinAllocationsTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
+    jvm_flags = emulator_snapshot_jvm_flags("//prebuilts/studio/sdk:system_image_android-33_default"),
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
@@ -201,6 +226,7 @@ iml_test(
     name = "StartupSystemTraceTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
+    jvm_flags = emulator_snapshot_jvm_flags("//prebuilts/studio/sdk:system_image_android-33_default"),
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
@@ -215,9 +241,27 @@ iml_test(
 )
 
 iml_test(
+    name = "StartupSystemTraceInEditorTaskTest",
+    timeout = "long",
+    data = profilers_test_common_data,
+    module = ":intellij.android.profilers.integration",
+    tags = ["studio-e2e-test"],
+    tags_linux = [
+        "block-network",
+    ],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.StartupSystemTraceInEditorTaskTest",
+)
+
+iml_test(
     name = "StartupJavaKotlinMethodRecordingTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
+    jvm_flags = emulator_snapshot_jvm_flags("//prebuilts/studio/sdk:system_image_android-33_default"),
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
@@ -235,6 +279,7 @@ iml_test(
     name = "StartupNativeAllocationsTaskTest",
     timeout = "long",
     data = profilers_test_common_data,
+    jvm_flags = emulator_snapshot_jvm_flags("//prebuilts/studio/sdk:system_image_android-33_default"),
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
@@ -256,6 +301,7 @@ iml_test(
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/android-31",
     ],
+    jvm_flags = emulator_snapshot_jvm_flags("//prebuilts/studio/sdk:system_image_android-33_default"),
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = [
@@ -269,9 +315,28 @@ iml_test(
 )
 
 iml_test(
+    name = "TaskBasedProfilingWithApkInEditorTest",
+    timeout = "long",
+    data = profilers_test_common_data + [
+        ":helloworldapk",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platforms/android-31",
+    ],
+    module = ":intellij.android.profilers.integration",
+    tags = ["studio-e2e-test"],
+    tags_linux = [
+        "block-network",
+    ],
+    tags_windows = [
+        "noci:studio-win",
+    ],
+    test_class = "com.android.tools.profilers.integration.taskbased.TaskBasedProfilingWithApkInEditorTest",
+)
+
+iml_test(
     name = "ImportAndExportTraceTest",
     timeout = "long",
-    data = profilers_test_common_data,
+    data = profilers_test_common_data_base,
     module = ":intellij.android.profilers.integration",
     tags = ["studio-e2e-test"],
     tags_linux = ["block-network"],

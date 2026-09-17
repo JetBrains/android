@@ -166,8 +166,9 @@ class DesignerCommonIssuePanelTest {
 
     val file = rule.fixture.addFileToProject("res/layout/my_layout.xml", "")
 
-    val fileIssue = TestIssue(source = IssueSourceWithFile(file.virtualFile, "my_layout"), description = "layout issue")
-    val noFileIssue = TestIssue(description = "other issue")
+    val fileIssue =
+      TestIssue(summary = "file issue", source = IssueSourceWithFile(file.virtualFile, "my_layout"), description = "layout issue")
+    val noFileIssue = TestIssue(summary = "no file issue", description = "other issue")
 
     val composeFile = rule.fixture.addFileToProject("src/Compose.kt", "Compose file")
     val nlModel = Mockito.mock(NlModel::class.java)
@@ -177,7 +178,7 @@ class DesignerCommonIssuePanelTest {
     val component = NlComponent(nlModel, 651L).apply { setNavigatable(navigatable) }
     val visualLintIssue =
       VisualLintRenderIssue.builder()
-        .summary("")
+        .summary("visual lint issue")
         .severity(HighlightSeverity.WARNING)
         .contentDescriptionProvider { HtmlBuilder() }
         .model(nlModel)

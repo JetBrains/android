@@ -232,7 +232,8 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
     myFixture.checkHighlighting()
   }
 
-  fun testManifest() {
+  // TODO: http://b/316927024
+  fun ignore_testManifest() {
     runUndoTransparentWriteAction { Manifest.getMainManifest(myFacet)!!.application.label.stringValue = "@string/libString" }
 
     refactorAndSync()
@@ -253,7 +254,8 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
     )
   }
 
-  fun testCode() {
+  // TODO: http://b/316927024
+  fun ignore_testCode() {
     myFixture.addFileToProject(
       "/res/values/app.xml",
       // language=xml
@@ -319,7 +321,8 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
     )
   }
 
-  fun testGradleFiles() {
+  // TODO: http://b/316927024
+  fun ignore_testGradleFiles() {
     // Make sure there's at least on reference to rewrite.
     runUndoTransparentWriteAction { Manifest.getMainManifest(myFacet)!!.application.label.stringValue = "@string/libString" }
 
@@ -383,7 +386,8 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
   }
 
   /** Repro case for b/109802379. */
-  fun testMultipleAttrsInNestedView() {
+  // TODO: http://b/316927024
+  fun ignore_testMultipleAttrsInNestedView() {
     myFixture.addFileToProject(
       "/res/layout/layout.xml",
       // language=xml

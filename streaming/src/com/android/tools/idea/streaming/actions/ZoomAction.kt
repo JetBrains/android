@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.actions
 
+import com.android.tools.idea.streaming.StagingIcons
 import com.android.tools.idea.streaming.core.ZOOMABLE_KEY
 import com.android.tools.idea.streaming.core.ZoomType
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -40,7 +41,30 @@ internal sealed class ZoomAction(val zoomType: ZoomType) : AnAction(), DumbAware
 
   class Out : ZoomAction(ZoomType.OUT)
 
-  class Fit : ZoomAction(ZoomType.FIT)
-
   class Actual : ZoomAction(ZoomType.ACTUAL)
+
+  class Fit : ZoomAction(ZoomType.FIT) {
+
+    override fun update(event: AnActionEvent) {
+      val zoomable = event.getData(ZOOMABLE_KEY)
+      val presentation = event.presentation
+      presentation.isEnabled = zoomable?.canZoom(zoomType) ?: false
+      if (zoomable?.hasInnerPart == true) {
+        presentation.icon = StagingIcons.FIT_VIEW // TODO: Replace with a proper icon when available.
+      }
+    }
+  }
+
+  class FitInner : ZoomAction(ZoomType.FIT_INNER) {
+
+    override fun update(event: AnActionEvent) {
+      val zoomable = event.getData(ZOOMABLE_KEY)
+      val presentation = event.presentation
+      if (zoomable?.hasInnerPart == true) {
+        presentation.isEnabled = zoomable.canZoom(zoomType)
+      } else {
+        presentation.isEnabledAndVisible = false
+      }
+    }
+  }
 }

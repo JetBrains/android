@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,9 @@ annotation class OptionsProperty(
   val group: String = DEFAULT_GROUP,
   val unit: String = "",
   val order: Int = DEFAULT_ORDER,
+  val indent: Boolean = false,
+  val parent: String = "",
+  val parentValue: String = "",
 )
 
 @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER)
@@ -52,3 +55,9 @@ annotation class OptionsProperty(
  * using the arrows.
  */
 annotation class Slider(val min: Int, val max: Int, val step: Int)
+
+@Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER)
+@Retention(AnnotationRetention.RUNTIME)
+@MustBeDocumented
+/** Common dropdown control. This control expects the accessor/mutator return type to be a List. */
+annotation class Dropdown(val values: IntArray = [])

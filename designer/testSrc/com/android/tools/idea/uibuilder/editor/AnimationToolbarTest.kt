@@ -15,21 +15,26 @@
  */
 package com.android.tools.idea.uibuilder.editor
 
-import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.onEdt
+import com.android.tools.adtui.TreeWalker
+import com.android.tools.idea.testing.disposable
+import com.intellij.openapi.util.IconLoader
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.runInEdtAndGet
+import javax.swing.JButton
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.mock
 
 class AnimationToolbarTest {
-  @JvmField @Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @JvmField @Rule val projectRule = ProjectRule()
 
   @Test
   fun testControlFunctions() {
     val toolbar = runInEdtAndGet {
-      AnimationToolbar.createUnlimitedAnimationToolbar(projectRule.testRootDisposable, EMPTY_ANIMATION_LISTENER, 10L, 0L)
+      AnimationToolbar.createUnlimitedAnimationToolbar(projectRule.disposable, EMPTY_ANIMATION_LISTENER, 10L, 0L)
     }
     val listener = mock<AnimationControllerListener>()
     toolbar.registerAnimationControllerListener(listener)
@@ -53,7 +58,7 @@ class AnimationToolbarTest {
   fun testAnimationComplete() {
     // Set animation length as 2 second.
     val toolbar = runInEdtAndGet {
-      AnimationToolbar.createAnimationToolbar(projectRule.testRootDisposable, EMPTY_ANIMATION_LISTENER, 10L, 0L, 2 * 1000L)
+      AnimationToolbar.createAnimationToolbar(projectRule.disposable, EMPTY_ANIMATION_LISTENER, 10L, 0L, 2 * 1000L)
     }
     toolbar.setLooping(false)
     val listener = mock<AnimationControllerListener>()
@@ -64,6 +69,22 @@ class AnimationToolbarTest {
 
     // Wait for animation complete. Wait for 5 seconds in case of race condition.
     Mockito.verify(listener, Mockito.after(5 * 1000L)).onPlayStatusChanged(PlayStatus.COMPLETE)
+  }
+
+  @Test
+  fun testDisabledIconSet() {
+    val toolbar = runInEdtAndGet {
+      // Needed so the actual icons are loaded and the disabled vs non-disabled verification can be done.
+      IconLoader.activate()
+      AnimationToolbar.createUnlimitedAnimationToolbar(projectRule.disposable, EMPTY_ANIMATION_LISTENER, 10L, 0L)
+    }
+
+    val buttons = TreeWalker(toolbar).descendants().filterIsInstance<JButton>()
+    assertNotEquals(0, buttons.size)
+    for (button in buttons) {
+      assertNotNull("Disabled icon should be set for button ${button.name}", button.disabledIcon)
+      assertNotEquals("Disabled icon should be different from regular icon for button ${button.name}", button.icon, button.disabledIcon)
+    }
   }
 }
 

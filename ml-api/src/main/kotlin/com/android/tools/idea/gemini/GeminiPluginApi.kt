@@ -77,6 +77,15 @@ interface GeminiPluginApi {
   /** Launches the New Project agent with the given prompt in the given project, which should already contain at least a skeleton. */
   fun launchNewProjectAgent(project: Project, prompt: String, imageAttachments: Collection<VirtualFile>) {}
 
+  /** Launches the Import Project agent with the given prompt in the given project, which should already contain at least a skeleton. */
+  fun launchImportProjectAgent(
+    project: Project,
+    prompt: String,
+    imageAttachments: Collection<VirtualFile>,
+    displayText: String? = null,
+    sourceProjectType: String = "IOS",
+  ) {}
+
   companion object {
     val EP_NAME = ExtensionPointName.create<GeminiPluginApi>("com.android.tools.idea.gemini.geminiPluginApi")
 

@@ -19,7 +19,6 @@
 
   <depends>com.intellij.modules.androidstudio</depends>
   <depends>org.jetbrains.android</depends>
-  <depends>com.google.gct.test.recorder</depends>
   <depends>com.intellij.modules.java</depends>
   <depends>com.android.tools.design</depends>
 
@@ -45,8 +44,7 @@
         serviceImplementation="com.google.idea.blaze.android.run.runner.BlazeDeployTargetService$DefaultService"/>
     <projectService serviceInterface="com.google.idea.blaze.android.run.runner.BlazeAndroidDebuggerService"
         serviceImplementation="com.google.idea.blaze.android.run.runner.BlazeAndroidDebuggerService$DefaultDebuggerService"/>
-    <projectService serviceInterface="com.google.idea.blaze.base.project.QuerySyncConversionUtility"
-        serviceImplementation="com.google.idea.blaze.base.project.BaseQuerySyncConversionUtility" />
+
     <projectService serviceImplementation="com.google.idea.blaze.android.projectsystem.BlazeProjectSystemBuildManager$LastBuildResultCache"/>
     <projectService
         serviceInterface="com.google.idea.blaze.common.artifact.ArtifactFetcher"

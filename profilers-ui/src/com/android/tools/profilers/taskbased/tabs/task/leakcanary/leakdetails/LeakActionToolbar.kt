@@ -41,7 +41,7 @@ import org.jetbrains.jewel.ui.icons.AllIconsKeys
 /** A composable for the content of the leak action toolbar. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun LeakActionToolbar(selectedLeak: Leak, onExpandAll: () -> Unit, onCollapseAll: () -> Unit) {
+fun LeakActionToolbar(selectedLeak: Leak, onExpandAll: () -> Unit, onCollapseAll: () -> Unit, onCopy: () -> Unit) {
   Row(
     modifier =
       Modifier.padding(horizontal = TaskBasedUxDimensions.TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP)
@@ -82,7 +82,12 @@ fun LeakActionToolbar(selectedLeak: Leak, onExpandAll: () -> Unit, onCollapseAll
       }
     }
     Tooltip(tooltip = { Text(TaskBasedUxStrings.LEAKCANARY_COPY_TO_CLIPBOARD) }) {
-      IconButton(onClick = { copyLeakToClipboard(selectedLeak.toString()) }) {
+      IconButton(
+        onClick = {
+          copyLeakToClipboard(selectedLeak.toString())
+          onCopy()
+        }
+      ) {
         Icon(
           key = AllIconsKeys.Actions.Copy,
           contentDescription = TaskBasedUxStrings.LEAKCANARY_COPY_TO_CLIPBOARD,

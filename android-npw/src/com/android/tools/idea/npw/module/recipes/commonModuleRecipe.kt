@@ -17,8 +17,6 @@ package com.android.tools.idea.npw.module.recipes
 
 import com.android.SdkConstants
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
-import com.android.SdkConstants.FN_BUILD_GRADLE
-import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
 import com.android.tools.idea.npw.module.recipes.androidModule.buildGradle
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleColors
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStrings
@@ -38,7 +36,6 @@ enum class IconsGenerationStyle {
 fun RecipeExecutor.generateCommonModule(
   data: ModuleTemplateData,
   appTitle: String?, // may be null only for libraries
-  useKts: Boolean,
   manifestXml: String,
   generateGenericLocalTests: Boolean = false,
   generateGenericInstrumentedTests: Boolean = false,
@@ -50,12 +47,12 @@ fun RecipeExecutor.generateCommonModule(
   enableCpp: Boolean = false,
   cppStandard: CppStandardType = CppStandardType.`Toolchain Default`,
   noKtx: Boolean = false,
-  useVersionCatalog: Boolean,
   appTitleResName: String = "app_name",
   hasCode: Boolean = true,
 ) {
   val (projectData, srcOut, resOut, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) = data
   val (useAndroidX, agpVersion) = projectData
+  val dslLanguage = projectData.dslLanguage
   val language = projectData.language
   val isLibraryProject = data.isLibrary
   val packageName = data.packageName
@@ -65,12 +62,10 @@ fun RecipeExecutor.generateCommonModule(
   createDirectory(srcOut)
   addIncludeToSettings(data.name)
 
-  val buildFile = if (useKts) FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
-
   save(
     buildGradle(
       agpVersion,
-      useKts,
+      dslLanguage,
       isLibraryProject,
       data.isDynamic,
       applicationId = data.namespace,
@@ -82,11 +77,10 @@ fun RecipeExecutor.generateCommonModule(
       addLintOptions = addLintOptions,
       enableCpp = enableCpp,
       cppStandard = cppStandard,
-      useVersionCatalog = useVersionCatalog,
       hasCode = hasCode,
       kotlinSupport = projectData.kotlinSupport,
     ),
-    moduleOut.resolve(buildFile),
+    moduleOut.resolve(dslLanguage.buildFileName),
   )
   addCompileSdk(apis.buildApi)
 

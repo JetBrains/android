@@ -121,11 +121,6 @@ public final class FakeAvdDevice implements AndroidDevice {
     };
   }
 
-  @Override
-  public boolean getSupportsSdkRuntime() {
-    return getVersion().isAtLeast(34);
-  }
-
   @NotNull
   @Override
   public String getName() {

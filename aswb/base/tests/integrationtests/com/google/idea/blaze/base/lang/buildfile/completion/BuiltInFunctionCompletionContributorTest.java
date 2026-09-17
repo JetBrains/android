@@ -32,6 +32,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.PsiFile;
 import javax.annotation.Nullable;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -202,6 +203,7 @@ public class BuiltInFunctionCompletionContributorTest extends BuildFileIntegrati
   }
 
   @Test
+  @Ignore("b/492098771") // TODO: solodkyy - Re-enable when internal plugin is separated as it now contributes unneeded entries.
   public void testIgnoredBuiltInFunctions() throws Throwable {
     setRules("java_binary", "java_library");
 

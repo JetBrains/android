@@ -81,7 +81,6 @@ enum class ModelFeature(
   ),
   HAS_NAMESPACE(AgpVersion.parse("7.0.0")),
   HAS_APPLICATION_ID(AgpVersion.parse("7.4.0-alpha04")),
-  HAS_PRIVACY_SANDBOX_SDK_INFO(AgpVersion.parse("8.3.0-alpha14")),
   HAS_GENERATED_CLASSPATHS(AgpVersion.parse("8.2.0-alpha07")),
   HAS_BYTECODE_TRANSFORMS(AgpVersion.parse("8.3.0-alpha14")),
   HAS_DESUGARED_METHOD_FILES_PROJECT_GLOBAL(AgpVersion.parse("7.3.0-alpha06")),

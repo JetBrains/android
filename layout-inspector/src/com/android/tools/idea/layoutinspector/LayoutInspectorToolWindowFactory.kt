@@ -94,6 +94,7 @@ fun registerLayoutInspectorToolWindow(project: Project) {
 fun unregisterLayoutInspectorToolWindow(project: Project) {
   val layoutInspector = LayoutInspectorProjectService.getInstance(project).getLayoutInspector()
   layoutInspector.stopInspector()
+  layoutInspector.notificationModel.removeNotification(BANNER_STRING_ID)
 
   val toolWindowManager = ToolWindowManager.getInstance(project)
   toolWindowManager.unregisterToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)

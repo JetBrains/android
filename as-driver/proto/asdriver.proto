@@ -38,6 +38,8 @@ service AndroidStudio {
   rpc OpenProject(OpenProjectRequest) returns (OpenProjectResponse) {}
 
   rpc InvokeComponentByXpath(InvokeComponentByXpathRequest) returns (InvokeComponentByXpathResponse) {}
+
+  rpc WaitForComponentByXpath(WaitForComponentByXpathRequest) returns (InvokeComponentByXpathResponse) {}
 }
 
 message GetVersionRequest {}
@@ -307,4 +309,9 @@ message Ref {
   int32 identity_hash_code = 3;
   string as_string = 4;
   string rd_target = 5;
+}
+
+message WaitForComponentByXpathRequest {
+  string xpath = 1;
+  bool is_enabled = 2;
 }

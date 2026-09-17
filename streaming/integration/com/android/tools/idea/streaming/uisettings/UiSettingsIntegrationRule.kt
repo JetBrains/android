@@ -23,8 +23,7 @@ import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adblib.testutils.InitAdbLibApplicationServiceRule
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.adtui.swing.HeadlessDialogRule
-import com.android.tools.adtui.swing.findModelessDialog
+import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
@@ -36,7 +35,6 @@ import com.android.tools.idea.streaming.device.DeviceView
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
-import com.android.tools.idea.streaming.uisettings.ui.UiSettingsDialog
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
 import com.android.tools.testlib.Adb
@@ -48,6 +46,7 @@ import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.TestDataProvider
@@ -78,8 +77,8 @@ internal enum class TestDeviceType {
 internal class UiSettingsIntegrationRule : ExternalResource() {
   private val disposableRule = DisposableRule()
   private val timeoutRule = FlagRule(StudioFlags.DEVICE_MIRRORING_CONNECTION_TIMEOUT_MILLIS, 30_000)
-  private val headlessDialogRule = HeadlessDialogRule()
   private val initAdbLibApplicationServiceRule = InitAdbLibApplicationServiceRule()
+  private val popupRule = JBPopupRule()
   private val projectRule =
     AndroidProjectRule.withAndroidModel(
       createAndroidProjectBuilderForDefaultTestProjectStructure().copy(applicationIdFor = { APPLICATION_ID })
@@ -109,7 +108,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
   }
 
   override fun apply(base: Statement, description: Description): Statement =
-    apply(base, description, projectRule, initAdbLibApplicationServiceRule, disposableRule, timeoutRule, headlessDialogRule)
+    apply(base, description, projectRule, popupRule, initAdbLibApplicationServiceRule, disposableRule, timeoutRule)
 
   private fun apply(base: Statement, description: Description, vararg rules: TestRule): Statement {
     var statement = super.apply(base, description)
@@ -139,7 +138,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
     ignoreAllThreadLeaks()
   }
 
-  internal fun openUiSettings(): UiSettingsDialog {
+  internal fun openUiSettings(): JBPopup {
     waitForCondition(60.seconds) {
       fakeUi.updateToolbarsIfNecessary()
       val button = fakeUi.findComponent<ActionButton> { it.action.templateText == SETTINGS_BUTTON_TEXT }
@@ -148,7 +147,7 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
     }
     val button = fakeUi.getComponent<ActionButton> { it.action.templateText == SETTINGS_BUTTON_TEXT }
     button.click()
-    return waitForDialog()
+    return waitForPopup()
   }
 
   private fun initAdb(): Adb {
@@ -249,12 +248,17 @@ internal class UiSettingsIntegrationRule : ExternalResource() {
     )
   }
 
-  private fun waitForDialog(): UiSettingsDialog {
-    waitForCondition(30.seconds) { findDialog() != null }
-    return findDialog()!!
+  private fun waitForPopup(): JBPopup {
+    // Opening the popup can be slow since it involved receiving the initial state via adb from the device.
+    waitForCondition(10.seconds) { popupRule.fakePopupFactory.popupCount > 0 }
+    return findPopup()
   }
 
-  private fun findDialog() = findModelessDialog<UiSettingsDialog> { it.isShowing }
+  private fun findPopup(): JBPopup {
+    val popup = popupRule.fakePopupFactory.getPopup<Any>(0)
+    FakeUi(popup.content, createFakeWindow = true, parentDisposable = testRootDisposable)
+    return popup
+  }
 
   // Emulate a disconnect of the device
   fun cutConnectionToAgent() {

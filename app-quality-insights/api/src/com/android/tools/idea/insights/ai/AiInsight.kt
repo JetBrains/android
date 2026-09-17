@@ -26,4 +26,18 @@ data class AiInsight(
   val insightSource: InsightSource = InsightSource.UNKNOWN,
   val feedback: InsightFeedback = InsightFeedback.NONE,
   val codeContextData: CodeContextData = CodeContextData.DISABLED,
+  val modelInfo: AiModelInfo = AiModelInfo.EMPTY,
 )
+
+data class AiModelInfo(val name: String?, val providerName: String?) {
+  val readableName: String
+    get() =
+      when {
+        providerName != null && name != null -> "$providerName > $name"
+        else -> name ?: providerName ?: ""
+      }
+
+  companion object {
+    val EMPTY = AiModelInfo(null, null)
+  }
+}

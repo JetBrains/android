@@ -92,9 +92,6 @@ class GradleBuildModelUsageInfoTest : UpgradeGradleFileModelTestCase() {
         ),
         WellKnownGradlePluginDependencyUsageInfo(wrappedPsiElement, artifactDependencyModel, gradlePropertyModel, "1.3.72"),
         WellKnownGradlePluginDslUsageInfo(wrappedPsiElement, pluginModel, gradlePropertyModel, "1.3.72"),
-        ObsoleteConfigurationDependencyUsageInfo(wrappedPsiElement, dependencyModel, "api"),
-        ObsoleteConfigurationDependencyUsageInfo(wrappedPsiElement, dependencyModel, "implementation"),
-        ObsoleteConfigurationConfigurationUsageInfo(wrappedPsiElement, configurationModel, "paidReleaseImplementation"),
         VIEW_BINDING_ENABLED_INFO.MovePropertyUsageInfo(
           wrappedPsiElement,
           resolvedPropertyModel,

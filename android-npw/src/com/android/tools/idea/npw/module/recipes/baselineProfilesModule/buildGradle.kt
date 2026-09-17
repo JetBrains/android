@@ -34,26 +34,26 @@ private val BENCHMARK_MIN_API = AndroidMajorVersion(28)
 fun baselineProfilesBuildGradle(
   newModule: ModuleTemplateData,
   flavors: ProductFlavorsWithDimensions,
-  useGradleKts: Boolean,
   targetModule: Module,
   useGmd: GmdSpec?,
   useInstrumentationArgumentForAppId: Boolean,
 ): String {
+  val dslLanguage = newModule.projectTemplateData.dslLanguage
   val packageName = newModule.packageName
   val apis = newModule.apis
   val language = newModule.projectTemplateData.language
   val agpVersion = newModule.projectTemplateData.agpVersion
   // TODO(b/149203281): Fix support for composite builds.
   val targetModuleGradlePath = targetModule.getGradleProjectPath()?.path
-  val flavorsConfiguration = flavorsConfigurationsBuildGradle(flavors, useGradleKts)
+  val flavorsConfiguration = flavorsConfigurationsBuildGradle(flavors, dslLanguage)
 
   val addTargetAppIdAsInstrumentationArgumentBlock =
     if (useInstrumentationArgumentForAppId) {
       """
 
       androidComponents {
-          onVariants${if (useGradleKts) "" else "(selector().all())"} {  v ->
-              ${if (useGradleKts) "val" else "def"} artifactsLoader = v.artifacts.getBuiltArtifactsLoader()
+          onVariants${if (dslLanguage.isKts) "" else "(selector().all())"} {  v ->
+              ${if (dslLanguage.isKts) "val" else "def"} artifactsLoader = v.artifacts.getBuiltArtifactsLoader()
               v.instrumentationRunnerArguments.put(
                   "targetAppId",
                   v.testedApks.map { artifactsLoader.load(it)?.applicationId }
@@ -80,7 +80,7 @@ fun baselineProfilesBuildGradle(
       useGmd!!
 
       val createGMD: String =
-        if (useGradleKts) {
+        if (dslLanguage.isKts) {
           "create<ManagedVirtualDevice>(\"${useGmd.identifier}\")"
         } else {
           "${useGmd.identifier}(ManagedVirtualDevice)"
@@ -147,5 +147,5 @@ dependencies {
 }
 
 """
-    .gradleToKtsIfKts(useGradleKts) + addTargetAppIdAsInstrumentationArgumentBlock
+    .gradleToKtsIfKts(dslLanguage.isKts) + addTargetAppIdAsInstrumentationArgumentBlock
 }

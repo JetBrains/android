@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.vcs
 
 import com.android.tools.idea.insights.model.vcs.RepoInfo
-import com.android.tools.idea.insights.model.vcs.VCS_CATEGORY
+import com.android.tools.idea.insights.model.vcs.VcsCategory
 import com.intellij.dvcs.repo.Repository
 import com.intellij.dvcs.repo.VcsRepositoryManager
 import com.intellij.openapi.editor.Document
@@ -50,17 +50,17 @@ fun RepoInfo.locateRepository(project: Project): Repository? {
 
 fun VirtualFile.toVcsFilePath(): FilePath = VcsUtil.getFilePath(this)
 
-fun createRevisionNumber(vcsKey: VCS_CATEGORY, revision: String): VcsRevisionNumber? {
+fun createRevisionNumber(vcsKey: VcsCategory, revision: String): VcsRevisionNumber? {
   return VcsForAppInsights.getExtensionByKey(vcsKey)?.createVcsRevision(revision)
 }
 
-fun createShortRevisionString(vcsKey: VCS_CATEGORY, revision: String): String? {
+fun createShortRevisionString(vcsKey: VcsCategory, revision: String): String? {
   val revisionNumber = createRevisionNumber(vcsKey, revision) ?: return null
 
   return VcsUtil.getShortRevisionString(revisionNumber)
 }
 
-fun createVcsDocument(vcsKey: VCS_CATEGORY, virtualFile: VirtualFile, revision: String, project: Project): Document? {
+fun createVcsDocument(vcsKey: VcsCategory, virtualFile: VirtualFile, revision: String, project: Project): Document? {
   // There's underlying cache layer: `ContentRevisionCache`.
   val vcsContentText =
     VcsForAppInsights.getExtensionByKey(vcsKey)?.createVcsContent(virtualFile.toVcsFilePath(), revision, project)?.content?.let {

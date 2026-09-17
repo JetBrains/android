@@ -27,64 +27,58 @@ import com.android.tools.idea.testing.ModuleModelBuilder
 import com.android.tools.idea.testing.buildAndroidProjectStub
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class LambdaResolutionGradleTokenTest {
-  private val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
-
-  @get:Rule val rule = RuleChain(projectRule, EdtRule())
-
+class OldKotlinVersionTest : LambdaResolutionGradleTokenBaseTest(kotlin = "1.9.10") {
   @Test
   fun testLambdaResolutionMessageWithOldKotlinVersion() {
-    projectRule.setupProjectFrom(*with(kotlin = "1.9.10"))
     assertThat(findCauseOfMissingSourceLocation()).isNull()
   }
+}
 
+@RunsInEdt
+class OldComposeLayoutInspectorAgentTest : LambdaResolutionGradleTokenBaseTest(compose = "1.8.3") {
   @Test
   fun testLambdaResolutionMessageWithOldComposeLayoutInspectorAgent() {
-    projectRule.setupProjectFrom(*with(compose = "1.8.3"))
     val problem = findCauseOfMissingSourceLocation()!!
     assertThat(problem.type).isEqualTo(ProblemType.COMPOSE_UI)
     assertThat(problem.getMessage())
       .isEqualTo("The androidx.compose.ui:ui library version should be at least: 1.9.0, current version: 1.8.3")
   }
+}
 
-  @Ignore("b/491032912")
+@RunsInEdt
+class OldAgpTest : LambdaResolutionGradleTokenBaseTest(agp = "8.13.0") {
   @Test
   fun testLambdaResolutionMessageWithOldAgp() {
-    projectRule.setupProjectFrom(*with(agp = "8.13.0"))
     val problem = findCauseOfMissingSourceLocation()!!
     assertThat(problem.type).isEqualTo(ProblemType.D8)
     assertThat(problem.getMessage()).isEqualTo("AGP should be at least version: 9.0.0, current version: 8.13.0")
   }
+}
 
+@RunsInEdt
+class Java11Test : LambdaResolutionGradleTokenBaseTest(java = "11") {
   @Test
   fun testLambdaResolutionMessageWithJava11() {
-    projectRule.setupProjectFrom(*with(java = "11"))
     val problem = findCauseOfMissingSourceLocation()!!
     assertThat(problem.type).isEqualTo(ProblemType.JDK)
     assertThat(problem.getMessage()).isEqualTo("The sourceCompatibility should be at least JDK 17, current level is: JDK 11")
   }
+}
 
-  private fun findCauseOfMissingSourceLocation(): VersionProblem? {
-    val projectSystem = GradleProjectSystem(projectRule.project)
-    val facet = projectRule.project.getAndroidFacets().first()
-    val token = LambdaResolutionGradleToken()
-    return token.findCauseOfMissingSourceLocation(projectSystem, facet.module)
-  }
+open class LambdaResolutionGradleTokenBaseTest(
+  kotlin: String = "2.2.20",
+  compose: String = "1.9.0",
+  agp: String = "9.0.0",
+  java: String = "17",
+) {
+  @get:Rule val projectRule = AndroidProjectRule.withAndroidModels(*with(kotlin, compose, agp, java)).onEdt()
 
-  private fun with(
-    kotlin: String = "2.2.20",
-    compose: String = "1.9.0",
-    agp: String = "9.0.0",
-    java: String = "17",
-  ): Array<ModuleModelBuilder> {
+  protected fun with(kotlin: String, compose: String, agp: String, java: String): Array<ModuleModelBuilder> {
     val compileOptions =
       IdeJavaCompileOptionsImpl(
         encoding = "encoding",
@@ -110,5 +104,12 @@ class LambdaResolutionGradleTokenTest {
           ),
       )
     return arrayOf(JavaModuleModelBuilder.rootModuleBuilder, builder)
+  }
+
+  protected fun findCauseOfMissingSourceLocation(): VersionProblem? {
+    val projectSystem = GradleProjectSystem(projectRule.project)
+    val facet = projectRule.project.getAndroidFacets().first()
+    val token = LambdaResolutionGradleToken()
+    return token.findCauseOfMissingSourceLocation(projectSystem, facet.module)
   }
 }

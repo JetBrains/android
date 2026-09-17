@@ -18,14 +18,36 @@ package com.android.tools.idea.profilers.capture.unified
 import com.android.tools.idea.profilers.capture.PerfettoCaptureFileType
 import com.android.tools.profilers.cpu.CpuCaptureParserUtil
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 
+private val TRACE_TYPE_KEY = Key.create<TraceType>("profilers.unified.trace.type")
+
+fun getLazyTraceType(file: VirtualFile): Lazy<TraceType?> = lazy {
+  file.getUserData(TRACE_TYPE_KEY)?.let {
+    return@lazy it
+  }
+
+  val traceType =
+    try {
+      val ioFile = file.toNioPath().toFile()
+      CpuCaptureParserUtil.getFileTraceType(ioFile, TraceType.UNSPECIFIED) ?: TraceType.UNSPECIFIED
+    } catch (e: Exception) {
+      // VirtualFile might not be on local disk (e.g. inside a JAR),
+      // in which case we can't use the legacy parser.
+      TraceType.UNSPECIFIED
+    }
+
+  file.putUserData(TRACE_TYPE_KEY, traceType)
+  traceType
+}
+
 interface SupportedFormat {
-  fun isSupported(file: VirtualFile): Boolean
+  fun isSupported(file: VirtualFile, traceTypeProvider: Lazy<TraceType?>): Boolean
 }
 
 object PerfettoTraceFormat : SupportedFormat {
-  override fun isSupported(file: VirtualFile): Boolean {
+  override fun isSupported(file: VirtualFile, traceTypeProvider: Lazy<TraceType?>): Boolean {
     if (PerfettoCaptureFileType.EXTENSIONS.contains(file.extension)) {
       return true
     }
@@ -33,16 +55,18 @@ object PerfettoTraceFormat : SupportedFormat {
     if (extension != "trace") {
       return false
     }
-    val ioFile =
-      try {
-        file.toNioPath().toFile()
-      } catch (e: Exception) {
-        // VirtualFile might not be on local disk (e.g. inside a JAR),
-        // in which case we can't use the legacy parser.
-        return false
-      }
-    // Content-based trace type
-    val detectedType = CpuCaptureParserUtil.getFileTraceType(ioFile, TraceType.UNSPECIFIED)
+    val detectedType = traceTypeProvider.value
     return detectedType == TraceType.PERFETTO || detectedType == TraceType.ATRACE
+  }
+}
+
+object ArtTraceFormat : SupportedFormat {
+  override fun isSupported(file: VirtualFile, traceTypeProvider: Lazy<TraceType?>): Boolean {
+    val extension = file.extension?.lowercase()
+    if (extension != "trace") {
+      return false
+    }
+    val detectedType = traceTypeProvider.value
+    return detectedType == TraceType.ART
   }
 }

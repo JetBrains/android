@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.scene
 
-import com.android.tools.idea.compose.preview.InteractiveNavigationHandler
+import com.android.tools.idea.compose.preview.InteractivePreviewNavigationController
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -38,11 +38,11 @@ class FakeComposeViewAdapter {
 }
 
 class InteractivePreviewBackNavigationUpdaterTest {
-  lateinit var interactiveNavigationHandler: InteractiveNavigationHandler
+  lateinit var myInteractivePreviewNavigationController: InteractivePreviewNavigationController
 
   @Before
   fun setUp() {
-    interactiveNavigationHandler = InteractiveNavigationHandler()
+    myInteractivePreviewNavigationController = InteractivePreviewNavigationController()
   }
 
   val composable =
@@ -69,17 +69,17 @@ class InteractivePreviewBackNavigationUpdaterTest {
     InteractivePreviewBackNavigationUpdater.update(
       previewManager = previewManager,
       layoutlibSceneManager = layoutlibSceneManagerMock,
-      interactiveNavigationHandler = interactiveNavigationHandler,
+      interactivePreviewNavigationController = myInteractivePreviewNavigationController,
     )
-    assertThat(interactiveNavigationHandler.canPerformBackNavigation()).isFalse()
+    assertThat(myInteractivePreviewNavigationController.canPerformBackNavigation()).isFalse()
 
     previewManager.setMode(PreviewMode.Interactive(composable))
 
     InteractivePreviewBackNavigationUpdater.update(
       previewManager = previewManager,
       layoutlibSceneManager = layoutlibSceneManagerMock,
-      interactiveNavigationHandler = interactiveNavigationHandler,
+      interactivePreviewNavigationController = myInteractivePreviewNavigationController,
     )
-    assertThat(interactiveNavigationHandler.canPerformBackNavigation()).isTrue()
+    assertThat(myInteractivePreviewNavigationController.canPerformBackNavigation()).isTrue()
   }
 }

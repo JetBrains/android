@@ -22,6 +22,7 @@ import com.android.tools.idea.compose.pickers.base.model.PsiPropertiesProvider
 import com.android.tools.idea.compose.pickers.base.property.PsiCallParameterPropertyItem
 import com.android.tools.idea.compose.pickers.base.property.PsiPropertyItem
 import com.android.tools.idea.compose.pickers.base.tracking.ComposePickerTracker
+import com.android.tools.idea.compose.pickers.common.editingsupport.FloatValidator
 import com.android.tools.idea.compose.pickers.common.editingsupport.IntegerNormalValidator
 import com.android.tools.idea.compose.pickers.common.editingsupport.IntegerStrictValidator
 import com.android.tools.idea.compose.pickers.common.property.BooleanPsiCallParameter
@@ -41,6 +42,7 @@ import com.android.tools.idea.kotlin.tryEvaluateConstantAsText
 import com.android.tools.idea.preview.find.findPreviewDefaultValues
 import com.android.tools.idea.preview.util.AvailableDevicesKey
 import com.android.tools.idea.preview.util.getSdkDevices
+import com.android.tools.preview.MAX_FONT_SCALE
 import com.android.tools.preview.UNDEFINED_API_LEVEL
 import com.android.tools.preview.UNDEFINED_DIMENSION
 import com.android.tools.preview.config.PARAMETER_API_LEVEL
@@ -79,6 +81,8 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
+
+private const val INITIAL_FALLBACK_VALUE = "false"
 
 /** The model for pickers that handles calls to the Preview annotation in Compose. */
 internal class PreviewPickerPropertiesModel
@@ -214,6 +218,7 @@ private class PreviewPropertiesProvider(private val defaultValues: Map<String, S
           argumentExpression,
           defaultValue,
           initialValue,
+          FloatValidator(maxValueAllowed = MAX_FONT_SCALE),
         )
       PARAMETER_BACKGROUND_COLOR ->
         ColorPsiCallParameter(
@@ -289,7 +294,8 @@ private class PreviewPropertiesProvider(private val defaultValues: Map<String, S
           parameterTypeNameIfStandard,
           argumentExpression,
           defaultValue,
-          initialValue,
+          // To prevent the Boolean Ui elements to be disabled, we assign a fallback value if the current initial value is null
+          initialValue ?: INITIAL_FALLBACK_VALUE,
         )
       else ->
         PsiCallParameterPropertyItem(

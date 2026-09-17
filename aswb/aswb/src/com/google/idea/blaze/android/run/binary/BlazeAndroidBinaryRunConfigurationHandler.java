@@ -66,7 +66,8 @@ import org.jetbrains.annotations.Nullable;
  * {@link com.google.idea.blaze.base.run.confighandler.BlazeCommandRunConfigurationRunner} for
  * android_binary targets.
  */
-public class BlazeAndroidBinaryRunConfigurationHandler implements BlazeAndroidRunConfigurationHandler {
+public class BlazeAndroidBinaryRunConfigurationHandler
+    implements BlazeAndroidRunConfigurationHandler {
 
   private final Project project;
   private final BlazeAndroidBinaryRunConfigurationState configState;
@@ -129,20 +130,23 @@ public class BlazeAndroidBinaryRunConfigurationHandler implements BlazeAndroidRu
         ImmutableList.copyOf(
             configState.getCommonState().getExeFlagsState().getFlagsForExternalProcesses());
     Label binaryTargetLabel =
-      configuration.getSingleTargetPattern() != null ? Label.of(configuration.getSingleTargetPattern()) : Label.of("//");
+        configuration.getSingleTargetPattern() != null
+            ? Label.of(configuration.getSingleTargetPattern())
+            : Label.of("//");
     BlazeApkBuildStep buildStep =
-        BazelApkBuildStepProvider
-            .getBinaryBuildStep(
-              project,
-              AndroidBinaryLaunchMethodsUtils.useMobileInstall(configState.getLaunchMethod()),
-              configState.getCommonState().isNativeDebuggingEnabled(),
-              QuerySyncUserPreferencesProvider.getInstance(project).getUserPreferences().getLiveEditEnabled()
-              ? createLiveEditDataExtractor(binaryTargetLabel)
-              : null,
-              binaryTargetLabel,
-              blazeFlags,
-              exeFlags,
-              launchId);
+        BazelApkBuildStepProvider.getBinaryBuildStep(
+            project,
+            AndroidBinaryLaunchMethodsUtils.useMobileInstall(configState.getLaunchMethod()),
+            configState.getCommonState().isNativeDebuggingEnabled(),
+            QuerySyncUserPreferencesProvider.getInstance(project)
+                    .getUserPreferences()
+                    .getLiveEditEnabled()
+                ? createLiveEditDataExtractor(binaryTargetLabel)
+                : null,
+            binaryTargetLabel,
+            blazeFlags,
+            exeFlags,
+            launchId);
 
     BlazeAndroidDeployAndLaunchStrategy launchStrategy;
     switch (configState.getLaunchMethod()) {
@@ -152,7 +156,7 @@ public class BlazeAndroidBinaryRunConfigurationHandler implements BlazeAndroidRu
       case MOBILE_INSTALL_V2:
         // Standardize on a single mobile-install launch method
         configState.setLaunchMethod(AndroidBinaryLaunchMethod.MOBILE_INSTALL);
-        // fall through
+      // fall through
       case MOBILE_INSTALL:
         launchStrategy = new MobileInstallDeployAndLaunchStrategy(project, configState, launchId);
         break;
@@ -167,8 +171,12 @@ public class BlazeAndroidBinaryRunConfigurationHandler implements BlazeAndroidRu
         configuration.getSingleTargetPattern(),
         configState.getCommonState().isNativeDebuggingEnabled());
 
-    return new BlazeAndroidRunConfigurationRunner(launchStrategy, configuration, buildStep, buildStep.getDeployInfoExtractor(),
-                                                  buildStep.getLiveEditDataExtractor());
+    return new BlazeAndroidRunConfigurationRunner(
+        launchStrategy,
+        configuration,
+        buildStep,
+        buildStep.getDeployInfoExtractor(),
+        buildStep.getLiveEditDataExtractor());
   }
 
   private LiveEditDataExtractor createLiveEditDataExtractor(Label binaryTargetLabel) {
@@ -233,7 +241,7 @@ public class BlazeAndroidBinaryRunConfigurationHandler implements BlazeAndroidRu
   @CanIgnoreReturnValue
   private boolean maybeShowMobileInstallOptIn(
       Project project, BlazeCommandRunConfiguration configuration) {
-    long lastPrompt = PropertiesComponent.getInstance(project).getOrInitLong(MI_LAST_PROMPT, 0L);
+    long lastPrompt = PropertiesComponent.getInstance(project).getLong(MI_LAST_PROMPT, 0L);
     boolean neverAsk =
         PropertiesComponent.getInstance(project).getBoolean(MI_NEVER_ASK_AGAIN, false);
     if (neverAsk || (System.currentTimeMillis() - lastPrompt) < MI_TIMEOUT_MS) {
@@ -266,7 +274,8 @@ public class BlazeAndroidBinaryRunConfigurationHandler implements BlazeAndroidRu
             Messages.getQuestionIcon());
     if (choice == Messages.YES) {
       Messages.showInfoMessage(
-          String.format(Locale.ROOT,
+          String.format(
+              Locale.ROOT,
               "Successfully migrated %d run configuration(s) to mobile-install",
               doMigrate(project)),
           "Success!");

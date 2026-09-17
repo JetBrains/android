@@ -21,6 +21,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import java.util.EnumSet
 import kotlinx.coroutines.runBlocking
@@ -182,6 +183,8 @@ class NavInfoFetcherTest {
   fun updatesOnDumbModeChange() = runBlocking {
     registerAndClearFetcher()
     DumbModeTestUtils.runInDumbModeSynchronously(module.project) {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
       assertModified(NavInfoChangeReason.DUMB_MODE_CHANGED)
       assertThat(fetcher.isEnabled).isTrue()
 

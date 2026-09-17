@@ -221,4 +221,6 @@ interface IdeProfilerServices {
    */
   fun addDependency(artifact: GoogleMavenArtifactId, dependencyType: DependencyType): CompletableFuture<Boolean> =
     CompletableFuture.completedFuture(false)
+
+  fun isDebuggerAttached(deviceId: String, pid: Int): Boolean
 }

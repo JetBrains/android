@@ -29,6 +29,8 @@ import com.android.tools.profilers.tasks.analytics.TaskMetadata;
 import com.android.tools.profilers.tasks.analytics.TaskProcessingFailedMetadata;
 import com.android.tools.profilers.tasks.analytics.TaskStartFailedMetadata;
 import com.android.tools.profilers.tasks.analytics.TaskStopFailedMetadata;
+import com.android.tools.profilers.tasks.analytics.LeakCanaryUiAction;
+import com.android.tools.profilers.tasks.analytics.LeakCanaryLeakAnalysis;
 import com.android.utils.Pair;
 import com.google.common.truth.Truth;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
@@ -110,6 +112,10 @@ public final class FakeFeatureTracker implements FeatureTracker {
   private TaskStartFailedMetadata myLastTaskStartFailedMetadata;
   private TaskStopFailedMetadata myLastTaskStopFailedMetadata;
   private TaskProcessingFailedMetadata myLastTaskProcessingFailedMetadata;
+
+  private LeakCanaryUiAction myLastLeakCanaryUiAction;
+  private LeakCanaryLeakAnalysis myLastLeakCanaryLeakAnalysis;
+  private boolean myLeakCanaryAutoInjectPopupShown;
 
   @Override
   public void trackPreTransportDaemonStarts(@NotNull Common.Device transportDevice) {
@@ -588,6 +594,25 @@ public final class FakeFeatureTracker implements FeatureTracker {
     myLastTaskProcessingFailedMetadata = taskProcessingFailedMetadata;
   }
 
+  @Override
+  public void trackLeakCanaryEvent(@NotNull com.android.tools.profilers.tasks.analytics.TaskMetadata taskMetadata,
+                                   @NotNull LeakCanaryUiAction uiAction) {
+    myLastTaskMetadata = taskMetadata;
+    myLastLeakCanaryUiAction = uiAction;
+  }
+
+  @Override
+  public void trackLeakCanaryEvent(@NotNull com.android.tools.profilers.tasks.analytics.TaskMetadata taskMetadata,
+                                   @NotNull LeakCanaryLeakAnalysis leakAnalysis) {
+    myLastTaskMetadata = taskMetadata;
+    myLastLeakCanaryLeakAnalysis = leakAnalysis;
+  }
+
+  @Override
+  public void trackLeakCanaryAutoInjectPopup() {
+    myLeakCanaryAutoInjectPopupShown = true;
+  }
+
   public TaskMetadata getLastTaskMetadata() {
     return myLastTaskMetadata;
   }
@@ -606,5 +631,17 @@ public final class FakeFeatureTracker implements FeatureTracker {
 
   public TaskProcessingFailedMetadata getLastTaskProcessingFailedMetadata() {
     return myLastTaskProcessingFailedMetadata;
+  }
+
+  public LeakCanaryUiAction getLastLeakCanaryUiAction() {
+    return myLastLeakCanaryUiAction;
+  }
+
+  public LeakCanaryLeakAnalysis getLastLeakCanaryLeakAnalysis() {
+    return myLastLeakCanaryLeakAnalysis;
+  }
+
+  public boolean getLeakCanaryAutoInjectPopupShown() {
+    return myLeakCanaryAutoInjectPopupShown;
   }
 }
