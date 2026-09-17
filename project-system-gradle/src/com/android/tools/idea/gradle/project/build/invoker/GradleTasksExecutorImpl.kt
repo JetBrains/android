@@ -98,7 +98,6 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.LongRunningOperation
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
-import org.gradle.tooling.model.build.BuildEnvironment
 import org.jetbrains.plugins.gradle.service.GradleFileModificationTracker
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionContextImpl
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper
@@ -204,6 +203,36 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
       val executionSettings = myRequest.toExecutionSettings()
       val model = AtomicReference<Any?>(null)
       val gradleRootProjectPath = myRequest.rootProjectPath.path
+      val id = myRequest.taskId
+      val taskListener = myListener
+      val cancellationTokenSource = GradleConnector.newCancellationTokenSource()
+      val cancellationToken = cancellationTokenSource.token()
+      val listener = object : ExternalSystemTaskNotificationListener {
+        override fun onStatusChange(event: ExternalSystemTaskNotificationEvent) {
+          if (myBuildStopper.contains(id)) {
+            taskListener.onStatusChange(event)
+          }
+        }
+
+        override fun onTaskOutput(id: ExternalSystemTaskId, text: String, processOutputType: ProcessOutputType) {
+          // For test use only: save the logs to a file. Note that if there are multiple tasks at once
+          // the output will be interleaved.
+          if (StudioFlags.GRADLE_SAVE_LOG_TO_FILE.get()) {
+            try {
+              val path = Paths.get(PathManager.getLogPath(), "gradle.log")
+              Files.writeString(path, text, StandardOpenOption.APPEND, StandardOpenOption.CREATE)
+            } catch (e: IOException) {
+              // Ignore
+            }
+          }
+          if (myBuildStopper.contains(id)) {
+            taskListener.onTaskOutput(id, text, processOutputType)
+          }
+        }
+      }
+      val context = GradleTaskExecutionContextImpl(gradleRootProjectPath, id, listener)
+      val executionContext = GradleExecutionContextImpl(context.projectPath, context.taskId, executionSettings, context.listener, cancellationToken)
+        .also { context.executionContext = it }
       val executeTasksFunction = Function { connection: ProjectConnection ->
         val stopwatch = Stopwatch.createStarted()
         val isRunBuildAction = buildAction != null
@@ -211,10 +240,6 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
         val executingTasksText = "Executing tasks: $gradleTasks in project $gradleRootProjectPath"
         expireOldEvents()
         addToEventLog(executingTasksText, MessageType.INFO)
-        val id = myRequest.taskId
-        val taskListener = myListener
-        val cancellationTokenSource = GradleConnector.newCancellationTokenSource()
-        val cancellationToken = cancellationTokenSource.token()
         myBuildStopper.register(id, cancellationTokenSource)
         taskListener.onStart(gradleRootProjectPath, id)
         taskListener.onTaskOutput(id, executingTasksText + System.lineSeparator() + System.lineSeparator(), ProcessOutputType.STDOUT)
@@ -222,38 +247,8 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
         val buildCompleter = buildState.buildStarted(BuildContext(myRequest))
         var buildAttributionManager: BuildAttributionManager? = null
         val enableBuildAttribution = isBuildAttributionEnabledForProject(project)
-        val listener =
-          object : ExternalSystemTaskNotificationListener {
-            override fun onStatusChange(event: ExternalSystemTaskNotificationEvent) {
-              if (myBuildStopper.contains(id)) {
-                taskListener.onStatusChange(event)
-              }
-            }
-
-            override fun onTaskOutput(id: ExternalSystemTaskId, text: String, processOutputType: ProcessOutputType) {
-              // For test use only: save the logs to a file. Note that if there are multiple tasks at once
-              // the output will be interleaved.
-              if (StudioFlags.GRADLE_SAVE_LOG_TO_FILE.get()) {
-                try {
-                  val path = Paths.get(PathManager.getLogPath(), "gradle.log")
-                  Files.writeString(path, text, StandardOpenOption.APPEND, StandardOpenOption.CREATE)
-                } catch (e: IOException) {
-                  // Ignore
-                }
-              }
-              if (myBuildStopper.contains(id)) {
-                taskListener.onTaskOutput(id, text, processOutputType)
-              }
-            }
-          }
-        val context = GradleTaskExecutionContextImpl(gradleRootProjectPath, id, listener)
-        var buildEnvironment: BuildEnvironment? = null
         val invocationResult =
           try {
-            val executionContext = GradleExecutionContextImpl(context.projectPath, context.taskId, executionSettings, context.listener, cancellationToken)
-              .also { context.executionContext = it }
-            buildEnvironment = GradleExecutionHelper.getBuildEnvironment(connection, executionContext)
-              .also { executionContext.buildEnvironment = it }
             val buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project)
             val commandLineArguments: MutableList<String?> = Lists.newArrayList(*buildConfiguration.commandLineOptions)
             if (
@@ -339,7 +334,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
                   }
                 }
                 .exceptionOrNull() ?: e
-            GradleInvocationResult(myRequest.rootProjectPath, myRequest.gradleTasks, failure, model.get(), buildEnvironment)
+            GradleInvocationResult(myRequest.rootProjectPath, myRequest.gradleTasks, failure, model.get(), executionContext.buildEnvironment)
           }
 
         executeWithoutProcessCanceledException {
@@ -384,7 +379,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
         }
       }
       return try {
-        GradleExecutionHelper.execute(gradleRootProjectPath, executionSettings, myRequest.taskId, myListener, null, executeTasksFunction)
+        GradleExecutionHelper.execute(executionContext, executeTasksFunction)
       } catch (e: ExternalSystemException) {
         if (e.originalReason.startsWith("com.intellij.openapi.progress.ProcessCanceledException")) {
           logger.info("Gradle execution cancelled.", e)
