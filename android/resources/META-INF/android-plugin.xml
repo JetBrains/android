@@ -29,6 +29,7 @@
   <depends>com.android.tools.gradle.dcl</depends>
 
   <dependencies>
+    <module name="intellij.java.ide.resources"/>
     <module name="intellij.xml.emmet"/>
     <module name="intellij.platform.bookmarks"/>
   </dependencies>
