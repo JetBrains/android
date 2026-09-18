@@ -33,6 +33,7 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.SmartPsiElementPointer
+import com.intellij.psi.createSmartPointer
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
@@ -40,7 +41,6 @@ import org.jetbrains.kotlin.idea.base.psi.addAnnotation
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtPsiFactory
-import org.jetbrains.kotlin.psi.psiUtil.createSmartPointer
 
 /** [VisualLintIssueProvider] to be used when dealing with Compose. */
 class ComposeVisualLintIssueProvider(parentDisposable: Disposable) : VisualLintIssueProvider(parentDisposable) {
