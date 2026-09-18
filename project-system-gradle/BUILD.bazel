@@ -5,10 +5,7 @@ load("//build:compiler-options.bzl", "create_kotlinc_options")
 ### auto-generated section `build intellij.android.projectSystem.gradle` start
 create_kotlinc_options(
     name = "custom_projectSystem-gradle",
-    opt_in = [
-        "org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction",
-        "org.jetbrains.kotlin.K1Deprecation",
-    ],
+    opt_in = ["org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction"],
 )
 
 jvm_provided_library(
@@ -19,11 +16,6 @@ jvm_provided_library(
 jvm_provided_library(
     name = "libraries_kotlin_libraries-kotlin-tooling-core_provided",
     lib = "//libraries/kotlin/tooling-core:libraries-kotlin-tooling-core",
-)
-
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fe10_provided",
-    lib = "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
 )
 
 jvm_provided_library(
@@ -217,7 +209,6 @@ jvm_library(
         "//platform/util-class-loader:util-classLoader",
         ":libraries_kotlin_libraries-kotlin-gradle-plugin-idea_provided",
         ":libraries_kotlin_libraries-kotlin-tooling-core_provided",
-        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fe10_provided",
         ":libraries_kotlinc_libraries-kotlinc-kotlin-jps-common_provided",
         ":libraries_kotlinc_libraries-kotlinc-kotlin-scripting-compiler-impl_provided",
     ],
@@ -253,8 +244,6 @@ jvm_library(
         "//libraries/kotlin/tooling-core:libraries-kotlin-tooling-core_test_lib",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
-        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
-        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10_test_lib",
         "//libraries/kotlinc/kotlin-jps-common:libraries-kotlinc-kotlin-jps-common",
         "//libraries/kotlinc/kotlin-jps-common:libraries-kotlinc-kotlin-jps-common_test_lib",
         "//libraries/kotlinc/kotlin-scripting-compiler-impl:libraries-kotlinc-kotlin-scripting-compiler-impl",
@@ -421,11 +410,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.projectSystem.gradle` end
 
 ### auto-generated section `build intellij.android.projectSystem.gradle.tests` start
-create_kotlinc_options(
-    name = "custom_projectSystem-gradle-tests",
-    opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
-)
-
 jvm_library(
     name = "projectSystem-gradle-tests",
     srcs = glob(
@@ -460,7 +444,6 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    kotlinc_opts = ":custom_projectSystem-gradle-tests",
     module_name = "intellij.android.projectSystem.gradle.tests",
     resource_strip_prefix = "testResources",
     resources = glob(

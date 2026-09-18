@@ -21,15 +21,12 @@ import com.android.tools.compose.isComposeEnabled
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
 import com.intellij.openapi.editor.markup.GutterIconRenderer
-import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
-import com.intellij.psi.util.CachedValue
 import icons.StudioIcons
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.resolution.singleFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
-import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtElement
@@ -63,7 +60,6 @@ class ComposeLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() {
   }
 
   companion object {
-    private val ANALYSIS_RESULT_KEY = Key<CachedValue<AnalysisResult>>("ComposeLineMarkerProviderDescriptor.AnalysisResult")
 
     private fun isComposableInvocation(parentFunction: KtCallExpression): Boolean {
       analyze(parentFunction) {

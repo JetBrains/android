@@ -5,14 +5,8 @@ load("//build:compiler-options.bzl", "create_kotlinc_options")
 ### auto-generated section `build intellij.android.compose-designer` start
 create_kotlinc_options(
     name = "custom_compose-designer",
-    opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
     x_context_parameters = True,
     x_sam_conversions = "class",
-)
-
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fe10_provided",
-    lib = "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
 )
 
 jvm_provided_library(
@@ -126,7 +120,6 @@ jvm_library(
         "//android/visual-lint",
         "//platform/refactoring",
         "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface",
-        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fe10_provided",
         ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-ir_provided",
     ],
 )
@@ -164,8 +157,6 @@ jvm_library(
         "//libraries/protobuf:protobuf_test_lib",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
-        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
-        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10_test_lib",
         "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir",
         "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir_test_lib",
         "//android/intellij.android.compose-common:compose-common_test_lib",
@@ -432,7 +423,6 @@ jps_test(
 ### auto-generated section `build intellij.android.compose-designer.tests` start
 create_kotlinc_options(
     name = "custom_compose-designer-tests",
-    opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
     x_context_parameters = True,
     x_sam_conversions = "class",
 )

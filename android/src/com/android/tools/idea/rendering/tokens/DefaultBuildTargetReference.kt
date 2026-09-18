@@ -39,8 +39,6 @@ import java.nio.file.Path
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.compilation.KaCompilationOptionsBuilder
-import org.jetbrains.kotlin.cli.create
-import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
 
@@ -115,8 +113,6 @@ class DefaultBuildSystemFilePreviewServices :
       override fun getCompilationDependencies(file: PsiFile): ApplicationLiveEditServices.CompilationDependencies? {
         return file.module?.let { CompilationDependenciesImpl(it) }
       }
-
-      override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration = CompilerConfiguration.create()
 
       @KaExperimentalApi override fun KaCompilationOptionsBuilder.configureKotlinCompilationOptions(ktFile: KtFile) {}
 

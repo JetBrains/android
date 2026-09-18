@@ -1,13 +1,7 @@
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
-load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.preview-designer` start
-create_kotlinc_options(
-    name = "custom_preview-designer",
-    opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
-)
-
 jvm_provided_library(
     name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-ir_provided",
     lib = "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir",
@@ -25,7 +19,6 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    kotlinc_opts = ":custom_preview-designer",
     module_name = "intellij.android.preview-designer",
     resource_strip_prefix = "resources",
     resources = glob(
@@ -106,7 +99,6 @@ jvm_library(
         [],
         allow_empty = True,
     ),
-    kotlinc_opts = ":custom_preview-designer",
     module_name = "intellij.android.preview-designer",
     visibility = ["//visibility:public"],
     runtime_deps = [
@@ -190,11 +182,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.preview-designer` end
 
 ### auto-generated section `build intellij.android.preview-designer.tests` start
-create_kotlinc_options(
-    name = "custom_preview-designer-tests",
-    opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
-)
-
 jvm_library(
     name = "preview-designer-tests",
     srcs = glob(
@@ -225,7 +212,6 @@ jvm_library(
         "//android/preview-designer",
         "//android/preview-designer:preview-designer_test_lib",
     ],
-    kotlinc_opts = ":custom_preview-designer-tests",
     visibility = ["//visibility:public"],
     runtime_deps = [
         # do not sort,

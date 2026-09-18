@@ -1,13 +1,7 @@
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
-load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.core.run` start
-create_kotlinc_options(
-    name = "custom_run",
-    opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
-)
-
 jvm_library(
     name = "run",
     srcs = glob(
@@ -38,7 +32,6 @@ jvm_library(
         "//android/android:core",
         "//android/android:core_test_lib",
     ],
-    kotlinc_opts = ":custom_run",
     visibility = ["//visibility:public"],
     runtime_deps = [
         # do not sort,
@@ -117,8 +110,6 @@ jvm_library(
         "//libraries/protobuf:protobuf_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
-        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
-        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10_test_lib",
         "//android/android-adb:adb",
         "//android/android-adb:adb_test_lib",
         "//android/android-adb:adb-tests",

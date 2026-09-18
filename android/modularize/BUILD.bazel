@@ -1,13 +1,7 @@
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
-load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.core.modularize` start
-create_kotlinc_options(
-    name = "custom_modularize",
-    opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
-)
-
 jvm_library(
     name = "modularize",
     srcs = glob(
@@ -35,7 +29,6 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    kotlinc_opts = ":custom_modularize",
     module_name = "intellij.android.core.modularize",
     visibility = ["//visibility:public"],
     runtime_deps = [

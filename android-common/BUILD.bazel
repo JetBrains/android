@@ -5,10 +5,7 @@ load("//build:compiler-options.bzl", "create_kotlinc_options")
 ### auto-generated section `build intellij.android.common` start
 create_kotlinc_options(
     name = "custom_common",
-    opt_in = [
-        "org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction",
-        "org.jetbrains.kotlin.K1Deprecation",
-    ],
+    opt_in = ["org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction"],
 )
 
 resourcegroup(
@@ -17,11 +14,6 @@ resourcegroup(
         ["flags/resources/**/*"],
     ),
     strip_prefix = "flags/resources",
-)
-
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fe10_provided",
-    lib = "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
 )
 
 jvm_provided_library(
@@ -91,7 +83,6 @@ jvm_library(
         "//libraries/kotlinx/coroutines/core",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
         "//libraries/protobuf",
-        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fe10_provided",
         ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-ir_provided",
     ],
 )
@@ -111,8 +102,6 @@ jvm_library(
         ":common",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
-        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
-        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10_test_lib",
         "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir",
         "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir_test_lib",
         "//libraries/kotlinc/symbol-light-classes:libraries-kotlinc-symbol-light-classes_test_lib",
@@ -180,11 +169,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.common` end
 
 ### auto-generated section `build intellij.android.common.tests` start
-create_kotlinc_options(
-    name = "custom_common-tests",
-    opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
-)
-
 jvm_library(
     name = "common-tests",
     srcs = glob(
@@ -207,7 +191,6 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    kotlinc_opts = ":custom_common-tests",
     module_name = "intellij.android.common.tests",
     visibility = ["//visibility:public"],
     runtime_deps = [
@@ -250,8 +233,6 @@ jvm_library(
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
-        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
-        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10_test_lib",
         "//android/adt-testutils",
         "//android/adt-testutils:adt-testutils_test_lib",
         "//android/artwork",

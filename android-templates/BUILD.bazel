@@ -1,19 +1,11 @@
 load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.templates` start
 create_kotlinc_options(
     name = "custom_templates",
-    opt_in = [
-        "org.jetbrains.kotlin.idea.base.util.K1ModeProjectStructureApi",
-        "org.jetbrains.kotlin.K1Deprecation",
-    ],
-)
-
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fe10_provided",
-    lib = "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
+    opt_in = ["org.jetbrains.kotlin.idea.base.util.K1ModeProjectStructureApi"],
 )
 
 jvm_library(
@@ -78,7 +70,6 @@ jvm_library(
         "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface",
         "//platform/util-class-loader:util-classLoader",
         "//plugins/kotlin/code-insight/live-templates-k2:kotlin-codeInsight-liveTemplates",
-        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fe10_provided",
     ],
 )
 
@@ -99,8 +90,6 @@ jvm_library(
         "//libraries/guava:guava_test_lib",
         "//libraries/jetbrains/annotations:annotations_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
-        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
-        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10_test_lib",
         "//platform/ide-core-impl:ide-core-impl_test_lib",
         "//android/android-common:common_test_lib",
         "//android/android:core_test_lib",
@@ -170,10 +159,7 @@ exports_files(
 ### auto-generated section `build intellij.android.templates.tests` start
 create_kotlinc_options(
     name = "custom_templates-tests",
-    opt_in = [
-        "org.jetbrains.kotlin.idea.base.util.K1ModeProjectStructureApi",
-        "org.jetbrains.kotlin.K1Deprecation",
-    ],
+    opt_in = ["org.jetbrains.kotlin.idea.base.util.K1ModeProjectStructureApi"],
 )
 
 jvm_library(
@@ -226,8 +212,6 @@ jvm_library(
         "@lib//:kotlin-stdlib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
-        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
-        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10_test_lib",
         "//libraries/junit4",
         "//libraries/junit4:junit4_test_lib",
         "//libraries/mockito",

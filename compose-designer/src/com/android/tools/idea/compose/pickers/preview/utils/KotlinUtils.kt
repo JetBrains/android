@@ -21,14 +21,7 @@ import org.jetbrains.kotlin.idea.base.psi.appendValueArgument
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtValueArgument
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
-internal fun ResolvedCall<*>.addNewValueArgument(newValueArgument: KtValueArgument, psiFactory: KtPsiFactory): KtValueArgument {
-  if (call.valueArgumentList == null) {
-    call.callElement.add(psiFactory.createCallArguments("()"))
-  }
-  return call.valueArgumentList!!.appendValueArgument(newValueArgument)
-}
 
 internal fun KtCallElement.addNewValueArgument(newValueArgument: KtValueArgument, psiFactory: KtPsiFactory): KtValueArgument {
   if (valueArguments.isEmpty()) add(psiFactory.createCallArguments("()"))

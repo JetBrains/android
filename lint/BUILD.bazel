@@ -4,10 +4,7 @@ load("//build:compiler-options.bzl", "create_kotlinc_options")
 ### auto-generated section `build intellij.android.lint.common` start
 create_kotlinc_options(
     name = "custom_lint-common",
-    opt_in = [
-        "org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction",
-        "org.jetbrains.kotlin.K1Deprecation",
-    ],
+    opt_in = ["org.jetbrains.kotlin.analysis.api.permissions.KaAllowProhibitedAnalyzeFromWriteAction"],
 )
 
 jvm_library(

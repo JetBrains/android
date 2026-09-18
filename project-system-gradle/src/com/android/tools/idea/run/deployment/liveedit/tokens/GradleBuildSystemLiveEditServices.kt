@@ -30,7 +30,6 @@ import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.run.deployment.liveedit.configureLanguageVersionSettings
 import com.android.tools.idea.run.deployment.liveedit.configureModuleName
-import com.android.tools.idea.run.deployment.liveedit.setOptions
 import com.android.tools.idea.run.deployment.liveedit.tokens.ApplicationLiveEditServices.Companion.DEFAULT_RUNTIME_VERSION
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
@@ -38,14 +37,8 @@ import com.intellij.psi.PsiFile
 import java.nio.file.Path
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.compilation.KaCompilationOptionsBuilder
-import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
-import org.jetbrains.kotlin.cli.common.arguments.K2MetadataCompilerArguments
-import org.jetbrains.kotlin.cli.create
-import org.jetbrains.kotlin.config.CommonConfigurationKeys
-import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.idea.base.projectStructure.languageVersionSettings
 import org.jetbrains.kotlin.idea.base.util.module
-import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.psi.KtFile
 
 class GradleBuildSystemLiveEditServices :
@@ -90,26 +83,7 @@ internal class GradleApplicationLiveEditServices(private val module: Module) : A
     return file.module?.let { GradleCompilationDependencies(it) }
   }
 
-  override fun getKotlinCompilerConfiguration(ktFile: KtFile): CompilerConfiguration {
-    val module = ktFile.module ?: return CompilerConfiguration.create()
-    val compilerConfiguration =
-      CompilerConfiguration.create().apply {
-        put(CommonConfigurationKeys.MODULE_NAME, module.name)
-        KotlinFacet.get(module)?.let { kotlinFacet ->
-          val moduleName =
-            when (val compilerArguments = kotlinFacet.configuration.settings.compilerArguments) {
-              is K2JVMCompilerArguments -> compilerArguments.moduleName
-              is K2MetadataCompilerArguments -> compilerArguments.moduleName
-              else -> null
-            }
-          moduleName?.let { put(CommonConfigurationKeys.MODULE_NAME, it) }
-        }
-        setOptions(ktFile.languageVersionSettings)
-      }
-    return compilerConfiguration
-  }
-
-  @KaExperimentalApi
+    @KaExperimentalApi
   override fun KaCompilationOptionsBuilder.configureKotlinCompilationOptions(ktFile: KtFile) {
     val module = ktFile.module ?: return
     configureModuleName(module)

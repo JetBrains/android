@@ -1,18 +1,7 @@
 load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
-load("//build:compiler-options.bzl", "create_kotlinc_options")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.layout-inspector` start
-create_kotlinc_options(
-    name = "custom_layout-inspector",
-    opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
-)
-
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fe10_provided",
-    lib = "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
-)
-
 jvm_library(
     name = "layout-inspector",
     srcs = glob(
@@ -23,7 +12,6 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    kotlinc_opts = ":custom_layout-inspector",
     module_name = "intellij.android.layout-inspector",
     resource_strip_prefix = "resources",
     resources = glob(
@@ -105,7 +93,6 @@ jvm_library(
         "//xml/xml-psi-impl:psi-impl",
         "//platform/progress/shared:ide-progress",
         "//fleet/util/core",
-        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-fe10_provided",
     ],
 )
 
@@ -116,7 +103,6 @@ jvm_library(
         [],
         allow_empty = True,
     ),
-    kotlinc_opts = ":custom_layout-inspector",
     module_name = "intellij.android.layout-inspector",
     visibility = ["//visibility:public"],
     runtime_deps = [
@@ -126,8 +112,6 @@ jvm_library(
         "//libraries/guava:guava_test_lib",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
-        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
-        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10_test_lib",
         "//libraries/io:io_test_lib",
         "//android/android:core_test_lib",
         "//android/adt-ui:adt-ui_test_lib",

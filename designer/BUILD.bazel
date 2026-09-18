@@ -1,6 +1,5 @@
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
-load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.designer` start
 jvm_provided_library(
@@ -629,11 +628,6 @@ jps_test(
 ### auto-generated section `test intellij.android.designer.testFramework` end
 
 ### auto-generated section `build intellij.android.designer.tests` start
-create_kotlinc_options(
-    name = "custom_designer-tests",
-    opt_in = ["org.jetbrains.kotlin.K1Deprecation"],
-)
-
 jvm_library(
     name = "designer-tests",
     srcs = glob(
@@ -664,7 +658,6 @@ jvm_library(
         "//android/designer",
         "//android/designer:designer_test_lib",
     ],
-    kotlinc_opts = ":custom_designer-tests",
     resource_strip_prefix = "testResources",
     resources = glob(
         ["testResources/**/*"],
@@ -694,8 +687,6 @@ jvm_library(
         "//libraries/junit4:junit4_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
-        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10",
-        "//libraries/kotlinc/kotlin-compiler-fe10:libraries-kotlinc-kotlin-compiler-fe10_test_lib",
         "//libraries/layoutlib",
         "//libraries/layoutlib:layoutlib_test_lib",
         "//android/android:core-tests",
