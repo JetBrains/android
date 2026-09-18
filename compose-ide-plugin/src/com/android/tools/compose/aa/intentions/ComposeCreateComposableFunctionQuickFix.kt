@@ -26,8 +26,8 @@ import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.expressions.expressionType
 import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KaFirDiagnostic
-import org.jetbrains.kotlin.analysis.api.renderer.render
-import org.jetbrains.kotlin.analysis.api.renderer.types.impl.KaTypeRendererForSource
+import org.jetbrains.kotlin.analysis.api.rendering.KaRenderer
+import org.jetbrains.kotlin.analysis.api.rendering.renderToString
 import org.jetbrains.kotlin.analysis.api.types.KaFunctionType
 import org.jetbrains.kotlin.analysis.api.types.KaType
 import org.jetbrains.kotlin.analysis.api.types.builtinTypes
@@ -37,6 +37,7 @@ import org.jetbrains.kotlin.idea.base.resources.KotlinBundle
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixFactory
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.quickfixes.QuickFixActionBase
 import org.jetbrains.kotlin.idea.refactoring.getExtractionContainers
+import org.jetbrains.kotlin.idea.util.withShortNames
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
@@ -46,7 +47,6 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForSelectorOrThis
 import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
-import org.jetbrains.kotlin.types.Variance
 
 /**
  * K2 version of [ComposeUnresolvedFunctionFixContributor].
@@ -140,7 +140,7 @@ class ComposeCreateComposableFunctionQuickFix(
                 param(
                   paramName,
                   "${if (isLastLambdaArgument) "@$COMPOSABLE_ANNOTATION_NAME " else ""}${
-                  type.render(KaTypeRendererForSource.WITH_SHORT_NAMES, Variance.INVARIANT)
+                  KaRenderer.withShortNames.renderToString(type)
                 }",
                 )
               }

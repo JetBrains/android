@@ -32,6 +32,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.testFramework.RunsInEdt
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
+import org.jetbrains.kotlin.analysis.api.rendering.renderToString
 import org.jetbrains.kotlin.analysis.api.symbols.KaNamedClassSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaNamedFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaPropertySymbol
@@ -419,7 +420,7 @@ class DirectionsClassResolveExtensionTest(@Suppress("UNUSED_PARAMETER") navVersi
       """
         .trimIndent()
     ) { symbol: KaNamedFunctionSymbol ->
-      assertThat(symbol.render(RENDERER))
+      assertThat(RENDERER.renderToString(symbol))
         .isEqualTo(
           "fun actionFragment1ToFragment2(" +
             "argumentFromAction: kotlin.Int, " +
@@ -473,7 +474,7 @@ class DirectionsClassResolveExtensionTest(@Suppress("UNUSED_PARAMETER") navVersi
       """
         .trimIndent()
     ) { symbol: KaNamedFunctionSymbol ->
-      assertThat(symbol.render(RENDERER))
+      assertThat(RENDERER.renderToString(symbol))
         .isEqualTo("fun actionFragment1ToFragment2(argument: kotlin.Int = ...): androidx.navigation.NavDirections")
     }
   }
@@ -531,7 +532,7 @@ class DirectionsClassResolveExtensionTest(@Suppress("UNUSED_PARAMETER") navVersi
         } else {
           "argumentBefore: kotlin.Int, argumentWithDefault: kotlin.Int = ..., argumentAfter: kotlin.Int"
         }
-      assertThat(symbol.render(RENDERER)).isEqualTo("fun actionFragment1ToFragment2($argumentBody): androidx.navigation.NavDirections")
+      assertThat(RENDERER.renderToString(symbol)).isEqualTo("fun actionFragment1ToFragment2($argumentBody): androidx.navigation.NavDirections")
     }
   }
 

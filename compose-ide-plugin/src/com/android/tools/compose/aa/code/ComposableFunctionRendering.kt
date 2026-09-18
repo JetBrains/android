@@ -18,9 +18,11 @@ package com.android.tools.compose.aa.code
 import com.android.tools.compose.code.ComposableFunctionRenderParts
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaSession
-import org.jetbrains.kotlin.analysis.api.renderer.declarations.impl.KaDeclarationRendererForSource
+import org.jetbrains.kotlin.analysis.api.rendering.KaRenderer
+import org.jetbrains.kotlin.analysis.api.rendering.renderToString
 import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaValueParameterSymbol
+import org.jetbrains.kotlin.idea.util.withShortNames
 
 private const val DEFAULT_LAMBDA_PRESENTATION = "{...}"
 
@@ -53,7 +55,7 @@ internal fun KaSession.getComposableFunctionRenderParts(functionSymbol: KaFuncti
 
 private fun KaSession.renderValueParameters(valueParamsInParen: List<KaValueParameterSymbol>, closingString: String) = buildString {
   append("(")
-  @OptIn(KaExperimentalApi::class) valueParamsInParen.joinTo(buffer = this) { it.render(KaDeclarationRendererForSource.WITH_SHORT_NAMES) }
+  @OptIn(KaExperimentalApi::class) valueParamsInParen.joinTo(buffer = this) { KaRenderer.withShortNames.renderToString(it) }
   append(closingString)
   append(")")
 }

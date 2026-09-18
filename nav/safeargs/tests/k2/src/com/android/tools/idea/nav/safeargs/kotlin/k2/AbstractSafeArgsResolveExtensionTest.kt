@@ -32,20 +32,21 @@ import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.renderer.declarations.KaDeclarationRenderer
-import org.jetbrains.kotlin.analysis.api.renderer.declarations.bodies.KaParameterDefaultValueRenderer
-import org.jetbrains.kotlin.analysis.api.renderer.declarations.impl.KaDeclarationRendererForSource
-import org.jetbrains.kotlin.analysis.api.renderer.declarations.renderers.callables.KaValueParameterSymbolRenderer
+import org.jetbrains.kotlin.analysis.api.rendering.KaClassTypeQualification
+import org.jetbrains.kotlin.analysis.api.rendering.KaRenderer
+import org.jetbrains.kotlin.analysis.api.rendering.KaRenderingOption
+import org.jetbrains.kotlin.analysis.api.rendering.renderToString
 import org.jetbrains.kotlin.analysis.api.symbols.KaClassSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaConstructorSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaNamedFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaSymbolOrigin
+import org.jetbrains.kotlin.builtins.StandardNames
 import org.jetbrains.kotlin.idea.references.KtReference
+import org.jetbrains.kotlin.load.java.NULLABILITY_ANNOTATIONS
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.Rule
 
@@ -99,11 +100,11 @@ abstract class AbstractSafeArgsResolveExtensionTest {
   }
 
   @OptIn(KaExperimentalApi::class)
-  protected fun KaSession.getRenderedMemberFunctions(symbol: KaClassSymbol, renderer: KaDeclarationRenderer = RENDERER): List<String> =
+  protected fun KaSession.getRenderedMemberFunctions(symbol: KaClassSymbol, renderer: KaRenderer = RENDERER): List<String> =
     symbol.declaredMemberScope.callables
       .filterIsInstance<KaNamedFunctionSymbol>()
       .filter { it.origin != KaSymbolOrigin.SOURCE_MEMBER_GENERATED }
-      .map { it.render(renderer) }
+      .map { renderer.renderToString(it) }
       .toList()
 
   protected fun KaSession.getPrimaryConstructorSymbol(symbol: KaClassSymbol): KaConstructorSymbol =
@@ -112,11 +113,11 @@ abstract class AbstractSafeArgsResolveExtensionTest {
   @OptIn(KaExperimentalApi::class)
   protected fun KaSession.getValueParameterNamesAndTypes(
     symbol: KaFunctionSymbol,
-    renderer: KaDeclarationRenderer = RENDERER,
+    renderer: KaRenderer = RENDERER,
   ): Map<String, String> =
     symbol.valueParameters.associate {
       val paramName = it.name.asString()
-      val typeName = it.returnType.render(renderer.typeRenderer, position = Variance.INVARIANT)
+      val typeName = renderer.renderToString(it.returnType)
       paramName to typeName
     }
 
@@ -138,10 +139,15 @@ abstract class AbstractSafeArgsResolveExtensionTest {
     }
 
     @OptIn(KaExperimentalApi::class)
-    val RENDERER =
-      KaDeclarationRendererForSource.WITH_QUALIFIED_NAMES.with {
-        valueParameterRenderer = KaValueParameterSymbolRenderer.AS_SOURCE
-        parameterDefaultValueRenderer = KaParameterDefaultValueRenderer.THREE_DOTS
+    val RENDERER: KaRenderer =
+      KaRenderer.default.copy {
+        set(KaRenderingOption.ClassTypeQualification, KaClassTypeQualification.FULLY_QUALIFIED)
+        set(KaRenderingOption.Annotations) { annotated ->
+          annotated.annotations.filter { annotation ->
+            val fqName = annotation.classId?.asSingleFqName()
+            fqName == null || (fqName !in NULLABILITY_ANNOTATIONS && fqName != StandardNames.FqNames.parameterName)
+          }
+        }
       }
   }
 }

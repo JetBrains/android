@@ -28,6 +28,8 @@ import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotated
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.rendering.KaRenderer
+import org.jetbrains.kotlin.analysis.api.rendering.renderToString
 import org.jetbrains.kotlin.analysis.api.resolution.KaCallableMemberCall
 import org.jetbrains.kotlin.analysis.api.resolution.calls
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
@@ -38,6 +40,7 @@ import org.jetbrains.kotlin.analysis.api.symbols.KaPropertySymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaValueParameterSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.receiverType
 import org.jetbrains.kotlin.analysis.api.types.KaType
+import org.jetbrains.kotlin.idea.util.withQualifiedNames
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -47,7 +50,6 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.psiUtil.getChildrenOfType
-import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.util.OperatorNameConventions
 
 private const val COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME = "IntelliJComposableCallTextAttributes"
@@ -90,7 +92,7 @@ internal fun KtElement.callReturnTypeFqName() = allowAnalysisOnEdt {
 }
 
 @OptIn(KaExperimentalApi::class)
-internal fun KaSession.asFqNameString(type: KaType) = type.fullyExpandedType.render(position = Variance.INVARIANT)
+internal fun KaSession.asFqNameString(type: KaType) = KaRenderer.withQualifiedNames.renderToString(type)
 
 internal fun KtFunction.hasComposableAnnotation() = hasAnnotation(ComposeClassIds.Composable)
 

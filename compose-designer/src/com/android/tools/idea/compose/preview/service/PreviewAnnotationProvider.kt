@@ -40,14 +40,15 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.renderer.types.impl.KaTypeRendererForSource
+import org.jetbrains.kotlin.analysis.api.rendering.KaRenderer
+import org.jetbrains.kotlin.analysis.api.rendering.renderToString
 import org.jetbrains.kotlin.analysis.api.resolution.singleConstructorCallOrNull
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
 import org.jetbrains.kotlin.idea.base.util.projectScope
 import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
 import org.jetbrains.kotlin.idea.stubindex.KotlinTypeAliasByExpansionShortNameIndex
+import org.jetbrains.kotlin.idea.util.withQualifiedNames
 import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.types.Variance
 
 /**
  * A project service that provides a cached, cancellable, and auto-updating [Flow] of all preview annotations in a project.
@@ -148,7 +149,7 @@ class PreviewAnnotationProvider(private val project: Project, scope: CoroutineSc
       ProgressManager.checkCanceled()
       analyze(alias) {
         val aliasSymbol = alias.symbol
-        val rightSideType = aliasSymbol.expandedType.render(KaTypeRendererForSource.WITH_QUALIFIED_NAMES, Variance.INVARIANT)
+        val rightSideType = KaRenderer.withQualifiedNames.renderToString(aliasSymbol.expandedType)
 
         if (rightSideType == expandingTo) {
           alias.fqName?.asString()?.let { fqn -> definitions.add(fqn) }

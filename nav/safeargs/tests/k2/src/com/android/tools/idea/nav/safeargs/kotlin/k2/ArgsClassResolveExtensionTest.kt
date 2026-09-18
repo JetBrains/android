@@ -29,6 +29,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
+import org.jetbrains.kotlin.analysis.api.rendering.renderToString
 import org.jetbrains.kotlin.analysis.api.symbols.KaNamedClassSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaNamedFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaParameterSymbol
@@ -92,7 +93,7 @@ class ArgsClassResolveExtensionTest(@Suppress("UNUSED_PARAMETER") navVersionName
     ) { symbol: KaNamedClassSymbol ->
       assertThat(symbol.psi<KtElement>().isFromResolveExtension).isTrue()
       assertThat(symbol.classId?.asFqNameString()).isEqualTo("test.safeargs.Fragment1Args")
-      assertThat(symbol.render(RENDERER)).isEqualTo("data class Fragment1Args(someArgument: kotlin.String) : androidx.navigation.NavArgs")
+      assertThat(RENDERER.renderToString(symbol)).isEqualTo("data class Fragment1Args(someArgument: kotlin.String) : androidx.navigation.NavArgs")
 
       assertThat(getRenderedMemberFunctions(symbol, RENDERER))
         .containsExactlyElementsIn(
@@ -437,7 +438,7 @@ class ArgsClassResolveExtensionTest(@Suppress("UNUSED_PARAMETER") navVersionName
       """
         .trimIndent()
     ) { symbol: KaNamedClassSymbol ->
-      assertThat(symbol.render(RENDERER))
+      assertThat(RENDERER.renderToString(symbol))
         .isEqualTo(
           "data class Fragment1Args(nullable: kotlin.String?, implicitNullable: kotlin.String? = ...) : androidx.navigation.NavArgs"
         )
@@ -537,7 +538,7 @@ class ArgsClassResolveExtensionTest(@Suppress("UNUSED_PARAMETER") navVersionName
       """
         .trimIndent()
     ) { symbol: KaNamedClassSymbol ->
-      val renderedValueParameters = getPrimaryConstructorSymbol(symbol).valueParameters.map { it.render(RENDERER) }
+      val renderedValueParameters = getPrimaryConstructorSymbol(symbol).valueParameters.map { RENDERER.renderToString(it) }
 
       val expectedOrder =
         if (navVersion >= SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS) {
