@@ -238,7 +238,7 @@ private constructor(val serialNumber: String, val deviceType: DeviceType, val de
 
     private fun getDevices(): Collection<Device> {
       val deviceManager = DeviceManagers.getDeviceManager(AndroidSdkHandler.getInstance(AndroidLocationsSingleton, null))
-      return deviceManager.getDevices(setOf(USER, DEFAULT, VENDOR))
+      return deviceManager.getDevices(USER, DEFAULT, VENDOR)
     }
 
     private val skinHome: Path? = DeviceArtDescriptor.getBundledDescriptorsFolder()?.toPath()

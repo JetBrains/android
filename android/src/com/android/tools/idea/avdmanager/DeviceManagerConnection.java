@@ -21,6 +21,7 @@ import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.devices.DeviceManager.DeviceCategory;
 import com.android.sdklib.devices.DeviceParser;
 import com.android.sdklib.devices.DeviceWriter;
+import com.android.sdklib.devices.UserDeviceTable;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.sdk.DeviceManagers;
@@ -34,6 +35,7 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -88,7 +90,7 @@ public class DeviceManagerConnection {
 
   @NotNull
   public Collection<Device> getDevices() {
-    return getDevices(DeviceManager.ALL_DEVICES);
+    return getDevices(EnumSet.allOf(DeviceCategory.class));
   }
 
   @NotNull
@@ -97,7 +99,7 @@ public class DeviceManagerConnection {
       return List.of();
     }
 
-    return deviceManager.getDevices(filters);
+    return deviceManager.getDevices(filters.toArray(new DeviceCategory[0]));
   }
 
   /**
@@ -147,8 +149,12 @@ public class DeviceManagerConnection {
       if (!hasDeviceManager()) {
         return;
       }
-      deviceManager.removeUserDevice(info);
-      deviceManager.saveUserDevices();
+      UserDeviceTable userDevices = deviceManager.getUserDevices();
+      if (userDevices == null) {
+        return;
+      }
+      userDevices.removeUserDevice(info);
+      userDevices.saveUserDevices();
     }
   }
 
@@ -159,8 +165,12 @@ public class DeviceManagerConnection {
     if (!hasDeviceManager()) {
       return;
     }
-    deviceManager.replaceUserDevice(device);
-    deviceManager.saveUserDevices();
+    UserDeviceTable userDevices = deviceManager.getUserDevices();
+    if (userDevices == null) {
+      return;
+    }
+    userDevices.replaceUserDevice(device);
+    userDevices.saveUserDevices();
   }
 
   /**
@@ -168,6 +178,10 @@ public class DeviceManagerConnection {
    */
   public void createDevices(@NotNull List<Device> devices) {
     if (!hasDeviceManager()) {
+      return;
+    }
+    UserDeviceTable userDevices = deviceManager.getUserDevices();
+    if (userDevices == null) {
       return;
     }
     for (Device device : devices) {
@@ -180,9 +194,9 @@ public class DeviceManagerConnection {
         String name = String.format(Locale.getDefault(), "%1$s_%2$d", deviceNameBase, i);
         device = cloneDeviceWithNewIdAndName(device, id, name);
       }
-      deviceManager.addUserDevice(device);
+      userDevices.addUserDevice(device);
     }
-    deviceManager.saveUserDevices();
+    userDevices.saveUserDevices();
   }
 
   private static Device cloneDeviceWithNewIdAndName(@NotNull Device device, @NotNull String id, @NotNull String name) {

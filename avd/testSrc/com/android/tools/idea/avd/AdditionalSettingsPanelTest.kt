@@ -39,7 +39,6 @@ import com.android.flags.junit.FlagRule
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
-import com.android.sdklib.devices.VendorDevices
 import com.android.sdklib.internal.avd.AiGlassesDisplayMode
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.testutils.file.createInMemoryFileSystem
@@ -49,7 +48,6 @@ import com.android.tools.adtui.compose.utils.lingerMouseHover
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.android.tools.idea.flags.StudioFlags
-import com.android.utils.NullLogger
 import com.google.common.truth.Truth.assertThat
 import java.nio.file.Files
 import kotlin.math.max
@@ -115,7 +113,7 @@ class AdditionalSettingsPanelTest {
   @Test
   fun orientationDropdownOnClick() {
     // Arrange
-    val deviceProfiles = VendorDevices(NullLogger()).apply { init { true } }
+    val deviceProfiles = vendorDevicesTable
     val pixel8 = deviceProfiles.getDevice("pixel_8", "Google")!!
     val device = VirtualDevice(pixel8).apply { initializeFromProfile() }
     val state = configureDevicePanelState(device)
@@ -132,7 +130,7 @@ class AdditionalSettingsPanelTest {
 
   @Test
   fun orientationNotPresentWithoutMultipleStates() {
-    val devices = VendorDevices(NullLogger()).apply { init { true } }
+    val devices = vendorDevicesTable
     val xrHeadset = devices.getDevice("xr_headset_device", "Google")!!
     assertThat(xrHeadset.allStates).hasSize(1)
 

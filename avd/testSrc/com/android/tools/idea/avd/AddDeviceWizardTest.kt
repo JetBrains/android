@@ -273,17 +273,19 @@ class AddDeviceWizardTest {
 
       val phone = deviceManager.getDevice("medium_phone", "Generic")!!
       for (letter in 'A'..'Z') {
-        deviceManager.addUserDevice(
-          Device.Builder(phone)
-            .apply {
-              setName("${letter}Phone")
-              setId("${letter}phone")
-            }
-            .build()
-        )
+        deviceManager
+          .getUserDevices()
+          ?.addUserDevice(
+            Device.Builder(phone)
+              .apply {
+                setName("${letter}Phone")
+                setId("${letter}phone")
+              }
+              .build()
+          )
       }
 
-      val deviceCount = deviceManager.getDevices(DeviceManager.ALL_DEVICES).size
+      val deviceCount = deviceManager.getDevices().size
       val source = createAddDeviceWizard()
       val wizard = createTestAddDeviceWizard(source)
 

@@ -113,8 +113,9 @@ class DeviceManagerCacheTest {
 
     val deviceManager = DeviceManagerCache(CapturingLogger()).getDeviceManager(testSdk.sdkHandler)
     val userDevice = deviceManager.getDevices(DeviceManager.DeviceCategory.DEFAULT).first()
-    deviceManager.addUserDevice(userDevice)
-    deviceManager.saveUserDevices()
+    val userDevices = checkNotNull(deviceManager.getUserDevices())
+    userDevices.addUserDevice(userDevice)
+    userDevices.saveUserDevices()
 
     assertThat(Files.exists(devicesXml)).isTrue()
     assertThat(Files.readString(devicesXml)).doesNotContain("sdk/devices/$unsupportedSchemaVersion")

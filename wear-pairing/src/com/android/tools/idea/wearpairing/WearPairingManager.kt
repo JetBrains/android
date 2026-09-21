@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.wearpairing
 
-import com.android.adblib.ddmlibcompatibility.debugging.quickRetrieveAvdData
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.AndroidDebugBridge
@@ -493,7 +492,7 @@ class WearPairingManager(
         // ID, the .. does not match the path information we have in Studio.
         // We intentionally use normalize since it does not access disk and will just normalize the
         // path removing the ..
-        isEmulator -> quickRetrieveAvdData()?.avdFolder?.normalize()?.toString() ?: name
+        isEmulator -> avdData.get()?.avdFolder?.normalize()?.toString() ?: name
         else -> {
           val firebaseTestLabSession = getProperty(PROP_FIREBASE_TEST_LAB_SESSION)
           if (firebaseTestLabSession != null) {

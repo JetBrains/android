@@ -719,7 +719,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     }
   }
 
-  fun applyChanges() {
+  override fun applyChanges() {
     if (!context.dryRun) {
       projectBuildModel?.applyChanges()
     }

@@ -21,7 +21,7 @@ import com.android.tools.deployer.common.DeployerException
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.deployer.model.component.WatchFace
-import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
+import com.android.tools.deployer.modelv1.component.CommandResultReceiverV1
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.ApplicationDeployer
@@ -145,12 +145,12 @@ class AndroidDeclarativeWatchFaceConfigurationExecutor(
 
     val outputReceiver = RecordOutputReceiver { indicator.isCanceled == true }
     try {
-      val resultReceiver = CommandResultReceiver()
+      val resultReceiver = CommandResultReceiverV1()
       val multiReceiver = MultiReceiver(resultReceiver, outputReceiver)
 
       device.executeShellCommand("$SET_DECLARATIVE_WATCH_FACE ${app.appId}", multiReceiver, 15, TimeUnit.SECONDS)
 
-      if (resultReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
+      if (resultReceiver.resultCode != CommandResultReceiverV1.SUCCESS_CODE) {
         throw DeployerException.componentActivationException(String.format("Invalid Success code `%d`", resultReceiver.resultCode))
       }
     } catch (ex: Exception) {
@@ -162,9 +162,9 @@ class AndroidDeclarativeWatchFaceConfigurationExecutor(
     indicator.checkCanceled()
     indicator.text = "Showing the watch face"
 
-    val resultReceiver = CommandResultReceiver()
+    val resultReceiver = CommandResultReceiverV1()
     device.executeShellCommand(WatchFace.ShellCommand.SHOW_WATCH_FACE, console, resultReceiver, indicator = indicator)
-    if (resultReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
+    if (resultReceiver.resultCode != CommandResultReceiverV1.SUCCESS_CODE) {
       console.printlnError("Warning: Launch was successful, but you may need to bring up the watch face manually")
     }
   }

@@ -17,7 +17,7 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
-import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver.INVALID_ARGUMENT_CODE
+import com.android.tools.deployer.modelv1.component.CommandResultReceiverV1.INVALID_ARGUMENT_CODE
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase.assertEquals
 import com.intellij.execution.ExecutionException
 import com.intellij.openapi.progress.EmptyProgressIndicator

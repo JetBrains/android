@@ -19,8 +19,9 @@ import com.android.SdkConstants
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
+import com.android.sdklib.devices.DeviceManager
+import com.android.sdklib.devices.DeviceResourceTable
 import com.android.sdklib.devices.Storage
-import com.android.sdklib.devices.VendorDevices
 import com.android.sdklib.internal.avd.AvdBuilder
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
@@ -42,7 +43,7 @@ import org.mockito.kotlin.whenever
 class VirtualDeviceTest {
   @Test
   fun initializeFromProfile() {
-    val devices = VendorDevices(NullLogger()).apply { init { true } }
+    val devices = vendorDevicesTable
     val pixel8 = devices.getDevice("pixel_8", "Google")!!
 
     with(VirtualDevice(pixel8)) {
@@ -56,7 +57,7 @@ class VirtualDeviceTest {
 
   @Test
   fun avdBuilderToVirtualDevice() {
-    val devices = VendorDevices(NullLogger()).apply { init { true } }
+    val devices = vendorDevicesTable
     val pixel8 = devices.getDevice("pixel_8", "Google")!!
 
     val avdBuilder = AvdBuilder(Paths.get("/tmp/avd/pixel_8.ini"), Paths.get("/tmp/avd/pixel_8.avd"), pixel8)
@@ -100,7 +101,7 @@ class VirtualDeviceTest {
 
   @Test
   fun virtualDeviceToAvdBuilder() {
-    val devices = VendorDevices(NullLogger()).apply { init { true } }
+    val devices = vendorDevicesTable
     val pixel8 = devices.getDevice("pixel_8", "Google")!!
     val avdBuilder = AvdBuilder(Paths.get("/tmp/avd/pixel_8.ini"), Paths.get("/tmp/avd/pixel_8.avd"), pixel8)
 
@@ -147,7 +148,8 @@ class VirtualDeviceTest {
 
   @Test
   fun deviceFilter() {
-    val devices = VendorDevices(NullLogger()).apply { init { device -> device.id != "pixel_8" } }
+    val devices =
+      DeviceResourceTable(NullLogger(), isSupportedDevice = { it.id != "pixel_8" }, DeviceManager.VENDOR_DEVICE_RESOURCES)
     assertThat(devices.getDevice("pixel_8", "Google")).isNull()
     assertThat(devices.getDevice("pixel_9", "Google")).isNotNull()
   }

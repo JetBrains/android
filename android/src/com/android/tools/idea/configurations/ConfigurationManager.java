@@ -25,7 +25,6 @@ import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
-import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.targets.PlatformTarget;
@@ -222,7 +221,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
     }
 
     ImmutableList.Builder<Device> builder = new ImmutableList.Builder<>();
-    builder.addAll(platform.getSdkData().getDeviceManager().getDevices(DeviceManager.ALL_DEVICES));
+    builder.addAll(platform.getSdkData().getDeviceManager().getDevices());
     builder.addAll(ReferenceDevice.INSTANCE.getWindowSizeDevices());
     return builder.build();
   }

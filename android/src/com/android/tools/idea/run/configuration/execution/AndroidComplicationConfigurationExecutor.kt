@@ -23,7 +23,7 @@ import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.Complication
 import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.deployer.model.component.WatchFace.ShellCommand.UNSET_WATCH_FACE
-import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
+import com.android.tools.deployer.modelv1.component.CommandResultReceiverV1
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.WearSurfaceLaunchOptions
@@ -187,13 +187,13 @@ class ComplicationLaunchOptions : WearSurfaceLaunchOptions {
 
 private fun getStopComplicationCallback(complicationComponentName: String, console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit =
   { device: IDevice ->
-    val removeReceiver = CommandResultReceiver()
+    val removeReceiver = CommandResultReceiverV1()
     val removeComplicationCommand = Complication.ShellCommand.REMOVE_ALL_INSTANCES_FROM_CURRENT_WF + complicationComponentName
     device.executeShellCommand(removeComplicationCommand, console, removeReceiver, indicator = null)
 
-    val unsetReceiver = CommandResultReceiver()
+    val unsetReceiver = CommandResultReceiverV1()
     device.executeShellCommand(UNSET_WATCH_FACE, console, unsetReceiver, indicator = null)
-    if (removeReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE || unsetReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
+    if (removeReceiver.resultCode != CommandResultReceiverV1.SUCCESS_CODE || unsetReceiver.resultCode != CommandResultReceiverV1.SUCCESS_CODE) {
       console.printlnError("Warning: Complication was not stopped.")
     }
     if (isDebug) {

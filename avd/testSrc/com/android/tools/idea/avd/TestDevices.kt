@@ -18,7 +18,9 @@ package com.android.tools.idea.avd
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.devices.CameraLocation
 import com.android.sdklib.devices.Device
+import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.devices.DeviceParser
+import com.android.sdklib.devices.DeviceResourceTable
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
@@ -27,7 +29,10 @@ import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import java.io.ByteArrayInputStream
 import java.nio.file.Path
+import com.android.utils.NullLogger
 import org.mockito.kotlin.mock
+
+val vendorDevicesTable by lazy { DeviceResourceTable(NullLogger(), isSupportedDevice = { true }, DeviceManager.VENDOR_DEVICE_RESOURCES) }
 
 fun readTestDevices(): List<Device> = DeviceParser.parse(ByteArrayInputStream(testDeviceXml.encodeToByteArray())).values().toList()
 

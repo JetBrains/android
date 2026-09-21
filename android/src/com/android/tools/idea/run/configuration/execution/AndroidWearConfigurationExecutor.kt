@@ -17,7 +17,7 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.model.component.WatchFace
-import com.android.tools.deployer.model.component.WearComponent
+import com.android.tools.deployer.modelv1.component.CommandResultReceiverV1
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter
@@ -62,9 +62,9 @@ abstract class AndroidWearConfigurationExecutor(
     indicator.checkCanceled()
     indicator.text = "Jumping to the watch face"
 
-    val resultReceiver = WearComponent.CommandResultReceiver()
+    val resultReceiver = CommandResultReceiverV1()
     device.executeShellCommand(WatchFace.ShellCommand.SHOW_WATCH_FACE, console, resultReceiver, indicator = indicator)
-    if (resultReceiver.resultCode != WearComponent.CommandResultReceiver.SUCCESS_CODE) {
+    if (resultReceiver.resultCode != CommandResultReceiverV1.SUCCESS_CODE) {
       console.printlnError("Warning: Launch was successful, but you may need to bring up the watch face manually")
     }
   }

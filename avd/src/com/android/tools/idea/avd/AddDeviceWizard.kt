@@ -35,7 +35,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.Device
-import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.internal.avd.AvdNames
@@ -90,10 +89,8 @@ import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -157,28 +154,12 @@ internal class AddDeviceWizard(
   val virtualDeviceFilter: (VirtualDeviceProfile) -> Boolean = { true },
   val onAdd: (AvdInfo) -> Unit = {},
 ) {
-  val profiles: Flow<LoadingState<List<VirtualDeviceProfile>>> =
-    callbackFlow {
-        send(LoadingState.Loading)
-
-        val deviceManager = DeviceManagers.getDeviceManager(sdkHandler)
-
-        fun sendDevices() {
-          val profiles = deviceManager.getDevices(DeviceManager.ALL_DEVICES).mapTo(mutableListOf()) { it.toVirtualDeviceProfile() }
-          profiles.sortWith(compareBy(NameComparator()) { it.device })
-
-          // Cannot fail due to conflate() below
-          trySend(LoadingState.Ready(profiles))
-        }
-
-        val listener = DeviceManager.DevicesChangedListener { sendDevices() }
-        deviceManager.registerListener(listener)
-
-        sendDevices()
-
-        awaitClose { deviceManager.unregisterListener(listener) }
-      }
-      .conflate()
+  val profiles: Flow<LoadingState<List<VirtualDeviceProfile>>> = flow {
+    emit(LoadingState.Loading)
+    DeviceManagers.getDeviceManager(sdkHandler).deviceFlow.collect { table ->
+      emit(LoadingState.Ready(table.values().sortedWith(NameComparator()).map { it.toVirtualDeviceProfile() }))
+    }
+  }
 
   fun createDialog(parent: Component? = null): ComposeWizard {
     return ComposeWizard(project, "Add Device", parent = parent, minimumSize = DEVICE_DIALOG_MIN_SIZE) { DeviceGridPage() }

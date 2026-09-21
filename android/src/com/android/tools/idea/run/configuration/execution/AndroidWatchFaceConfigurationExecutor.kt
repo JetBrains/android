@@ -22,7 +22,7 @@ import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.deployer.model.component.WatchFace.ShellCommand.UNSET_WATCH_FACE
-import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
+import com.android.tools.deployer.modelv1.component.CommandResultReceiverV1
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.WearSurfaceLaunchOptions
@@ -88,9 +88,9 @@ class WatchFaceLaunchOptions : WearSurfaceLaunchOptions {
 }
 
 internal fun getStopWatchFaceCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit = { device: IDevice ->
-  val receiver = CommandResultReceiver()
+  val receiver = CommandResultReceiverV1()
   device.executeShellCommand(UNSET_WATCH_FACE, console, receiver, indicator = null)
-  if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
+  if (receiver.resultCode != CommandResultReceiverV1.SUCCESS_CODE) {
     console.printlnError("Warning: Watch face was not stopped.")
   }
   if (isDebug) {

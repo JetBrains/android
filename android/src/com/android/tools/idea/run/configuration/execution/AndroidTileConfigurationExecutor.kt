@@ -25,7 +25,7 @@ import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.deployer.model.component.Tile
 import com.android.tools.deployer.model.component.Tile.ShellCommand.SHOW_TILE_COMMAND
-import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
+import com.android.tools.deployer.modelv1.component.CommandResultReceiverV1
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.WearSurfaceLaunchOptions
@@ -76,7 +76,7 @@ class AndroidTileConfigurationExecutor(
     Thread.sleep(Duration.ofSeconds(2).toMillis())
     val tileIndex = setWatchTile(app, mode, indicator, console, device)
     val showTileCommand = SHOW_TILE_COMMAND + tileIndex!!
-    val showTileReceiver = CommandResultReceiver()
+    val showTileReceiver = CommandResultReceiverV1()
     device.executeShellCommand(showTileCommand, console, showTileReceiver, indicator = indicator)
     verifyResponse(showTileReceiver, console)
   }
@@ -98,8 +98,8 @@ class AndroidTileConfigurationExecutor(
     return indexReceiver.index!!
   }
 
-  private fun verifyResponse(receiver: CommandResultReceiver, console: ConsoleView) {
-    if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
+  private fun verifyResponse(receiver: CommandResultReceiverV1, console: ConsoleView) {
+    if (receiver.resultCode != CommandResultReceiverV1.SUCCESS_CODE) {
       console.printlnError("Warning: Launch was successful, but you may need to bring up the tile manually.")
     }
   }
@@ -129,10 +129,10 @@ class TileLaunchOptions : WearSurfaceLaunchOptions {
 }
 
 private fun getStopTileCallback(tileName: String, console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit = { device: IDevice ->
-  val receiver = CommandResultReceiver()
+  val receiver = CommandResultReceiverV1()
   val removeTileCommand = Tile.ShellCommand.UNSET_TILE + tileName
   device.executeShellCommand(removeTileCommand, console, receiver, indicator = null)
-  if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
+  if (receiver.resultCode != CommandResultReceiverV1.SUCCESS_CODE) {
     console.printlnError("Warning: Tile was not stopped.")
   }
   if (isDebug) {

@@ -26,7 +26,7 @@ import com.android.ddmlib.MultiReceiver
 import com.android.ddmlib.NullOutputReceiver
 import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.model.component.WearComponent
-import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
+import com.android.tools.deployer.modelv1.component.CommandResultReceiverV1
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.run.ApkProvisionException
@@ -112,7 +112,7 @@ internal fun IDevice.getWearDebugSurfaceVersion(indicator: ProgressIndicator): I
   val startTime = System.currentTimeMillis()
   do {
     val outputReceiver = RecordOutputReceiver { indicator.isCanceled }
-    val resultReceiver = CommandResultReceiver()
+    val resultReceiver = CommandResultReceiverV1()
     val versionReceiver = VersionReceiver { indicator.isCanceled }
     val receiver = MultiReceiver(outputReceiver, resultReceiver, versionReceiver)
     executeShellCommand(WearComponent.ShellCommand.GET_WEAR_DEBUG_SURFACE_VERSION, receiver, 5, TimeUnit.SECONDS)
@@ -124,10 +124,10 @@ internal fun IDevice.getWearDebugSurfaceVersion(indicator: ProgressIndicator): I
     }
 
     var inferredVersion = versionReceiver.version
-    if (resultReceiver.resultCode == CommandResultReceiver.INVALID_ARGUMENT_CODE) {
+    if (resultReceiver.resultCode == CommandResultReceiverV1.INVALID_ARGUMENT_CODE) {
       // The version operation was not available initially.
       inferredVersion = 0
-    } else if (resultReceiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
+    } else if (resultReceiver.resultCode != CommandResultReceiverV1.SUCCESS_CODE) {
       Logger.getInstance("WearUtils").warn("Error while checking version, message: ${outputReceiver.getOutput()}")
       throw ExecutionException("Error while checking version")
     }
