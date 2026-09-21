@@ -1,5 +1,15 @@
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `dev intellij.android.artwork` start
+filegroup(
+    name = "dev_dist_resources",
+    srcs = glob(
+        ["resources/device-art-resources/**"],
+    ),
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `dev intellij.android.artwork` end
+
 ### auto-generated section `build intellij.android.artwork` start
 jvm_library(
     name = "artwork",

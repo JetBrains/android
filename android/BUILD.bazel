@@ -2,6 +2,19 @@ load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library", "kt_javac_options")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
+### auto-generated section `dev intellij.android.core` start
+filegroup(
+    name = "dev_dist_resources",
+    srcs = glob(
+        [
+            "annotations/**",
+            "resources/images/asset_studio/**",
+        ],
+    ),
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `dev intellij.android.core` end
+
 ### auto-generated section `build intellij.android.core` start
 create_kotlinc_options(
     name = "custom_core",

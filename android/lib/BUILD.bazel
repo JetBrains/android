@@ -1,5 +1,18 @@
 load("@rules_java//java:defs.bzl", "java_import")
 
+# The `withResourceFromModule("intellij.android.core", "lib/...")` directories of the Android plugin. This package has
+# no module, so `plugin-model-tool` writes no `dev` section here and the filegroup is hand-written.
+filegroup(
+    name = "dev_dist_resources",
+    srcs = glob(
+        [
+            "apks/**",
+            "sampleData/**",
+        ],
+    ),
+    visibility = ["//visibility:public"],
+)
+
 ### auto-generated section `local-libs` start
 java_import(
     name = "android-core-instantapps-api",
