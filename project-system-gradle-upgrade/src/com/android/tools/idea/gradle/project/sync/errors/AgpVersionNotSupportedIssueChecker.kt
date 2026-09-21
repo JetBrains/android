@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.sync.AgpVersionIncompatible
@@ -80,7 +81,13 @@ class AgpVersionNotSupportedIssueChecker : GradleIssueChecker {
           addQuickFix(AgpUpgradeQuickFix(version))
         }
       }
-      addQuickFix("See Android Studio & AGP compatibility options.", OpenLinkQuickFix(url))
+      // JetBrains patch
+      if (IdeInfo.getInstance().isAndroidStudio) {
+        addQuickFix("See Android Studio & AGP compatibility options.", OpenLinkQuickFix(url))
+      }
+      else {
+        enableFutureAgpVersionSupportQuickFix(rootCause.type)
+      }
       composeBuildIssue()
     }
   }

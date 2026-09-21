@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors.runsGradleErrors
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.sync.AgpVersionIncompatible
 import com.android.tools.idea.gradle.project.sync.AgpVersionTooNew
@@ -25,6 +26,7 @@ import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncError
 import com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors
 import com.android.tools.idea.gradle.project.sync.errors.AgpUpgradeQuickFix
+import com.android.tools.idea.gradle.project.sync.errors.EnableFutureAgpVersionSupportQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
@@ -108,37 +110,89 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
 
   @Test
   fun testAgpVersionTooNewError() {
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
-    val originalException = AgpVersionTooNew(AgpVersion.parse("99.1.4"), latestSupportedVersion = AgpVersions.latestKnown)
+    // JetBrains patch: Pin the flag, because it selects the advisory text of the build issue.
+    StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.override(true)
+    try {
+      val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+      val originalException = AgpVersionTooNew(AgpVersion.parse("99.1.4"), latestSupportedVersion = AgpVersions.latestKnown)
 
-    SimulatedSyncErrors.registerSyncErrorToSimulate(originalException.simulatePassingThroughModel())
+      SimulatedSyncErrors.registerSyncErrorToSimulate(originalException.simulatePassingThroughModel())
 
-    runSyncAndCheckBuildIssueFailure(
-      preparedProject = preparedProject,
-      verifyBuildIssue = { _, buildIssue ->
-        expect.that(buildIssue).isNotNull()
-        expect.that(buildIssue.quickFixes.size).isEqualTo(1)
-        expect
-          .that(buildIssue.description)
-          .contains("The project is using an incompatible version (AGP 99.1.4) of the Android Gradle plugin.")
-        expect.that(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
-        expect
-          .that((buildIssue.quickFixes[0] as OpenLinkQuickFix).link)
-          .isEqualTo("https://developer.android.com/studio/releases#android_gradle_plugin_and_android_studio_compatibility")
-      },
-      expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.ANDROID_PLUGIN_TOO_NEW,
-      expectedPhasesReported = null, // Because of using simulated error phases are not relevant in this test
-      expectedFailureDetailsString =
-        """
-        failure {
-          error {
-            exception: com.android.tools.idea.gradle.project.sync.AndroidSyncException
-              at: [0]com.android.tools.idea.gradle.project.sync.IdeAndroidModelsKt#ideAndroidSyncErrorToException
+      runSyncAndCheckBuildIssueFailure(
+        preparedProject = preparedProject,
+        verifyBuildIssue = { _, buildIssue ->
+          expect.that(buildIssue).isNotNull()
+          expect.that(buildIssue.quickFixes.size).isEqualTo(1)
+          expect
+            .that(buildIssue.description)
+            .contains("The project is using an incompatible version (AGP 99.1.4) of the Android Gradle plugin.")
+          expect
+            .that(buildIssue.description)
+            .contains("Downgrade the Android Gradle plugin to ${AgpVersions.latestKnown}")
+          expect.that(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
+          expect
+            .that((buildIssue.quickFixes[0] as OpenLinkQuickFix).link)
+            .isEqualTo("https://developer.android.com/studio/releases#android_gradle_plugin_and_android_studio_compatibility")
+        },
+        expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.ANDROID_PLUGIN_TOO_NEW,
+        expectedPhasesReported = null, // Because of using simulated error phases are not relevant in this test
+        expectedFailureDetailsString =
+          """
+          failure {
+            error {
+              exception: com.android.tools.idea.gradle.project.sync.AndroidSyncException
+                at: [0]com.android.tools.idea.gradle.project.sync.IdeAndroidModelsKt#ideAndroidSyncErrorToException
+            }
           }
-        }
-        """
-          .trimIndent(),
-    )
+          """
+            .trimIndent(),
+      )
+    } finally {
+      StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.clearOverride()
+    }
+  }
+
+  /** JetBrains patch: With the flag off, the build issue offers to turn the support on. */
+  @Test
+  fun testAgpVersionTooNewErrorWithFutureAgpVersionsSupportOff() {
+    StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.override(false)
+    try {
+      val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+      val originalException = AgpVersionTooNew(AgpVersion.parse("99.1.4"), latestSupportedVersion = AgpVersions.latestKnown)
+
+      SimulatedSyncErrors.registerSyncErrorToSimulate(originalException.simulatePassingThroughModel())
+
+      runSyncAndCheckBuildIssueFailure(
+        preparedProject = preparedProject,
+        verifyBuildIssue = { _, buildIssue ->
+          expect.that(buildIssue).isNotNull()
+          expect.that(buildIssue.quickFixes.size).isEqualTo(2)
+          expect
+            .that(buildIssue.description)
+            .contains("The project is using an incompatible version (AGP 99.1.4) of the Android Gradle plugin.")
+          expect.that(buildIssue.description).contains("gradle.ide.support.future.agp.versions")
+          expect.that(buildIssue.quickFixes[0]).isInstanceOf(EnableFutureAgpVersionSupportQuickFix::class.java)
+          expect.that(buildIssue.quickFixes[1]).isInstanceOf(OpenLinkQuickFix::class.java)
+          expect
+            .that((buildIssue.quickFixes[1] as OpenLinkQuickFix).link)
+            .isEqualTo("https://developer.android.com/studio/releases#android_gradle_plugin_and_android_studio_compatibility")
+        },
+        expectedFailureReported = AndroidStudioEvent.GradleSyncFailure.ANDROID_PLUGIN_TOO_NEW,
+        expectedPhasesReported = null, // Because of using simulated error phases are not relevant in this test
+        expectedFailureDetailsString =
+          """
+          failure {
+            error {
+              exception: com.android.tools.idea.gradle.project.sync.AndroidSyncException
+                at: [0]com.android.tools.idea.gradle.project.sync.IdeAndroidModelsKt#ideAndroidSyncErrorToException
+            }
+          }
+          """
+            .trimIndent(),
+      )
+    } finally {
+      StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.clearOverride()
+    }
   }
 
   @Test
