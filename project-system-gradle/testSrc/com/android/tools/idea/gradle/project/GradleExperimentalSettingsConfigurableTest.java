@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.flags.ExperimentalConfigurable.ApplyState;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.testFramework.LightPlatformTestCase;
 import org.mockito.InjectMocks;
@@ -72,6 +73,17 @@ public class GradleExperimentalSettingsConfigurableTest extends LightPlatformTes
     assertTrue(myConfigurable.isModified());
     mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD = true;
     assertFalse(myConfigurable.isModified());
+
+    StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.override(false);
+    try {
+      myConfigurable.enableSupportFutureAgpVersions(true);
+      assertTrue(myConfigurable.isModified());
+      myConfigurable.enableSupportFutureAgpVersions(false);
+      assertFalse(myConfigurable.isModified());
+    }
+    finally {
+      StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.clearOverride();
+    }
   }
 
   public void testPreApplyCallback() {
@@ -145,6 +157,22 @@ public class GradleExperimentalSettingsConfigurableTest extends LightPlatformTes
     assertFalse(mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD);
   }
 
+  public void testApplySupportFutureAgpVersions() throws ConfigurationException {
+    StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.override(false);
+    try {
+      myConfigurable.enableSupportFutureAgpVersions(true);
+      myConfigurable.apply();
+      assertTrue(StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.get());
+
+      myConfigurable.enableSupportFutureAgpVersions(false);
+      myConfigurable.apply();
+      assertFalse(StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.get());
+    }
+    finally {
+      StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.clearOverride();
+    }
+  }
+
   public void testReset() {
     mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS = true;
     mySettings.SKIP_GRADLE_TASKS_LIST = true;
@@ -179,5 +207,20 @@ public class GradleExperimentalSettingsConfigurableTest extends LightPlatformTes
     assertFalse(myConfigurable.isDeriveRuntimeClasspathsForLibraries());
     assertFalse(myConfigurable.isShowAgpVersionChooserInNewProjectWizard());
 
+  }
+
+  public void testResetSupportFutureAgpVersions() {
+    StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.override(true);
+    try {
+      myConfigurable.reset();
+      assertTrue(myConfigurable.isSupportFutureAgpVersions());
+
+      StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.override(false);
+      myConfigurable.reset();
+      assertFalse(myConfigurable.isSupportFutureAgpVersions());
+    }
+    finally {
+      StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.clearOverride();
+    }
   }
 }

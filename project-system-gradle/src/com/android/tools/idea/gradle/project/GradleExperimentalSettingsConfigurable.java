@@ -37,6 +37,7 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
   private JCheckBox myEnableDeviceApiOptimization;
   private JCheckBox myDeriveRuntimeClasspathsForLibraries;
   private JCheckBox myShowAgpVersionChooserInNewProjectWizard;
+  private JCheckBox mySupportFutureAgpVersions;
   private JPanel myPanel;
 
   @NotNull private final GradleExperimentalSettings mySettings;
@@ -70,7 +71,8 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
            mySettings.ENABLE_PARALLEL_SYNC != isParallelSyncEnabled() ||
            mySettings.ENABLE_GRADLE_API_OPTIMIZATION != isGradleApiOptimizationEnabled() ||
            mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES != isDeriveRuntimeClasspathsForLibraries() ||
-           mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD != isShowAgpVersionChooserInNewProjectWizard();
+           mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD != isShowAgpVersionChooserInNewProjectWizard() ||
+           StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.get() != isSupportFutureAgpVersions();
   }
 
   @Override
@@ -81,6 +83,7 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = isGradleApiOptimizationEnabled();
     mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = isDeriveRuntimeClasspathsForLibraries();
     mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD = isShowAgpVersionChooserInNewProjectWizard();
+    StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.override(isSupportFutureAgpVersions());
   }
 
   @Override
@@ -91,6 +94,7 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     myEnableDeviceApiOptimization.setSelected(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
     myDeriveRuntimeClasspathsForLibraries.setSelected(mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES);
     myShowAgpVersionChooserInNewProjectWizard.setSelected(mySettings.SHOW_ANDROID_GRADLE_PLUGIN_VERSION_COMBO_BOX_IN_NEW_PROJECT_WIZARD);
+    mySupportFutureAgpVersions.setSelected(StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.get());
   }
 
   @VisibleForTesting
@@ -148,11 +152,20 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     myShowAgpVersionChooserInNewProjectWizard.setSelected(value);
   }
 
+  boolean isSupportFutureAgpVersions() {
+    return mySupportFutureAgpVersions.isSelected();
+  }
+
+  @TestOnly
+  void enableSupportFutureAgpVersions(boolean value) {
+    mySupportFutureAgpVersions.setSelected(value);
+  }
+
   private void setupUI() {
     myPanel = new JPanel();
-    myPanel.setLayout(new GridLayoutManager(8, 2, new Insets(0, 0, 0, 0), -1, -1));
+    myPanel.setLayout(new GridLayoutManager(9, 2, new Insets(0, 0, 0, 0), -1, -1));
     final Spacer spacer1 = new Spacer();
-    myPanel.add(spacer1, new GridConstraints(7, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+    myPanel.add(spacer1, new GridConstraints(8, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
                                              GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
     myUseMultiVariantExtraArtifacts = new JCheckBox();
     myUseMultiVariantExtraArtifacts.setText("Enable support for multi-variant Javadocs and Sources");
@@ -186,6 +199,12 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
     myShowAgpVersionChooserInNewProjectWizard.setText("Show Android Gradle plugin version dropdown in the New Project Wizard");
     myPanel.add(myShowAgpVersionChooserInNewProjectWizard,
                 new GridConstraints(5, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                                    GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+    mySupportFutureAgpVersions = new JCheckBox();
+    mySupportFutureAgpVersions.setText("Enable opening projects that use future Android Gradle plugin versions (requires IDE restart)");
+    myPanel.add(mySupportFutureAgpVersions,
+                new GridConstraints(6, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                     GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                     GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
   }
