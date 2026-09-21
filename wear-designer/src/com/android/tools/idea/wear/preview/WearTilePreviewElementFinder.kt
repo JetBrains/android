@@ -218,7 +218,7 @@ private suspend fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(uMethod: 
 private suspend fun CoroutineScope.findUMethodsWithTilePreviewSignature(
   project: Project,
   virtualFile: VirtualFile,
-  @RequiresReadLock(generateAssertion = false /* IJPL-115548 */) findMethods: (PsiFile?) -> Collection<PsiElement>,
+  @RequiresReadLock findMethods: (PsiFile?) -> Collection<PsiElement>,
 ): List<UMethod> {
   return cachedAsyncValue(virtualFile, uMethodsWithTilePreviewSignatureCacheKey, project.javaKotlinAndDumbChangeTrackers()) {
     findUMethodsWithTilePreviewSignatureNonCached(project, virtualFile, findMethods)
@@ -229,7 +229,7 @@ private suspend fun CoroutineScope.findUMethodsWithTilePreviewSignature(
 private suspend fun findUMethodsWithTilePreviewSignatureNonCached(
   project: Project,
   virtualFile: VirtualFile,
-  @RequiresReadLock(generateAssertion = false /* IJPL-115548 */) findMethods: (PsiFile?) -> Collection<PsiElement>,
+  @RequiresReadLock findMethods: (PsiFile?) -> Collection<PsiElement>,
 ): List<UMethod> {
   val pointerManager = SmartPointerManager.getInstance(project)
   return smartReadAction(project) {
