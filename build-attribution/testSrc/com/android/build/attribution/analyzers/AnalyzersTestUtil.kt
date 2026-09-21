@@ -214,6 +214,8 @@ fun failureStub(message: String, causes: List<Failure>) =
     override fun getProblems(): List<Problem> = emptyList()
 
     override fun getDescription(): String = "Failure description"
+
+    override fun getOwnDescription(): String = "Failure own description"
   }
 
 fun AndroidGradleProjectRule.invokeTasksRethrowingErrors(vararg tasks: String): GradleInvocationResult {
