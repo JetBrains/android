@@ -52,6 +52,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TestTimeSource
 import kotlin.time.TimeMark
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
@@ -439,9 +440,7 @@ class DeviceAdapterTest {
         spikiness = spikiness,
         timeSource = testTimeSource,
         installer = fakeInstaller,
-        // we use fqns to suppress deprecation on import level
-        coroutineScope =
-          @Suppress("DEPRECATION_ERROR") kotlinx.coroutines.test.TestCoroutineScope(kotlinx.coroutines.test.TestCoroutineDispatcher()),
+        coroutineScope = CoroutineScope(UnconfinedTestDispatcher()),
       )
       .apply { setCallbacks(callbacks) }
   }
