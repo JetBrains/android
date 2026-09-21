@@ -28,6 +28,7 @@ import com.intellij.execution.configurations.RemoteConnection;
 import com.intellij.execution.configurations.RemoteState;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionUtil;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A {@link DebuggerManagerListener} which ensures that the {@link DebugProcess} of a multi-run
@@ -68,7 +69,7 @@ public class MultiRunDebuggerSessionListener implements DebuggerManagerListener 
   }
 
   @Override
-  public void sessionCreated(DebuggerSession session) {
+  public void sessionCreated(@NotNull DebuggerSession session) {
     if (reattachingListener != null) {
       return;
     }
@@ -77,7 +78,7 @@ public class MultiRunDebuggerSessionListener implements DebuggerManagerListener 
   }
 
   @Override
-  public void sessionRemoved(DebuggerSession session) {
+  public void sessionRemoved(@NotNull DebuggerSession session) {
     if (reattachingListener != null) {
       session.getProcess().removeDebugProcessListener(reattachingListener);
       reattachingListener = null;
