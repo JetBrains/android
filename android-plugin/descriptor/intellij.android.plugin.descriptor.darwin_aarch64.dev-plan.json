@@ -2,7 +2,7 @@
     "version": 2,
     "plugin": "intellij.android.plugin.descriptor",
     "variant": "darwin_aarch64",
-    "layoutSignature": "4phv18odl54uqqeyg8eu3i1x2",
+    "layoutSignature": "aorn5qc4njgpf3o7lm0j5sli4",
     "assets": [
         {
             "destination": "lib/intellij.libraries.ffmpeg.jar",
@@ -363,6 +363,11 @@
                         "filter": "module-v1"
                     },
                     {
+                        "input": "intellij.android.app-publishing",
+                        "kind": "module",
+                        "filter": "module-v1"
+                    },
+                    {
                         "input": "intellij.android.build-attribution",
                         "kind": "module",
                         "filter": "module-v1"
@@ -539,6 +544,11 @@
                     },
                     {
                         "input": "intellij.android.preview-elements",
+                        "kind": "module",
+                        "filter": "module-v1"
+                    },
+                    {
+                        "input": "intellij.android.play-publishing",
                         "kind": "module",
                         "filter": "module-v1"
                     },
