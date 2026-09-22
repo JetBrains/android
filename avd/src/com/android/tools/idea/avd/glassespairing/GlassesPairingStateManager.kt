@@ -27,6 +27,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
+import com.intellij.serviceContainer.NonInjectable
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.time.TimeSource
 import kotlinx.coroutines.CancellationException
@@ -62,12 +63,17 @@ enum class DeviceTrulyBonded {
  * It manages an adaptive background polling loop with automatic multiplier backoffs to balance responsiveness with CPU efficiency.
  */
 @Service(Service.Level.PROJECT)
-class GlassesPairingStateManager(private val project: Project, private val scope: CoroutineScope) {
-
-  internal var ioDispatcher: CoroutineDispatcher = Dispatchers.IO
-  internal var timeSource: TimeSource = TimeSource.Monotonic
-  internal var aiGlassesPairingFactory: (AdbSession) -> AiGlassesPairing = { AiGlassesPairing(it) }
-  internal var adbProber: AdbProber = DefaultAdbProber(project, aiGlassesPairingFactory)
+class GlassesPairingStateManager
+@NonInjectable
+internal constructor(
+  private val project: Project,
+  private val scope: CoroutineScope,
+  internal val ioDispatcher: CoroutineDispatcher,
+  internal val timeSource: TimeSource = TimeSource.Monotonic,
+  internal val adbProber: AdbProber = DefaultAdbProber(project, { AiGlassesPairing(it) }),
+) {
+  @Suppress("unused") // used by IntelliJ component system
+  constructor(project: Project, scope: CoroutineScope) : this(project, scope, Dispatchers.IO, timeSource = TimeSource.Monotonic)
 
   private val logger = logger<GlassesPairingStateManager>()
 
@@ -165,7 +171,6 @@ class GlassesPairingStateManager(private val project: Project, private val scope
             } ?: continue
 
           for (phone in runningPhones) {
-
             try {
               val bondState = withTimeoutOrNull(2000L) { adbProber.checkBondState(phone, mac) } ?: DeviceTrulyBonded.UNKNOWN
               if (bondState == DeviceTrulyBonded.TRULY_BONDED) {

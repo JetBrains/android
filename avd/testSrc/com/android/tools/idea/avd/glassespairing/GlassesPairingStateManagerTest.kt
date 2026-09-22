@@ -70,17 +70,21 @@ class GlassesPairingStateManagerTest {
   fun testInitializeCallsReconcile() = runTest {
     var proberCalled = false
     val testDispatcher = UnconfinedTestDispatcher(testScheduler)
-    val stateManager = GlassesPairingStateManager(projectRule.project, backgroundScope)
-    stateManager.ioDispatcher = testDispatcher
-    stateManager.adbProber =
-      object : AdbProber {
-        override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? {
-          proberCalled = true
-          return null
-        }
+    val stateManager =
+      GlassesPairingStateManager(
+        project = projectRule.project,
+        scope = backgroundScope,
+        ioDispatcher = testDispatcher,
+        adbProber =
+          object : AdbProber {
+            override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? {
+              proberCalled = true
+              return null
+            }
 
-        override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.UNKNOWN
-      }
+            override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.UNKNOWN
+          },
+      )
 
     setupMockProvisionerWithOrphanGlasses()
 
@@ -93,9 +97,13 @@ class GlassesPairingStateManagerTest {
   @Test
   fun testCycleDurationsWindowCapsAt5() = runTest {
     val testTimeSource = TestTimeSource()
-    val stateManager = GlassesPairingStateManager(projectRule.project, backgroundScope)
-    stateManager.ioDispatcher = UnconfinedTestDispatcher(testScheduler)
-    stateManager.timeSource = testTimeSource
+    val stateManager =
+      GlassesPairingStateManager(
+        project = projectRule.project,
+        scope = backgroundScope,
+        ioDispatcher = UnconfinedTestDispatcher(testScheduler),
+        timeSource = testTimeSource,
+      )
     stateManager.initialize()
 
     // Advance time by 120 seconds to allow at least 6 iterations.
@@ -114,29 +122,37 @@ class GlassesPairingStateManagerTest {
     val scope1 = CoroutineScope(testDispatcher)
     val scope2 = CoroutineScope(testDispatcher)
 
-    val stateManager1 = GlassesPairingStateManager(projectRule.project, scope1)
-    stateManager1.ioDispatcher = testDispatcher
-    stateManager1.adbProber =
-      object : AdbProber {
-        override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? {
-          proberCallCount1++
-          return null
-        }
+    val stateManager1 =
+      GlassesPairingStateManager(
+        project = projectRule.project,
+        scope = scope1,
+        ioDispatcher = testDispatcher,
+        adbProber =
+          object : AdbProber {
+            override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? {
+              proberCallCount1++
+              return null
+            }
 
-        override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.UNKNOWN
-      }
+            override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.UNKNOWN
+          },
+      )
 
-    val stateManager2 = GlassesPairingStateManager(projectRule.project, scope2)
-    stateManager2.ioDispatcher = testDispatcher
-    stateManager2.adbProber =
-      object : AdbProber {
-        override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? {
-          proberCallCount2++
-          return null
-        }
+    val stateManager2 =
+      GlassesPairingStateManager(
+        project = projectRule.project,
+        scope = scope2,
+        ioDispatcher = testDispatcher,
+        adbProber =
+          object : AdbProber {
+            override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? {
+              proberCallCount2++
+              return null
+            }
 
-        override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.UNKNOWN
-      }
+            override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.UNKNOWN
+          },
+      )
 
     setupMockProvisionerWithOrphanGlasses()
 
@@ -170,17 +186,21 @@ class GlassesPairingStateManagerTest {
   fun testWizardPreemption() = runTest {
     var proberCallCount = 0
     val testDispatcher = UnconfinedTestDispatcher(testScheduler)
-    val stateManager = GlassesPairingStateManager(projectRule.project, backgroundScope)
-    stateManager.ioDispatcher = testDispatcher
-    stateManager.adbProber =
-      object : AdbProber {
-        override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? {
-          proberCallCount++
-          return null
-        }
+    val stateManager =
+      GlassesPairingStateManager(
+        project = projectRule.project,
+        scope = backgroundScope,
+        ioDispatcher = testDispatcher,
+        adbProber =
+          object : AdbProber {
+            override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? {
+              proberCallCount++
+              return null
+            }
 
-        override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.UNKNOWN
-      }
+            override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.UNKNOWN
+          },
+      )
 
     setupMockProvisionerWithOrphanGlasses()
 
@@ -207,8 +227,13 @@ class GlassesPairingStateManagerTest {
   @Test
   fun testReconcileStateSkipsIfWizardOpen() = runTest {
     val testDispatcher = UnconfinedTestDispatcher(testScheduler)
-    val stateManager = GlassesPairingStateManager(projectRule.project, backgroundScope)
-    stateManager.ioDispatcher = testDispatcher
+    val devicesFlow = MutableStateFlow(emptyList<DeviceHandle>())
+    val mockService: DeviceProvisionerService = mock()
+    val mockProvisioner: DeviceProvisioner = mock()
+    whenever(mockProvisioner.devices).thenReturn(devicesFlow)
+    whenever(mockService.deviceProvisioner).thenReturn(mockProvisioner)
+    projectRule.project.replaceService(DeviceProvisionerService::class.java, mockService, projectRule.project)
+    val stateManager = GlassesPairingStateManager(project = projectRule.project, scope = backgroundScope, ioDispatcher = testDispatcher)
 
     val lockService = service<GlassesPairingLockService>()
     lockService.setWizardOpen(true)
@@ -297,14 +322,18 @@ class GlassesPairingStateManagerTest {
     whenever(mockProvisioner.devices).thenReturn(devicesFlow)
 
     val expectedMac = "00:11:22:33:44:55"
-    val stateManager = GlassesPairingStateManager(projectRule.project, scope)
-    stateManager.adbProber =
-      object : AdbProber {
-        override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? = expectedMac
+    val stateManager =
+      GlassesPairingStateManager(
+        project = projectRule.project,
+        scope = scope,
+        ioDispatcher = testDispatcher,
+        adbProber =
+          object : AdbProber {
+            override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? = expectedMac
 
-        override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.TRULY_BONDED
-      }
-    stateManager.ioDispatcher = testDispatcher
+            override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.TRULY_BONDED
+          },
+      )
 
     val result = stateManager.reconcileState()
 
@@ -361,14 +390,18 @@ class GlassesPairingStateManagerTest {
     val devicesFlow = MutableStateFlow(listOf(phoneHandle))
     whenever(mockProvisioner.devices).thenReturn(devicesFlow)
 
-    val stateManager = GlassesPairingStateManager(projectRule.project, scope)
-    stateManager.adbProber =
-      object : AdbProber {
-        override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? = null
+    val stateManager =
+      GlassesPairingStateManager(
+        project = projectRule.project,
+        scope = scope,
+        ioDispatcher = testDispatcher,
+        adbProber =
+          object : AdbProber {
+            override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? = null
 
-        override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.NOT_TRULY_BONDED
-      }
-    stateManager.ioDispatcher = testDispatcher
+            override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.NOT_TRULY_BONDED
+          },
+      )
 
     val result = stateManager.reconcileState()
 
@@ -440,16 +473,20 @@ class GlassesPairingStateManagerTest {
     whenever(mockService.deviceProvisioner).thenReturn(mockProvisioner)
     projectRule.project.replaceService(DeviceProvisionerService::class.java, mockService, projectRule.project)
 
-    val stateManager = GlassesPairingStateManager(projectRule.project, scope)
-    stateManager.adbProber =
-      object : AdbProber {
-        override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? = null
+    val stateManager =
+      GlassesPairingStateManager(
+        project = projectRule.project,
+        scope = scope,
+        ioDispatcher = testDispatcher,
+        adbProber =
+          object : AdbProber {
+            override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? = null
 
-        override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.UNKNOWN
+            override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.UNKNOWN
 
-        override suspend fun getPairedDeviceCount(device: DeviceHandle): Int? = null
-      }
-    stateManager.ioDispatcher = testDispatcher
+            override suspend fun getPairedDeviceCount(device: DeviceHandle): Int? = null
+          },
+      )
 
     val result = stateManager.reconcileState()
 
@@ -553,14 +590,18 @@ class GlassesPairingStateManagerTest {
     val devicesFlow = MutableStateFlow(listOf(glassesHandle, phoneHandle))
     whenever(mockProvisioner.devices).thenReturn(devicesFlow)
 
-    val stateManager = GlassesPairingStateManager(projectRule.project, scope)
-    stateManager.adbProber =
-      object : AdbProber {
-        override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? = null
+    val stateManager =
+      GlassesPairingStateManager(
+        project = projectRule.project,
+        scope = scope,
+        ioDispatcher = testDispatcher,
+        adbProber =
+          object : AdbProber {
+            override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? = null
 
-        override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.UNKNOWN
-      }
-    stateManager.ioDispatcher = testDispatcher
+            override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.UNKNOWN
+          },
+      )
 
     val result = stateManager.reconcileState()
 
@@ -603,18 +644,22 @@ class GlassesPairingStateManagerTest {
     val devicesFlow = MutableStateFlow(listOf(glassesHandle))
     whenever(mockProvisioner.devices).thenReturn(devicesFlow)
 
-    val stateManager = GlassesPairingStateManager(projectRule.project, scope)
-    stateManager.adbProber =
-      object : AdbProber {
-        override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? {
-          // Simulate state change during Phase 1
-          devicesFlow.value = emptyList()
-          return "00:11:22:33:44:55"
-        }
+    val stateManager =
+      GlassesPairingStateManager(
+        project = projectRule.project,
+        scope = scope,
+        ioDispatcher = testDispatcher,
+        adbProber =
+          object : AdbProber {
+            override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? {
+              // Simulate state change during Phase 1
+              devicesFlow.value = emptyList()
+              return "00:11:22:33:44:55"
+            }
 
-        override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.UNKNOWN
-      }
-    stateManager.ioDispatcher = testDispatcher
+            override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.UNKNOWN
+          },
+      )
 
     val result = stateManager.reconcileState()
 
@@ -667,14 +712,18 @@ class GlassesPairingStateManagerTest {
     val devicesFlow = MutableStateFlow(listOf(phoneHandle, glassesHandle))
     whenever(mockProvisioner.devices).thenReturn(devicesFlow)
 
-    val stateManager = GlassesPairingStateManager(projectRule.project, scope)
-    stateManager.adbProber =
-      object : AdbProber {
-        override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? = null
+    val stateManager =
+      GlassesPairingStateManager(
+        project = projectRule.project,
+        scope = scope,
+        ioDispatcher = testDispatcher,
+        adbProber =
+          object : AdbProber {
+            override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? = null
 
-        override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.NOT_TRULY_BONDED
-      }
-    stateManager.ioDispatcher = testDispatcher
+            override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.NOT_TRULY_BONDED
+          },
+      )
 
     val result = stateManager.reconcileState()
 
@@ -736,14 +785,18 @@ class GlassesPairingStateManagerTest {
     val devicesFlow = MutableStateFlow(listOf(phoneHandle, glassesHandle))
     whenever(mockProvisioner.devices).thenReturn(devicesFlow)
 
-    val stateManager = GlassesPairingStateManager(projectRule.project, scope)
-    stateManager.adbProber =
-      object : AdbProber {
-        override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? = null
+    val stateManager =
+      GlassesPairingStateManager(
+        project = projectRule.project,
+        scope = scope,
+        ioDispatcher = testDispatcher,
+        adbProber =
+          object : AdbProber {
+            override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? = null
 
-        override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.TRULY_BONDED
-      }
-    stateManager.ioDispatcher = testDispatcher
+            override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.TRULY_BONDED
+          },
+      )
 
     val result = stateManager.reconcileState()
 
@@ -758,14 +811,22 @@ class GlassesPairingStateManagerTest {
   fun testTriggerDrainingSkipsRemainingSleep() = runTest {
     val testDispatcher = UnconfinedTestDispatcher(testScheduler)
     val scope = CoroutineScope(testDispatcher)
-    val stateManager = GlassesPairingStateManager(projectRule.project, scope)
-    stateManager.ioDispatcher = testDispatcher
-    stateManager.adbProber =
-      object : AdbProber {
-        override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? = null
+    var proberCallCount = 0
+    val stateManager =
+      GlassesPairingStateManager(
+        project = projectRule.project,
+        scope = scope,
+        ioDispatcher = testDispatcher,
+        adbProber =
+          object : AdbProber {
+            override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? {
+              proberCallCount++
+              return null
+            }
 
-        override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.UNKNOWN
-      }
+            override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.UNKNOWN
+          },
+      )
 
     setupMockProvisionerWithOrphanGlasses()
 
@@ -779,16 +840,7 @@ class GlassesPairingStateManagerTest {
     testScheduler.advanceTimeBy(500)
     stateManager.triggerReconcile()
 
-    var proberCallCount = 0
-    stateManager.adbProber =
-      object : AdbProber {
-        override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? {
-          proberCallCount++
-          return null
-        }
-
-        override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.UNKNOWN
-      }
+    val initialProbeCount = proberCallCount
 
     // Now advance by another 500 to complete baseline sleep
     testScheduler.advanceTimeBy(500)
@@ -800,7 +852,7 @@ class GlassesPairingStateManagerTest {
     testScheduler.advanceTimeBy(1)
 
     try {
-      assertTrue(proberCallCount == 1)
+      assertTrue(proberCallCount - initialProbeCount == 1)
     } finally {
       scope.cancel()
     }
@@ -860,18 +912,22 @@ class GlassesPairingStateManagerTest {
     val devicesFlow = MutableStateFlow(listOf(phoneHandle, glassesHandle))
     whenever(mockProvisioner.devices).thenReturn(devicesFlow)
 
-    val stateManager = GlassesPairingStateManager(projectRule.project, scope)
-    stateManager.adbProber =
-      object : AdbProber {
-        override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? = null
+    val stateManager =
+      GlassesPairingStateManager(
+        project = projectRule.project,
+        scope = scope,
+        ioDispatcher = testDispatcher,
+        adbProber =
+          object : AdbProber {
+            override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? = null
 
-        override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.UNKNOWN
+            override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.UNKNOWN
 
-        override suspend fun getPairedDeviceCount(device: DeviceHandle): Int {
-          throw ShellCommandException("Fake failure")
-        }
-      }
-    stateManager.ioDispatcher = testDispatcher
+            override suspend fun getPairedDeviceCount(device: DeviceHandle): Int {
+              throw ShellCommandException("Fake failure")
+            }
+          },
+      )
 
     val result = stateManager.reconcileState()
 
@@ -936,17 +992,21 @@ class GlassesPairingStateManagerTest {
     val devicesFlow = MutableStateFlow(listOf(phoneHandle, glassesHandle))
     whenever(mockProvisioner.devices).thenReturn(devicesFlow)
 
-    val stateManager = GlassesPairingStateManager(projectRule.project, scope)
-    stateManager.adbProber =
-      object : AdbProber {
-        override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? {
-          delay(5000L) // Simulate hang
-          return "00:11:22:33:44:55"
-        }
+    val stateManager =
+      GlassesPairingStateManager(
+        project = projectRule.project,
+        scope = scope,
+        ioDispatcher = testDispatcher,
+        adbProber =
+          object : AdbProber {
+            override suspend fun getBluetoothAddress(glasses: DeviceHandle): String? {
+              delay(5000L) // Simulate hang
+              return "00:11:22:33:44:55"
+            }
 
-        override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.TRULY_BONDED
-      }
-    stateManager.ioDispatcher = testDispatcher
+            override suspend fun checkBondState(phone: DeviceHandle, mac: String): DeviceTrulyBonded = DeviceTrulyBonded.TRULY_BONDED
+          },
+      )
 
     val result = stateManager.reconcileState()
     assertFalse(result) // Should not make changes because it timed out!
