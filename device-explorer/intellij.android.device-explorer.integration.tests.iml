@@ -15,5 +15,6 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.as-driver.utils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.device-explorer" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.scratch.plugin" scope="TEST" />
   </component>
 </module>

@@ -124,5 +124,6 @@
     <orderEntry type="module" module-name="intellij.libraries.mockito.kotlin" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.xerces" />
     <orderEntry type="module" module-name="intellij.android.designer" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.scratch.plugin" scope="TEST" />
   </component>
 </module>

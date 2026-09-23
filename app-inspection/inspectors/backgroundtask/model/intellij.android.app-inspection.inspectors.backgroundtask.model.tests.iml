@@ -23,6 +23,7 @@
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.backgroundtask.model" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.scratch.plugin" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.app-inspection.inspectors.backgroundtask.model" />
 </module>

@@ -78,6 +78,7 @@
     <orderEntry type="module" module-name="intellij.kotlin.base.plugin.testFramework" scope="RUNTIME" />
     <orderEntry type="module" module-name="kotlin.jvm.shared" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.avd" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.scratch.plugin" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.avd" />
 </module>

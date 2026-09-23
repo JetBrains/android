@@ -57,6 +57,7 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspectors.network.model" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.scratch.plugin" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.app-inspection.inspectors.network.model" />
 </module>

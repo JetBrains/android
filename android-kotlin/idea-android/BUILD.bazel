@@ -242,6 +242,8 @@ jvm_library(
         "//libraries/junit6:junit6_test_lib",
         "//plugins/kotlin/completion/impl-k2:kotlin-completion-impl",
         "//plugins/kotlin/completion/impl-k2:kotlin-completion-impl_test_lib",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.kotlin.tests` end

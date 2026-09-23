@@ -248,6 +248,8 @@ jvm_library(
         "//platform/ide-core",
         "//android/android-adb:adb",
         "//android/android-adb:adb_test_lib",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.backup.tests` end

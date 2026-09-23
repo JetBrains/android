@@ -119,6 +119,8 @@ jvm_library(
         "//android/adt-testutils:adt-testutils_test_lib",
         "//platform/util",
         "//platform/util:util_test_lib",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.app-inspection.inspectors.backgroundtask.model.tests` end

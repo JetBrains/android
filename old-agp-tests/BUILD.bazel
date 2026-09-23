@@ -117,6 +117,8 @@ jvm_library(
         "//platform/util:util-ui_test_lib",
         "//libraries/mockito-kotlin",
         "//libraries/mockito-kotlin:mockito-kotlin_test_lib",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.old-agp-tests` end

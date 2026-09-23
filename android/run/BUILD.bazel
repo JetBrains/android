@@ -215,6 +215,8 @@ jvm_library(
         "//android/backup:backup-api_test_lib",
         "//android/android-adb:adb-testUtil",
         "//android/android-adb:adb-testUtil_test_lib",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.core.run` end

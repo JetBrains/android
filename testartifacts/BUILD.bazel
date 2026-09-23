@@ -282,6 +282,8 @@ jvm_library(
         "//plugins/kotlin/gradle/gradle-java:gradle-java_test_lib",
         "//android/android-adb:adb-testUtil",
         "//android/android-adb:adb-testUtil_test_lib",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.testartifacts.tests` end

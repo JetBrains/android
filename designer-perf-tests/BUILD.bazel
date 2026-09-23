@@ -126,6 +126,8 @@ jvm_library(
         "@lib//:truth",
         "//android/compose-designer:compose-designer-testFramework",
         "//android/compose-designer:compose-designer-testFramework_test_lib",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.designer-perf-tests` end

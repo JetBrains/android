@@ -130,6 +130,8 @@ jvm_library(
         "//platform/util-ex",
         "//platform/util-ex:util-ex_test_lib",
         "@lib//:truth",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.sync-memory-tests.tests` end

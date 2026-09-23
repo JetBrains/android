@@ -131,6 +131,8 @@ jvm_library(
         "//android/android-transport:transport-tests_test_lib",
         "//platform/util",
         "//platform/util:util_test_lib",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.app-inspection.api.tests` end

@@ -74,6 +74,8 @@ jvm_library(
         "//platform/util:util_test_lib",
         "//libraries/guava",
         "//libraries/guava:guava_test_lib",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.apkanalyzer.gradle.integration-tests` end

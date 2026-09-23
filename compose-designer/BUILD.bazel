@@ -277,6 +277,8 @@ jvm_library(
         "//android/execution/common:common_test_lib",
         "//android/as-driver/utils",
         "//android/as-driver/utils:utils_test_lib",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.compose-designer.integration` end
@@ -399,6 +401,8 @@ jvm_library(
         "//uast/uast-common:uast_test_lib",
         "//platform/util:util-ui",
         "//platform/util:util-ui_test_lib",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.compose-designer.testFramework` end
@@ -654,6 +658,8 @@ jvm_library(
         "//android/project-system-gradle-models:projectSystem-gradle-models_test_lib",
         "//android/lint:lint-common",
         "//android/lint:lint-common_test_lib",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.compose-designer.tests` end

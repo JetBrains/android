@@ -187,6 +187,8 @@ jvm_library(
         "//platform/workspace/jps:jps_test_lib",
         "//platform/workspace/storage",
         "//platform/workspace/storage:storage_test_lib",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.core.gradle` end

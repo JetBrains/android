@@ -181,6 +181,8 @@ jvm_library(
         "//platform/util:util-ui_test_lib",
         "//android/android-templates:templates",
         "//android/android-templates:templates_test_lib",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.assistant-test` end

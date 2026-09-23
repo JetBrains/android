@@ -133,6 +133,8 @@ jvm_library(
         "//android/as-driver/utils:utils_test_lib",
         "//android/device-explorer",
         "//android/device-explorer:device-explorer_test_lib",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.device-explorer.integration.tests` end
@@ -217,6 +219,8 @@ jvm_library(
         "//android/project-system:project-system_test_lib",
         "//java/testFramework",
         "//java/testFramework:testFramework_test_lib",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.device-explorer.tests` end

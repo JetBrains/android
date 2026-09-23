@@ -185,6 +185,8 @@ jvm_library(
         "//android/android-test-framework:testFramework",
         "//android/android-test-framework:testFramework_test_lib",
         "@lib//:android-app-inspection-inspectors-network-model-tests-brotli-dec",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.app-inspection.inspectors.network.model.tests` end

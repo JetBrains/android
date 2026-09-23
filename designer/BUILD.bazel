@@ -593,6 +593,8 @@ jvm_library(
         "//libraries/xerces:xerces_test_lib",
         "//android/designer",
         "//android/designer:designer_test_lib",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.designer.testFramework` end
@@ -830,6 +832,8 @@ jvm_library(
         "//platform/lang-api:lang_test_lib",
         "//platform/util/base",
         "//platform/util/base:base_test_lib",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.designer.tests` end

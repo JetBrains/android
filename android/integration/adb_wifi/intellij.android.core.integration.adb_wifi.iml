@@ -24,5 +24,6 @@
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.platform-performance-testing" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.as-driver.integration" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.scratch.plugin" scope="TEST" />
   </component>
 </module>

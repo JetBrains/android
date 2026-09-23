@@ -273,6 +273,8 @@ jvm_library(
         "//xml/dom-impl:dom-impl_test_lib",
         "//xml/xml-psi-api:psi",
         "//xml/xml-psi-api:psi_test_lib",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.nav.editor.tests` end

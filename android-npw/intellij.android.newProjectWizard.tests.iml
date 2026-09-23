@@ -107,5 +107,6 @@
     <orderEntry type="module" module-name="intellij.platform.lang" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.compose.tests" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.scratch.plugin" scope="TEST" />
   </component>
 </module>

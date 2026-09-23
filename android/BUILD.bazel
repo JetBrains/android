@@ -11913,6 +11913,8 @@ jvm_library(
         "//platform/execution:execution_test_lib",
         "//xml/xml-psi-impl:psi-impl",
         "//xml/xml-psi-impl:psi-impl_test_lib",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.core.agp-integration-tests` end
@@ -12237,6 +12239,8 @@ jvm_library(
         "//plugins/kotlin/refactorings/rename.k2:kotlin-refactorings-rename-tests_test_lib",
         "//android/android-adb:adb-testUtil",
         "//android/android-adb:adb-testUtil_test_lib",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.core.tests` end

@@ -103,6 +103,8 @@ jvm_library(
         "//plugins/properties/properties-psi-api:psi_test_lib",
         "//RegExpSupport:regexp",
         "//RegExpSupport:regexp_test_lib",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.core.editors` end

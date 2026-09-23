@@ -246,6 +246,8 @@ jvm_library(
         "//libraries/kotlinx/coroutines/test:test_test_lib",
         "//libraries/kotlinx/datetime",
         "//libraries/kotlinx/datetime:datetime_test_lib",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.avd.tests` end

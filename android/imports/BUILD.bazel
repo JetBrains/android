@@ -98,6 +98,8 @@ jvm_library(
         "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon_test_lib",
         "//android/project-system",
         "//android/project-system:project-system_test_lib",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.core.imports` end

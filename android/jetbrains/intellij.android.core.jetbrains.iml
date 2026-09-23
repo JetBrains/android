@@ -136,6 +136,7 @@
     <orderEntry type="module" module-name="intellij.sh.plugin" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.sh.spellchecker" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.scratch.plugin" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.core" />
 </module>

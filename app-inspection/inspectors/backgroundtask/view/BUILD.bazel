@@ -204,6 +204,8 @@ jvm_library(
         "//platform/util:util-ui",
         "//platform/util:util-ui_test_lib",
         "//platform/platform-impl/ui",
+        "//platform/scratch/plugin",
+        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.app-inspection.inspectors.backgroundtask.view.tests` end
