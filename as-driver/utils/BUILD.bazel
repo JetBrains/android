@@ -13,7 +13,7 @@ jvm_library(
     runtime_deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
-        "@lib//:ktor-client-cio",
+        "//libraries/ktor/utils",
         "//libraries/io",
     ],
 )
@@ -37,7 +37,8 @@ jvm_library(
         "@lib//:studio-platform-provided",
         "@lib//:studio-test-platform",
         "@lib//:kotlin-stdlib",
-        "@lib//:ktor-client-cio",
+        "//libraries/ktor/utils",
+        "//libraries/ktor/utils:utils_test_lib",
         "//libraries/io",
         "//libraries/io:io_test_lib",
         "//libraries/guava",
