@@ -19,12 +19,14 @@ import com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProvider.Compani
 import com.android.tools.idea.dagger.concepts.getDaggerElement
 import com.android.tools.idea.dagger.localization.DaggerBundle
 import com.intellij.codeInsight.navigation.getRelatedItemsPopup
+import com.intellij.codeInsight.navigation.navigateToRelatedItem
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.editor.Caret
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.actionSystem.EditorAction
 import com.intellij.openapi.editor.actionSystem.EditorActionHandler
 import com.intellij.openapi.project.Project
+import com.intellij.platform.ide.navigation.NavigationOptions
 import com.intellij.psi.PsiDocumentManager
 
 /**
@@ -37,13 +39,16 @@ class GoToRelatedDaggerItemsAction : EditorAction(Handler()) {
   private class Handler : EditorActionHandler() {
     override fun doExecute(editor: Editor, caret: Caret?, dataContext: DataContext?) {
       val project = editor.project ?: return
+      val options = dataContext?.let { NavigationOptions.fromContext(it) } ?: NavigationOptions.defaultOptions()
 
       // doExecute is called with a null Caret, so we have to get the current caret instead.
       val gotoItems = editor.caretModel.currentCaret.getGotoItems(project)
       when (gotoItems.size) {
         0 -> return
-        1 -> gotoItems.first().navigate()
-        else -> getRelatedItemsPopup(gotoItems, DaggerBundle.message("dagger.related.items.popup.title")).showInBestPositionFor(editor)
+        1 -> navigateToRelatedItem(project, gotoItems.first(), options)
+        else ->
+          getRelatedItemsPopup(gotoItems, DaggerBundle.message("dagger.related.items.popup.title"), false, project, options)
+            .showInBestPositionFor(editor)
       }
     }
 

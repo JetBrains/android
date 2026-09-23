@@ -26,10 +26,12 @@ import com.intellij.codeInsight.daemon.GutterIconNavigationHandler
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.getRelatedItemsPopup
+import com.intellij.codeInsight.navigation.navigateToRelatedItem
 import com.intellij.navigation.GotoRelatedItem
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.platform.ide.navigation.NavigationOptions
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiIdentifier
 import com.intellij.psi.impl.source.tree.LeafPsiElement
@@ -156,12 +158,15 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
   private class NavigationHandler(private val gotoItems: List<GotoRelatedItem>, private val metricsType: DaggerEditorEvent.ElementType) :
     GutterIconNavigationHandler<PsiElement> {
     override fun navigate(mouseEvent: MouseEvent, psiElement: PsiElement) {
-      psiElement.project.service<DaggerAnalyticsTracker>().trackClickOnGutter(metricsType)
+      val project = psiElement.project
+      val options = NavigationOptions.defaultOptions()
+      project.service<DaggerAnalyticsTracker>().trackClickOnGutter(metricsType)
 
       if (gotoItems.size == 1) {
-        gotoItems.first().navigate()
+        navigateToRelatedItem(project, gotoItems.first(), options)
       } else {
-        getRelatedItemsPopup(gotoItems, DaggerBundle.message("dagger.related.items.popup.title")).show(RelativePoint(mouseEvent))
+        getRelatedItemsPopup(gotoItems, DaggerBundle.message("dagger.related.items.popup.title"), false, project, options)
+          .show(RelativePoint(mouseEvent))
       }
     }
   }
@@ -176,12 +181,10 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     private val fromElementType = fromElement.metricsElementType
     private val toElementType = toElement.metricsElementType
 
-    override fun navigate() {
-      element
-        ?.project
+    override fun onChosen() {
+      project
         ?.service<DaggerAnalyticsTracker>()
         ?.trackNavigation(DaggerEditorEvent.NavigationMetadata.NavigationContext.CONTEXT_GUTTER, fromElementType, toElementType)
-      super.navigate()
     }
 
     override fun getCustomName() = customDisplayName

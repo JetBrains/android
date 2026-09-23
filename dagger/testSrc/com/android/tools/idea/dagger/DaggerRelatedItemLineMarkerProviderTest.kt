@@ -44,6 +44,7 @@ import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiNamedElement
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.awaitPendingNavigation
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.application
@@ -1345,7 +1346,10 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
         .trimIndent(),
     )
 
-    application.invokeAndWait { clickOnIcon(myFixture.findGuttersAtCaret().single() as LineMarkerInfo.LineMarkerGutterIconRenderer<*>) }
+    application.invokeAndWait {
+      clickOnIcon(myFixture.findGuttersAtCaret().single() as LineMarkerInfo.LineMarkerGutterIconRenderer<*>)
+      awaitPendingNavigation(project)
+    }
 
     myFixture.checkResult(
       // language=kotlin

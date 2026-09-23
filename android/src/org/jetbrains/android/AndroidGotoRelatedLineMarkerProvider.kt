@@ -27,11 +27,13 @@ import com.android.utils.SdkUtils
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.getRelatedItemsPopup
+import com.intellij.codeInsight.navigation.navigateToRelatedItem
 import com.intellij.icons.AllIcons
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.navigation.GotoRelatedItem
 import com.intellij.openapi.editor.markup.GutterIconRenderer
+import com.intellij.platform.ide.navigation.NavigationOptions
 import com.intellij.psi.JavaRecursiveElementWalkingVisitor
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -104,16 +106,18 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
     icon: Icon,
     tooltip: String,
   ): RelatedItemLineMarkerInfo<PsiElement> {
+    val project = anchor.project
     return RelatedItemLineMarkerInfo(
       anchor,
       anchor.textRange,
       icon,
       { tooltip },
       { mouseEvent, _ ->
+        val options = NavigationOptions.defaultOptions()
         if (gotoList.size == 1) {
-          gotoList.first().navigate()
+          navigateToRelatedItem(project, gotoList.first(), options)
         } else {
-          getRelatedItemsPopup(gotoList, "Go to Related Files").show(RelativePoint(mouseEvent))
+          getRelatedItemsPopup(gotoList, "Go to Related Files", false, project, options).show(RelativePoint(mouseEvent))
         }
       },
       GutterIconRenderer.Alignment.RIGHT,
