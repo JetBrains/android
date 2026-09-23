@@ -278,6 +278,7 @@ jvm_library(
         "//xml/emmet",
         "//libraries/jspecify",
         "//plugins/gradle/java/groovy",
+        "//platform/scratch",
         ":libraries_kotlinc_libraries-kotlinc-kotlin-jps-common_provided",
     ],
 )
@@ -516,6 +517,7 @@ jvm_library(
         "//xml/emmet:emmet_test_lib",
         "//libraries/jspecify:jspecify_test_lib",
         "//plugins/gradle/java/groovy:groovy_test_lib",
+        "//platform/scratch:scratch_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.core` end

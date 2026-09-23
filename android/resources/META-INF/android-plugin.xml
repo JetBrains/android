@@ -32,6 +32,7 @@
     <module name="intellij.java.ide.resources"/>
     <module name="intellij.xml.emmet"/>
     <module name="intellij.platform.bookmarks"/>
+    <module name="intellij.platform.scratch"/>
   </dependencies>
 
   <depends optional="true" config-file="android-plugin-androidstudio.xml">com.intellij.modules.androidstudio</depends>
