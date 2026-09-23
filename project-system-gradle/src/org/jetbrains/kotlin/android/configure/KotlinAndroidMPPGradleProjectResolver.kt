@@ -38,6 +38,7 @@ import com.intellij.openapi.externalSystem.util.Order
 import java.io.File
 import org.gradle.tooling.model.idea.IdeaModule
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinSourceSetData
+import org.jetbrains.kotlin.idea.gradle.utils.KotlinGradleModelFetchProperties
 import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMppGradleProjectResolver
 import org.jetbrains.kotlin.idea.gradleJava.configuration.getMppModel
 import org.jetbrains.kotlin.idea.gradleTooling.IdeaMppProjectProvider
@@ -56,7 +57,9 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
 
   override fun getToolingExtensionsClasses(): Set<Class<*>> = IdeaMppProjectProvider.MODEL_CLASSPATH
 
-  override fun getModelProvider(): ProjectImportModelProvider = IdeaMppProjectProvider
+  override fun getModelProvider(): ProjectImportModelProvider = IdeaMppProjectProvider(
+    KotlinGradleModelFetchProperties.getExecutionMode(),
+  )
 
   override fun createModule(gradleModule: IdeaModule, projectDataNode: DataNode<ProjectData>): DataNode<ModuleData>? {
     val androidModels = resolverCtx.getExtraProject(gradleModule, IdeAndroidModels::class.java)
