@@ -37,7 +37,7 @@
 
   <dependencies>
     <module name="intellij.java.impl"/>
-<!--  TODO: android-merge; intellij.compose.ide.plugin.gradleTooling.rt is a content module with no visibility attribute, so the module model keeps it private to the Compose Multiplatform plugin and rejects a dependency on it from another plugin-->
+<!--  JetBrains patch: no dependency on intellij.compose.ide.plugin.gradleTooling.rt. In IntelliJ it is a private content module of the Compose Multiplatform plugin (no visibility attribute), and no code of this plugin uses it; Android Studio bundles it into this plugin instead. Add it back only if this plugin starts importing ComposeResourcesModel, after the module is made public.-->
 <!--  <module name="intellij.compose.ide.plugin.gradleTooling.rt"/>-->
     <module name="intellij.java"/>
     <module name="intellij.platform.uast"/>

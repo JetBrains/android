@@ -115,7 +115,7 @@
               extensions="pftrace;perfetto-trace;perfetto"/>
     <fileType name="ProfilerDatabase" implementationClass="com.android.tools.idea.profilers.capture.ProfilerDatabaseFileType"
               extensions="asdb"/>
-    <!-- PerfettoAiService is a class of the sherlock.common module. The monorepo does not carry
+    <!-- JetBrains patch: PerfettoAiService is a class of the sherlock.common module. The monorepo does not carry
          that module and Google publishes no artifact for it, so this service cannot be registered
          against that interface here. This is permanent, not a pending merge step.
     <projectService serviceInterface="com.android.tools.sherlock.common.perfetto.ai.PerfettoAiService"
@@ -133,7 +133,7 @@
     <listener class="com.android.tools.idea.profilers.AndroidProfilerRunWindowRestorerExecutionListener" topic="com.intellij.execution.ExecutionListener" />
     <listener class="com.android.tools.idea.profilers.ProfilerExecutionListener" topic="com.intellij.execution.ExecutionListener"/>
   </projectListeners>
-  <!-- /META-INF/studio-common.xml is a resource of the sherlock.common module, which the monorepo
+  <!-- JetBrains patch: /META-INF/studio-common.xml is a resource of the sherlock.common module, which the monorepo
        does not carry and for which no artifact is published, so this include cannot be resolved and
        would break loading of the plugin descriptor. It registers Sherlock's TextMeasurer
        application service.

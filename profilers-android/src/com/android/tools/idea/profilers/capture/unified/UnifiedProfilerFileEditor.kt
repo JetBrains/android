@@ -16,7 +16,7 @@
 package com.android.tools.idea.profilers.capture.unified
 
 import com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory
-// The sherlock.common module is not part of the monorepo and Google publishes no artifact for it,
+// JetBrains patch: the sherlock.common module is not part of the monorepo and Google publishes no artifact for it,
 // so com.android.tools.sherlock.common.system.editor.PerfettoFileEditor cannot be imported here.
 // import com.android.tools.sherlock.common.system.editor.PerfettoFileEditor
 import com.intellij.openapi.fileEditor.FileEditor
@@ -38,7 +38,7 @@ import org.jetbrains.annotations.Nls
 class UnifiedProfilerFileEditor(private val project: Project, private val file: VirtualFile) : UserDataHolderBase(), FileEditor {
   private val delegate: FileEditor? =
     if (UnifiedProfilerEditorProvider.isSupportedByPerfettoEditor(file)) {
-      // PerfettoFileEditor lives in the sherlock.common module, which the monorepo does not carry
+      // JetBrains patch: PerfettoFileEditor lives in the sherlock.common module, which the monorepo does not carry
       // and for which no artifact is published, so the Sherlock trace viewer cannot be embedded in
       // this tree. The delegate stays null and the placeholder label below is shown instead.
       // PerfettoFileEditor(project, file)

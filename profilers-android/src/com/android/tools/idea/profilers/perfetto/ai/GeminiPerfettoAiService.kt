@@ -21,7 +21,7 @@ import com.android.tools.idea.gemini.GeminiPluginApi
 import com.android.tools.idea.gemini.GeminiPluginApiV2
 import com.android.tools.idea.gemini.LlmChatInToolWindowResult
 import com.android.tools.idea.gemini.buildLlmPrompt
-// The sherlock.common module is not part of the monorepo and Google publishes no artifact for it,
+// JetBrains patch: the sherlock.common module is not part of the monorepo and Google publishes no artifact for it,
 // so com.android.tools.sherlock.common.perfetto.ai.PerfettoAiService cannot be imported here.
 // This is permanent, not a pending merge step.
 // import com.android.tools.sherlock.common.perfetto.ai.PerfettoAiService
@@ -34,7 +34,7 @@ import kotlinx.coroutines.launch
  * Gemini-backed implementation of [PerfettoAiService]. This service uses [GeminiPluginApiV2] to send chat queries to the Gemini agent in
  * Android Studio.
  */
-// PerfettoAiService lives in the sherlock.common module, which the monorepo does not carry, so
+// JetBrains patch: PerfettoAiService lives in the sherlock.common module, which the monorepo does not carry, so
 // this class cannot implement it here and neither generateQuery nor analyzeTrace can be an
 // override. This is permanent, not a pending merge step.
 // class GeminiPerfettoAiService(private val project: Project, private val scope: CoroutineScope) : PerfettoAiService {

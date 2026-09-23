@@ -100,8 +100,9 @@ class PlayPublishingUsageTrackerTest {
     fakeClient = FakePlayPublishingClient()
     application.replaceService(PlayPublishingClient::class.java, fakeClient, disposableRule.disposable)
 
-    // TODO: android-merge; play-publishing.xml is not loaded in this test JVM, so the notification group it
-    // declares has to be registered here.
+    // JetBrains patch: play-publishing.xml is not loaded in this test JVM, so the "Play Publishing" notification
+    // group is registered here, the same way BranchContextTrackerTest does. Drop this once the module's descriptor
+    // is loaded in its tests.
     if (!NotificationGroupManager.getInstance().isGroupRegistered(NOTIFICATION_GROUP_ID)) {
       val group =
         XmlSerializer.deserialize(

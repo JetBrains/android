@@ -59,7 +59,7 @@ interface ConfigurablePreviewElement<T> : PreviewElement<T> {
 
 /** Contains settings for rendering. */
 data class PreviewConfiguration
-// Android-Merge: make the constructor public for sake of copy method, or it won't compile with the Kotlin version used at JB
+// JetBrains patch: public constructor (upstream: internal). With Kotlin 2.4 copy() takes the constructor's visibility, and preview-designer (UiCheckModeFilter) calls copy() from another module.
 constructor(
   val apiLevel: Int,
   val width: Int,
