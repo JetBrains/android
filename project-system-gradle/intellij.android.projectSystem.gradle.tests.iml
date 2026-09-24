@@ -169,6 +169,5 @@
     <orderEntry type="module" module-name="intellij.platform.eel" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.eel.provider" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="equalsverifier" level="project" />
-    <orderEntry type="module" module-name="intellij.repository.search.common" scope="TEST" />
   </component>
 </module>

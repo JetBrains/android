@@ -744,8 +744,6 @@ jvm_library(
         "//platform/eel-provider",
         "//platform/eel-provider:eel-provider_test_lib",
         "@lib//:equalsverifier",
-        "//plugins/repository-search/common",
-        "//plugins/repository-search/common:common_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle.tests` end
