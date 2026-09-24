@@ -19,7 +19,6 @@ import com.android.tools.perflogger.Analyzer
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.android.tools.perflogger.WindowDeviationAnalyzer
-import io.ktor.util.date.getTimeMillis
 import java.lang.Boolean.getBoolean
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -70,7 +69,7 @@ class MemoryUsageReportProcessor {
           60,
           TimeUnit.SECONDS,
         )
-      val timeStamp = getTimeMillis()
+      val timeStamp = System.currentTimeMillis()
       val totalObjectsSize = m.group(1).toLong()
       assert(totalObjectsSize > 1024 * 1024 * 10) { "Total size of objects should be over 10mb, problem on the memory reporting side." }
       val benchmark =
