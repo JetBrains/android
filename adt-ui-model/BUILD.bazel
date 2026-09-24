@@ -31,6 +31,49 @@ jvm_library(
     name = "adt-ui-model_test_lib",
     testonly = True,
     srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.adt.ui.model",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":adt-ui-model",
+        "@lib//:studio-platform-provided",
+        "//libraries/guava:guava_test_lib",
+        "//libraries/fastutil:fastutil_test_lib",
+        "//platform/platform-api:ide_test_lib",
+        "//platform/util:util_test_lib",
+        "//platform/util-rt:util-rt_test_lib",
+        "//platform/util/base:base_test_lib",
+    ],
+)
+### auto-generated section `build intellij.android.adt.ui.model` end
+
+### auto-generated section `iml intellij.android.adt.ui.model` start
+exports_files(
+    [
+        "intellij.android.adt.ui.model.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `iml intellij.android.adt.ui.model` end
+
+### auto-generated section `build intellij.android.adt.ui.model.tests` start
+jvm_library(
+    name = "adt-ui-model-tests",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.adt.ui.model.tests",
+    visibility = ["//visibility:public"],
+)
+
+jvm_library(
+    name = "adt-ui-model-tests_test_lib",
+    testonly = True,
+    srcs = glob(
         [
             "testSrc/**/*.kt",
             "testSrc/**/*.java",
@@ -38,8 +81,12 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [":adt-ui-model"],
+    associates = [
+        "//android/adt-ui-model",
+        "//android/adt-ui-model:adt-ui-model_test_lib",
+    ],
     visibility = ["//visibility:public"],
+    runtime_deps = [":adt-ui-model-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
@@ -62,20 +109,20 @@ jvm_library(
         "//platform/util/base:base_test_lib",
     ],
 )
-### auto-generated section `build intellij.android.adt.ui.model` end
+### auto-generated section `build intellij.android.adt.ui.model.tests` end
 
-### auto-generated section `iml intellij.android.adt.ui.model` start
+### auto-generated section `iml intellij.android.adt.ui.model.tests` start
 exports_files(
     [
-        "intellij.android.adt.ui.model.iml",
+        "intellij.android.adt.ui.model.tests.iml",
     ],
     visibility = ["//visibility:public"],
 )
-### auto-generated section `iml intellij.android.adt.ui.model` end
+### auto-generated section `iml intellij.android.adt.ui.model.tests` end
 
-### auto-generated section `test intellij.android.adt.ui.model` start
+### auto-generated section `test intellij.android.adt.ui.model.tests` start
 jps_test(
-    name = "adt-ui-model_test",
-    runtime_deps = [":adt-ui-model_test_lib"],
+    name = "adt-ui-model-tests_test",
+    runtime_deps = [":adt-ui-model-tests_test_lib"],
 )
-### auto-generated section `test intellij.android.adt.ui.model` end
+### auto-generated section `test intellij.android.adt.ui.model.tests` end

@@ -42,6 +42,57 @@ jvm_library(
     name = "server_test_lib",
     testonly = True,
     srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.cli-server.server",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":server",
+        "@lib//:studio-platform-provided",
+        "//libraries/grpc:grpc_test_lib",
+        "//libraries/protobuf:protobuf_test_lib",
+        "//libraries/protobuf-kotlin:protobuf-kotlin_test_lib",
+        "//libraries/grpc-netty-shaded:grpc-netty-shaded_test_lib",
+        "//libraries/guava:guava_test_lib",
+        "//libraries/jetbrains/annotations:annotations_test_lib",
+        "//libraries/kotlinx/coroutines/core:core_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/platform-api:ide_test_lib",
+        "//platform/ide-core:ide-core_test_lib",
+        "//platform/projectModel-api:projectModel_test_lib",
+        "//platform/util:util_test_lib",
+        "//android/android-common:common_test_lib",
+    ],
+)
+### auto-generated section `build intellij.android.cli-server.server` end
+
+### auto-generated section `iml intellij.android.cli-server.server` start
+exports_files(
+    [
+        "intellij.android.cli-server.server.iml",
+        "resources/META-INF/cli-server.xml",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `iml intellij.android.cli-server.server` end
+
+### auto-generated section `build intellij.android.cli-server.server.tests` start
+jvm_library(
+    name = "android-cli-server-server-tests",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.cli-server.server.tests",
+    visibility = ["//visibility:public"],
+)
+
+jvm_library(
+    name = "android-cli-server-server-tests_test_lib",
+    testonly = True,
+    srcs = glob(
         [
             "testSrc/**/*.kt",
             "testSrc/**/*.java",
@@ -49,9 +100,16 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [":server"],
+    associates = [
+        "//android/cli-server/server",
+        "//android/cli-server/server:server_test_lib",
+    ],
     visibility = ["//visibility:public"],
-    runtime_deps = ["//platform/ide-core:ide-core_test_lib"],
+    runtime_deps = [
+        # do not sort,
+        ":android-cli-server-server-tests",
+        "//platform/ide-core:ide-core_test_lib",
+    ],
     deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
@@ -91,21 +149,20 @@ jvm_library(
         "//libraries/mockito:mockito_test_lib",
     ],
 )
-### auto-generated section `build intellij.android.cli-server.server` end
+### auto-generated section `build intellij.android.cli-server.server.tests` end
 
-### auto-generated section `iml intellij.android.cli-server.server` start
+### auto-generated section `iml intellij.android.cli-server.server.tests` start
 exports_files(
     [
-        "intellij.android.cli-server.server.iml",
-        "resources/META-INF/cli-server.xml",
+        "intellij.android.cli-server.server.tests.iml",
     ],
     visibility = ["//visibility:public"],
 )
-### auto-generated section `iml intellij.android.cli-server.server` end
+### auto-generated section `iml intellij.android.cli-server.server.tests` end
 
-### auto-generated section `test intellij.android.cli-server.server` start
+### auto-generated section `test intellij.android.cli-server.server.tests` start
 jps_test(
-    name = "server_test",
-    runtime_deps = [":server_test_lib"],
+    name = "android-cli-server-server-tests_test",
+    runtime_deps = [":android-cli-server-server-tests_test_lib"],
 )
-### auto-generated section `test intellij.android.cli-server.server` end
+### auto-generated section `test intellij.android.cli-server.server.tests` end

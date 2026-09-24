@@ -45,6 +45,63 @@ jvm_library(
     name = "codenavigation_test_lib",
     testonly = True,
     srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.codenavigation",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":codenavigation",
+        "@lib//:studio-platform-provided",
+        "//libraries/guava:guava_test_lib",
+        "//libraries/jetbrains/annotations:annotations_test_lib",
+        "//libraries/maven-resolver-provider:maven-resolver-provider_test_lib",
+        "//libraries/protobuf:protobuf_test_lib",
+        "//android/analytics:analytics_test_lib",
+        "//android/android:core_test_lib",
+        "//android/native-symbolizer:native-symbolizer_test_lib",
+        "//java/java-psi-api:psi_test_lib",
+        "//platform/analysis-api:analysis_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/editor-ui-api:editor-ui_test_lib",
+        "//platform/extensions:extensions_test_lib",
+        "//platform/indexing-api:indexing_test_lib",
+        "//platform/lang-api:lang_test_lib",
+        "//platform/lang-core:lang-core_test_lib",
+        "//platform/lang-impl:lang-impl_test_lib",
+        "//platform/lvcs-impl:lvcs-impl_test_lib",
+        "//platform/projectModel-api:projectModel_test_lib",
+        "//platform/util:util_test_lib",
+        "//platform/util-rt:util-rt_test_lib",
+    ],
+)
+### auto-generated section `build intellij.android.codenavigation` end
+
+### auto-generated section `iml intellij.android.codenavigation` start
+exports_files(
+    [
+        "intellij.android.codenavigation.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `iml intellij.android.codenavigation` end
+
+### auto-generated section `build intellij.android.codenavigation.tests` start
+jvm_library(
+    name = "codenavigation-tests",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.codenavigation.tests",
+    visibility = ["//visibility:public"],
+)
+
+jvm_library(
+    name = "codenavigation-tests_test_lib",
+    testonly = True,
+    srcs = glob(
         [
             "testSrc/**/*.kt",
             "testSrc/**/*.java",
@@ -52,8 +109,12 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [":codenavigation"],
+    associates = [
+        "//android/codenavigation",
+        "//android/codenavigation:codenavigation_test_lib",
+    ],
     visibility = ["//visibility:public"],
+    runtime_deps = [":codenavigation-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
@@ -106,20 +167,20 @@ jvm_library(
         "//platform/util-rt:util-rt_test_lib",
     ],
 )
-### auto-generated section `build intellij.android.codenavigation` end
+### auto-generated section `build intellij.android.codenavigation.tests` end
 
-### auto-generated section `iml intellij.android.codenavigation` start
+### auto-generated section `iml intellij.android.codenavigation.tests` start
 exports_files(
     [
-        "intellij.android.codenavigation.iml",
+        "intellij.android.codenavigation.tests.iml",
     ],
     visibility = ["//visibility:public"],
 )
-### auto-generated section `iml intellij.android.codenavigation` end
+### auto-generated section `iml intellij.android.codenavigation.tests` end
 
-### auto-generated section `test intellij.android.codenavigation` start
+### auto-generated section `test intellij.android.codenavigation.tests` start
 jps_test(
-    name = "codenavigation_test",
-    runtime_deps = [":codenavigation_test_lib"],
+    name = "codenavigation-tests_test",
+    runtime_deps = [":codenavigation-tests_test_lib"],
 )
-### auto-generated section `test intellij.android.codenavigation` end
+### auto-generated section `test intellij.android.codenavigation.tests` end

@@ -36,6 +36,51 @@ jvm_library(
     name = "utp_test_lib",
     testonly = True,
     srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.utp",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":utp",
+        "@lib//:studio-platform-provided",
+        "//libraries/guava:guava_test_lib",
+        "//plugins/gradle:gradle-common_test_lib",
+        "//platform/external-system-api:externalSystem_test_lib",
+        "//platform/util:util_test_lib",
+        "//platform/util-ex:util-ex_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/execution-impl:execution-impl_test_lib",
+    ],
+)
+### auto-generated section `build intellij.android.utp` end
+
+### auto-generated section `iml intellij.android.utp` start
+exports_files(
+    [
+        "intellij.android.utp.iml",
+        "resources/META-INF/utp.xml",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `iml intellij.android.utp` end
+
+### auto-generated section `build intellij.android.utp.tests` start
+jvm_library(
+    name = "utp-tests",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.utp.tests",
+    visibility = ["//visibility:public"],
+)
+
+jvm_library(
+    name = "utp-tests_test_lib",
+    testonly = True,
+    srcs = glob(
         [
             "testSrc/**/*.kt",
             "testSrc/**/*.java",
@@ -43,8 +88,12 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [":utp"],
+    associates = [
+        "//android/utp",
+        "//android/utp:utp_test_lib",
+    ],
     visibility = ["//visibility:public"],
+    runtime_deps = [":utp-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
@@ -73,21 +122,20 @@ jvm_library(
         "//platform/execution-impl:execution-impl_test_lib",
     ],
 )
-### auto-generated section `build intellij.android.utp` end
+### auto-generated section `build intellij.android.utp.tests` end
 
-### auto-generated section `iml intellij.android.utp` start
+### auto-generated section `iml intellij.android.utp.tests` start
 exports_files(
     [
-        "intellij.android.utp.iml",
-        "resources/META-INF/utp.xml",
+        "intellij.android.utp.tests.iml",
     ],
     visibility = ["//visibility:public"],
 )
-### auto-generated section `iml intellij.android.utp` end
+### auto-generated section `iml intellij.android.utp.tests` end
 
-### auto-generated section `test intellij.android.utp` start
+### auto-generated section `test intellij.android.utp.tests` start
 jps_test(
-    name = "utp_test",
-    runtime_deps = [":utp_test_lib"],
+    name = "utp-tests_test",
+    runtime_deps = [":utp-tests_test_lib"],
 )
-### auto-generated section `test intellij.android.utp` end
+### auto-generated section `test intellij.android.utp.tests` end

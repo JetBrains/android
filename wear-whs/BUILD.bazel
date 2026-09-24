@@ -45,6 +45,61 @@ jvm_library(
     name = "wear-whs_test_lib",
     testonly = True,
     srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.wear-whs",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":wear-whs",
+        "//libraries/protobuf:protobuf_test_lib",
+        "//android/artwork:artwork_test_lib",
+        "//android/android-adb:adb_test_lib",
+        "//android/adt-ui:adt-ui_test_lib",
+        "//android/adt-ui-model:adt-ui-model_test_lib",
+        "//android/android-common:common_test_lib",
+        "//android/android:core_test_lib",
+        "//android/streaming:streaming_test_lib",
+        "//libraries/kotlin/reflect:reflect_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/core-ui:core-ui_test_lib",
+        "//platform/editor-ui-api:editor-ui_test_lib",
+        "//platform/ide-core:ide-core_test_lib",
+        "//platform/platform-impl:ide-impl_test_lib",
+        "//platform/util:util-ui_test_lib",
+        "//libraries/jetbrains/annotations:annotations_test_lib",
+        "@lib//:studio-platform-provided",
+    ],
+)
+### auto-generated section `build intellij.android.wear-whs` end
+
+### auto-generated section `iml intellij.android.wear-whs` start
+exports_files(
+    [
+        "intellij.android.wear-whs.iml",
+        "resources/META-INF/wear-whs-androidstudio.xml",
+        "resources/META-INF/wear-whs.xml",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `iml intellij.android.wear-whs` end
+
+### auto-generated section `build intellij.android.wear-whs.tests` start
+jvm_library(
+    name = "wear-whs-tests",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.wear-whs.tests",
+    visibility = ["//visibility:public"],
+)
+
+jvm_library(
+    name = "wear-whs-tests_test_lib",
+    testonly = True,
+    srcs = glob(
         [
             "testSrc/**/*.kt",
             "testSrc/**/*.java",
@@ -52,10 +107,14 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [":wear-whs"],
+    associates = [
+        "//android/wear-whs",
+        "//android/wear-whs:wear-whs_test_lib",
+    ],
     visibility = ["//visibility:public"],
     runtime_deps = [
         # do not sort,
+        ":wear-whs-tests",
         "//platform/ide-core:ide-core_test_lib",
         "//platform/platform-impl:ide-impl_test_lib",
     ],
@@ -117,22 +176,20 @@ jvm_library(
         "//libraries/mockito-kotlin:mockito-kotlin_test_lib",
     ],
 )
-### auto-generated section `build intellij.android.wear-whs` end
+### auto-generated section `build intellij.android.wear-whs.tests` end
 
-### auto-generated section `iml intellij.android.wear-whs` start
+### auto-generated section `iml intellij.android.wear-whs.tests` start
 exports_files(
     [
-        "intellij.android.wear-whs.iml",
-        "resources/META-INF/wear-whs-androidstudio.xml",
-        "resources/META-INF/wear-whs.xml",
+        "intellij.android.wear-whs.tests.iml",
     ],
     visibility = ["//visibility:public"],
 )
-### auto-generated section `iml intellij.android.wear-whs` end
+### auto-generated section `iml intellij.android.wear-whs.tests` end
 
-### auto-generated section `test intellij.android.wear-whs` start
+### auto-generated section `test intellij.android.wear-whs.tests` start
 jps_test(
-    name = "wear-whs_test",
-    runtime_deps = [":wear-whs_test_lib"],
+    name = "wear-whs-tests_test",
+    runtime_deps = [":wear-whs-tests_test_lib"],
 )
-### auto-generated section `test intellij.android.wear-whs` end
+### auto-generated section `test intellij.android.wear-whs.tests` end

@@ -33,6 +33,51 @@ jvm_library(
     name = "api_test_lib",
     testonly = True,
     srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.inspectors-common.api",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":api",
+        "//android/adt-ui-model:adt-ui-model_test_lib",
+        "//libraries/jetbrains/annotations:annotations_test_lib",
+        "@lib//:studio-platform-provided",
+        "//libraries/guava:guava_test_lib",
+        "//android/codenavigation:codenavigation_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/editor-ui-api:editor-ui_test_lib",
+        "//platform/platform-api:ide_test_lib",
+        "//platform/core-ui:core-ui_test_lib",
+    ],
+)
+### auto-generated section `build intellij.android.inspectors-common.api` end
+
+### auto-generated section `iml intellij.android.inspectors-common.api` start
+exports_files(
+    [
+        "intellij.android.inspectors-common.api.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `iml intellij.android.inspectors-common.api` end
+
+### auto-generated section `build intellij.android.inspectors-common.api.tests` start
+jvm_library(
+    name = "android-inspectors-common-api-tests",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.inspectors-common.api.tests",
+    visibility = ["//visibility:public"],
+)
+
+jvm_library(
+    name = "android-inspectors-common-api-tests_test_lib",
+    testonly = True,
+    srcs = glob(
         [
             "testSrc/**/*.kt",
             "testSrc/**/*.java",
@@ -40,8 +85,12 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [":api"],
+    associates = [
+        "//android/inspectors-common/api",
+        "//android/inspectors-common/api:api_test_lib",
+    ],
     visibility = ["//visibility:public"],
+    runtime_deps = [":android-inspectors-common-api-tests"],
     deps = [
         # do not sort,
         "//android/adt-ui-model",
@@ -74,20 +123,20 @@ jvm_library(
         "//platform/core-ui:core-ui_test_lib",
     ],
 )
-### auto-generated section `build intellij.android.inspectors-common.api` end
+### auto-generated section `build intellij.android.inspectors-common.api.tests` end
 
-### auto-generated section `iml intellij.android.inspectors-common.api` start
+### auto-generated section `iml intellij.android.inspectors-common.api.tests` start
 exports_files(
     [
-        "intellij.android.inspectors-common.api.iml",
+        "intellij.android.inspectors-common.api.tests.iml",
     ],
     visibility = ["//visibility:public"],
 )
-### auto-generated section `iml intellij.android.inspectors-common.api` end
+### auto-generated section `iml intellij.android.inspectors-common.api.tests` end
 
-### auto-generated section `test intellij.android.inspectors-common.api` start
+### auto-generated section `test intellij.android.inspectors-common.api.tests` start
 jps_test(
-    name = "api_test",
-    runtime_deps = [":api_test_lib"],
+    name = "android-inspectors-common-api-tests_test",
+    runtime_deps = [":android-inspectors-common-api-tests_test_lib"],
 )
-### auto-generated section `test intellij.android.inspectors-common.api` end
+### auto-generated section `test intellij.android.inspectors-common.api.tests` end

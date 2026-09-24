@@ -22,22 +22,16 @@ jvm_library(
     name = "memory-usage_test_lib",
     testonly = True,
     srcs = glob(
-        [
-            "src/test/java/**/*.kt",
-            "src/test/java/**/*.java",
-            "src/test/java/**/*.form",
-        ],
+        [],
         allow_empty = True,
     ),
-    associates = [":memory-usage"],
     kotlinc_opts = "@community//:k8",
+    module_name = "intellij.android.memory-usage",
     visibility = ["//visibility:public"],
-    deps = [
+    runtime_deps = [
         # do not sort,
+        ":memory-usage",
         "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
-        "//libraries/junit4",
-        "//libraries/junit4:junit4_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.memory-usage` end
@@ -51,9 +45,57 @@ exports_files(
 )
 ### auto-generated section `iml intellij.android.memory-usage` end
 
-### auto-generated section `test intellij.android.memory-usage` start
-jps_test(
-    name = "memory-usage_test",
-    runtime_deps = [":memory-usage_test_lib"],
+### auto-generated section `build intellij.android.memory-usage.tests` start
+jvm_library(
+    name = "memory-usage-tests",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.memory-usage.tests",
+    visibility = ["//visibility:public"],
 )
-### auto-generated section `test intellij.android.memory-usage` end
+
+jvm_library(
+    name = "memory-usage-tests_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "src/test/java/**/*.kt",
+            "src/test/java/**/*.java",
+            "src/test/java/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    associates = [
+        "//android/memory-usage",
+        "//android/memory-usage:memory-usage_test_lib",
+    ],
+    kotlinc_opts = "@community//:k8",
+    visibility = ["//visibility:public"],
+    runtime_deps = [":memory-usage-tests"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//libraries/junit4",
+        "//libraries/junit4:junit4_test_lib",
+    ],
+)
+### auto-generated section `build intellij.android.memory-usage.tests` end
+
+### auto-generated section `iml intellij.android.memory-usage.tests` start
+exports_files(
+    [
+        "intellij.android.memory-usage.tests.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `iml intellij.android.memory-usage.tests` end
+
+### auto-generated section `test intellij.android.memory-usage.tests` start
+jps_test(
+    name = "memory-usage-tests_test",
+    runtime_deps = [":memory-usage-tests_test_lib"],
+)
+### auto-generated section `test intellij.android.memory-usage.tests` end

@@ -31,6 +31,49 @@ jvm_library(
     name = "api_test_lib",
     testonly = True,
     srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.app-inspection.inspector.api",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":api",
+        "@lib//:studio-platform-provided",
+        "//libraries/protobuf:protobuf_test_lib",
+        "//libraries/kotlinx/coroutines/core:core_test_lib",
+        "//libraries/jetbrains/annotations:annotations_test_lib",
+        "//libraries/protobuf-java-util:protobuf-java-util_test_lib",
+        "//platform/util:util_test_lib",
+        "//platform/editor-ui-api:editor-ui_test_lib",
+    ],
+)
+### auto-generated section `build intellij.android.app-inspection.inspector.api` end
+
+### auto-generated section `iml intellij.android.app-inspection.inspector.api` start
+exports_files(
+    [
+        "intellij.android.app-inspection.inspector.api.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `iml intellij.android.app-inspection.inspector.api` end
+
+### auto-generated section `build intellij.android.app-inspection.inspector.api.tests` start
+jvm_library(
+    name = "android-app-inspection-inspector-api-tests",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.app-inspection.inspector.api.tests",
+    visibility = ["//visibility:public"],
+)
+
+jvm_library(
+    name = "android-app-inspection-inspector-api-tests_test_lib",
+    testonly = True,
+    srcs = glob(
         [
             "testSrc/**/*.kt",
             "testSrc/**/*.java",
@@ -38,8 +81,12 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [":api"],
+    associates = [
+        "//android/app-inspection/inspector/api",
+        "//android/app-inspection/inspector/api:api_test_lib",
+    ],
     visibility = ["//visibility:public"],
+    runtime_deps = [":android-app-inspection-inspector-api-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
@@ -64,20 +111,20 @@ jvm_library(
         "//platform/editor-ui-api:editor-ui_test_lib",
     ],
 )
-### auto-generated section `build intellij.android.app-inspection.inspector.api` end
+### auto-generated section `build intellij.android.app-inspection.inspector.api.tests` end
 
-### auto-generated section `iml intellij.android.app-inspection.inspector.api` start
+### auto-generated section `iml intellij.android.app-inspection.inspector.api.tests` start
 exports_files(
     [
-        "intellij.android.app-inspection.inspector.api.iml",
+        "intellij.android.app-inspection.inspector.api.tests.iml",
     ],
     visibility = ["//visibility:public"],
 )
-### auto-generated section `iml intellij.android.app-inspection.inspector.api` end
+### auto-generated section `iml intellij.android.app-inspection.inspector.api.tests` end
 
-### auto-generated section `test intellij.android.app-inspection.inspector.api` start
+### auto-generated section `test intellij.android.app-inspection.inspector.api.tests` start
 jps_test(
-    name = "api_test",
-    runtime_deps = [":api_test_lib"],
+    name = "android-app-inspection-inspector-api-tests_test",
+    runtime_deps = [":android-app-inspection-inspector-api-tests_test_lib"],
 )
-### auto-generated section `test intellij.android.app-inspection.inspector.api` end
+### auto-generated section `test intellij.android.app-inspection.inspector.api.tests` end

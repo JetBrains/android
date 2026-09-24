@@ -65,6 +65,78 @@ jvm_library(
     name = "profilers-ui_test_lib",
     testonly = True,
     srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    kotlinc_opts = ":custom_profilers-ui",
+    module_name = "intellij.android.profilers.ui",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":profilers-ui",
+        "@lib//:studio-platform-provided",
+        "//android/profilers:profilers_test_lib",
+        "//android/adt-ui:adt-ui_test_lib",
+        "//android/adt-ui-compose:adt-ui-compose_test_lib",
+        "//android/adt-ui-model:adt-ui-model_test_lib",
+        "//android/artwork:artwork_test_lib",
+        "//android/android-common:common_test_lib",
+        "//android/inspectors-common/ui:ui_test_lib",
+        "//android/inspectors-common/api:api_test_lib",
+        "//libraries/guava:guava_test_lib",
+        "//libraries/java-compatibility:java-compatibility_test_lib",
+        "//libraries/fastutil:fastutil_test_lib",
+        "//libraries/gson:gson_test_lib",
+        "//libraries/jetbrains/annotations:annotations_test_lib",
+        "//libraries/kotlinx/html:html_test_lib",
+        "//android/codenavigation:codenavigation_test_lib",
+        "//platform/core-impl:core-impl_test_lib",
+        "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/core-ui:core-ui_test_lib",
+        "//platform/editor-ui-api:editor-ui_test_lib",
+        "//platform/platform-api:ide_test_lib",
+        "//platform/ide-core:ide-core_test_lib",
+        "//platform/platform-impl:ide-impl_test_lib",
+        "//platform/projectModel-api:projectModel_test_lib",
+        "//platform/util:util_test_lib",
+        "//platform/util-rt:util-rt_test_lib",
+        "//platform/util:util-ui_test_lib",
+        "//android/artwork-compose:artwork-compose_test_lib",
+    ],
+)
+### auto-generated section `build intellij.android.profilers.ui` end
+
+### auto-generated section `iml intellij.android.profilers.ui` start
+exports_files(
+    [
+        "intellij.android.profilers.ui.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `iml intellij.android.profilers.ui` end
+
+### auto-generated section `build intellij.android.profilers.ui.tests` start
+create_kotlinc_options(
+    name = "custom_profilers-ui-tests",
+    x_context_parameters = True,
+    x_sam_conversions = "class",
+)
+
+jvm_library(
+    name = "profilers-ui-tests",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.profilers.ui.tests",
+    visibility = ["//visibility:public"],
+)
+
+jvm_library(
+    name = "profilers-ui-tests_test_lib",
+    testonly = True,
+    srcs = glob(
         [
             "testSrc/**/*.kt",
             "testSrc/**/*.java",
@@ -72,11 +144,15 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [":profilers-ui"],
-    kotlinc_opts = ":custom_profilers-ui",
+    associates = [
+        "//android/profilers-ui",
+        "//android/profilers-ui:profilers-ui_test_lib",
+    ],
+    kotlinc_opts = ":custom_profilers-ui-tests",
     visibility = ["//visibility:public"],
     runtime_deps = [
         # do not sort,
+        ":profilers-ui-tests",
         "//platform/ide-core:ide-core_test_lib",
         "//platform/platform-impl:ide-impl_test_lib",
     ],
@@ -109,7 +185,7 @@ jvm_library(
         "//android/inspectors-common/ui:ui_test_lib",
         "//android/inspectors-common/api",
         "//android/inspectors-common/api:api_test_lib",
-        "@lib//:android-profilers-ui-traceprocessor-protos",
+        "@lib//:android-profilers-ui-tests-traceprocessor-protos",
         "//libraries/guava",
         "//libraries/guava:guava_test_lib",
         "//libraries/java-compatibility",
@@ -161,20 +237,20 @@ jvm_library(
         "//libraries/mockito-kotlin:mockito-kotlin_test_lib",
     ],
 )
-### auto-generated section `build intellij.android.profilers.ui` end
+### auto-generated section `build intellij.android.profilers.ui.tests` end
 
-### auto-generated section `iml intellij.android.profilers.ui` start
+### auto-generated section `iml intellij.android.profilers.ui.tests` start
 exports_files(
     [
-        "intellij.android.profilers.ui.iml",
+        "intellij.android.profilers.ui.tests.iml",
     ],
     visibility = ["//visibility:public"],
 )
-### auto-generated section `iml intellij.android.profilers.ui` end
+### auto-generated section `iml intellij.android.profilers.ui.tests` end
 
-### auto-generated section `test intellij.android.profilers.ui` start
+### auto-generated section `test intellij.android.profilers.ui.tests` start
 jps_test(
-    name = "profilers-ui_test",
-    runtime_deps = [":profilers-ui_test_lib"],
+    name = "profilers-ui-tests_test",
+    runtime_deps = [":profilers-ui-tests_test_lib"],
 )
-### auto-generated section `test intellij.android.profilers.ui` end
+### auto-generated section `test intellij.android.profilers.ui.tests` end

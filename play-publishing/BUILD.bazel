@@ -58,6 +58,71 @@ jvm_library(
     name = "play-publishing_test_lib",
     testonly = True,
     srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    kotlinc_opts = ":custom_play-publishing",
+    module_name = "intellij.android.play-publishing",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":play-publishing",
+        "@lib//:studio-platform-provided",
+        "//libraries/gson:gson_test_lib",
+        "//libraries/guava:guava_test_lib",
+        "//libraries/jetbrains/annotations:annotations_test_lib",
+        "//platform/analysis-api:analysis_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/editor-ui-api:editor-ui_test_lib",
+        "//platform/platform-api:ide_test_lib",
+        "//platform/ide-core:ide-core_test_lib",
+        "//platform/projectModel-api:projectModel_test_lib",
+        "//platform/util:util_test_lib",
+        "//android/android-common:common_test_lib",
+        "//android/adt-ui-compose:adt-ui-compose_test_lib",
+        "//android/artwork-compose:artwork-compose_test_lib",
+        "//libraries/protobuf:protobuf_test_lib",
+        "//libraries/protobuf-kotlin:protobuf-kotlin_test_lib",
+        "//libraries/grpc:grpc_test_lib",
+        "//libraries/grpc-netty-shaded:grpc-netty-shaded_test_lib",
+        "//android/app-publishing:app-publishing_test_lib",
+        "//android/artwork:artwork_test_lib",
+        "//android/apkanalyzer:apkanalyzer_test_lib",
+    ],
+)
+### auto-generated section `build intellij.android.play-publishing` end
+
+### auto-generated section `iml intellij.android.play-publishing` start
+exports_files(
+    [
+        "intellij.android.play-publishing.iml",
+        "resources/META-INF/play-publishing.xml",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `iml intellij.android.play-publishing` end
+
+### auto-generated section `build intellij.android.play-publishing.tests` start
+create_kotlinc_options(
+    name = "custom_play-publishing-tests",
+    x_context_parameters = True,
+    x_sam_conversions = "class",
+)
+
+jvm_library(
+    name = "play-publishing-tests",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.play-publishing.tests",
+    visibility = ["//visibility:public"],
+)
+
+jvm_library(
+    name = "play-publishing-tests_test_lib",
+    testonly = True,
+    srcs = glob(
         [
             "testSrc/**/*.kt",
             "testSrc/**/*.java",
@@ -65,10 +130,17 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [":play-publishing"],
-    kotlinc_opts = ":custom_play-publishing",
+    associates = [
+        "//android/play-publishing",
+        "//android/play-publishing:play-publishing_test_lib",
+    ],
+    kotlinc_opts = ":custom_play-publishing-tests",
     visibility = ["//visibility:public"],
-    runtime_deps = ["//platform/ide-core:ide-core_test_lib"],
+    runtime_deps = [
+        # do not sort,
+        ":play-publishing-tests",
+        "//platform/ide-core:ide-core_test_lib",
+    ],
     deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
@@ -129,21 +201,20 @@ jvm_library(
         "//android/android-test-framework:testFramework_test_lib",
     ],
 )
-### auto-generated section `build intellij.android.play-publishing` end
+### auto-generated section `build intellij.android.play-publishing.tests` end
 
-### auto-generated section `iml intellij.android.play-publishing` start
+### auto-generated section `iml intellij.android.play-publishing.tests` start
 exports_files(
     [
-        "intellij.android.play-publishing.iml",
-        "resources/META-INF/play-publishing.xml",
+        "intellij.android.play-publishing.tests.iml",
     ],
     visibility = ["//visibility:public"],
 )
-### auto-generated section `iml intellij.android.play-publishing` end
+### auto-generated section `iml intellij.android.play-publishing.tests` end
 
-### auto-generated section `test intellij.android.play-publishing` start
+### auto-generated section `test intellij.android.play-publishing.tests` start
 jps_test(
-    name = "play-publishing_test",
-    runtime_deps = [":play-publishing_test_lib"],
+    name = "play-publishing-tests_test",
+    runtime_deps = [":play-publishing-tests_test_lib"],
 )
-### auto-generated section `test intellij.android.play-publishing` end
+### auto-generated section `test intellij.android.play-publishing.tests` end

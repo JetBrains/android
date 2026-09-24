@@ -54,6 +54,62 @@ jvm_library(
     name = "smali_test_lib",
     testonly = True,
     srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.smali",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":smali",
+        "@lib//:studio-platform-provided",
+        "//platform/analysis-api:analysis_test_lib",
+        "//platform/analysis-impl:analysis-impl_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/core-impl:core-impl_test_lib",
+        "//platform/diff-api:diff_test_lib",
+        "//platform/editor-ui-api:editor-ui_test_lib",
+        "//platform/extensions:extensions_test_lib",
+        "//platform/util:util_test_lib",
+        "//platform/util:util-ui_test_lib",
+        "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
+        "//platform/code-style-api:codeStyle_test_lib",
+        "//platform/platform-impl:ide-impl_test_lib",
+    ],
+)
+
+ij_plugin(
+    name = "smali_plugin",
+    descriptor_module = ":smali",
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `build intellij.android.smali` end
+
+### auto-generated section `iml intellij.android.smali` start
+exports_files(
+    [
+        "intellij.android.smali.iml",
+        "resources/META-INF/plugin.xml",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `iml intellij.android.smali` end
+
+### auto-generated section `build intellij.android.smali.tests` start
+jvm_library(
+    name = "smali-tests",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.smali.tests",
+    visibility = ["//visibility:public"],
+)
+
+jvm_library(
+    name = "smali-tests_test_lib",
+    testonly = True,
+    srcs = glob(
         [
             "testSrc/**/*.kt",
             "testSrc/**/*.java",
@@ -61,9 +117,16 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [":smali"],
+    associates = [
+        "//android/smali",
+        "//android/smali:smali_test_lib",
+    ],
     visibility = ["//visibility:public"],
-    runtime_deps = ["//platform/platform-impl:ide-impl_test_lib"],
+    runtime_deps = [
+        # do not sort,
+        ":smali-tests",
+        "//platform/platform-impl:ide-impl_test_lib",
+    ],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
@@ -106,27 +169,20 @@ jvm_library(
         "//platform/platform-impl:ide-impl",
     ],
 )
+### auto-generated section `build intellij.android.smali.tests` end
 
-ij_plugin(
-    name = "smali_plugin",
-    descriptor_module = ":smali",
-    visibility = ["//visibility:public"],
-)
-### auto-generated section `build intellij.android.smali` end
-
-### auto-generated section `iml intellij.android.smali` start
+### auto-generated section `iml intellij.android.smali.tests` start
 exports_files(
     [
-        "intellij.android.smali.iml",
-        "resources/META-INF/plugin.xml",
+        "intellij.android.smali.tests.iml",
     ],
     visibility = ["//visibility:public"],
 )
-### auto-generated section `iml intellij.android.smali` end
+### auto-generated section `iml intellij.android.smali.tests` end
 
-### auto-generated section `test intellij.android.smali` start
+### auto-generated section `test intellij.android.smali.tests` start
 jps_test(
-    name = "smali_test",
-    runtime_deps = [":smali_test_lib"],
+    name = "smali-tests_test",
+    runtime_deps = [":smali-tests_test_lib"],
 )
-### auto-generated section `test intellij.android.smali` end
+### auto-generated section `test intellij.android.smali.tests` end

@@ -34,6 +34,52 @@ jvm_library(
     name = "transport-database_test_lib",
     testonly = True,
     srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.transportDatabase",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":transport-database",
+        "@lib//:studio-platform-provided",
+        "//libraries/jetbrains/annotations:annotations_test_lib",
+        "//libraries/protobuf:protobuf_test_lib",
+        "//libraries/sqlite:sqlite_test_lib",
+        "//libraries/guava:guava_test_lib",
+        "//android/adt-ui-model:adt-ui-model_test_lib",
+        "//android/android-common:common_test_lib",
+        "//platform/util:util_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/util/base:base_test_lib",
+    ],
+)
+### auto-generated section `build intellij.android.transportDatabase` end
+
+### auto-generated section `iml intellij.android.transportDatabase` start
+exports_files(
+    [
+        "intellij.android.transportDatabase.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `iml intellij.android.transportDatabase` end
+
+### auto-generated section `build intellij.android.transportDatabase.tests` start
+jvm_library(
+    name = "transportDatabase-tests",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.transportDatabase.tests",
+    visibility = ["//visibility:public"],
+)
+
+jvm_library(
+    name = "transportDatabase-tests_test_lib",
+    testonly = True,
+    srcs = glob(
         [
             "testSrc/**/*.kt",
             "testSrc/**/*.java",
@@ -41,12 +87,16 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [":transport-database"],
+    associates = [
+        "//android/transport-database",
+        "//android/transport-database:transport-database_test_lib",
+    ],
     resource_strip_prefix = "testData",
     resources = glob(
         ["testData/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = [":transportDatabase-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
@@ -84,20 +134,20 @@ jvm_library(
         "//platform/util/base:base_test_lib",
     ],
 )
-### auto-generated section `build intellij.android.transportDatabase` end
+### auto-generated section `build intellij.android.transportDatabase.tests` end
 
-### auto-generated section `iml intellij.android.transportDatabase` start
+### auto-generated section `iml intellij.android.transportDatabase.tests` start
 exports_files(
     [
-        "intellij.android.transportDatabase.iml",
+        "intellij.android.transportDatabase.tests.iml",
     ],
     visibility = ["//visibility:public"],
 )
-### auto-generated section `iml intellij.android.transportDatabase` end
+### auto-generated section `iml intellij.android.transportDatabase.tests` end
 
-### auto-generated section `test intellij.android.transportDatabase` start
+### auto-generated section `test intellij.android.transportDatabase.tests` start
 jps_test(
-    name = "transport-database_test",
-    runtime_deps = [":transport-database_test_lib"],
+    name = "transportDatabase-tests_test",
+    runtime_deps = [":transportDatabase-tests_test_lib"],
 )
-### auto-generated section `test intellij.android.transportDatabase` end
+### auto-generated section `test intellij.android.transportDatabase.tests` end

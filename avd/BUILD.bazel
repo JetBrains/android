@@ -63,6 +63,77 @@ jvm_library(
     name = "avd_test_lib",
     testonly = True,
     srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    kotlinc_opts = ":custom_avd",
+    module_name = "intellij.android.avd",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":avd",
+        "//android/android-adb:adb_test_lib",
+        "//android/adt-ui:adt-ui_test_lib",
+        "//android/adt-ui-compose:adt-ui-compose_test_lib",
+        "//android/artwork:artwork_test_lib",
+        "//android/artwork-compose:artwork-compose_test_lib",
+        "//android/android-common:common_test_lib",
+        "//android/android:core_test_lib",
+        "//android/intellij.android.device:device_test_lib",
+        "//android/render-resources:render-resources_test_lib",
+        "//android/wizard:wizard_test_lib",
+        "//android/wizard-model:wizard-model_test_lib",
+        "//platform/analysis-api:analysis_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/editor-ui-api:editor-ui_test_lib",
+        "//platform/platform-api:ide_test_lib",
+        "//platform/ide-core:ide-core_test_lib",
+        "//platform/platform-impl:ide-impl_test_lib",
+        "//platform/progress/shared:ide-progress_test_lib",
+        "//platform/lang-api:lang_test_lib",
+        "//platform/lang-core:lang-core_test_lib",
+        "//platform/projectModel-api:projectModel_test_lib",
+        "//platform/util:util-ui_test_lib",
+        "@lib//:studio-platform-provided",
+        "//libraries/guava:guava_test_lib",
+        "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
+        "//libraries/protobuf:protobuf_test_lib",
+        "//libraries/kotlinx/datetime:datetime_test_lib",
+    ],
+)
+### auto-generated section `build intellij.android.avd` end
+
+### auto-generated section `iml intellij.android.avd` start
+exports_files(
+    [
+        "intellij.android.avd.iml",
+        "resources/META-INF/android-avd.xml",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `iml intellij.android.avd` end
+
+### auto-generated section `build intellij.android.avd.tests` start
+create_kotlinc_options(
+    name = "custom_avd-tests",
+    x_context_parameters = True,
+    x_sam_conversions = "class",
+)
+
+jvm_library(
+    name = "avd-tests",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.avd.tests",
+    visibility = ["//visibility:public"],
+)
+
+jvm_library(
+    name = "avd-tests_test_lib",
+    testonly = True,
+    srcs = glob(
         [
             "testSrc/**/*.kt",
             "testSrc/**/*.java",
@@ -70,11 +141,15 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [":avd"],
-    kotlinc_opts = ":custom_avd",
+    associates = [
+        "//android/avd",
+        "//android/avd:avd_test_lib",
+    ],
+    kotlinc_opts = ":custom_avd-tests",
     visibility = ["//visibility:public"],
     runtime_deps = [
         # do not sort,
+        ":avd-tests",
         "//platform/ide-core:ide-core_test_lib",
         "//platform/platform-impl:ide-impl_test_lib",
         "//platform/progress/shared:ide-progress_test_lib",
@@ -158,21 +233,20 @@ jvm_library(
         "//libraries/kotlinx/datetime:datetime_test_lib",
     ],
 )
-### auto-generated section `build intellij.android.avd` end
+### auto-generated section `build intellij.android.avd.tests` end
 
-### auto-generated section `iml intellij.android.avd` start
+### auto-generated section `iml intellij.android.avd.tests` start
 exports_files(
     [
-        "intellij.android.avd.iml",
-        "resources/META-INF/android-avd.xml",
+        "intellij.android.avd.tests.iml",
     ],
     visibility = ["//visibility:public"],
 )
-### auto-generated section `iml intellij.android.avd` end
+### auto-generated section `iml intellij.android.avd.tests` end
 
-### auto-generated section `test intellij.android.avd` start
+### auto-generated section `test intellij.android.avd.tests` start
 jps_test(
-    name = "avd_test",
-    runtime_deps = [":avd_test_lib"],
+    name = "avd-tests_test",
+    runtime_deps = [":avd-tests_test_lib"],
 )
-### auto-generated section `test intellij.android.avd` end
+### auto-generated section `test intellij.android.avd.tests` end

@@ -43,6 +43,61 @@ jvm_library(
     name = "ui_test_lib",
     testonly = True,
     srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.inspectors-common.ui",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":ui",
+        "@lib//:studio-platform-provided",
+        "//libraries/jetbrains/annotations:annotations_test_lib",
+        "//android/adt-ui:adt-ui_test_lib",
+        "//android/adt-ui-model:adt-ui-model_test_lib",
+        "//android/android-common:common_test_lib",
+        "//android/codenavigation:codenavigation_test_lib",
+        "//android/inspectors-common/api:api_test_lib",
+        "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon_test_lib",
+        "//platform/analysis-api:analysis_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/core-impl:core-impl_test_lib",
+        "//platform/editor-ui-api:editor-ui_test_lib",
+        "//platform/extensions:extensions_test_lib",
+        "//platform/foldings:foldings_test_lib",
+        "//platform/platform-api:ide_test_lib",
+        "//platform/platform-impl:ide-impl_test_lib",
+        "//platform/lang-impl:lang-impl_test_lib",
+        "//platform/util:util_test_lib",
+        "//platform/util:util-ui_test_lib",
+    ],
+)
+### auto-generated section `build intellij.android.inspectors-common.ui` end
+
+### auto-generated section `iml intellij.android.inspectors-common.ui` start
+exports_files(
+    [
+        "intellij.android.inspectors-common.ui.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `iml intellij.android.inspectors-common.ui` end
+
+### auto-generated section `build intellij.android.inspectors-common.ui.tests` start
+jvm_library(
+    name = "android-inspectors-common-ui-tests",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.inspectors-common.ui.tests",
+    visibility = ["//visibility:public"],
+)
+
+jvm_library(
+    name = "android-inspectors-common-ui-tests_test_lib",
+    testonly = True,
+    srcs = glob(
         [
             "testSrc/**/*.kt",
             "testSrc/**/*.java",
@@ -50,13 +105,20 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [":ui"],
+    associates = [
+        "//android/inspectors-common/ui",
+        "//android/inspectors-common/ui:ui_test_lib",
+    ],
     resource_strip_prefix = "resources",
     resources = glob(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
-    runtime_deps = ["//platform/platform-impl:ide-impl_test_lib"],
+    runtime_deps = [
+        # do not sort,
+        ":android-inspectors-common-ui-tests",
+        "//platform/platform-impl:ide-impl_test_lib",
+    ],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
@@ -114,20 +176,20 @@ jvm_library(
         "//platform/testFramework:testFramework_test_lib",
     ],
 )
-### auto-generated section `build intellij.android.inspectors-common.ui` end
+### auto-generated section `build intellij.android.inspectors-common.ui.tests` end
 
-### auto-generated section `iml intellij.android.inspectors-common.ui` start
+### auto-generated section `iml intellij.android.inspectors-common.ui.tests` start
 exports_files(
     [
-        "intellij.android.inspectors-common.ui.iml",
+        "intellij.android.inspectors-common.ui.tests.iml",
     ],
     visibility = ["//visibility:public"],
 )
-### auto-generated section `iml intellij.android.inspectors-common.ui` end
+### auto-generated section `iml intellij.android.inspectors-common.ui.tests` end
 
-### auto-generated section `test intellij.android.inspectors-common.ui` start
+### auto-generated section `test intellij.android.inspectors-common.ui.tests` start
 jps_test(
-    name = "ui_test",
-    runtime_deps = [":ui_test_lib"],
+    name = "android-inspectors-common-ui-tests_test",
+    runtime_deps = [":android-inspectors-common-ui-tests_test_lib"],
 )
-### auto-generated section `test intellij.android.inspectors-common.ui` end
+### auto-generated section `test intellij.android.inspectors-common.ui.tests` end
