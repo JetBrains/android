@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.avd
 
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.collections.immutable.ImmutableCollection
+import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.ui.Outline
-import org.jetbrains.jewel.ui.component.Dropdown
+import org.jetbrains.jewel.ui.component.MenuComboBox
 import org.jetbrains.jewel.ui.component.Text
 
+@OptIn(ExperimentalJewelApi::class)
 @Composable
 internal fun <I> Dropdown(
   selectedItem: I,
@@ -32,14 +34,14 @@ internal fun <I> Dropdown(
   modifier: Modifier = Modifier,
   enabled: Boolean = true,
   outline: Outline = Outline.None,
+  maxPopupHeight: Dp = 300.dp,
 ) {
-  Dropdown(
-    modifier,
-    enabled,
-    menuModifier = Modifier.heightIn(max = 300.dp),
-    menuContent = { items.forEach { selectableItem(selectedItem == it, onClick = { onSelectedItemChange(it) }) { Text(it.toString()) } } },
+  MenuComboBox(
+    labelContent = { Text(selectedItem.toString()) },
+    modifier = modifier,
+    enabled = enabled,
     outline = outline,
-  ) {
-    Text(selectedItem.toString())
-  }
+    maxPopupHeight = maxPopupHeight,
+    content = { items.forEach { selectableItem(selectedItem == it, onClick = { onSelectedItemChange(it) }) { Text(it.toString()) } } },
+  )
 }
