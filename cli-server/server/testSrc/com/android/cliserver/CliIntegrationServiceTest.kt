@@ -42,9 +42,7 @@ class CliIntegrationServiceTest {
         }
       }
 
-    // TODO: android-merge; upstream writes `commandRequest { this.project = "" }`; the generated Kotlin DSL builders are
-    //  invisible here because the studio-platform jar declares no kotlin_module for com.android.cliserver.
-    val request = CommandRequest.newBuilder().setProject("").build()
+    val request = commandRequest { this.project = "" }
 
     val response = handler.invokeHandler(request, arrayOf(project))
     assertThat(response.hasError()).isFalse()
@@ -65,9 +63,7 @@ class CliIntegrationServiceTest {
         }
       }
 
-    // TODO: android-merge; upstream writes `commandRequest { this.project = "non-existent" }`; the generated Kotlin DSL
-    //  builders are invisible here because the studio-platform jar declares no kotlin_module for com.android.cliserver.
-    val request = CommandRequest.newBuilder().setProject("non-existent").build()
+    val request = commandRequest { this.project = "non-existent" }
 
     val response = handler.invokeHandler(request, arrayOf(project))
     assertThat(response.hasError()).isTrue()
@@ -88,9 +84,7 @@ class CliIntegrationServiceTest {
         }
       }
 
-    // TODO: android-merge; upstream writes `commandRequest { this.project = "" }`; the generated Kotlin DSL builders are
-    //  invisible here because the studio-platform jar declares no kotlin_module for com.android.cliserver.
-    val request = CommandRequest.newBuilder().setProject("").build()
+    val request = commandRequest { this.project = "" }
 
     val response = handler.invokeHandler(request, arrayOf(project1, project2))
     assertThat(response.hasError()).isTrue()
@@ -115,9 +109,7 @@ class CliIntegrationServiceTest {
         }
       }
 
-    // TODO: android-merge; upstream writes `commandRequest { this.project = absPath }`; the generated Kotlin DSL builders
-    //  are invisible here because the studio-platform jar declares no kotlin_module for com.android.cliserver.
-    val request = CommandRequest.newBuilder().setProject(absPath).build()
+    val request = commandRequest { this.project = absPath }
 
     val response = handler.invokeHandler(request, arrayOf(project))
     assertThat(response.hasError()).isFalse()
@@ -140,9 +132,7 @@ class CliIntegrationServiceTest {
         }
       }
 
-    // TODO: android-merge; upstream writes `commandRequest { this.project = "testProject" }`; the generated Kotlin DSL
-    //  builders are invisible here because the studio-platform jar declares no kotlin_module for com.android.cliserver.
-    val request = CommandRequest.newBuilder().setProject("testProject").build()
+    val request = commandRequest { this.project = "testProject" }
 
     val response = handler.invokeHandler(request, arrayOf(project))
     assertThat(response.hasError()).isFalse()

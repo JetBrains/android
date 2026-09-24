@@ -112,32 +112,29 @@ internal fun CliActionHandler.invokeHandler(
     } else {
       null
     }
-  // TODO: android-merge; upstream builds the three responses below with the generated Kotlin DSL, `commandResponse { ... }`
-  //  and `genericError { ... }`. Those builders are top-level functions of the generated proto, and the studio-platform jar
-  //  declares no kotlin_module for com.android.cliserver, so kotlinc cannot see them here. Same messages, built with the
-  //  generated Java builders.
   if (project == null) {
-    return CommandResponse.newBuilder()
-      .setError(
-        GenericError.newBuilder()
-          .setMessage(
-            when {
-              openProjects.isEmpty() -> "Studio has no open projects"
-              request.project.isNullOrEmpty() && openProjects.size > 1 -> "There are multiple open projects, please specify one"
-              else -> "No project found matching \"${request.project}\""
-            }
-          )
-      )
-      .build()
+    return commandResponse {
+      error = genericError {
+        message =
+          when {
+            openProjects.isEmpty() -> "Studio has no open projects"
+            request.project.isNullOrEmpty() && openProjects.size > 1 -> "There are multiple open projects, please specify one"
+            else -> "No project found matching \"${request.project}\""
+          }
+      }
+    }
   }
   return try {
     val result = handle(project, request.payload.toByteArray())
-    CommandResponse.newBuilder().setProject(project.name).setPayload(result.toByteString()).build()
+    commandResponse {
+      this.project = project.name
+      payload = result.toByteString()
+    }
   } catch (e: Exception) {
-    CommandResponse.newBuilder()
-      .setProject(project.name)
-      .setError(GenericError.newBuilder().setMessage(e.message ?: "Unknown error"))
-      .build()
+    commandResponse {
+      this.project = project.name
+      error = genericError { message = e.message ?: "Unknown error" }
+    }
   }
 }
 

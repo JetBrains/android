@@ -18,27 +18,26 @@ package com.android.tools.idea.publishing.play
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.publishing.AppPublishingSource
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.PlayPublishingEvent
 import com.google.wireless.android.sdk.stats.PlayPublishingEvent.CreateAppDetails.CreateAppResult
 import com.google.wireless.android.sdk.stats.PlayPublishingEvent.CreateReleaseDetails.CreateReleaseResult
 import com.google.wireless.android.sdk.stats.PlayPublishingEvent.CreateReleaseDetails.TrackType
 import com.google.wireless.android.sdk.stats.PlayPublishingEvent.PlayPublishingEventType
 import com.google.wireless.android.sdk.stats.PlayPublishingEvent.WizardShownDetails.WizardInvocationSource
+import com.google.wireless.android.sdk.stats.PlayPublishingEventKt
+import com.google.wireless.android.sdk.stats.PlayPublishingEventKt.chooseBundleDetails
+import com.google.wireless.android.sdk.stats.PlayPublishingEventKt.createAppDetails
+import com.google.wireless.android.sdk.stats.PlayPublishingEventKt.createReleaseDetails
+import com.google.wireless.android.sdk.stats.PlayPublishingEventKt.wizardShownDetails
+import com.google.wireless.android.sdk.stats.androidStudioEvent
+import com.google.wireless.android.sdk.stats.playPublishingEvent
 
-// TODO: android-merge; upstream builds every event below with the generated Kotlin DSL, `androidStudioEvent { ... }`,
-//  `playPublishingEvent { ... }` and the four `*Details { ... }` builders. Those are top-level functions of the
-//  generated proto, and the studio-platform jar declares no kotlin_module for com.google.wireless.android.sdk.stats,
-//  so kotlinc cannot see them here. Same events, built with the generated Java builders.
 object PlayPublishingUsageTracker {
 
   fun trackWizardShown(source: AppPublishingSource) {
-    trackEvent(
-      PlayPublishingEvent.newBuilder()
-        .setEventType(PlayPublishingEventType.WIZARD_SHOWN)
-        .setWizardShownDetails(
-          PlayPublishingEvent.WizardShownDetails.newBuilder().setInvocationSource(source.toWizardInvocationSource())
-        )
-    )
+    trackEvent {
+      eventType = PlayPublishingEventType.WIZARD_SHOWN
+      wizardShownDetails = wizardShownDetails { invocationSource = source.toWizardInvocationSource() }
+    }
   }
 
   fun trackChooseBundle(
@@ -48,44 +47,42 @@ object PlayPublishingUsageTracker {
     isVersionCodeRead: Boolean,
     isVersionNameRead: Boolean,
   ) {
-    trackEvent(
-      PlayPublishingEvent.newBuilder()
-        .setEventType(PlayPublishingEventType.CHOOSE_BUNDLE)
-        .setChooseBundleDetails(
-          PlayPublishingEvent.ChooseBundleDetails.newBuilder()
-            .setPackageRegistered(isPackageRegistered ?: false)
-            .setAppNameRead(isAppNameRead)
-            .setPackageNameRead(isPackageNameRead)
-            .setVersionCodeRead(isVersionCodeRead)
-            .setVersionNameRead(isVersionNameRead)
-        )
-    )
+    trackEvent {
+      eventType = PlayPublishingEventType.CHOOSE_BUNDLE
+      chooseBundleDetails = chooseBundleDetails {
+        packageRegistered = isPackageRegistered ?: false
+        appNameRead = isAppNameRead
+        packageNameRead = isPackageNameRead
+        versionCodeRead = isVersionCodeRead
+        versionNameRead = isVersionNameRead
+      }
+    }
   }
 
   fun trackCreateApp(result: CreateAppResult) {
-    trackEvent(
-      PlayPublishingEvent.newBuilder()
-        .setEventType(PlayPublishingEventType.CREATE_APP)
-        .setCreateAppDetails(PlayPublishingEvent.CreateAppDetails.newBuilder().setCreateAppResult(result))
-    )
+    trackEvent {
+      eventType = PlayPublishingEventType.CREATE_APP
+      createAppDetails = createAppDetails { createAppResult = result }
+    }
   }
 
   fun trackCreateRelease(result: CreateReleaseResult, releaseTrackType: TrackType? = null, uploadTimeMs: Int? = null) {
-    val createReleaseDetails = PlayPublishingEvent.CreateReleaseDetails.newBuilder().setCreateReleaseResult(result)
-    releaseTrackType?.let { createReleaseDetails.setTrackType(it) }
-    uploadTimeMs?.let { createReleaseDetails.setTimeToUploadBundleMs(it) }
-    trackEvent(
-      PlayPublishingEvent.newBuilder()
-        .setEventType(PlayPublishingEventType.CREATE_RELEASE)
-        .setCreateReleaseDetails(createReleaseDetails)
-    )
+    trackEvent {
+      eventType = PlayPublishingEventType.CREATE_RELEASE
+      createReleaseDetails = createReleaseDetails {
+        createReleaseResult = result
+        releaseTrackType?.let { trackType = it }
+        uploadTimeMs?.let { timeToUploadBundleMs = it }
+      }
+    }
   }
 
-  private fun trackEvent(playPublishingEvent: PlayPublishingEvent.Builder) {
+  private fun trackEvent(block: PlayPublishingEventKt.Dsl.() -> Unit) {
     UsageTracker.log(
-      AndroidStudioEvent.newBuilder()
-        .setKind(AndroidStudioEvent.EventKind.PLAY_PUBLISHING_EVENT)
-        .setPlayPublishingEvent(playPublishingEvent)
+      androidStudioEvent {
+        kind = AndroidStudioEvent.EventKind.PLAY_PUBLISHING_EVENT
+        playPublishingEvent = playPublishingEvent(block)
+      }
     )
   }
 }

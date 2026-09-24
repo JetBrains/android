@@ -60,39 +60,29 @@ class CliServer(private val serverRegistry: CliServerRegistry, private val serve
   internal inner class CliService : StudioCliServiceGrpcKt.StudioCliServiceCoroutineImplBase() {
     override suspend fun executeCommand(request: CommandRequest): CommandResponse {
       val handler = commandHandlers[request.type]
-      // TODO: android-merge; upstream builds this with the generated Kotlin DSL, `commandResponse { error = genericError { message = ... } }`.
-      //  Those builders are top-level functions of the generated proto, and the studio-platform jar declares no kotlin_module
-      //  for com.android.cliserver, so kotlinc cannot see them here. Same message, built with the generated Java builders.
-      return handler?.let { handler(request) }
-        ?: CommandResponse.newBuilder()
-          .setError(GenericError.newBuilder().setMessage("${request.type} not implemented"))
-          .build()
+      return handler?.let { handler(request) } ?: commandResponse { error = genericError { message = "${request.type} not implemented" } }
     }
 
     override suspend fun checkStatus(request: CheckStatusRequest): CheckStatusResponse {
       val serverInfo = serverInfoProvider.status()
-      // TODO: android-merge; upstream builds this with the generated Kotlin DSL, `checkStatusResponse { ... projectStatus { ... } }`.
-      //  Those builders are top-level functions of the generated proto, and the studio-platform jar declares no kotlin_module
-      //  for com.android.cliserver, so kotlinc cannot see them here. Same message, built with the generated Java builders.
-      return CheckStatusResponse.newBuilder()
-        .setPid(ProcessHandle.current().pid())
-        .setVersion(serverInfo.version)
-        .addAllProjectStatus(
+      return checkStatusResponse {
+        pid = ProcessHandle.current().pid()
+        version = serverInfo.version
+        projectStatus.addAll(
           serverInfo.projects.map { project ->
-            ProjectStatus.newBuilder()
-              .setName(project.name)
-              .setPath(project.path)
-              .setStatus(
+            projectStatus {
+              name = project.name
+              path = project.path
+              status =
                 when (project.status) {
                   ServerInfoProvider.ProjectStatus.UNKNOWN -> ProjectStatus.Status.UNKNOWN
                   ServerInfoProvider.ProjectStatus.NOT_READY -> ProjectStatus.Status.NOT_READY
                   ServerInfoProvider.ProjectStatus.READY -> ProjectStatus.Status.READY
                 }
-              )
-              .build()
+            }
           }
         )
-        .build()
+      }
     }
   }
 
