@@ -30,7 +30,7 @@ import com.android.tools.idea.publishing.play.client.type.Release
 import com.android.tools.idea.publishing.play.client.type.Status
 import com.android.tools.idea.publishing.play.client.type.Track
 import com.android.tools.idea.publishing.play.client.type.parseGoogleApiError
-// TODO: android-merge; com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
+// AND-142 JetBrains patch (Google Play Publishing): com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
 // import com.google.gct.login2.fstLoginFeature
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
@@ -234,7 +234,7 @@ private fun defaultHttpClient(): HttpClient {
       )
     }
     install(HttpTimeout)
-    // TODO: android-merge; the request is unauthenticated here. The access token comes from
+    // AND-142 JetBrains patch (Google Play Publishing): the request is unauthenticated here. The access token comes from
     // com.google.gct.login2.fstLoginFeature in tools/vendor/google/login, which this repository does not carry.
     // defaultRequest {
     //   val accessToken = fstLoginFeature.oAuthToken()

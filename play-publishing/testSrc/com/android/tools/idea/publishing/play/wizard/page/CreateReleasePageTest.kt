@@ -37,7 +37,7 @@ import com.android.tools.idea.publishing.play.client.type.Track
 import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardState
 import com.android.tools.idea.testing.NotificationRule
 import com.google.common.truth.Truth.assertThat
-// TODO: android-merge; com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
+// AND-142 JetBrains patch (Google Play Publishing): com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
 // import com.google.gct.login2.LoginFeatureRule
 // import com.google.gct.login2.LoginUsersRule
 import com.intellij.ide.BrowserUtil
@@ -76,7 +76,7 @@ class CreateReleasePageTest {
   private val disposableRule = DisposableRule()
   private val notificationRule = NotificationRule(projectRule)
   private val composeTestRule = StudioComposeTestRule.createStudioComposeTestRule()
-  // TODO: android-merge; LoginFeatureRule and LoginUsersRule are in tools/vendor/google/login, which this
+  // AND-142 JetBrains patch (Google Play Publishing): LoginFeatureRule and LoginUsersRule are in tools/vendor/google/login, which this
   // repository does not carry.
   // private val loginFeatureRule = LoginFeatureRule()
   // private val loginUsersRule = LoginUsersRule()
@@ -95,7 +95,7 @@ class CreateReleasePageTest {
 
   @Before
   fun setUp() {
-    // TODO: android-merge; LoginUsersRule is in tools/vendor/google/login, which this repository does not carry.
+    // AND-142 JetBrains patch (Google Play Publishing): LoginUsersRule is in tools/vendor/google/login, which this repository does not carry.
     // loginUsersRule.setActiveUser("user@example.com")
     fakeClient = FakePlayPublishingClient()
     application.replaceService(PlayPublishingClient::class.java, fakeClient, disposableRule.disposable)
@@ -244,7 +244,7 @@ class CreateReleasePageTest {
     assertThat(commitEditCalled).isTrue()
   }
 
-  // TODO: android-merge; the "Open Play Console" notification action is added only when the signed-in
+  // AND-142 JetBrains patch (Google Play Publishing): the "Open Play Console" notification action is added only when the signed-in
   // email can be read from com.google.gct.login2.GoogleLoginService in tools/vendor/google/login, which
   // this repository does not carry. showUploadSucceededNotification in CreateReleasePage.kt has that block
   // commented out for the same reason, so the notification here has no action to assert on.

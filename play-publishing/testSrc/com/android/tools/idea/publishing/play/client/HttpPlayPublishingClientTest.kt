@@ -33,7 +33,7 @@ import com.android.tools.idea.publishing.play.client.type.Release
 import com.android.tools.idea.publishing.play.client.type.Status
 import com.android.tools.idea.publishing.play.client.type.Track
 import com.google.common.truth.Truth.assertThat
-// TODO: android-merge; com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
+// AND-142 JetBrains patch (Google Play Publishing): com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
 // import com.google.gct.login2.LoginFeatureRule
 // import com.google.gct.login2.LoginUsersRule
 import com.intellij.testFramework.ApplicationRule
@@ -63,7 +63,7 @@ class HttpPlayPublishingClientTest {
   private val applicationRule = ApplicationRule()
   private val disposableRule = DisposableRule()
   private val flagsRule = FlagRule(StudioFlags.ENABLE_FSTS, true)
-  // TODO: android-merge; LoginFeatureRule and LoginUsersRule are in tools/vendor/google/login, which this
+  // AND-142 JetBrains patch (Google Play Publishing): LoginFeatureRule and LoginUsersRule are in tools/vendor/google/login, which this
   // repository does not carry. The client under test builds its requests without a credential here, so the
   // tests below run without them.
   // private val loginFeatureRule = LoginFeatureRule()

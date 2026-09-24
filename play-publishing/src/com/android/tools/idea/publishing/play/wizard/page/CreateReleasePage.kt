@@ -56,7 +56,7 @@ import com.android.tools.idea.publishing.play.client.type.Track
 import com.android.tools.idea.publishing.play.wizard.FormField
 import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardHeader
 import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardState
-// TODO: android-merge; com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
+// AND-142 JetBrains patch (Google Play Publishing): com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
 // import com.google.gct.login2.GoogleLoginService
 import com.google.wireless.android.sdk.stats.PlayPublishingEvent.CreateReleaseDetails.CreateReleaseResult
 import com.google.wireless.android.sdk.stats.PlayPublishingEvent.CreateReleaseDetails.TrackType
@@ -297,7 +297,7 @@ private fun showUploadSuccessfulNotification(
       .createNotification("Publishing successful", content, NotificationType.INFORMATION)
       .setIcon(StudioIcons.Common.SUCCESS)
 
-  // TODO: android-merge; the signed-in account comes from com.google.gct.login2.GoogleLoginService in
+  // AND-142 JetBrains patch (Google Play Publishing): the signed-in account comes from com.google.gct.login2.GoogleLoginService in
   // tools/vendor/google/login, which this repository does not carry, so the notification has no
   // "Open Play Console" action here.
   // val email = GoogleLoginService.instance.getEmail()

@@ -60,14 +60,14 @@ import com.android.tools.idea.publishing.play.client.type.App
 import com.android.tools.idea.publishing.play.extractAppMetadata
 import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardHeader
 import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardState
-// TODO: android-merge; com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
+// AND-142 JetBrains patch (Google Play Publishing): com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
 // import com.google.gct.login2.GoogleLoginService
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.LocalFileSystem
-// TODO: android-merge; icons.GoogleLoginIcons is tools/vendor/google/login, which this repository does not
+// AND-142 JetBrains patch (Google Play Publishing): icons.GoogleLoginIcons is tools/vendor/google/login, which this repository does not
 // carry, and com.intellij.util.ui.ImageUtil was only used by the avatar fallback that goes with it.
 // import com.intellij.util.ui.ImageUtil
 // import icons.GoogleLoginIcons
@@ -92,7 +92,7 @@ private const val UPLOAD_BUNDLE_DAC_URL = "https://developer.android.com/r/studi
 @OptIn(ExperimentalFoundationApi::class, ExperimentalJewelApi::class)
 @Composable
 fun WizardPageScope.ChooseBundlePage(extractMetadata: suspend (Path) -> AppMetadata = ::extractAppMetadata) {
-  // TODO: android-merge; the signed in user comes from com.google.gct.login2.GoogleLoginService in
+  // AND-142 JetBrains patch (Google Play Publishing): the signed in user comes from com.google.gct.login2.GoogleLoginService in
   // tools/vendor/google/login, which this repository does not carry.
   // val user by GoogleLoginService.instance.activeUserFlow.collectAsState()
   val project = LocalProject.current
@@ -182,7 +182,7 @@ fun WizardPageScope.ChooseBundlePage(extractMetadata: suspend (Path) -> AppMetad
     FileChooserDescriptor(true, false, false, false, false, false).withFileFilter { it.extension?.lowercase() == "aab" }
   }
 
-  // TODO: android-merge; the avatar is built from the signed in user and from the fallback icon in
+  // AND-142 JetBrains patch (Google Play Publishing): the avatar is built from the signed in user and from the fallback icon in
   // tools/vendor/google/login, which this repository does not carry.
   // val avatarPainter =
   //   remember(user) {
@@ -214,7 +214,7 @@ fun WizardPageScope.ChooseBundlePage(extractMetadata: suspend (Path) -> AppMetad
     PlayPublishingWizardHeader(subtitle = "Choose App Bundle")
     Column(modifier = Modifier.weight(1f).padding(24.dp).focusTarget()) {
       // User Info
-      // TODO: android-merge; the signed in account and its avatar come from tools/vendor/google/login, which
+      // AND-142 JetBrains patch (Google Play Publishing): the signed in account and its avatar come from tools/vendor/google/login, which
       // this repository does not carry.
       // Row(verticalAlignment = Alignment.CenterVertically) {
       //   Image(painter = avatarPainter, contentDescription = null, modifier = Modifier.size(24.dp).clip(RoundedCornerShape(12.dp)))

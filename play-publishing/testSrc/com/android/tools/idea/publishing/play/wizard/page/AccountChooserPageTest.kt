@@ -25,7 +25,7 @@ import com.android.tools.adtui.compose.utils.StudioComposeTestRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Truth.assertThat
-// TODO: android-merge; com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
+// AND-142 JetBrains patch (Google Play Publishing): com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
 // import com.google.gct.login2.GoogleLoginService
 // import com.google.gct.login2.LoginFeatureRule
 // import com.google.gct.login2.LoginUsersRule
@@ -46,7 +46,7 @@ class AccountChooserPageTest {
   private val flagsRule = FlagRule(StudioFlags.ENABLE_FSTS, true)
   private val disposableRule = DisposableRule()
   private val composeTestRule = StudioComposeTestRule.createStudioComposeTestRule()
-  // TODO: android-merge; LoginFeatureRule and LoginUsersRule are in tools/vendor/google/login, which this
+  // AND-142 JetBrains patch (Google Play Publishing): LoginFeatureRule and LoginUsersRule are in tools/vendor/google/login, which this
   // repository does not carry.
   // private val loginFeatureRule = LoginFeatureRule()
   // private val loginUsersRule = LoginUsersRule()
@@ -86,7 +86,7 @@ class AccountChooserPageTest {
       .assertIsDisplayed()
   }
 
-  // TODO: android-merge; the test sets up a signed in user through LoginUsersRule and LoginFeatureRule from
+  // AND-142 JetBrains patch (Google Play Publishing): the test sets up a signed in user through LoginUsersRule and LoginFeatureRule from
   // tools/vendor/google/login, which this repository does not carry, and the banner it asserts on is shown
   // only when that login state can be read.
   // @Test
@@ -107,7 +107,7 @@ class AccountChooserPageTest {
   //     .assertIsDisplayed()
   // }
 
-  // TODO: android-merge; both tests drive the next action, which signs in through
+  // AND-142 JetBrains patch (Google Play Publishing): both tests drive the next action, which signs in through
   // com.google.gct.login2.fstLoginFeature from tools/vendor/google/login, which this repository does not carry.
   // @Test
   // fun testNextActionWhenLoggedIn() {
@@ -132,7 +132,7 @@ class AccountChooserPageTest {
   //   assertThat(wizard.pageStackSize()).isEqualTo(2)
   // }
 
-  // TODO: android-merge; the account dropdown these three tests drive is shown only when
+  // AND-142 JetBrains patch (Google Play Publishing): the account dropdown these three tests drive is shown only when
   // com.google.gct.login2.GoogleLoginService from tools/vendor/google/login reports logged in users, and this
   // repository does not carry it.
   // @Test
@@ -199,7 +199,7 @@ class AccountChooserPageTest {
   //   assertThat(wizard.pageStackSize()).isEqualTo(2)
   // }
 
-  // TODO: android-merge; the banner text depends on the login state read from
+  // AND-142 JetBrains patch (Google Play Publishing): the banner text depends on the login state read from
   // com.google.gct.login2.GoogleLoginService and fstLoginFeature in tools/vendor/google/login, which this
   // repository does not carry, so only the logged out banner can be shown here.
   // @Test

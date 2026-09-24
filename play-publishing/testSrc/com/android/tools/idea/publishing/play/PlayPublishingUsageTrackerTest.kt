@@ -37,7 +37,7 @@ import com.android.tools.idea.publishing.play.wizard.page.ChooseBundlePage
 import com.android.tools.idea.publishing.play.wizard.page.CreateReleasePage
 import com.android.tools.idea.testing.NotificationRule
 import com.google.common.truth.Truth.assertThat
-// TODO: android-merge; com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
+// AND-142 JetBrains patch (Google Play Publishing): com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
 // import com.google.gct.login2.LoginFeatureRule
 // import com.google.gct.login2.LoginUsersRule
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -73,7 +73,7 @@ class PlayPublishingUsageTrackerTest {
   private val disposableRule = DisposableRule()
   private val notificationRule = NotificationRule(projectRule)
   private val composeTestRule = StudioComposeTestRule.createStudioComposeTestRule()
-  // TODO: android-merge; LoginFeatureRule and LoginUsersRule are in tools/vendor/google/login, which this
+  // AND-142 JetBrains patch (Google Play Publishing): LoginFeatureRule and LoginUsersRule are in tools/vendor/google/login, which this
   // repository does not carry. The metrics under test are logged by PlayPublishingUsageTracker, which does
   // not read the signed-in account, so the tests below run without them.
   // private val loginFeatureRule = LoginFeatureRule()
@@ -95,7 +95,7 @@ class PlayPublishingUsageTrackerTest {
 
   @Before
   fun setUp() {
-    // TODO: android-merge; LoginUsersRule is in tools/vendor/google/login, which this repository does not carry.
+    // AND-142 JetBrains patch (Google Play Publishing): LoginUsersRule is in tools/vendor/google/login, which this repository does not carry.
     // loginUsersRule.setActiveUser("user@example.com")
     fakeClient = FakePlayPublishingClient()
     application.replaceService(PlayPublishingClient::class.java, fakeClient, disposableRule.disposable)

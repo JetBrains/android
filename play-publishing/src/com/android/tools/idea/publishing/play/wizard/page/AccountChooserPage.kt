@@ -51,7 +51,7 @@ import com.android.tools.adtui.compose.WizardAction
 import com.android.tools.adtui.compose.WizardPageScope
 import com.android.tools.idea.publishing.play.wizard.FormField
 import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardHeader
-// TODO: android-merge; com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
+// AND-142 JetBrains patch (Google Play Publishing): com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
 // import com.google.gct.login2.GoogleLoginService
 // import com.google.gct.login2.PreferredUser
 // import com.google.gct.login2.fstLoginFeature
@@ -71,7 +71,7 @@ import org.jetbrains.jewel.ui.theme.linkStyle
 
 @Composable
 fun WizardPageScope.AccountChooserPage() {
-  // TODO: android-merge; the signed in accounts come from com.google.gct.login2.GoogleLoginService in
+  // AND-142 JetBrains patch (Google Play Publishing): the signed in accounts come from com.google.gct.login2.GoogleLoginService in
   // tools/vendor/google/login, which this repository does not carry, so there is no account list to choose from.
   // val loggedInUsers by GoogleLoginService.instance.allUsersFlow.collectAsState()
   // val activeUser by GoogleLoginService.instance.activeUserFlow.collectAsState()
@@ -130,7 +130,7 @@ fun WizardPageScope.AccountChooserPage() {
           inlineContent = inlineContent,
         )
 
-        // TODO: android-merge; the account dropdown lists the users of
+        // AND-142 JetBrains patch (Google Play Publishing): the account dropdown lists the users of
         // com.google.gct.login2.GoogleLoginService in tools/vendor/google/login, which this repository does not
         // carry, so the list is always empty here and the dropdown is never shown.
         // if (loggedInUsers.isNotEmpty()) {
@@ -166,7 +166,7 @@ fun WizardPageScope.AccountChooserPage() {
 
     Spacer(modifier = Modifier.weight(1f))
 
-    // TODO: android-merge; choosing the banner text from the login state needs
+    // AND-142 JetBrains patch (Google Play Publishing): choosing the banner text from the login state needs
     // com.google.gct.login2.GoogleLoginService and fstLoginFeature from tools/vendor/google/login, which this
     // repository does not carry. Without them there are no logged in users, so the first branch below is the
     // one that always applies and its text is shown unconditionally.
@@ -196,7 +196,7 @@ fun WizardPageScope.AccountChooserPage() {
   }
 
   nextActionName = "Next"
-  // TODO: android-merge; the sign-in step needs com.google.gct.login2.fstLoginFeature, PreferredUser and
+  // AND-142 JetBrains patch (Google Play Publishing): the sign-in step needs com.google.gct.login2.fstLoginFeature, PreferredUser and
   // GoogleLoginService from tools/vendor/google/login, which this repository does not carry.
   // nextAction = WizardAction {
   //   if (isSignInWithNewAccount) {
