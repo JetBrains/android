@@ -26,7 +26,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.actionSystem.EditorAction
 import com.intellij.openapi.editor.actionSystem.EditorActionHandler
 import com.intellij.openapi.project.Project
-import com.intellij.platform.ide.navigation.NavigationOptions
+import com.intellij.platform.ide.navigation.toNavigationOptions
 import com.intellij.psi.PsiDocumentManager
 
 /**
@@ -39,7 +39,7 @@ class GoToRelatedDaggerItemsAction : EditorAction(Handler()) {
   private class Handler : EditorActionHandler() {
     override fun doExecute(editor: Editor, caret: Caret?, dataContext: DataContext?) {
       val project = editor.project ?: return
-      val options = dataContext?.let { NavigationOptions.fromContext(it) } ?: NavigationOptions.defaultOptions()
+      val options = dataContext.toNavigationOptions()
 
       // doExecute is called with a null Caret, so we have to get the current caret instead.
       val gotoItems = editor.caretModel.currentCaret.getGotoItems(project)
