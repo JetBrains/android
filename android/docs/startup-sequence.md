@@ -3,7 +3,7 @@
 WARNING: IntelliJ changes their startup lifecycle often as they try to fix performance issues. Many APIs are marked
 "internal", so they could change anytime. The following information is current as of AS 2022.1 (Electric Eel).
 
-* `ApplicationLoadListener.beforeApplicationLoaded`
+* `ApplicationLoadHandler.beforeApplicationLoaded`
   * Splash screen shown -- no loading bar yet
   * This is **explicitly listed as not to be used by 3rd party plugins**.
   * `AndroidPluginInitializer` is invoked to initialize analytics & studio progress manager (which should be moved further down)
