@@ -40,7 +40,7 @@
     <module name="intellij.java"/>
     <module name="intellij.platform.uast"/>
     <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
-    <plugin id="intellij.problemView.plugin"/>
+    <plugin id="com.intellij.problemsView"/>
     <module name="intellij.platform.problemView.ui"/>
     <!-- endregion -->
   </dependencies>
