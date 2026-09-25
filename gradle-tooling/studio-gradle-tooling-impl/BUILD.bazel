@@ -69,12 +69,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.gradle-tooling.impl` end
 
 ### auto-generated section `build intellij.android.gradle-tooling.impl.tests` start
-create_kotlinc_options(
-    name = "custom_android-gradle-tooling-impl-tests",
-    jvm_target = "8",
-    x_sam_conversions = "class",
-)
-
 jvm_library(
     name = "android-gradle-tooling-impl-tests",
     srcs = glob(
@@ -100,7 +94,6 @@ jvm_library(
         "//android/gradle-tooling/studio-gradle-tooling-impl:android-gradle-tooling-impl",
         "//android/gradle-tooling/studio-gradle-tooling-impl:android-gradle-tooling-impl_test_lib",
     ],
-    kotlinc_opts = ":custom_android-gradle-tooling-impl-tests",
     visibility = ["//visibility:public"],
     runtime_deps = [":android-gradle-tooling-impl-tests"],
     deps = [

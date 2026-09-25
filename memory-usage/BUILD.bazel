@@ -71,7 +71,6 @@ jvm_library(
         "//android/memory-usage",
         "//android/memory-usage:memory-usage_test_lib",
     ],
-    kotlinc_opts = "@community//:k8",
     visibility = ["//visibility:public"],
     runtime_deps = [":memory-usage-tests"],
     deps = [
