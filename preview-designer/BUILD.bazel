@@ -246,6 +246,8 @@ jvm_library(
         "//android/adt-testutils:adt-testutils_test_lib",
         "//android/adt-ui",
         "//android/adt-ui:adt-ui_test_lib",
+        "//android/adt-ui/src/test:android-adt-ui-tests",
+        "//android/adt-ui/src/test:android-adt-ui-tests_test_lib",
         "//android/android-common:common",
         "//android/android-common:common_test_lib",
         "//android/render-resources",

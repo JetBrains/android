@@ -23,6 +23,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.model.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.analytics" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.ide" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
@@ -39,10 +40,13 @@
     <orderEntry type="module" module-name="intellij.android.ml-api" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.native-symbolizer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.profilers" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.profilers.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.profilers.ui" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.profilers.ui.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.transport" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.transport.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.transportDatabase" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.execution" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.indexing" scope="TEST" />

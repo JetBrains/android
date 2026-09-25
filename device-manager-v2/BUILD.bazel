@@ -169,6 +169,8 @@ jvm_library(
         "@lib//:kotlin-stdlib",
         "//android/adt-ui",
         "//android/adt-ui:adt-ui_test_lib",
+        "//android/adt-ui/src/test:android-adt-ui-tests",
+        "//android/adt-ui/src/test:android-adt-ui-tests_test_lib",
         "//android/android:core",
         "//android/android:core_test_lib",
         "//android/android-common:common",

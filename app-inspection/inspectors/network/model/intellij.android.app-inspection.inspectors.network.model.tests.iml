@@ -20,6 +20,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.model.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.api" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.codenavigation" scope="TEST" />

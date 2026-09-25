@@ -114,6 +114,8 @@ jvm_library(
         "//android/adt-ui:adt-ui_test_lib",
         "//android/observable",
         "//android/observable:observable_test_lib",
+        "//android/observable:observable-tests",
+        "//android/observable:observable-tests_test_lib",
         "//platform/core-api:core",
         "//platform/core-api:core_test_lib",
         "//platform/core-ui",

@@ -132,6 +132,8 @@ jvm_library(
         "@lib//:truth",
         "//android/adt-ui",
         "//android/adt-ui:adt-ui_test_lib",
+        "//android/adt-ui/src/test:android-adt-ui-tests",
+        "//android/adt-ui/src/test:android-adt-ui-tests_test_lib",
         "//android/inspectors-common/ui",
         "//android/inspectors-common/ui:ui_test_lib",
         "//android/codenavigation",

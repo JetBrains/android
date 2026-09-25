@@ -221,6 +221,8 @@ jvm_library(
         "//android/adt-testutils:adt-testutils_test_lib",
         "//android/adt-ui",
         "//android/adt-ui:adt-ui_test_lib",
+        "//android/adt-ui/src/test:android-adt-ui-tests",
+        "//android/adt-ui/src/test:android-adt-ui-tests_test_lib",
         "//android/app-inspection/inspectors/database",
         "//android/app-inspection/inspectors/database:database_test_lib",
         "//android/android-common:common",

@@ -1,7 +1,20 @@
 load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "kt_javac_options")
 
 ### auto-generated section `build intellij.android.adt.ui.tests` start
+kt_javac_options(
+    name = "custom-javac-options",
+    add_exports = [
+        "java.desktop/sun.swing=ALL-UNNAMED",
+        "java.desktop/java.awt.peer=ALL-UNNAMED",
+        "java.desktop/sun.java2d.pipe=ALL-UNNAMED",
+        "java.desktop/sun.awt=ALL-UNNAMED",
+    ],
+    no_proc = True,
+    warn = "off",
+    x_ep_disable_all_checks = True,
+)
+
 jvm_library(
     name = "android-adt-ui-tests",
     srcs = glob(
@@ -28,6 +41,7 @@ jvm_library(
         "//android/adt-ui",
         "//android/adt-ui:adt-ui_test_lib",
     ],
+    javac_opts = ":custom-javac-options",
     resource_strip_prefix = "resources",
     resources = glob(
         ["resources/**/*"],
@@ -68,12 +82,16 @@ jvm_library(
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
         "//android/adt-ui-model",
         "//android/adt-ui-model:adt-ui-model_test_lib",
+        "//android/adt-ui-model:adt-ui-model-tests",
+        "//android/adt-ui-model:adt-ui-model-tests_test_lib",
         "//android/artwork",
         "//android/artwork:artwork_test_lib",
         "//android/android-common:common",
         "//android/android-common:common_test_lib",
         "//android/observable",
         "//android/observable:observable_test_lib",
+        "//android/observable:observable-tests",
+        "//android/observable:observable-tests_test_lib",
         "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
         "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon_test_lib",
         "//platform/forms_rt:java-guiForms-rt",

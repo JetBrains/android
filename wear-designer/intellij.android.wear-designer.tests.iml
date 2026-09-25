@@ -42,6 +42,7 @@
     <orderEntry type="module" module-name="intellij.android.preview-elements" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea.k2" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.kotlin.base.plugin" scope="TEST" />

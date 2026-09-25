@@ -262,6 +262,8 @@ jvm_library(
         "//android/render-resources:render-resources_test_lib",
         "//android/server-flags",
         "//android/server-flags:server-flags_test_lib",
+        "//android/server-flags:server-flags-tests",
+        "//android/server-flags:server-flags-tests_test_lib",
         "//android/android-common:common",
         "//android/android-common:common_test_lib",
         "//android/intellij.android.testutils:testutils",
