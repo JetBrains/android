@@ -243,7 +243,7 @@
       <module fileurl="file://$PROJECT_DIR$/swingp/intellij.android.adt.swingp.tests.iml" filepath="$PROJECT_DIR$/swingp/intellij.android.adt.swingp.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/adt-testutils/intellij.android.adt.testutils.iml" filepath="$PROJECT_DIR$/adt-testutils/intellij.android.adt.testutils.iml" />
       <module fileurl="file://$PROJECT_DIR$/adt-ui/intellij.android.adt.ui.iml" filepath="$PROJECT_DIR$/adt-ui/intellij.android.adt.ui.iml" />
-      <module fileurl="file://$PROJECT_DIR$/adt-ui/intellij.android.adt.ui.tests.iml" filepath="$PROJECT_DIR$/adt-ui/intellij.android.adt.ui.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/adt-ui/src/test/intellij.android.adt.ui.tests.iml" filepath="$PROJECT_DIR$/adt-ui/src/test/intellij.android.adt.ui.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/adt-ui-compose/intellij.android.adt.ui.compose.iml" filepath="$PROJECT_DIR$/adt-ui-compose/intellij.android.adt.ui.compose.iml" />
       <module fileurl="file://$PROJECT_DIR$/adt-ui-compose/intellij.android.adt.ui.compose.tests.iml" filepath="$PROJECT_DIR$/adt-ui-compose/intellij.android.adt.ui.compose.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/adt-ui-model/intellij.android.adt.ui.model.iml" filepath="$PROJECT_DIR$/adt-ui-model/intellij.android.adt.ui.model.iml" />
