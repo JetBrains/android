@@ -57,8 +57,5 @@
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="library" name="aapt-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.apkanalyzer" />
-    <orderEntry type="library" scope="TEST" name="fleet:io.ktor.client.mock" level="project" />
-    <orderEntry type="module" module-name="intellij.libraries.mockito" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.util.jdom" scope="TEST" />
   </component>
 </module>
