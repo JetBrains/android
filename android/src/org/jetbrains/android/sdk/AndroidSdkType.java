@@ -1,4 +1,4 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2026 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android.sdk;
 
 import static com.android.tools.sdk.SdkPaths.validateAndroidSdk;
@@ -27,6 +27,7 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.ui.Messages;
 import icons.StudioIcons;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import javax.swing.Icon;
@@ -71,7 +72,7 @@ public class AndroidSdkType extends SdkType implements JavaSdkType {
 
   @Override
   @Nullable
-  public String suggestHomePath() {
+  public String suggestHomePath(@NotNull Path path) {
     return null;
   }
 
