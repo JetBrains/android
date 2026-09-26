@@ -19,7 +19,7 @@ jvm_library(
     visibility = ["//visibility:public"],
     deps = [
         # do not sort,
-        "@lib//:jaxb-api",
+        "//libraries/jaxb",
         "@lib//:kotlin-stdlib",
         "@lib//:studio-platform-provided",
         "//libraries/guava",
@@ -70,6 +70,7 @@ jvm_library(
     runtime_deps = [
         # do not sort,
         ":common",
+        "//libraries/jaxb:jaxb_test_lib",
         "@lib//:studio-platform-provided",
         "@lib//:studio-test-platform",
         "//libraries/guava:guava_test_lib",
