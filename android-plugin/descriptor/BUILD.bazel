@@ -222,7 +222,6 @@ dev_dist_plugin(
     library_descriptors = {
         "@lib//:studio-platform": "META-INF/wizard-template-impl.xml",
     },
-    main_jar_name = "android.jar",
     main_module = "intellij.android.plugin.descriptor",
     variants = [
         "darwin_aarch64",
