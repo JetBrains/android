@@ -77,6 +77,8 @@ import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -111,6 +113,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Alarm;
 import com.intellij.util.PsiNavigateUtil;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Collection;
@@ -500,6 +503,21 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
   @VisibleForTesting
   static void handleOpenStackUrl(@NotNull String url, @NotNull Module module) {
     assert url.startsWith(URL_OPEN) : url;
+    Project project = module.getProject();
+    // JetBrains patch: the click arrives on the EDT, where the index lookups in findOpenStackTarget are prohibited slow operations.
+    ReadAction.nonBlocking(() -> findOpenStackTarget(url, project))
+      .inSmartMode(project)
+      .expireWith(module)
+      .finishOnUiThread(ModalityState.defaultModalityState(), descriptor -> {
+        if (descriptor != null) {
+          openEditor(project, descriptor);
+        }
+      })
+      .submit(AppExecutorUtil.getAppExecutorService());
+  }
+
+  @Nullable
+  private static OpenFileDescriptor findOpenStackTarget(@NotNull String url, @NotNull Project project) {
     // Syntax: URL_OPEN + className + '#' + methodName + ';' + fileName + ':' + lineNumber;
     int start = URL_OPEN.length();
     int semi = url.indexOf(';', start);
@@ -531,7 +549,6 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
       className = className.substring(0, hash);
     }
 
-    Project project = module.getProject();
     GlobalSearchScope searchScope = GlobalSearchScope.allScope(project);
 
     // First, try to find a source file corresponding to the class, because other search mechanisms below might return the .class files.
@@ -543,8 +560,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
         fileName
       );
       if (containingFile != null) {
-        openEditor(project, containingFile, line - 1, -1);
-        return;
+        return lineDescriptor(project, containingFile, line - 1);
       }
     }
 
@@ -557,8 +573,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
           String name = virtualFile.getName();
           if (fileName.equals(name)) {
             // Use the line number rather than the methodName
-            openEditor(project, containingFile, line - 1, -1);
-            return;
+            return new OpenFileDescriptor(project, virtualFile, line - 1, -1);
           }
         }
       }
@@ -570,9 +585,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
           if (psiFile != null) {
             VirtualFile virtualFile = psiFile.getVirtualFile();
             if (virtualFile != null) {
-              OpenFileDescriptor descriptor = new OpenFileDescriptor(project, virtualFile, m.getTextOffset());
-              FileEditorManager.getInstance(project).openEditor(descriptor, true);
-              return;
+              return new OpenFileDescriptor(project, virtualFile, m.getTextOffset());
             }
           }
         }
@@ -581,11 +594,26 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
       if (fileName != null) {
         PsiFile[] files = FilenameIndex.getFilesByName(project, fileName, searchScope);
         for (PsiFile psiFile : files) {
-          if (openEditor(project, psiFile, line != -1 ? line - 1 : -1, -1)) {
-            break;
+          OpenFileDescriptor descriptor = lineDescriptor(project, psiFile, line != -1 ? line - 1 : -1);
+          if (descriptor != null) {
+            return descriptor;
           }
         }
       }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static OpenFileDescriptor lineDescriptor(@NotNull Project project, @NotNull PsiFile psiFile, int line) {
+    VirtualFile file = psiFile.getVirtualFile();
+    return file != null ? new OpenFileDescriptor(project, file, line, -1) : null;
+  }
+
+  private static void openEditor(@NotNull Project project, @NotNull OpenFileDescriptor descriptor) {
+    FileEditorManager manager = FileEditorManager.getInstance(project);
+    if (manager.openTextEditor(descriptor, true) == null) {
+      manager.openEditor(descriptor, true);
     }
   }
 

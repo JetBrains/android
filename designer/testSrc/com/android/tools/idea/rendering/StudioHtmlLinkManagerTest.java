@@ -23,9 +23,11 @@ import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.rendering.HtmlLinkManager;
 import com.google.common.collect.ImmutableList;
 import com.intellij.mock.MockPsiFile;
+import com.intellij.openapi.application.impl.NonBlockingReadActionImpl;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.testFramework.PlatformTestUtil;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -98,6 +100,8 @@ public class StudioHtmlLinkManagerTest extends LayoutTestCase {
     assertThat(FileEditorManager.getInstance(getProject()).getSelectedEditor()).isNull();
     String url = "open:com.google.example.MyClass#myMethod;MyClass.kt";
     StudioHtmlLinkManager.handleOpenStackUrl(url, myModule);
+    NonBlockingReadActionImpl.waitForAsyncTaskCompletion();
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     FileEditor selectedEditor = FileEditorManager.getInstance(getProject()).getSelectedEditor();
     assertThat(selectedEditor).isNotNull();
     // We should always navigate to the source file when it's available
