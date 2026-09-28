@@ -46,7 +46,6 @@ import javax.swing.JPanel;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import kotlin.Unit;
-import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
 
 class ModuleDependenciesForm {
@@ -55,7 +54,7 @@ class ModuleDependenciesForm {
 
   private JPanel myMainPanel;
   private JBScrollPane myModulesScrollPane;
-  private JXLabel myModulesLabel;
+  private JBLabel myModulesLabel;
 
   ModuleDependenciesForm(@NotNull PsModule module) {
     setupUI();
@@ -131,7 +130,7 @@ class ModuleDependenciesForm {
     myMainPanel.add(jBLabel1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
                                                   GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
                                                   false));
-    myModulesLabel = new JXLabel();
+    myModulesLabel = new JBLabel();
     myMainPanel.add(myModulesLabel, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
                                                         GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));

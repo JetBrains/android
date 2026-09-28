@@ -73,6 +73,7 @@ import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.BorderLayout
@@ -93,7 +94,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jdesktop.swingx.VerticalLayout
 import org.jetbrains.android.AndroidPluginDisposable
 
 /** The main Device Manager panel, containing a table of devices and a toolbar of buttons above. */

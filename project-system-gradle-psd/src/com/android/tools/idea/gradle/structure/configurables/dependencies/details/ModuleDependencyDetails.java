@@ -34,7 +34,6 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.event.HyperlinkEvent;
-import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,8 +42,8 @@ public class ModuleDependencyDetails implements ConfigurationDependencyDetails {
   private final boolean myShowScope;
 
   private JPanel myMainPanel;
-  private JXLabel myNameLabel;
-  private JXLabel myGradlePathLabel;
+  private JBLabel myNameLabel;
+  private JBLabel myGradlePathLabel;
   private JBLabel myConfigurationLabel;
   private HyperlinkLabel myGoToLabel;
   private JPanel myConfigurationPanel;
@@ -131,14 +130,14 @@ public class ModuleDependencyDetails implements ConfigurationDependencyDetails {
     myMainPanel.add(jBLabel2, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                   GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
                                                   false));
-    myNameLabel = new JXLabel();
+    myNameLabel = new JBLabel();
     Font myNameLabelFont = UIManager.getFont("Tree.font");
     if (myNameLabelFont != null) myNameLabel.setFont(myNameLabelFont);
     myMainPanel.add(myNameLabel, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
                                                      null, null, 0, false));
-    myGradlePathLabel = new JXLabel();
+    myGradlePathLabel = new JBLabel();
     Font myGradlePathLabelFont = UIManager.getFont("Tree.font");
     if (myGradlePathLabelFont != null) myGradlePathLabel.setFont(myGradlePathLabelFont);
     myMainPanel.add(myGradlePathLabel, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
