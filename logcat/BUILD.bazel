@@ -71,10 +71,6 @@ jvm_library(
         allow_empty = True,
     ),
     module_name = "intellij.android.logcat",
-    resource_strip_prefix = "testResources",
-    resources = glob(
-        ["testResources/**/*"],
-    ),
     visibility = ["//visibility:public"],
     runtime_deps = [
         # do not sort,
@@ -160,6 +156,10 @@ jvm_library(
         "//android/logcat",
         "//android/logcat:logcat_test_lib",
     ],
+    resource_strip_prefix = "testResources",
+    resources = glob(
+        ["testResources/**/*"],
+    ),
     visibility = ["//visibility:public"],
     runtime_deps = [
         # do not sort,
