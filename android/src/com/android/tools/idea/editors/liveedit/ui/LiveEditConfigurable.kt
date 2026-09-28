@@ -65,17 +65,15 @@ class LiveEditConfigurable :
               radioButton(message("live.edit.configurable.display.name"), LIVE_EDIT)
                 .comment(message("live.edit.configurable.display.name.comment"))
           }
-          row { // Add a row to indent
-            this@buttonsGroup.buttonsGroup(indent = true) {
-                row { radioButton(message("live.edit.mode.automatic"), AUTOMATIC).enabledIf(rb.selected) }
-                row { radioButton(message("live.edit.mode.manual.onkey", shortcut), ON_HOTKEY).enabledIf(rb.selected) }
-                row {
-                  radioButton(message("live.edit.mode.manual.onsave", LiveEditAnActionListener.getLiveEditTriggerShortCutString()), ON_SAVE)
-                    .enabledIf(rb.selected)
-                }
+          buttonsGroup(indent = true) {
+              row { radioButton(message("live.edit.mode.automatic"), AUTOMATIC).enabledIf(rb.selected) }
+              row { radioButton(message("live.edit.mode.manual.onkey", shortcut), ON_HOTKEY).enabledIf(rb.selected) }
+              row {
+                radioButton(message("live.edit.mode.manual.onsave", LiveEditAnActionListener.getLiveEditTriggerShortCutString()), ON_SAVE)
+                  .enabledIf(rb.selected)
               }
-              .bind(config::leTriggerMode)
-          }
+            }
+            .bind(config::leTriggerMode)
 
           row { radioButton(message("live.edit.disable.all"), DISABLED).comment(message("live.edit.disable.all.description")) }
         }
