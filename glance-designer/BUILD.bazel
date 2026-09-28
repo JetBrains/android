@@ -163,6 +163,8 @@ jvm_library(
         "//platform/core-impl:core-impl_test_lib",
         "//android/designer",
         "//android/designer:designer_test_lib",
+        "//android/designer:designer-testFramework",
+        "//android/designer:designer-testFramework_test_lib",
         "//android/adt-ui",
         "//android/adt-ui:adt-ui_test_lib",
         "//android/adt-testutils",

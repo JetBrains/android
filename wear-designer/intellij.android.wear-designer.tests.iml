@@ -31,6 +31,7 @@
     <orderEntry type="module" module-name="intellij.android.preview-designer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wear-designer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.designer" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.designer.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />

@@ -22,6 +22,7 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.compose-designer.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.designer" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.designer.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.jps.model" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.layoutlib" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.preview-designer" scope="TEST" />

@@ -116,6 +116,299 @@ jvm_library(
     name = "designer_test_lib",
     testonly = True,
     srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.designer",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":designer",
+        "//libraries/guava:guava_test_lib",
+        "//libraries/junit4",
+        "//libraries/junit4:junit4_test_lib",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
+        "//android/android:core_test_lib",
+        "//android/adt-ui:adt-ui_test_lib",
+        "//android/adt-ui/src/test:android-adt-ui-tests",
+        "//android/adt-ui/src/test:android-adt-ui-tests_test_lib",
+        "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon_test_lib",
+        "//java/java-analysis-impl:analysis-impl_test_lib",
+        "//java/java-frontback-psi-api:frontback-psi_test_lib",
+        "//java/java-frontback-psi-impl:frontback-psi-impl_test_lib",
+        "//platform/forms_rt:java-guiForms-rt_test_lib",
+        "//java/java-impl:impl_test_lib",
+        "//java/java-indexing-api:indexing_test_lib",
+        "//java/java-psi-api:psi_test_lib",
+        "//java/testFramework",
+        "//java/testFramework:testFramework_test_lib",
+        "//plugins/kotlin/base/indices:indices_test_lib",
+        "//plugins/kotlin/base/util:util_test_lib",
+        "//plugins/kotlin/jvm-debugger/core:core_test_lib",
+        "//platform/analysis-api:analysis_test_lib",
+        "//platform/analysis-impl:analysis-impl_test_lib",
+        "//platform/util/concurrency:concurrency_test_lib",
+        "//platform/core-api:core_test_lib",
+        "//platform/core-impl:core-impl_test_lib",
+        "//platform/core-ui:core-ui_test_lib",
+        "//platform/editor-ui-ex:editor-ex_test_lib",
+        "//platform/editor-ui-api:editor-ui_test_lib",
+        "//platform/extensions:extensions_test_lib",
+        "//platform/platform-api:ide_test_lib",
+        "//platform/platform-impl/concurrency:concurrency_test_lib",
+        "//platform/ide-core:ide-core_test_lib",
+        "//platform/ide-core-impl:ide-core-impl_test_lib",
+        "//platform/platform-impl/designer:designer_test_lib",
+        "//platform/platform-impl:ide-impl_test_lib",
+        "//images:images_test_lib",
+        "//platform/indexing-api:indexing_test_lib",
+        "//platform/lang-api:lang_test_lib",
+        "//platform/lang-core:lang-core_test_lib",
+        "//platform/lang-impl:lang-impl_test_lib",
+        "//platform/problemsView/ui:ui_test_lib",
+        "//platform/projectModel-api:projectModel_test_lib",
+        "//platform/refactoring:refactoring_test_lib",
+        "//platform/testFramework",
+        "//platform/testFramework:testFramework_test_lib",
+        "//platform/testFramework/common",
+        "//platform/testFramework/common:common_test_lib",
+        "//platform/platform-tests:tests_test_lib",
+        "//uast/uast-common:uast_test_lib",
+        "//platform/util:util_test_lib",
+        "//platform/util/base:base_test_lib",
+        "//platform/util/jdom:jdom_test_lib",
+        "//platform/util-rt:util-rt_test_lib",
+        "//platform/util:util-ui_test_lib",
+        "//spellchecker:spellchecker_test_lib",
+        "//plugins/ui-designer-core:uiDesigner_test_lib",
+        "//xml/dom-openapi:dom_test_lib",
+        "//xml/xml-parser:parser_test_lib",
+        "//xml/xml-psi-api:psi_test_lib",
+        "//xml/xml-psi-impl:psi-impl_test_lib",
+        "//android/adt-ui-compose:adt-ui-compose_test_lib",
+        "//android/wizard:wizard_test_lib",
+        "//android/wizard-model:wizard-model_test_lib",
+        "//android/artwork:artwork_test_lib",
+        "//android/assistant:assistant_test_lib",
+        "//android/android-common:common_test_lib",
+        "//android/project-system:project-system_test_lib",
+        "//android/adt-ui-model:adt-ui-model_test_lib",
+        "//android/layout-ui:layout-ui_test_lib",
+        "//libraries/jaxb:jaxb_test_lib",
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "//libraries/commons/lang3:lang3_test_lib",
+        "//libraries/jcip:jcip_test_lib",
+        "//libraries/jetbrains/annotations:annotations_test_lib",
+        "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
+        "//libraries/kotlinx/coroutines/core:core_test_lib",
+        "//libraries/layoutlib:layoutlib_test_lib",
+        "//android/intellij.android.compose-common:compose-common_test_lib",
+        "//android/lint:lint-common_test_lib",
+        "//android/android-npw:newProjectWizard_test_lib",
+        "//android/jps-model:jps-model_test_lib",
+        "//android/render-resources:render-resources_test_lib",
+        "//android/rendering:rendering_test_lib",
+        "//android/layoutlib-loader:layoutlib-loader_test_lib",
+        "//android/ml-api:ml-api_test_lib",
+        "//android/avd:avd_test_lib",
+        "//android/visual-lint:visual-lint_test_lib",
+        "//android/android-test-framework:testFramework",
+        "//android/android-test-framework:testFramework_test_lib",
+        "//libraries/mockito",
+        "//libraries/mockito:mockito_test_lib",
+        "//libraries/protobuf:protobuf_test_lib",
+        "@lib//:truth",
+        "//libraries/fastutil:fastutil_test_lib",
+        "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir",
+        "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir_test_lib",
+        "//libraries/mockito-kotlin",
+        "//libraries/mockito-kotlin:mockito-kotlin_test_lib",
+        "//libraries/xerces:xerces_test_lib",
+    ],
+)
+### auto-generated section `build intellij.android.designer` end
+
+### auto-generated section `iml intellij.android.designer` start
+exports_files(
+    [
+        "intellij.android.designer.iml",
+        "resources/META-INF/designer-androidstudio.xml",
+        "resources/META-INF/designer.xml",
+        "resources/com/android/tools/idea/uibuilder/handlers/assistant/templates/avatar.xml",
+        "resources/com/android/tools/idea/uibuilder/handlers/assistant/templates/email-androidx.xml",
+        "resources/com/android/tools/idea/uibuilder/handlers/assistant/templates/email.xml",
+        "resources/com/android/tools/idea/uibuilder/handlers/assistant/templates/one_line.xml",
+        "resources/com/android/tools/idea/uibuilder/handlers/assistant/templates/one_line_avatar.xml",
+        "resources/com/android/tools/idea/uibuilder/handlers/assistant/templates/three_lines.xml",
+        "resources/com/android/tools/idea/uibuilder/handlers/assistant/templates/three_lines_avatar.xml",
+        "resources/com/android/tools/idea/uibuilder/handlers/assistant/templates/two_lines.xml",
+        "resources/com/android/tools/idea/uibuilder/handlers/assistant/templates/two_lines_avatar.xml",
+        "resources/com/android/tools/idea/uibuilder/palette/layout_palette.xml",
+        "resources/com/android/tools/idea/uibuilder/palette/menu_palette.xml",
+        "resources/com/android/tools/idea/uibuilder/palette/preference_screen_palette.xml",
+        "resources/com/android/tools/idea/uibuilder/palette/state_list_palette.xml",
+        "resources/constraintlayout_help_assistance_bundle.xml",
+        "resources/layout_editor_help_assistance_bundle.xml",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `iml intellij.android.designer` end
+
+### auto-generated section `build intellij.android.designer.integration` start
+jvm_library(
+    name = "designer-integration",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.designer.integration",
+    visibility = ["//visibility:public"],
+    runtime_deps = ["@lib//:kotlin-stdlib"],
+)
+
+jvm_library(
+    name = "designer-integration_test_lib",
+    testonly = True,
+    srcs = glob(
+        [
+            "integrationTestSrc/**/*.kt",
+            "integrationTestSrc/**/*.java",
+            "integrationTestSrc/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.designer.integration",
+    visibility = ["//visibility:public"],
+    runtime_deps = [":designer-integration"],
+    deps = [
+        # do not sort,
+        "@lib//:studio-platform-provided",
+        "@lib//:studio-test-platform",
+        "@lib//:kotlin-stdlib",
+        "//libraries/junit4",
+        "//libraries/junit4:junit4_test_lib",
+        "//android/as-driver/utils",
+        "//android/as-driver/utils:utils_test_lib",
+    ],
+)
+### auto-generated section `build intellij.android.designer.integration` end
+
+### auto-generated section `iml intellij.android.designer.integration` start
+exports_files(
+    [
+        "intellij.android.designer.integration.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `iml intellij.android.designer.integration` end
+
+### auto-generated section `test intellij.android.designer.integration` start
+jps_test(
+    name = "designer-integration_test",
+    runtime_deps = [":designer-integration_test_lib"],
+)
+### auto-generated section `test intellij.android.designer.integration` end
+
+### auto-generated section `build intellij.android.designer.testFramework` start
+jvm_library(
+    name = "designer-testFramework",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.designer.testFramework",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//libraries/guava",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//android/android:core",
+        "//android/adt-ui",
+        "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+        "//java/java-analysis-impl:analysis-impl",
+        "//java/java-frontback-psi-api:frontback-psi",
+        "//java/java-frontback-psi-impl:frontback-psi-impl",
+        "//platform/forms_rt:java-guiForms-rt",
+        "//java/java-impl:impl",
+        "//java/java-indexing-api:indexing",
+        "//java/java-psi-api:psi",
+        "//plugins/kotlin/base/indices",
+        "//plugins/kotlin/base/util",
+        "//plugins/kotlin/jvm-debugger/core",
+        "//platform/analysis-api:analysis",
+        "//platform/analysis-impl",
+        "//platform/util/concurrency",
+        "//platform/core-api:core",
+        "//platform/core-impl",
+        "//platform/core-ui",
+        "//platform/editor-ui-ex:editor-ex",
+        "//platform/editor-ui-api:editor-ui",
+        "//platform/extensions",
+        "//platform/platform-api:ide",
+        "//platform/platform-impl/concurrency",
+        "//platform/ide-core",
+        "//platform/ide-core-impl",
+        "//platform/platform-impl/designer",
+        "//platform/platform-impl:ide-impl",
+        "//images",
+        "//platform/indexing-api:indexing",
+        "//platform/lang-api:lang",
+        "//platform/lang-core",
+        "//platform/lang-impl",
+        "//platform/problemsView/ui",
+        "//platform/projectModel-api:projectModel",
+        "//platform/refactoring",
+        "//platform/platform-tests:tests",
+        "//uast/uast-common:uast",
+        "//platform/util",
+        "//platform/util/base",
+        "//platform/util/jdom",
+        "//platform/util-rt",
+        "//platform/util:util-ui",
+        "//spellchecker",
+        "//plugins/ui-designer-core:uiDesigner",
+        "//xml/dom-openapi:dom",
+        "//xml/xml-parser:parser",
+        "//xml/xml-psi-api:psi",
+        "//xml/xml-psi-impl:psi-impl",
+        "//android/adt-ui-compose",
+        "//android/wizard",
+        "//android/wizard-model",
+        "//android/artwork",
+        "//android/assistant",
+        "//android/android-common:common",
+        "//android/project-system",
+        "//android/adt-ui-model",
+        "//android/layout-ui",
+        "//libraries/jaxb",
+        "@lib//:kotlin-stdlib",
+        "//libraries/commons/lang3",
+        "//libraries/jcip",
+        "//libraries/jetbrains/annotations",
+        "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
+        "//libraries/kotlinx/coroutines/core",
+        "//libraries/layoutlib",
+        "//android/intellij.android.compose-common:compose-common",
+        "//android/lint:lint-common",
+        "//android/android-npw:newProjectWizard",
+        "//android/jps-model",
+        "//android/render-resources",
+        "//android/rendering",
+        "//android/layoutlib-loader",
+        "//android/ml-api",
+        "//android/avd",
+        "//android/visual-lint",
+        "//libraries/protobuf",
+        "//libraries/fastutil",
+        "//libraries/xerces",
+    ],
+)
+
+jvm_library(
+    name = "designer-testFramework_test_lib",
+    testonly = True,
+    srcs = glob(
         [
             "testFramework/**/*.kt",
             "testFramework/**/*.java",
@@ -123,10 +416,11 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [":designer"],
+    module_name = "intellij.android.designer.testFramework",
     visibility = ["//visibility:public"],
     runtime_deps = [
         # do not sort,
+        ":designer-testFramework",
         "//platform/platform-impl/concurrency:concurrency_test_lib",
         "//platform/ide-core:ide-core_test_lib",
         "//platform/ide-core-impl:ide-core-impl_test_lib",
@@ -312,97 +606,27 @@ jvm_library(
         "//libraries/mockito-kotlin:mockito-kotlin_test_lib",
         "//libraries/xerces",
         "//libraries/xerces:xerces_test_lib",
+        "//android/designer",
+        "//android/designer:designer_test_lib",
     ],
 )
-### auto-generated section `build intellij.android.designer` end
+### auto-generated section `build intellij.android.designer.testFramework` end
 
-### auto-generated section `iml intellij.android.designer` start
+### auto-generated section `iml intellij.android.designer.testFramework` start
 exports_files(
     [
-        "intellij.android.designer.iml",
-        "resources/META-INF/designer-androidstudio.xml",
-        "resources/META-INF/designer.xml",
-        "resources/com/android/tools/idea/uibuilder/handlers/assistant/templates/avatar.xml",
-        "resources/com/android/tools/idea/uibuilder/handlers/assistant/templates/email-androidx.xml",
-        "resources/com/android/tools/idea/uibuilder/handlers/assistant/templates/email.xml",
-        "resources/com/android/tools/idea/uibuilder/handlers/assistant/templates/one_line.xml",
-        "resources/com/android/tools/idea/uibuilder/handlers/assistant/templates/one_line_avatar.xml",
-        "resources/com/android/tools/idea/uibuilder/handlers/assistant/templates/three_lines.xml",
-        "resources/com/android/tools/idea/uibuilder/handlers/assistant/templates/three_lines_avatar.xml",
-        "resources/com/android/tools/idea/uibuilder/handlers/assistant/templates/two_lines.xml",
-        "resources/com/android/tools/idea/uibuilder/handlers/assistant/templates/two_lines_avatar.xml",
-        "resources/com/android/tools/idea/uibuilder/palette/layout_palette.xml",
-        "resources/com/android/tools/idea/uibuilder/palette/menu_palette.xml",
-        "resources/com/android/tools/idea/uibuilder/palette/preference_screen_palette.xml",
-        "resources/com/android/tools/idea/uibuilder/palette/state_list_palette.xml",
-        "resources/constraintlayout_help_assistance_bundle.xml",
-        "resources/layout_editor_help_assistance_bundle.xml",
+        "intellij.android.designer.testFramework.iml",
     ],
     visibility = ["//visibility:public"],
 )
-### auto-generated section `iml intellij.android.designer` end
+### auto-generated section `iml intellij.android.designer.testFramework` end
 
-### auto-generated section `test intellij.android.designer` start
+### auto-generated section `test intellij.android.designer.testFramework` start
 jps_test(
-    name = "designer_test",
-    runtime_deps = [":designer_test_lib"],
+    name = "designer-testFramework_test",
+    runtime_deps = [":designer-testFramework_test_lib"],
 )
-### auto-generated section `test intellij.android.designer` end
-
-### auto-generated section `build intellij.android.designer.integration` start
-jvm_library(
-    name = "designer-integration",
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.designer.integration",
-    visibility = ["//visibility:public"],
-    runtime_deps = ["@lib//:kotlin-stdlib"],
-)
-
-jvm_library(
-    name = "designer-integration_test_lib",
-    testonly = True,
-    srcs = glob(
-        [
-            "integrationTestSrc/**/*.kt",
-            "integrationTestSrc/**/*.java",
-            "integrationTestSrc/**/*.form",
-        ],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.designer.integration",
-    visibility = ["//visibility:public"],
-    runtime_deps = [":designer-integration"],
-    deps = [
-        # do not sort,
-        "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
-        "@lib//:kotlin-stdlib",
-        "//libraries/junit4",
-        "//libraries/junit4:junit4_test_lib",
-        "//android/as-driver/utils",
-        "//android/as-driver/utils:utils_test_lib",
-    ],
-)
-### auto-generated section `build intellij.android.designer.integration` end
-
-### auto-generated section `iml intellij.android.designer.integration` start
-exports_files(
-    [
-        "intellij.android.designer.integration.iml",
-    ],
-    visibility = ["//visibility:public"],
-)
-### auto-generated section `iml intellij.android.designer.integration` end
-
-### auto-generated section `test intellij.android.designer.integration` start
-jps_test(
-    name = "designer-integration_test",
-    runtime_deps = [":designer-integration_test_lib"],
-)
-### auto-generated section `test intellij.android.designer.integration` end
+### auto-generated section `test intellij.android.designer.testFramework` end
 
 ### auto-generated section `build intellij.android.designer.tests` start
 create_kotlinc_options(
@@ -476,6 +700,8 @@ jvm_library(
         "//libraries/layoutlib:layoutlib_test_lib",
         "//android/android:core-tests",
         "//android/android:core-tests_test_lib",
+        "//android/designer:designer-testFramework",
+        "//android/designer:designer-testFramework_test_lib",
         "//android/android:core",
         "//android/android:core_test_lib",
         "//libraries/kotlin/test:libraries-kotlinTest",

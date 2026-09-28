@@ -62,6 +62,8 @@ jvm_library(
         "//android/compose-designer:compose-designer-tests_test_lib",
         "//android/designer",
         "//android/designer:designer_test_lib",
+        "//android/designer:designer-testFramework",
+        "//android/designer:designer-testFramework_test_lib",
         "//android/jps-model",
         "//android/jps-model:jps-model_test_lib",
         "//android/layoutlib",

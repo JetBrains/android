@@ -219,6 +219,8 @@ jvm_library(
         "//android/android-common:common_test_lib",
         "//android/designer",
         "//android/designer:designer_test_lib",
+        "//android/designer:designer-testFramework",
+        "//android/designer:designer-testFramework_test_lib",
         "//android/android:core",
         "//android/android:core_test_lib",
         "//android/artwork",

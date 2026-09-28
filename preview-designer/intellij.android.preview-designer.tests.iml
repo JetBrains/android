@@ -33,6 +33,7 @@
     <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.designer" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.designer.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.preview-designer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.layout-ui" scope="TEST" />
