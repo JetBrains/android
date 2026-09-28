@@ -52,6 +52,7 @@ import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.intellij.build.BuildConsoleUtils
 import com.intellij.build.BuildEventDispatcher
 import com.intellij.build.BuildViewManager
+import com.intellij.build.BuildViewSettingsProvider
 import com.intellij.build.DefaultBuildDescriptor
 import com.intellij.build.events.FailureResult
 import com.intellij.build.events.impl.FinishBuildEventImpl
@@ -414,7 +415,11 @@ internal constructor(
     // This is resource is closed when onEnd is called or an exception is generated in this function bSee b/70299236.
     // We need to keep this resource open since closing it causes BuildOutputInstantReaderImpl.myThread to stop, preventing parsers to run.
     //noinspection resource, IOResourceOpenedButNotSafelyClosed
-    val eventDispatcher: BuildEventDispatcher = ExternalSystemEventDispatcher(request.taskId, buildViewManager)
+    val eventDispatcher: BuildEventDispatcher = ExternalSystemEventDispatcher(
+      request.taskId,
+      buildViewManager,
+      BuildViewSettingsProvider.EMPTY
+    )
     try {
       return MyListener(eventDispatcher, request, buildViewManager, executionName, delegate)
     } catch (exception: Exception) {
