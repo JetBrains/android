@@ -64,7 +64,22 @@
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.junit4" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="fleet:io.ktor.client.mock" level="project" />
+    <orderEntry type="module-library" scope="TEST">
+      <library name="ktor-client-mock-jvm" type="repository">
+        <properties include-transitive-deps="false" maven-id="io.ktor:ktor-client-mock-jvm:3.6.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/io/ktor/ktor-client-mock-jvm/3.6.0/ktor-client-mock-jvm-3.6.0.jar">
+              <sha256sum>9a65b4e2f799451b380e87729132768802389d2f1c4ac11d2f3fc6de9925cb41</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/io/ktor/ktor-client-mock-jvm/3.6.0/ktor-client-mock-jvm-3.6.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
     <orderEntry type="module" module-name="intellij.libraries.mockito" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.jdom" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.play-publishing" scope="TEST" />

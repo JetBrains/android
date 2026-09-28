@@ -207,7 +207,7 @@ jvm_library(
         "//libraries/junit4:junit4_test_lib",
         "//android/android-test-framework:testFramework",
         "//android/android-test-framework:testFramework_test_lib",
-        "@lib//:fleet-io-ktor-client-mock",
+        "@lib//:android-play-publishing-tests-ktor-client-mock-jvm",
         "//libraries/mockito",
         "//libraries/mockito:mockito_test_lib",
         "//platform/util/jdom",
