@@ -552,7 +552,7 @@ internal constructor(
 
     override fun onTaskOutput(id: ExternalSystemTaskId, text: String, processOutputType: ProcessOutputType) {
       if (startBuildEventPosted) {
-        buildEventDispatcher.onTextAvailable(text, processOutputType)
+        buildEventDispatcher.notifyTextAvailable(text, processOutputType)
       }
       super.onTaskOutput(id, text, processOutputType)
     }
