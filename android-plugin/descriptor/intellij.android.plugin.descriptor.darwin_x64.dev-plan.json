@@ -2,7 +2,7 @@
     "version": 2,
     "plugin": "intellij.android.plugin.descriptor",
     "variant": "darwin_x64",
-    "layoutSignature": "ekk92pqog9b4dal1l4rphf6e5",
+    "layoutSignature": "d5awcg44ju23mui7hfvo4lgp4",
     "assets": [
         {
             "destination": "lib/intellij.libraries.ffmpeg.jar",
@@ -953,7 +953,7 @@
             "recipe": {
                 "sources": [
                     {
-                        "input": "@community//android/android/lib:android-core-instantapps-api",
+                        "input": "//android/android/lib:android-core-instantapps-api",
                         "kind": "library",
                         "filter": "library-v1"
                     }

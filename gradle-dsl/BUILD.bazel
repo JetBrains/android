@@ -32,6 +32,7 @@ dev_dist_plugin(
             "intellij.android.gradle.dsl.kotlin",
             "intellij.android.gradle.dsl.toml",
             "intellij.android.gradle.dsl.declarative",
+            "intellij.android.gradle.dsl.flags",
             "intellij.android.gradle.dsl.android",
         ],
     },
@@ -45,7 +46,6 @@ dev_dist_plugin(
             "intellij.android.gradle.dsl.android",
         ],
     },
-    separate_jar = ["intellij.android.gradle.dsl.flags"],
 )
 ### auto-generated section `dev intellij.android.gradle.dsl` end
 

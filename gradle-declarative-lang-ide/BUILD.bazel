@@ -25,7 +25,6 @@ dev_dist_plugin(
         "intellij.android.gradle.declarative.lang.sync": "lib/intellij.android.gradle.declarative.lang.sync.jar",
         "intellij.android.gradle.declarative.lang.flags": "lib/intellij.android.gradle.declarative.lang.flags.jar",
     },
-    separate_jar = ["intellij.android.gradle.declarative.lang"],
 )
 ### auto-generated section `dev intellij.android.gradle.declarative.lang.ide` end
 
