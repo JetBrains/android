@@ -552,8 +552,7 @@ internal constructor(
 
     override fun onTaskOutput(id: ExternalSystemTaskId, text: String, processOutputType: ProcessOutputType) {
       if (startBuildEventPosted) {
-        buildEventDispatcher.setStdOut(ProcessOutputType.isStdout(processOutputType))
-        buildEventDispatcher.onTextAvailable(text)
+        buildEventDispatcher.onTextAvailable(text, processOutputType)
       }
       super.onTaskOutput(id, text, processOutputType)
     }
