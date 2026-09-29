@@ -1,5 +1,5 @@
 load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library", "resourcegroup")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `build intellij.android.common` start
@@ -14,11 +14,6 @@ resourcegroup(
         ["flags/resources/**/*"],
     ),
     strip_prefix = "flags/resources",
-)
-
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-kotlin-compiler-ir_provided",
-    lib = "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir",
 )
 
 jvm_library(
@@ -83,7 +78,6 @@ jvm_library(
         "//libraries/kotlinx/coroutines/core",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
         "//libraries/protobuf",
-        ":libraries_kotlinc_libraries-kotlinc-kotlin-compiler-ir_provided",
     ],
 )
 
@@ -102,8 +96,6 @@ jvm_library(
         ":common",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
-        "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir",
-        "//libraries/kotlinc/kotlin-compiler-ir:libraries-kotlinc-kotlin-compiler-ir_test_lib",
         "//libraries/kotlinc/symbol-light-classes:libraries-kotlinc-symbol-light-classes_test_lib",
         "//android/artwork:artwork_test_lib",
         "//java/java-frontback-psi-api:frontback-psi_test_lib",

@@ -1,12 +1,7 @@
 load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.profilers` start
-jvm_provided_library(
-    name = "plugins_maven_artifactResolver-m31_provided",
-    lib = "//plugins/maven/artifact-resolver-m31:artifactResolver-m31",
-)
-
 jvm_library(
     name = "profilers",
     srcs = glob(
@@ -49,7 +44,6 @@ jvm_library(
         "//platform/editor-ui-api:editor-ui",
         "//platform/core-ui",
         "//fleet/util/core",
-        ":plugins_maven_artifactResolver-m31_provided",
     ],
 )
 
@@ -81,8 +75,6 @@ jvm_library(
         "//android/profilers-atrace:profilers-atrace_test_lib",
         "//android/project-system:project-system_test_lib",
         "//android/android-transport:transport_test_lib",
-        "//plugins/maven/artifact-resolver-m31:artifactResolver-m31",
-        "//plugins/maven/artifact-resolver-m31:artifactResolver-m31_test_lib",
         "//plugins/maven/maven-event-listener:server-eventListener_test_lib",
         "//platform/core-api:core_test_lib",
         "//platform/extensions:extensions_test_lib",

@@ -19,7 +19,6 @@ jvm_library(
     visibility = ["//visibility:public"],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
         "//libraries/kotlin/reflect",
         "@lib//:kotlin-stdlib",
     ],
@@ -37,7 +36,6 @@ jvm_library(
     runtime_deps = [
         # do not sort,
         ":profilers-atrace",
-        "@lib//:studio-platform-provided",
         "//libraries/kotlin/reflect:reflect_test_lib",
     ],
 )

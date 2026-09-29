@@ -66,7 +66,6 @@
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.scripting.common" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.scripting.jvm" />
     <orderEntry type="module" module-name="kotlin.scripting" />
-    <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.ir" scope="PROVIDED" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-gradle-statistics" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.jps.common" scope="PROVIDED" />
     <orderEntry type="inheritedJdk" />
@@ -139,7 +138,6 @@
     <orderEntry type="module" module-name="intellij.jvm.analysis" />
     <orderEntry type="module" module-name="intellij.jvm.analysis.impl" />
     <orderEntry type="module" module-name="intellij.jvm.analysis.java.tests" />
-    <orderEntry type="module" module-name="intellij.maven.artifactResolver.m31" scope="PROVIDED" />
     <orderEntry type="module" module-name="intellij.maven.server.eventListener" />
     <orderEntry type="module" module-name="intellij.maven.server.indexer" />
     <orderEntry type="module" module-name="intellij.platform.analysis" />

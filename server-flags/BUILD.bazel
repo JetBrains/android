@@ -20,7 +20,6 @@ jvm_library(
     visibility = ["//visibility:public"],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
         "@lib//:kotlin-stdlib",
         "//libraries/protobuf",
         "//platform/util",
@@ -40,7 +39,6 @@ jvm_library(
     runtime_deps = [
         # do not sort,
         ":server-flags",
-        "@lib//:studio-platform-provided",
         "//libraries/protobuf:protobuf_test_lib",
         "//platform/util:util_test_lib",
         "//platform/core-api:core_test_lib",

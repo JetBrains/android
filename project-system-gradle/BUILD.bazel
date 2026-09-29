@@ -14,18 +14,8 @@ jvm_provided_library(
 )
 
 jvm_provided_library(
-    name = "libraries_kotlin_libraries-kotlin-tooling-core_provided",
-    lib = "//libraries/kotlin/tooling-core:libraries-kotlin-tooling-core",
-)
-
-jvm_provided_library(
     name = "libraries_kotlinc_libraries-kotlinc-kotlin-jps-common_provided",
     lib = "//libraries/kotlinc/kotlin-jps-common:libraries-kotlinc-kotlin-jps-common",
-)
-
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-kotlin-scripting-compiler-impl_provided",
-    lib = "//libraries/kotlinc/kotlin-scripting-compiler-impl:libraries-kotlinc-kotlin-scripting-compiler-impl",
 )
 
 jvm_library(
@@ -208,9 +198,7 @@ jvm_library(
         "//platform/locking-impl",
         "//platform/util-class-loader:util-classLoader",
         ":libraries_kotlin_libraries-kotlin-gradle-plugin-idea_provided",
-        ":libraries_kotlin_libraries-kotlin-tooling-core_provided",
         ":libraries_kotlinc_libraries-kotlinc-kotlin-jps-common_provided",
-        ":libraries_kotlinc_libraries-kotlinc-kotlin-scripting-compiler-impl_provided",
     ],
 )
 
@@ -240,14 +228,10 @@ jvm_library(
         "//libraries/kotlin/gradle-plugin-idea:libraries-kotlin-gradle-plugin-idea",
         "//libraries/kotlin/gradle-plugin-idea:libraries-kotlin-gradle-plugin-idea_test_lib",
         "//libraries/kotlin/reflect:reflect_test_lib",
-        "//libraries/kotlin/tooling-core:libraries-kotlin-tooling-core",
-        "//libraries/kotlin/tooling-core:libraries-kotlin-tooling-core_test_lib",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//libraries/kotlinc/kotlin-jps-common:libraries-kotlinc-kotlin-jps-common",
         "//libraries/kotlinc/kotlin-jps-common:libraries-kotlinc-kotlin-jps-common_test_lib",
-        "//libraries/kotlinc/kotlin-scripting-compiler-impl:libraries-kotlinc-kotlin-scripting-compiler-impl",
-        "//libraries/kotlinc/kotlin-scripting-compiler-impl:libraries-kotlinc-kotlin-scripting-compiler-impl_test_lib",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
         "//libraries/kotlinx/coroutines/core:core_test_lib",
         "//libraries/protobuf:protobuf_test_lib",

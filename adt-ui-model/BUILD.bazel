@@ -16,7 +16,6 @@ jvm_library(
     visibility = ["//visibility:public"],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
         "//libraries/guava",
         "//libraries/fastutil",
         "@lib//:kotlin-stdlib",
@@ -39,7 +38,6 @@ jvm_library(
     runtime_deps = [
         # do not sort,
         ":adt-ui-model",
-        "@lib//:studio-platform-provided",
         "//libraries/guava:guava_test_lib",
         "//libraries/fastutil:fastutil_test_lib",
         "//platform/platform-api:ide_test_lib",

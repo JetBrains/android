@@ -1,12 +1,7 @@
 load("@community//build:tests-options.bzl", "jps_test")
-load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.build-attribution` start
-jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-lombok-compiler-plugin_provided",
-    lib = "//libraries/kotlinc/lombok-compiler-plugin:libraries-kotlinc-lombok-compiler-plugin",
-)
-
 jvm_library(
     name = "build-attribution",
     srcs = glob(
@@ -70,7 +65,6 @@ jvm_library(
         "//platform/util:util-ui",
         "//plugins/properties/properties-psi-api:psi",
         "//libraries/jspecify",
-        ":libraries_kotlinc_libraries-kotlinc-lombok-compiler-plugin_provided",
     ],
 )
 
@@ -96,8 +90,6 @@ jvm_library(
         "//platform/observable:observable_test_lib",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
         "//libraries/protobuf:protobuf_test_lib",
-        "//libraries/kotlinc/lombok-compiler-plugin:libraries-kotlinc-lombok-compiler-plugin",
-        "//libraries/kotlinc/lombok-compiler-plugin:libraries-kotlinc-lombok-compiler-plugin_test_lib",
         "//android/adt-ui:adt-ui_test_lib",
         "//android/analytics:analytics_test_lib",
         "//android/artwork:artwork_test_lib",

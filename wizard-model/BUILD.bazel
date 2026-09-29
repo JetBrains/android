@@ -16,7 +16,6 @@ jvm_library(
     visibility = ["//visibility:public"],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
         "//libraries/guava",
         "//libraries/jetbrains/annotations",
         "//android/observable",
@@ -41,7 +40,6 @@ jvm_library(
     runtime_deps = [
         # do not sort,
         ":wizard-model",
-        "@lib//:studio-platform-provided",
         "//libraries/guava:guava_test_lib",
         "//libraries/jetbrains/annotations:annotations_test_lib",
         "//android/observable:observable_test_lib",

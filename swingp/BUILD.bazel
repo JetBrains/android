@@ -28,7 +28,6 @@ jvm_library(
     visibility = ["//visibility:public"],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
         "//libraries/asm",
         "//libraries/guava",
         "//libraries/gson",
@@ -50,7 +49,6 @@ jvm_library(
     runtime_deps = [
         # do not sort,
         ":swingp",
-        "@lib//:studio-platform-provided",
         "//libraries/asm:asm_test_lib",
         "//libraries/guava:guava_test_lib",
         "//libraries/gson:gson_test_lib",

@@ -34,7 +34,6 @@ jvm_library(
     visibility = ["//visibility:public"],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
         "//platform/analysis-api:analysis",
         "//platform/analysis-impl",
         "//platform/core-api:core",
@@ -62,7 +61,6 @@ jvm_library(
     runtime_deps = [
         # do not sort,
         ":smali",
-        "@lib//:studio-platform-provided",
         "//platform/analysis-api:analysis_test_lib",
         "//platform/analysis-impl:analysis-impl_test_lib",
         "//platform/core-api:core_test_lib",

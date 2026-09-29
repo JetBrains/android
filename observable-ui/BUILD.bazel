@@ -16,7 +16,6 @@ jvm_library(
     visibility = ["//visibility:public"],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
         "//libraries/jetbrains/annotations",
         "@lib//:kotlin-stdlib",
         "//android/adt-ui",
@@ -42,7 +41,6 @@ jvm_library(
     runtime_deps = [
         # do not sort,
         ":observable-ui",
-        "@lib//:studio-platform-provided",
         "//libraries/jetbrains/annotations:annotations_test_lib",
         "//android/adt-ui:adt-ui_test_lib",
         "//android/observable:observable_test_lib",
