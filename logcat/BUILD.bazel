@@ -51,6 +51,8 @@ jvm_library(
         "//platform/editor-ui-ex:editor-ex",
         "//platform/execution",
         "//platform/execution-impl",
+        "//platform/consoleView",
+        "//platform/consoleView/impl",
         "//platform/platform-api:ide",
         "//platform/platform-impl:ide-impl",
         "//platform/lang-api:lang",
@@ -104,6 +106,8 @@ jvm_library(
         "//platform/editor-ui-ex:editor-ex_test_lib",
         "//platform/execution:execution_test_lib",
         "//platform/execution-impl:execution-impl_test_lib",
+        "//platform/consoleView:consoleView_test_lib",
+        "//platform/consoleView/impl:impl_test_lib",
         "//platform/platform-api:ide_test_lib",
         "//platform/platform-impl:ide-impl_test_lib",
         "//platform/lang-api:lang_test_lib",
@@ -265,6 +269,10 @@ jvm_library(
         "//android/android-adb:adb-testUtil_test_lib",
         "//platform/execution",
         "//platform/execution:execution_test_lib",
+        "//platform/consoleView",
+        "//platform/consoleView:consoleView_test_lib",
+        "//platform/consoleView/impl",
+        "//platform/consoleView/impl:impl_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.logcat.tests` end

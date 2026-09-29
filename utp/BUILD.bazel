@@ -29,6 +29,7 @@ jvm_library(
         "//platform/util-ex",
         "//platform/core-api:core",
         "//platform/execution-impl",
+        "//platform/consoleView",
     ],
 )
 
@@ -52,6 +53,7 @@ jvm_library(
         "//platform/util-ex:util-ex_test_lib",
         "//platform/core-api:core_test_lib",
         "//platform/execution-impl:execution-impl_test_lib",
+        "//platform/consoleView:consoleView_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.utp` end
@@ -120,6 +122,8 @@ jvm_library(
         "//platform/core-api:core_test_lib",
         "//platform/execution-impl",
         "//platform/execution-impl:execution-impl_test_lib",
+        "//platform/consoleView",
+        "//platform/consoleView:consoleView_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.utp.tests` end
