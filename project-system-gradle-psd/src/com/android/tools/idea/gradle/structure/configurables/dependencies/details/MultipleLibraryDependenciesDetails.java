@@ -24,7 +24,6 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Font;
 import java.awt.Insets;
-import org.jdesktop.swingx.JXLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,8 +32,8 @@ import javax.swing.*;
 public class MultipleLibraryDependenciesDetails implements DependencyDetails {
   private JPanel myMainPanel;
 
-  private JXLabel myArtifactNameLabel;
-  private JXLabel myGroupIdLabel;
+  private JBLabel myArtifactNameLabel;
+  private JBLabel myGroupIdLabel;
 
   private PsLibraryDependency myDependency;
 
@@ -86,14 +85,14 @@ public class MultipleLibraryDependenciesDetails implements DependencyDetails {
     myMainPanel.add(jBLabel2, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
                                                   GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
                                                   false));
-    myGroupIdLabel = new JXLabel();
+    myGroupIdLabel = new JBLabel();
     Font myGroupIdLabelFont = UIManager.getFont("Tree.font");
     if (myGroupIdLabelFont != null) myGroupIdLabel.setFont(myGroupIdLabelFont);
     myMainPanel.add(myGroupIdLabel, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
                                                         null, null, 0, false));
-    myArtifactNameLabel = new JXLabel();
+    myArtifactNameLabel = new JBLabel();
     Font myArtifactNameLabelFont = UIManager.getFont("Tree.font");
     if (myArtifactNameLabelFont != null) myArtifactNameLabel.setFont(myArtifactNameLabelFont);
     myMainPanel.add(myArtifactNameLabel, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,

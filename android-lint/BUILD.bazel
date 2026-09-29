@@ -344,8 +344,6 @@ jvm_library(
         "//android/gradle-declarative-lang:gradle-declarative-lang_test_lib",
         "//android/gradle-declarative-lang-ide",
         "//android/gradle-declarative-lang-ide:gradle-declarative-lang-ide_test_lib",
-        "//plugins/repository-search/common",
-        "//plugins/repository-search/common:common_test_lib",
         "//libraries/mockito-kotlin",
         "//libraries/mockito-kotlin:mockito-kotlin_test_lib",
     ],

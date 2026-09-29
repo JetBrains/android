@@ -72,7 +72,6 @@
     <orderEntry type="module" module-name="intellij.libraries.mockito" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.mockito.kotlin" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.protobuf" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.libraries.swingx" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.device-manager-v2" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.device-manager-v2" />
