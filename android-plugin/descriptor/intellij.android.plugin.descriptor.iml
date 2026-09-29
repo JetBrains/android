@@ -11,5 +11,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.groovy" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.gradle.java.plugin" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.platform.compose.plugin" scope="RUNTIME" />
   </component>
 </module>

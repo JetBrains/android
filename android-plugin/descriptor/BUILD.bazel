@@ -1303,6 +1303,7 @@ jvm_library(
         # do not sort,
         "//plugins/groovy",
         "//plugins/gradle/java/plugin",
+        "//platform/compose/plugin",
     ],
 )
 
@@ -1322,6 +1323,7 @@ jvm_library(
         "@lib//:studio-test-platform",
         "//plugins/groovy:groovy_test_lib",
         "//plugins/gradle/java/plugin:plugin_test_lib",
+        "//platform/compose/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.plugin.descriptor` end
