@@ -22,32 +22,30 @@ import com.intellij.openapi.editor.Document
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
+import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
+import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.psiUtil.getChildrenOfType
 
 /** Adds a folding region for a Modifier chain longer than two. */
 class ComposeFoldingBuilder : CustomFoldingBuilder() {
   override fun buildLanguageFoldRegions(descriptors: MutableList<FoldingDescriptor>, root: PsiElement, document: Document, quick: Boolean) {
-    if (root !is KtFile || DumbService.isDumb(root.project) || !isCommonComposeAnnotationAvailable(root)) {
+    if (root !is KtFile || DumbService.isDumb(root.project) || !isComposeEnabled(root)) {
       return
     }
 
-    root.accept(ComposeFoldingVisitor(descriptors))
-  }
+    val composableFunctions = root.getChildrenOfType<KtNamedFunction>().filter { it.isComposableFunction() }
 
-  private class ComposeFoldingVisitor(
-    private val descriptors: MutableList<FoldingDescriptor>
-  ) : KtTreeVisitorVoid() {
+    for (function in composableFunctions) {
+      val modifiersChains =
+        PsiTreeUtil.findChildrenOfType(function, KtDotQualifiedExpression::class.java).filter {
+          it.parent !is KtDotQualifiedExpression && isModifierChainLongerThanTwo(it)
+        }
 
-    override fun visitDotQualifiedExpression(expression: KtDotQualifiedExpression) {
-      val isFoldableModifierChain = expression.run {
-        parent !is KtDotQualifiedExpression &&
-        isModifierChainLongerThanTwo(this) &&
-        isInsideComposableControlFlow()
+      for (modifierChain in modifiersChains) {
+        descriptors.add(FoldingDescriptor(modifierChain.node, modifierChain.node.textRange))
       }
-      if (isFoldableModifierChain) descriptors.add(FoldingDescriptor(expression.node, expression.node.textRange))
-      super.visitDotQualifiedExpression(expression)
     }
   }
 
