@@ -43,6 +43,8 @@ import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.tools.sdk.AndroidSdkData;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.TestDialog;
+import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.IndexingTestUtil;
@@ -53,7 +55,6 @@ import java.nio.file.Path;
 import java.util.Collections;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
@@ -137,9 +138,9 @@ public class SdkQuickfixUtilsTest {
     verify(myRepoManager, never()).loadSynchronously(eq(0), any(), any(), any(), any(), any(), any());
   }
 
-  @Ignore("KMT-1387")
   @Test
   public void testCreateDialogNoUncachedRepoReloads() {
+    TestDialogManager.setTestDialog(TestDialog.DEFAULT, androidProjectRule.getTestRootDisposable());
     LocalPackage localPackage = new FakePackage.FakeLocalPackage("some;sdk;package", sdkRoot.resolve("p"));
     try {
       SdkQuickfixUtils.createDialog(null, null, ImmutableList.of("some;other;package"),
