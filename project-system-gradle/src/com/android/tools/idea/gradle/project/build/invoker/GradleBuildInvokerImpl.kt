@@ -535,7 +535,7 @@ internal constructor(
         }
         val event = StartBuildEventImpl(buildDescriptor, "running...")
         startBuildEventPosted = true
-        buildEventDispatcher.onEvent(id, event)
+        buildEventDispatcher.notifyBuildEvent(id, event)
       }
       super.onStart(projectPath, id)
     }
@@ -543,8 +543,8 @@ internal constructor(
     override fun onStatusChange(event: ExternalSystemTaskNotificationEvent) {
       if (startBuildEventPosted) {
         when (event) {
-          is ExternalSystemBuildEvent -> buildEventDispatcher.onEvent(event.getId(), event.buildEvent)
-          is ExternalSystemTaskExecutionEvent -> buildEventDispatcher.onEvent(event.getId(), convert((event)))
+          is ExternalSystemBuildEvent -> buildEventDispatcher.notifyBuildEvent(event.getId(), event.buildEvent)
+          is ExternalSystemTaskExecutionEvent -> buildEventDispatcher.notifyBuildEvent(event.getId(), convert((event)))
         }
       }
       super.onStatusChange(event)
@@ -627,7 +627,7 @@ internal constructor(
       addBuildAttributionLinkToTheOutput(id)
       if (startBuildEventPosted) {
         val event = FinishBuildEventImpl(id, null, System.currentTimeMillis(), "finished", SuccessResultImpl())
-        buildEventDispatcher.onEvent(id, event)
+        buildEventDispatcher.notifyBuildEvent(id, event)
       }
       super.onSuccess(projectPath, id)
     }
@@ -656,7 +656,7 @@ internal constructor(
             request.rootProjectPath.absolutePath,
             dataContext,
           )
-        buildEventDispatcher.onEvent(id, FinishBuildEventImpl(id, null, System.currentTimeMillis(), "failed", failureResult))
+        buildEventDispatcher.notifyBuildEvent(id, FinishBuildEventImpl(id, null, System.currentTimeMillis(), "failed", failureResult))
       }
       super.onFailure(projectPath, id, exception)
     }
@@ -665,7 +665,7 @@ internal constructor(
       if (startBuildEventPosted) {
         // Cause build view to show as skipped all pending tasks (b/73397414)
         val event = FinishBuildEventImpl(id, null, System.currentTimeMillis(), "cancelled", SkippedResultImpl())
-        buildEventDispatcher.onEvent(id, event)
+        buildEventDispatcher.notifyBuildEvent(id, event)
       }
       super.onCancel(projectPath, id)
     }
