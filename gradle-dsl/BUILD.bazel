@@ -14,14 +14,6 @@ dev_dist_plugin(
         "intellij.android.gradle.dsl.android",
     ],
     descriptor = "resources/META-INF/plugin.xml",
-    descriptor_modules = [
-        "intellij.android.gradle.dsl.android",
-        "intellij.android.gradle.dsl.declarative",
-        "intellij.android.gradle.dsl.flags",
-        "intellij.android.gradle.dsl.groovy",
-        "intellij.android.gradle.dsl.kotlin",
-        "intellij.android.gradle.dsl.toml",
-    ],
     descriptors = {
         "//android/gradle-dsl:resources/META-INF/gradle-dsl.xml": "META-INF/gradle-dsl.xml",
     },

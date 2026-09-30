@@ -133,13 +133,6 @@ dev_dist_plugin(
         "intellij.android.wizard.model",
     ],
     descriptor = "resources/META-INF/plugin.xml",
-    descriptor_modules = [
-        "intellij.libraries.ffmpeg",
-        "intellij.libraries.kxml2",
-        "intellij.libraries.layoutlib",
-        "intellij.libraries.sqlite",
-        "intellij.libraries.zxing.core",
-    ],
     descriptors = {
         "//android/adt-ui:resources/META-INF/adt-ui.xml": "META-INF/adt-ui.xml",
         "//android/adt-ui:resources/META-INF/splittingtabs.xml": "META-INF/splittingtabs.xml",

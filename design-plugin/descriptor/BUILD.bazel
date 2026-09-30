@@ -18,7 +18,6 @@ dev_dist_plugin(
         "intellij.android.wear-designer",
     ],
     descriptor = "resources/META-INF/plugin.xml",
-    descriptor_modules = ["intellij.libraries.layoutlib"],
     descriptors = {
         "//android/compose-designer:resources/META-INF/compose-designer.xml": "META-INF/compose-designer.xml",
         "//android/designer/gradle:resources/META-INF/designer-gradle.xml": "META-INF/designer-gradle.xml",
