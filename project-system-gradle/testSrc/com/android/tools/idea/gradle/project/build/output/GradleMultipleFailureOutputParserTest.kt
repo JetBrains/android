@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.build.output
 
 import com.intellij.build.events.MessageEvent
+import org.jetbrains.plugins.gradle.execution.build.output.GradleOutputDispatcherFactory.TaskNameId
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -77,7 +78,7 @@ class GradleMultipleFailureOutputParserTest : BuildOutputParserTest() {
             isDuplicateMessageAware = true,
             group = "Other Messages",
             kind = MessageEvent.Kind.ERROR,
-            parentId = ":lib:compileJava",
+            parentId = TaskNameId(":lib:compileJava"),
             description =
               """
               Execution failed for task ':lib:compileJava'.
@@ -99,7 +100,7 @@ class GradleMultipleFailureOutputParserTest : BuildOutputParserTest() {
             isDuplicateMessageAware = true,
             group = "Other Messages",
             kind = MessageEvent.Kind.ERROR,
-            parentId = ":app:compileDebugJavaWithJavac",
+            parentId = TaskNameId(":app:compileDebugJavaWithJavac"),
             description =
               """
               Execution failed for task ':app:compileDebugJavaWithJavac'.
@@ -266,7 +267,7 @@ BUILD FAILED in 4s
             isDuplicateMessageAware = true,
             group = "Other Messages",
             kind = MessageEvent.Kind.ERROR,
-            parentId = ":lib:compileJava",
+            parentId = TaskNameId(":lib:compileJava"),
             description =
               """
 Execution failed for task ':lib:compileJava'.
@@ -290,7 +291,7 @@ $stacktrace"""
             isDuplicateMessageAware = true,
             group = "Other Messages",
             kind = MessageEvent.Kind.ERROR,
-            parentId = ":app:compileDebugJavaWithJavac",
+            parentId = TaskNameId(":app:compileDebugJavaWithJavac"),
             description =
               """
 Execution failed for task ':app:compileDebugJavaWithJavac'.

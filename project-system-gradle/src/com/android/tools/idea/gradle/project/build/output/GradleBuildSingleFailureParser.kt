@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.build.output.BuildOutputParserUtils
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.output.BuildOutputInstantReader
 import java.util.function.Consumer
+import org.jetbrains.plugins.gradle.execution.build.output.GradleOutputDispatcherFactory.TaskNameId
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 
 class GradleBuildSingleFailureParser(failureHandlers: List<FailureDetailsHandler>) :
@@ -35,7 +36,7 @@ class GradleBuildSingleFailureParser(failureHandlers: List<FailureDetailsHandler
 
     if (parsed.whatWentWrongSectionLines.isEmpty()) return false
 
-    val parentId: Any = parsed.taskName ?: reader.parentEventId
+    val parentId: Any = parsed.taskName?.let { TaskNameId(it) } ?: reader.parentEventId
 
     processErrorMessage(parentId, parsed, messageConsumer)
     return true

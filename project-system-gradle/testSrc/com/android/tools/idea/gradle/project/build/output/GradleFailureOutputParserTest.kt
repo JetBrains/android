@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorPa
 import com.android.tools.idea.gradle.project.build.output.tomlParser.TomlErrorParserTest.Companion.getVersionCatalogLibsBuildOutput
 import com.intellij.build.events.MessageEvent
 import com.intellij.openapi.util.io.FileUtil
+import org.jetbrains.plugins.gradle.execution.build.output.GradleOutputDispatcherFactory.TaskNameId
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -220,7 +221,7 @@ Run with --stacktrace option to get the stack trace. Run with --info or --debug 
             isDuplicateMessageAware = true,
             group = "Other Messages",
             kind = MessageEvent.Kind.ERROR,
-            parentId = ":app:processDebugResources",
+            parentId = TaskNameId(":app:processDebugResources"),
             description =
               """
           Execution failed for task ':app:processDebugResources'.
@@ -307,7 +308,7 @@ Execution failed for task ':app:failingTask1'.
             isDuplicateMessageAware = true,
             group = "Other Messages",
             kind = MessageEvent.Kind.ERROR,
-            parentId = ":app:failingTask1",
+            parentId = TaskNameId(":app:failingTask1"),
             filePosition = "$scriptGradle:5:1-5:1",
             description =
               """
