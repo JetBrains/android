@@ -10,7 +10,7 @@ import com.google.common.collect.ImmutableSet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
-import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl
+import com.intellij.codeInsight.daemon.impl.LineMarkersPass.getDisplayedLineMarkers
 import com.intellij.ide.actions.GotoRelatedSymbolAction
 import com.intellij.navigation.GotoRelatedItem
 import com.intellij.openapi.actionSystem.ex.ActionUtil
@@ -277,7 +277,7 @@ class AndroidGotoRelatedLineMarkerTest {
   private fun doGetRelatedLineMarkers(): List<LineMarkerInfo<*>> {
     myFixture.doHighlighting()
 
-    val markers = DaemonCodeAnalyzerImpl.getLineMarkers(myFixture.editor.document, myFixture.project)
+    val markers = getDisplayedLineMarkers(myFixture.editor.document, myFixture.project)
     val relatedMarkers = ArrayList<LineMarkerInfo<*>>()
 
     for (marker in markers) {

@@ -23,7 +23,7 @@ import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.moveCaret
 import com.intellij.codeInsight.daemon.LineMarkerInfo
-import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl
+import com.intellij.codeInsight.daemon.impl.LineMarkersPass.getDisplayedLineMarkers
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
@@ -140,7 +140,7 @@ class PreviewPickerLineMarkerProviderTest {
   }
 
   private fun getPreviewLineMarkers(): List<LineMarkerInfo<*>> =
-    DaemonCodeAnalyzerImpl.getLineMarkers(fixture.editor.document, rule.project).filter { lineMarkerInfo ->
+      getDisplayedLineMarkers(fixture.editor.document, rule.project).filter { lineMarkerInfo ->
       lineMarkerInfo.lineMarkerTooltip == "Preview configuration picker"
     }
 }
