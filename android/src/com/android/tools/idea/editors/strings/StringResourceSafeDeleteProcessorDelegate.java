@@ -56,14 +56,6 @@ final class StringResourceSafeDeleteProcessorDelegate extends SafeDeleteProcesso
 
   @NotNull
   @Override
-  public Collection<PsiElement> getAdditionalElementsToDelete(@NotNull PsiElement element,
-                                                              @NotNull Collection<? extends PsiElement> elementsToDelete,
-                                                              boolean askUser) {
-    return Collections.emptyList();
-  }
-
-  @NotNull
-  @Override
   public NonCodeUsageSearchInfo findUsages(@NotNull PsiElement element,
                                            @NotNull PsiElement[] elementsToDelete,
                                            @NotNull List<? super UsageInfo> result) {
