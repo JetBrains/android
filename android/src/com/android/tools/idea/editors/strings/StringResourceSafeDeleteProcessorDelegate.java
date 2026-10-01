@@ -78,12 +78,6 @@ final class StringResourceSafeDeleteProcessorDelegate extends SafeDeleteProcesso
     return usages;
   }
 
-  @Nullable
-  @Override
-  public Collection<String> findConflicts(@NotNull PsiElement element, @NotNull PsiElement[] elementsToDelete) {
-    return null;
-  }
-
   @Override
   public void prepareForDeletion(@NotNull PsiElement element) throws IncorrectOperationException {
   }

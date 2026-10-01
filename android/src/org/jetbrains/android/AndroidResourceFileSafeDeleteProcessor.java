@@ -116,12 +116,6 @@ public class AndroidResourceFileSafeDeleteProcessor extends SafeDeleteProcessorD
 
   @Nullable
   @Override
-  public Collection<String> findConflicts(@NotNull PsiElement element, @NotNull PsiElement[] allElementsToDelete) {
-    return null;
-  }
-
-  @Nullable
-  @Override
   public UsageInfo[] preprocessUsages(Project project, UsageInfo[] usages) {
     return usages;
   }
