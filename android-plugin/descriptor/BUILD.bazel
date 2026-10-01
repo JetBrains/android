@@ -377,6 +377,7 @@ dev_dist_complex_plugin(
         "@lib//:studio-platform": "@lib//:studio-platform",
     },
     main_module = "intellij.android.plugin.descriptor",
+    platform_plans = True,
     platforms = ["windows_x64"],
     source_tree_prefixes = {
         "module-resource:3:source": "android/android/annotations",
@@ -551,6 +552,7 @@ dev_dist_complex_plugin(
         "@lib//:studio-platform": "@lib//:studio-platform",
     },
     main_module = "intellij.android.plugin.descriptor",
+    platform_plans = True,
     platforms = ["windows_aarch64"],
     source_tree_prefixes = {
         "module-resource:3:source": "android/android/annotations",
@@ -727,6 +729,7 @@ dev_dist_complex_plugin(
         "@lib//:studio-platform": "@lib//:studio-platform",
     },
     main_module = "intellij.android.plugin.descriptor",
+    platform_plans = True,
     platforms = ["darwin_x64"],
     source_tree_prefixes = {
         "module-resource:3:source": "android/android/annotations",
@@ -903,6 +906,7 @@ dev_dist_complex_plugin(
         "@lib//:studio-platform": "@lib//:studio-platform",
     },
     main_module = "intellij.android.plugin.descriptor",
+    platform_plans = True,
     platforms = ["darwin_aarch64"],
     source_tree_prefixes = {
         "module-resource:3:source": "android/android/annotations",
@@ -1079,6 +1083,7 @@ dev_dist_complex_plugin(
         "@lib//:studio-platform": "@lib//:studio-platform",
     },
     main_module = "intellij.android.plugin.descriptor",
+    platform_plans = True,
     platforms = ["linux_x64"],
     source_tree_prefixes = {
         "module-resource:3:source": "android/android/annotations",
@@ -1253,6 +1258,7 @@ dev_dist_complex_plugin(
         "@lib//:studio-platform": "@lib//:studio-platform",
     },
     main_module = "intellij.android.plugin.descriptor",
+    platform_plans = True,
     platforms = ["linux_aarch64"],
     source_tree_prefixes = {
         "module-resource:3:source": "android/android/annotations",
