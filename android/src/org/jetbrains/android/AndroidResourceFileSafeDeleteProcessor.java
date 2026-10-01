@@ -67,14 +67,12 @@ public class AndroidResourceFileSafeDeleteProcessor extends SafeDeleteProcessorD
     return new NonCodeUsageSearchInfo(SafeDeleteProcessor.getDefaultInsideDeletedCondition(allElementsToDelete), element);
   }
 
-  @Nullable
   @Override
-  public Collection<PsiElement> getAdditionalElementsToDelete(@NotNull PsiElement element,
-                                                              @NotNull Collection<? extends PsiElement> allElementsToDelete,
-                                                              boolean askUser) {
+  public @NotNull AdditionalElementsData getAdditionalElementsToDelete(@NotNull PsiElement element,
+                                                                       @NotNull Collection<? extends PsiElement> allElementsToDelete) {
     if (allElementsToDelete.size() > 1) {
       // todo: support this case (we should ask once)
-      return Collections.emptyList();
+      return AdditionalElementsData.NONE;
     }
     final AndroidFacet facet = AndroidFacet.getInstance(element);
     assert facet != null;
@@ -87,9 +85,8 @@ public class AndroidResourceFileSafeDeleteProcessor extends SafeDeleteProcessorD
     ResourceFolderType folderType = ResourceFolderType.getFolderType(dir.getName());
 
     if (folderType == null) {
-      return Collections.emptyList();
+      return AdditionalElementsData.NONE;
     }
-    final String type = folderType.getName();
     final String name = vFile.getName();
 
     LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
@@ -104,14 +101,9 @@ public class AndroidResourceFileSafeDeleteProcessor extends SafeDeleteProcessorD
         result.add(resourceFile);
       }
     }
-    if (!result.isEmpty() && askUser) {
-      final int r = Messages.showDialog(element.getProject(), "Delete alternative resource files for other configurations?", "Delete",
-                                        new String[]{Messages.getYesButton(), Messages.getNoButton()}, 1, Messages.getQuestionIcon());
-      if (r != Messages.YES) {
-        return Collections.emptyList();
-      }
-    }
-    return result;
+    return new AdditionalElementsData(
+      result,
+      new ConfirmationPolicy.Ask("Delete alternative resource files for other configurations?", true));
   }
 
   @Nullable

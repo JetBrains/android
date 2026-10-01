@@ -75,9 +75,8 @@ class LayoutBindingSafeDeleteProcessor : SafeDeleteProcessorDelegate {
   override fun getAdditionalElementsToDelete(
     element: PsiElement,
     allElementsToDelete: Collection<PsiElement>,
-    askUser: Boolean,
-  ): Collection<PsiElement>? {
-    return delegateProcessor.getAdditionalElementsToDelete(element, allElementsToDelete, askUser)
+  ): SafeDeleteProcessorDelegate.AdditionalElementsData {
+    return delegateProcessor.getAdditionalElementsToDelete(element, allElementsToDelete)
   }
 
   override fun findConflicts(element: PsiElement, allElementsToDelete: Array<PsiElement>): Collection<String>? {
