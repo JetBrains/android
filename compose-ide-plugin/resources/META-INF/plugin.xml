@@ -225,10 +225,6 @@
     <usageGroupingRuleProvider implementation="com.android.tools.compose.ComposeUsageGroupingRuleProvider" />
   </extensions>
 
-  <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
-    <typeResolutionInterceptorExtension implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposeTypeResolutionInterceptorExtension"/>
-  </extensions>
-
   <extensions defaultExtensionNs="org.jetbrains.kotlin.idea.debugger.core">
     <classNameContributor implementation="com.android.tools.compose.debug.ComposeClassNameContributor"/>
   </extensions>
