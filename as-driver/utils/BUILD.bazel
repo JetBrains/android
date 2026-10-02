@@ -62,6 +62,8 @@ jvm_library(
         "//libraries/protobuf:protobuf_test_lib",
         "//platform/lang-impl",
         "//platform/lang-impl:lang-impl_test_lib",
+        "//platform/lang-impl/backend",
+        "//platform/lang-impl/backend:backend_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.as-driver.utils` end
