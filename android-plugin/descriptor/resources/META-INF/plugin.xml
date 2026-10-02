@@ -60,6 +60,7 @@
 <!--  <module name="intellij.platform.diagnostic.freezes"/>-->
     <module name="intellij.platform.diagnostic.freezeAnalyzer"/>
     <module name="intellij.platform.ide.colorPicker"/>
+    <module name="intellij.platform.ide.hprof"/>
     <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
     <plugin id="com.intellij.modules.compose"/>
     <plugin id="org.intellij.groovy"/>
