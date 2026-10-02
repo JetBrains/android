@@ -367,6 +367,7 @@
       <module fileurl="file://$PROJECT_DIR$/android/editing/intellij.android.editing.tests.iml" filepath="$PROJECT_DIR$/android/editing/intellij.android.editing.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/execution/common/intellij.android.execution.common.iml" filepath="$PROJECT_DIR$/execution/common/intellij.android.execution.common.iml" />
       <module fileurl="file://$PROJECT_DIR$/execution/common/intellij.android.execution.common.tests.iml" filepath="$PROJECT_DIR$/execution/common/intellij.android.execution.common.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/intellij.android.externalAnnotations.iml" filepath="$PROJECT_DIR$/android/intellij.android.externalAnnotations.iml" />
       <module fileurl="file://$PROJECT_DIR$/glance-designer/intellij.android.glance-designer.iml" filepath="$PROJECT_DIR$/glance-designer/intellij.android.glance-designer.iml" />
       <module fileurl="file://$PROJECT_DIR$/glance-designer/intellij.android.glance-designer.tests.iml" filepath="$PROJECT_DIR$/glance-designer/intellij.android.glance-designer.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/gmaven/intellij.android.gmaven.iml" filepath="$PROJECT_DIR$/gmaven/intellij.android.gmaven.iml" />

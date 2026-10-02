@@ -176,9 +176,12 @@ public class ExternalAnnotationsSupport {
     if (root == null) {
       String homePath = FileUtil.toSystemIndependentName(PathManager.getHomePath());
 
-      // release build? If so the jar file is bundled under android/lib..
-      String releaseLocation = homePath + "/plugins/android/resources/androidAnnotations.jar";
-      root = fileManager.findFileByUrl("jar://" + releaseLocation + "!/");
+      // release build? The IntelliJ layout puts the jar under android/lib/resources, the Android Studio layout under android/resources.
+      String releaseLocation = homePath + "/plugins/android/lib/resources/androidAnnotations.jar";
+      for (String location : new String[]{releaseLocation, homePath + "/plugins/android/resources/androidAnnotations.jar"}) {
+        root = fileManager.findFileByUrl("jar://" + location + "!/");
+        if (root != null) break;
+      }
 
       if (root == null) {
         // Otherwise, in development tree. Look both in Studio and IJ source tree locations.
