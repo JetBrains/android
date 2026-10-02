@@ -41,6 +41,11 @@ class TomlDslChangerTest : LightPlatformTestCase() {
     super.setUp()
   }
 
+  override fun tearDown() {
+    DeclarativeIdeSupport.clearOverride()
+    super.tearDown()
+  }
+
   @Test
   fun testDeleteSingleLiteral() {
     val toml =

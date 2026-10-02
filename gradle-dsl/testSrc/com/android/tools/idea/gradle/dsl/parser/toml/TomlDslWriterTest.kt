@@ -41,6 +41,11 @@ class TomlDslWriterTest : LightPlatformTestCase() {
     super.setUp()
   }
 
+  override fun tearDown() {
+    DeclarativeIdeSupport.clearOverride()
+    super.tearDown()
+  }
+
   @Test
   fun testSingleLiteral() {
     val contents = mapOf("foo" to "bar")
