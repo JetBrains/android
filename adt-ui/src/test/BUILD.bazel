@@ -54,6 +54,7 @@ jvm_library(
         "//platform/ide-core:ide-core_test_lib",
         "//platform/ide-core-impl:ide-core-impl_test_lib",
         "//platform/platform-impl:ide-impl_test_lib",
+        "//platform/platform-impl/color-picker:color-picker_test_lib",
         "//platform/platform-impl/ui:ui_test_lib",
     ],
     deps = [
@@ -113,6 +114,7 @@ jvm_library(
         "//platform/ide-core",
         "//platform/ide-core-impl",
         "//platform/platform-impl:ide-impl",
+        "//platform/platform-impl/color-picker",
         "//platform/lang-impl",
         "//platform/lang-impl:lang-impl_test_lib",
         "//platform/projectModel-api:projectModel",

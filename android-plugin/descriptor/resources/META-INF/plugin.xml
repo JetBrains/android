@@ -59,6 +59,7 @@
 <!--  JetBrains patch: no intellij.platform.diagnostic.freezes module in the monorepo (its PluginFreezeWatcher counterpart is internal to intellij.performanceTesting.freezes). Since Quail 2 no Android code needs it: ThreadSamplingReportContributor reimplements the freeze plugin attribution on top of intellij.platform.diagnostic.freezeAnalyzer, declared below.-->
 <!--  <module name="intellij.platform.diagnostic.freezes"/>-->
     <module name="intellij.platform.diagnostic.freezeAnalyzer"/>
+    <module name="intellij.platform.ide.colorPicker"/>
     <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
     <plugin id="com.intellij.modules.compose"/>
     <plugin id="org.intellij.groovy"/>
