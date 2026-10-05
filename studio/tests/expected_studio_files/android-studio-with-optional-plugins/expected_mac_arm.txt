@@ -3883,6 +3883,7 @@ Android Studio Preview.app/Contents/plugins/vcs-git-commit-modal/lib/vcs-git-com
 Android Studio Preview.app/Contents/plugins/vcs-git/lib/git4idea-rt.jar
 Android Studio Preview.app/Contents/plugins/vcs-git/lib/modules/intellij.vcs.git.coverage.jar
 Android Studio Preview.app/Contents/plugins/vcs-git/lib/modules/intellij.vcs.git.frontend.jar
+Android Studio Preview.app/Contents/plugins/vcs-git/lib/modules/intellij.vcs.git.hosting.jar
 Android Studio Preview.app/Contents/plugins/vcs-git/lib/modules/intellij.vcs.git.localHistory.jar
 Android Studio Preview.app/Contents/plugins/vcs-git/lib/modules/intellij.vcs.git.terminal.jar
 Android Studio Preview.app/Contents/plugins/vcs-git/lib/vcs-git.jar

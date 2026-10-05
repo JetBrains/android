@@ -3154,6 +3154,7 @@ android-studio/plugins/vcs-git-commit-modal/lib/vcs-git-commit-modal.jar
 android-studio/plugins/vcs-git/lib/git4idea-rt.jar
 android-studio/plugins/vcs-git/lib/modules/intellij.vcs.git.coverage.jar
 android-studio/plugins/vcs-git/lib/modules/intellij.vcs.git.frontend.jar
+android-studio/plugins/vcs-git/lib/modules/intellij.vcs.git.hosting.jar
 android-studio/plugins/vcs-git/lib/modules/intellij.vcs.git.localHistory.jar
 android-studio/plugins/vcs-git/lib/modules/intellij.vcs.git.terminal.jar
 android-studio/plugins/vcs-git/lib/vcs-git.jar

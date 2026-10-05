@@ -3882,6 +3882,7 @@
 +++Android Studio.app/Contents/plugins/vcs-git/lib/git4idea-rt.jar
 +++Android Studio.app/Contents/plugins/vcs-git/lib/modules/intellij.vcs.git.coverage.jar
 +++Android Studio.app/Contents/plugins/vcs-git/lib/modules/intellij.vcs.git.frontend.jar
++++Android Studio.app/Contents/plugins/vcs-git/lib/modules/intellij.vcs.git.hosting.jar
 +++Android Studio.app/Contents/plugins/vcs-git/lib/modules/intellij.vcs.git.localHistory.jar
 +++Android Studio.app/Contents/plugins/vcs-git/lib/modules/intellij.vcs.git.terminal.jar
 +++Android Studio.app/Contents/plugins/vcs-git/lib/vcs-git.jar
@@ -7783,6 +7784,7 @@
 ---Android Studio Preview.app/Contents/plugins/vcs-git/lib/git4idea-rt.jar
 ---Android Studio Preview.app/Contents/plugins/vcs-git/lib/modules/intellij.vcs.git.coverage.jar
 ---Android Studio Preview.app/Contents/plugins/vcs-git/lib/modules/intellij.vcs.git.frontend.jar
+---Android Studio Preview.app/Contents/plugins/vcs-git/lib/modules/intellij.vcs.git.hosting.jar
 ---Android Studio Preview.app/Contents/plugins/vcs-git/lib/modules/intellij.vcs.git.localHistory.jar
 ---Android Studio Preview.app/Contents/plugins/vcs-git/lib/modules/intellij.vcs.git.terminal.jar
 ---Android Studio Preview.app/Contents/plugins/vcs-git/lib/vcs-git.jar
