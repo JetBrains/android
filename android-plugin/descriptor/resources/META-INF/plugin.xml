@@ -66,6 +66,7 @@
     <plugin id="org.jetbrains.plugins.gradle"/>
     <module name="intellij.platform.execution.impl"/>
     <module name="intellij.platform.ide.internal"/>
+    <module name="intellij.platform.lang.impl"/>
     <!-- endregion -->
   </dependencies>
 
