@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.project.build.GradleBuildListener
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.TestLoggerRule
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
@@ -37,10 +38,14 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 
 /** Tests for making sure that [org.gradle.tooling.BuildAction] is run when passed to [GradleBuildInvoker]. */
 class BuildInvokerTest {
-  @get:Rule val projectRule = AndroidGradleProjectRule()
+  val projectRule = AndroidGradleProjectRule()
+
+  @get:Rule val rules: RuleChain = RuleChain.outerRule(TestLoggerRule()).around(projectRule)
+
   val project by lazy { projectRule.project }
 
   @Test
