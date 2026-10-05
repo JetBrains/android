@@ -612,6 +612,11 @@
                         "filter": "module-v1"
                     },
                     {
+                        "input": "intellij.android.layoutlib",
+                        "kind": "module",
+                        "filter": "module-v1"
+                    },
+                    {
                         "input": "intellij.android.room",
                         "kind": "module",
                         "filter": "module-v1"

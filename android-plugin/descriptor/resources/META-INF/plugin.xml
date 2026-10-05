@@ -86,9 +86,10 @@
   <content>
     <module name="intellij.libraries.kxml2" loading="embedded"/>
   </content>
-  <!-- Same reasoning as above: loading="embedded" is required because intellij.android.rendering is packed into
-       lib/android.jar as a plain module and its sources import com.android.layoutlib.bridge.* and
-       com.android.internal.widget.* directly, so the classes must be on the plugin's main classloader. -->
+  <!-- Same reasoning as above: loading="embedded" is required because intellij.android.rendering and
+       intellij.android.layoutlib are packed into lib/android.jar as plain modules and their sources import
+       com.android.layoutlib.bridge.* and com.android.internal.* directly, so the classes must be on the plugin's main
+       classloader. -->
   <content>
     <module name="intellij.libraries.layoutlib" loading="embedded"/>
   </content>
@@ -191,4 +192,6 @@
   <xi:include href="/META-INF/tracer.xml" />
   <xi:include href="/META-INF/app-publishing.xml" />
   <xi:include href="/META-INF/play-publishing.xml" />
+<!--  JetBrains patch: layoutlib.xml registers the only LayoutLibraryProvider. Upstream it ships with the Design Tools plugin, which Android Studio always bundles, but the Android plugin from Marketplace can run without Design Tools, and then the rendering in Asset Studio and other Android plugin code silently returns blank images. Design Tools gets the provider through its dependency on this plugin.-->
+  <xi:include href="/META-INF/layoutlib.xml" />
 </idea-plugin>
