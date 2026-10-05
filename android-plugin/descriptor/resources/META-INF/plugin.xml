@@ -192,6 +192,7 @@
   <xi:include href="/META-INF/tracer.xml" />
   <xi:include href="/META-INF/app-publishing.xml" />
   <xi:include href="/META-INF/play-publishing.xml" />
-<!--  JetBrains patch: layoutlib.xml registers the only LayoutLibraryProvider. Upstream it ships with the Design Tools plugin, which Android Studio always bundles, but the Android plugin from Marketplace can run without Design Tools, and then the rendering in Asset Studio and other Android plugin code silently returns blank images. Design Tools gets the provider through its dependency on this plugin.-->
+<!--  JetBrains patch: the layoutlib provider lives here, not in Design Tools, because the Android plugin can run without Design Tools.
+      Without a provider, Asset Studio previews are blank. -->
   <xi:include href="/META-INF/layoutlib.xml" />
 </idea-plugin>
