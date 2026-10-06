@@ -1057,7 +1057,7 @@ public final class AndroidStudioSystemHealthMonitor {
 
       // We aggregate actions the user takes many times in the course of editing code (key events, copy/paste etc...)
       // other actions are logged directly (our logging mechanism batches the uploads, but timestamps will be accurate).
-      if (shouldAggregate(actionClass)) {
+      if (shouldAggregate(action)) {
         Multiset<InvocationKind> invocations = ourActionInvocations.get(actionName);
         if (invocations == null) {
           invocations = LinkedHashMultiset.create();
@@ -1094,13 +1094,14 @@ public final class AndroidStudioSystemHealthMonitor {
    * Checks if the action is one we need to aggregate.
    * We only aggregate actions the user takes many times in the course of editing code (key events, copy/paste etc...).
    */
-  private static boolean shouldAggregate(Class actionClass) {
+  private static boolean shouldAggregate(AnAction action) {
+    var actionClass = action.getClass();
     return EditorAction.class.isAssignableFrom(actionClass)
            || UndoRedoAction.class.isAssignableFrom(actionClass)
            || PasteAction.class.isAssignableFrom(actionClass)
            || CopyAction.class.isAssignableFrom(actionClass)
            || CutAction.class.isAssignableFrom(actionClass)
-           || SaveAllAction.class.isAssignableFrom(actionClass)
+           || SaveAllAction.isSaveAllAction(action)
            || DeleteAction.class.isAssignableFrom(actionClass)
            || NextOccurenceAction.class.isAssignableFrom(actionClass)
            || PreviousOccurenceAction.class.isAssignableFrom(actionClass);
