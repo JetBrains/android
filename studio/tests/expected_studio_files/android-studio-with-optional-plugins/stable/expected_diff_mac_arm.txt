@@ -635,9 +635,6 @@
 +++Android Studio.app/Contents/lib/intellij.platform.diff.impl.jar
 +++Android Studio.app/Contents/lib/intellij.platform.diff.jar
 +++Android Studio.app/Contents/lib/intellij.platform.duplicates.analysis.jar
-+++Android Studio.app/Contents/lib/intellij.platform.editor.backend.jar
-+++Android Studio.app/Contents/lib/intellij.platform.editor.frontend.jar
-+++Android Studio.app/Contents/lib/intellij.platform.editor.jar
 +++Android Studio.app/Contents/lib/intellij.platform.eel.impl.jar
 +++Android Studio.app/Contents/lib/intellij.platform.eel.tcp.jar
 +++Android Studio.app/Contents/lib/intellij.platform.execution.dashboard.backend.jar
@@ -4538,9 +4535,6 @@
 ---Android Studio Preview.app/Contents/lib/intellij.platform.diff.impl.jar
 ---Android Studio Preview.app/Contents/lib/intellij.platform.diff.jar
 ---Android Studio Preview.app/Contents/lib/intellij.platform.duplicates.analysis.jar
----Android Studio Preview.app/Contents/lib/intellij.platform.editor.backend.jar
----Android Studio Preview.app/Contents/lib/intellij.platform.editor.frontend.jar
----Android Studio Preview.app/Contents/lib/intellij.platform.editor.jar
 ---Android Studio Preview.app/Contents/lib/intellij.platform.eel.impl.jar
 ---Android Studio Preview.app/Contents/lib/intellij.platform.eel.tcp.jar
 ---Android Studio Preview.app/Contents/lib/intellij.platform.execution.dashboard.backend.jar

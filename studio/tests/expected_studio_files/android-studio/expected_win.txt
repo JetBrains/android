@@ -694,9 +694,6 @@ android-studio/lib/intellij.platform.diagnostic.telemetry.agent.extension.jar
 android-studio/lib/intellij.platform.diff.impl.jar
 android-studio/lib/intellij.platform.diff.jar
 android-studio/lib/intellij.platform.duplicates.analysis.jar
-android-studio/lib/intellij.platform.editor.backend.jar
-android-studio/lib/intellij.platform.editor.frontend.jar
-android-studio/lib/intellij.platform.editor.jar
 android-studio/lib/intellij.platform.eel.impl.jar
 android-studio/lib/intellij.platform.eel.tcp.jar
 android-studio/lib/intellij.platform.execution.dashboard.backend.jar

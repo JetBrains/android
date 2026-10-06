@@ -125,8 +125,6 @@ jvm_library(
         "//platform/core-api:core_test_lib",
         "//platform/core-impl",
         "//platform/core-impl:core-impl_test_lib",
-        "//platform/editor/shared:editor",
-        "//platform/editor/shared:editor_test_lib",
         "//platform/editor-ui-api:editor-ui",
         "//platform/editor-ui-api:editor-ui_test_lib",
         "//platform/extensions",

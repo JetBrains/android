@@ -152,9 +152,6 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.debugger.impl.frontend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.diagnostic.freezeAnalyzer" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.diagnostic.telemetry.agent.extension" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.editor" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.editor.backend" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.editor.frontend" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.eel.tcp" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.execution.dashboard" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-intellij.platform.execution.dashboard.backend" level="project" />
