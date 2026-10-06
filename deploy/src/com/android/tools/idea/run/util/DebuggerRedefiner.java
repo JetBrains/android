@@ -31,7 +31,6 @@ import com.intellij.debugger.impl.MultiProcessCommand;
 import com.intellij.debugger.jdi.ThreadReferenceProxyImpl;
 import com.intellij.debugger.jdi.VirtualMachineProxyImpl;
 import com.intellij.debugger.ui.breakpoints.BreakpointManager;
-import com.intellij.debugger.ui.breakpoints.StackCapturingLineBreakpoint;
 import com.intellij.execution.configurations.RemoteConnection;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -259,7 +258,6 @@ public class DebuggerRedefiner implements ClassRedefiner {
     DebugProcessImpl debugProcess = debuggerSession.getProcess();
     BreakpointManager breakpointManager = (DebuggerManagerEx.getInstanceEx(project)).getBreakpointManager();
     breakpointManager.disableBreakpoints(debugProcess);
-    StackCapturingLineBreakpoint.deleteAll(debugProcess);
     @SuppressWarnings("UnstableApiUsage")
     VirtualMachineProxyImpl virtualMachineProxy = VirtualMachineProxyImpl.getCurrent();
 
@@ -311,7 +309,6 @@ public class DebuggerRedefiner implements ClassRedefiner {
 
     if (!project.isDisposed()) {
       breakpointManager.enableBreakpoints(debugProcess);
-      StackCapturingLineBreakpoint.createAll(debugProcess);
     }
   }
 }
