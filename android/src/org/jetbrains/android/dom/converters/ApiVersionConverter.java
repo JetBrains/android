@@ -2,6 +2,7 @@ package org.jetbrains.android.dom.converters;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.SdkVersionUtil;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
@@ -34,7 +35,8 @@ public class ApiVersionConverter extends ResolvingConverter<String> {
   @Nullable
   @Override
   public LookupElement createLookupElement(String s) {
-    AndroidVersion version = SdkVersionInfo.getVersion(s, null);
+    // TODO studio-merge
+    AndroidVersion version = SdkVersionUtil.getVersion(s, null);
     if (version == null) {
       return null;
     }

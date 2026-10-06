@@ -27,7 +27,7 @@ import com.android.tools.idea.deviceprovisioner.DeviceProvisionerFactory
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.datetime.Clock
+import kotlin.time.Clock // TODO studio-merge
 
 /** Builds a LocalEmulatorProvisionerPlugin with its dependencies provided by Studio. */
 class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {

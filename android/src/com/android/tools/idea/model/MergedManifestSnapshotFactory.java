@@ -53,7 +53,7 @@ import com.android.manifmerger.Actions;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.SdkVersionUtil;
 import com.android.tools.dom.ActivityAttributesSnapshot;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
@@ -137,7 +137,8 @@ public class MergedManifestSnapshotFactory {
     String valueString = getAttributeValue(usesSdk, ANDROID_URI, attribute);
     if (valueString != null) {
       // TODO: Pass in platforms if we have them
-      AndroidVersion version = SdkVersionInfo.getVersion(valueString, null);
+      // TODO studio-merge
+      AndroidVersion version = SdkVersionUtil.getVersion(valueString, null);
       if (version != null) {
         return version;
       }
