@@ -25,7 +25,6 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.diagnostics.crash.ExceptionDataCollection;
 import com.android.tools.idea.diagnostics.crash.ExceptionRateLimiter;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
-import com.android.tools.idea.diagnostics.crash.UploadFields;
 import com.android.tools.idea.diagnostics.error.AndroidStudioErrorReportSubmitter;
 import com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverseService;
 import com.android.tools.idea.diagnostics.hprof.action.AnalysisRunnable;
@@ -63,11 +62,8 @@ import com.google.wireless.android.sdk.stats.UIActionStats.InvocationKind;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.diagnostic.EventWatcher;
 import com.intellij.diagnostic.IdePerformanceListener;
-import com.intellij.diagnostic.LogMessage;
-import com.intellij.diagnostic.MessagePool;
 import com.intellij.diagnostic.ThreadDump;
 import com.intellij.diagnostic.ThreadDumper;
-import com.intellij.diagnostic.VMOptions;
 import com.intellij.ide.AppLifecycleListener;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.CopyAction;
@@ -78,9 +74,6 @@ import com.intellij.ide.actions.PasteAction;
 import com.intellij.ide.actions.PreviousOccurenceAction;
 import com.intellij.ide.actions.SaveAllAction;
 import com.intellij.ide.actions.UndoRedoAction;
-import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManagerCore;
-import com.intellij.ide.plugins.PluginUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.idea.AppMode;
 import com.intellij.internal.statistic.utils.StatisticsUploadAssistant;
@@ -102,12 +95,10 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.Service;
-import com.intellij.openapi.diagnostic.Attachment;
 import com.intellij.openapi.diagnostic.ErrorReportSubmitter;
 import com.intellij.openapi.diagnostic.IdeaLoggingEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.actionSystem.EditorAction;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
@@ -138,7 +129,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
@@ -639,154 +629,6 @@ public final class AndroidStudioSystemHealthMonitor {
     }
     catch (IOException ignored) {
       return false;
-    }
-  }
-
-  protected void registerPlatformEventsListener() {
-    //AndroidStudioSystemHealthMonitorAdapter.EventsListener listener = new AndroidStudioSystemHealthMonitorAdapter.EventsListener() {
-    //
-    //  @Override
-    //  public void countActionInvocation(AnAction anAction, Presentation presentation, AnActionEvent event) {
-    //    AndroidStudioSystemHealthMonitor.countActionInvocation(anAction, presentation, event);
-    //  }
-    //
-    //  @Override
-    //  public boolean handleExceptionEvent(IdeaLoggingEvent event, VMOptions.MemoryKind memoryKind) {
-    //    return AndroidStudioSystemHealthMonitor.this.handleExceptionEvent(event, memoryKind);
-    //  }
-    //};
-    //AndroidStudioSystemHealthMonitorAdapter.registerEventsListener(listener);
-  }
-
-  private AtomicBoolean ourOomOccurred = new AtomicBoolean(false);
-
-  private boolean handleExceptionEvent(IdeaLoggingEvent event, VMOptions.MemoryKind kind) {
-    Throwable t = event.getThrowable();
-
-    if (t instanceof OutOfMemoryError) {
-      myOomListenersExecutor.execute(() -> myOomListeners.forEach(Runnable::run));
-    }
-
-    if (myExceptionDataCollection.requiresConfirmation(t)) {
-      UploadFields fields = myExceptionDataCollection.getExceptionUploadFields(event.getThrowable(), false, true);
-      List<Attachment> attachments = new ArrayList<>();
-      fields.getLogs().forEach((name, log) -> {
-        Attachment attachment = new Attachment("log_" + name + ".log", log);
-        attachment.setIncluded(true);
-        attachments.add(attachment);
-      });
-      MessagePool.getInstance().addErrorMessage(new LogMessage(event.getThrowable(), event.getMessage(), attachments));
-      return true;
-    }
-
-    // track exception count
-    if (AnalyticsSettings.getOptedIn()) {
-      if (t != null) {
-        if (isReportableCrash(t)) {
-          reportThrowableToCrash(t);
-        }
-      }
-    }
-
-    try {
-      if (kind != null && !ourOomOccurred.getAndSet(true)) {
-        // TODO: Report histogram and heap report on OOM
-      }
-
-      // if exception should not be shown in the errors UI then report it as handled.
-      boolean showUI = isIdeErrorsDialogReportableCrash(t) || ApplicationManager.getApplication().isInternal();
-      return !showUI;
-    } catch (Throwable throwable) {
-      LOG.warn("Exception while handling exception event", throwable);
-      return false;
-    }
-  }
-
-  private void reportThrowableToCrash(Throwable t) {
-    incrementAndSaveExceptionCount(t);
-    ErrorReportSubmitter reporter = ErrorReportSubmitter.EP_NAME.findExtension(AndroidStudioErrorReportSubmitter.class);
-    if (reporter != null) {
-      StackTrace stackTrace = ExceptionRegistry.INSTANCE.register(t);
-      String signature = ExceptionDataCollection.Companion.calculateSignature(t);
-      ExceptionRateLimiter.Permit permit = exceptionRateLimiter.tryAcquireForSignature(signature);
-      if (permit.getPermissionType() == ExceptionRateLimiter.PermissionType.ALLOW) {
-        IdeaLoggingEvent e = new AndroidStudioExceptionEvent(
-          t.getMessage(), t, stackTrace,
-          signature,
-          permit.getGlobalExceptionCounter(),
-          permit.getLocalExceptionCounter(),
-          permit.getDeniedSinceLastAllow());
-        reporter.submit(new IdeaLoggingEvent[]{e}, null, null, info -> {
-        });
-      }
-    }
-  }
-
-  private static boolean isIdeErrorsDialogReportableCrash(Throwable t) {
-    int maxCauseDepth = 100;
-    while (maxCauseDepth > 0 && t.getCause() != null) {
-      t = t.getCause();
-      maxCauseDepth--;
-    }
-    // Report exceptions with too long cause chains.
-    if (t.getCause() != null) return true;
-
-    // Report all out of memory errors
-    if (t instanceof OutOfMemoryError) return true;
-
-    String className = t.getClass().getName();
-    if (className != null) {
-      if (className.equals("com.intellij.psi.PsiInvalidElementAccessException")) return false;
-      if (className.equals("com.intellij.openapi.project.IndexNotReadyException")) return false;
-      if (className.equals("com.intellij.openapi.util.TraceableDisposable.ObjectNotDisposedException")) return false;
-      if (className.equals("com.intellij.openapi.util.TraceableDisposable$DisposalException")) return false;
-      if (className.equals("com.intellij.openapi.wm.impl.FocusManagerImpl$1")) return false;
-    }
-
-    StackTraceElement[] stackTraceElements = t.getStackTrace();
-    String firstFrame = "";
-    String lastFrame = "";
-    if (stackTraceElements != null && stackTraceElements.length >= 1) {
-      firstFrame = stackTraceElements[0].getClassName() + "#" + stackTraceElements[0].getMethodName();
-      int lastIndex = stackTraceElements.length - 1;
-      lastFrame = stackTraceElements[lastIndex].getClassName() + "#" + stackTraceElements[lastIndex].getMethodName();
-    }
-
-    // Don't show Logger.error in errors dialog.
-    if (firstFrame.equals("com.intellij.openapi.diagnostic.Logger#error") && Objects.equals(t.getClass(), Throwable.class))
-      return false;
-
-    // Report only exceptions on EDT
-    if (!lastFrame.equals("java.awt.EventDispatchThread#run")) {
-      return false;
-    }
-
-    return true;
-  }
-
-  private static boolean isReportableCrash(@NotNull Throwable t) {
-    if (t instanceof ClassNotFoundException) {
-      String cls = t.getMessage();
-      if (cls != null && cls.startsWith("com.sun.jdi.")) {
-        // Running on a JRE. We're already warning about that in the System Health Monitor.
-        // https://code.google.com/p/android/issues/detail?id=225130
-        return false;
-      }
-    }
-    return true;
-  }
-
-  private static void incrementAndSaveExceptionCount(@NotNull Throwable t) {
-    incrementAndSaveExceptionCount();
-    PluginId pluginId = PluginUtil.getInstance().findPluginId(t);
-    if (pluginId != null) {
-      IdeaPluginDescriptor plugin = PluginManagerCore.getPlugin(pluginId);
-      if (plugin != null && plugin.isBundled()) {
-        incrementAndSaveBundledPluginsExceptionCount();
-      }
-      else {
-        incrementAndSaveNonBundledPluginsExceptionCount();
-      }
     }
   }
 
