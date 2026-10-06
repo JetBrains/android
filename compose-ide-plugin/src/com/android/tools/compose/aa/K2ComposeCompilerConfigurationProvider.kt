@@ -30,7 +30,6 @@ class K2ComposeCompilerConfigurationProvider : KotlinFirCompilerPluginConfigurat
       /* We have to pass
          - generateFunctionKeyMetaClasses = true,
          - useK2 = KotlinPluginModeProvider.isK2Mode(),
-         - featureFlags = FeatureFlags().apply { setFeature(FeatureFlag.IntrinsicRemember, false) },
          - skipIfRuntimeNotFound = true,
          - and messageCollector
         to ComposeIrGenerationExtension()
@@ -39,12 +38,10 @@ class K2ComposeCompilerConfigurationProvider : KotlinFirCompilerPluginConfigurat
       put(ComposeConfiguration.LIVE_LITERALS_V2_ENABLED_KEY, false)
       put(ComposeConfiguration.GENERATE_FUNCTION_KEY_META_ANNOTATION_KEY, true)
       put(ComposeConfiguration.SOURCE_INFORMATION_ENABLED_KEY, true)
-      put(ComposeConfiguration.INTRINSIC_REMEMBER_OPTIMIZATION_ENABLED_KEY, false)
       put(ComposeConfiguration.DECOYS_ENABLED_KEY, false)
       put(CommonConfigurationKeys.VERIFY_IR, IrVerificationMode.NONE)
 
       put(ComposeConfiguration.NON_SKIPPING_GROUP_OPTIMIZATION_ENABLED_KEY, false)
-      put(ComposeConfiguration.STRONG_SKIPPING_ENABLED_KEY, false)
 
       put(ComposeConfiguration.TRACE_MARKERS_ENABLED_KEY, true)
 
