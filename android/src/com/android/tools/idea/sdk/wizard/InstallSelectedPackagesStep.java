@@ -40,6 +40,7 @@ import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.ui.deprecated.StudioWizardStepPanel;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
@@ -49,6 +50,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
@@ -280,6 +282,9 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
       indicator = new EmptyProgressIndicator();
     }
     customLogger.setIndicator(indicator);
+    if (indicator instanceof Disposable disposableIndicator) {
+      Disposer.register(disposableIndicator, () -> customLogger.setIndicator(null));
+    }
     indicator.setIndeterminate(false);
     ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, indicator);
   }
@@ -327,7 +332,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
 
   private final class CustomLogger implements com.android.repository.api.ProgressIndicator {
 
-    private ProgressIndicator myIndicator;
+    private volatile ProgressIndicator myIndicator;
     private boolean myCancelled;
     private Logger myLogger = Logger.getInstance(getClass());
     // Maintain separately since JProgressBar has low resolution
@@ -336,15 +341,17 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     @Override
     public void setText(@Nullable final String s) {
       UIUtil.invokeLaterIfNeeded(() -> myProgressOverallLabel.setText(s));
-      if (myIndicator != null) {
-        myIndicator.setText(s);
+      ProgressIndicator indicator = myIndicator;
+      if (indicator != null) {
+        indicator.setText(s);
       }
     }
 
     @Override
     public boolean isCanceled() {
-      if (myIndicator != null) {
-        myCancelled = myCancelled || myIndicator.isCanceled();
+      ProgressIndicator indicator = myIndicator;
+      if (indicator != null) {
+        myCancelled = myCancelled || indicator.isCanceled();
       }
       return myCancelled;
     }
@@ -352,8 +359,9 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     @Override
     public void cancel() {
       myCancelled = true;
-      if (myIndicator != null) {
-        myIndicator.cancel();
+      ProgressIndicator indicator = myIndicator;
+      if (indicator != null) {
+        indicator.cancel();
       }
     }
 
@@ -370,8 +378,9 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     @Override
     public void setIndeterminate(final boolean indeterminate) {
       UIUtil.invokeLaterIfNeeded(() -> myProgressBar.setIndeterminate(indeterminate));
-      if (myIndicator != null) {
-        myIndicator.setIndeterminate(indeterminate);
+      ProgressIndicator indicator = myIndicator;
+      if (indicator != null) {
+        indicator.setIndeterminate(indeterminate);
       }
     }
 
@@ -387,8 +396,9 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
         myProgressBar.setIndeterminate(false);
         myProgressBar.setValue((int)(v * (double)(myProgressBar.getMaximum() - myProgressBar.getMinimum())));
       });
-      if (myIndicator != null) {
-        myIndicator.setFraction(v);
+      ProgressIndicator indicator = myIndicator;
+      if (indicator != null) {
+        indicator.setFraction(v);
       }
     }
 
@@ -400,8 +410,9 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     @Override
     public void setSecondaryText(@Nullable String label) {
       UIUtil.invokeLaterIfNeeded(() -> myProgressDetailLabel.setText(label));
-      if (myIndicator != null) {
-        myIndicator.setText2(label);
+      ProgressIndicator indicator = myIndicator;
+      if (indicator != null) {
+        indicator.setText2(label);
       }
     }
 
