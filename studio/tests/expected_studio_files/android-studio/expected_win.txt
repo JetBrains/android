@@ -578,13 +578,9 @@ android-studio/lib/externalProcess-rt.jar
 android-studio/lib/fleet.andel.jar
 android-studio/lib/fleet.bifurcan.jar
 android-studio/lib/fleet.fastutil.jar
-android-studio/lib/fleet.kernel.jar
 android-studio/lib/fleet.multiplatform.shims.jar
 android-studio/lib/fleet.reporting.api.jar
 android-studio/lib/fleet.reporting.shared.jar
-android-studio/lib/fleet.rhizomedb.jar
-android-studio/lib/fleet.rhizomedb.transactor.jar
-android-studio/lib/fleet.rhizomedb.transactor.rebase.jar
 android-studio/lib/fleet.rpc.jar
 android-studio/lib/fleet.rpc.server.jar
 android-studio/lib/fleet.util.codepoints.jar

@@ -519,13 +519,9 @@
 +++Android Studio Nightly.app/Contents/lib/fleet.andel.jar
 +++Android Studio Nightly.app/Contents/lib/fleet.bifurcan.jar
 +++Android Studio Nightly.app/Contents/lib/fleet.fastutil.jar
-+++Android Studio Nightly.app/Contents/lib/fleet.kernel.jar
 +++Android Studio Nightly.app/Contents/lib/fleet.multiplatform.shims.jar
 +++Android Studio Nightly.app/Contents/lib/fleet.reporting.api.jar
 +++Android Studio Nightly.app/Contents/lib/fleet.reporting.shared.jar
-+++Android Studio Nightly.app/Contents/lib/fleet.rhizomedb.jar
-+++Android Studio Nightly.app/Contents/lib/fleet.rhizomedb.transactor.jar
-+++Android Studio Nightly.app/Contents/lib/fleet.rhizomedb.transactor.rebase.jar
 +++Android Studio Nightly.app/Contents/lib/fleet.rpc.jar
 +++Android Studio Nightly.app/Contents/lib/fleet.rpc.server.jar
 +++Android Studio Nightly.app/Contents/lib/fleet.util.codepoints.jar
@@ -4490,13 +4486,9 @@
 ---Android Studio Preview.app/Contents/lib/fleet.andel.jar
 ---Android Studio Preview.app/Contents/lib/fleet.bifurcan.jar
 ---Android Studio Preview.app/Contents/lib/fleet.fastutil.jar
----Android Studio Preview.app/Contents/lib/fleet.kernel.jar
 ---Android Studio Preview.app/Contents/lib/fleet.multiplatform.shims.jar
 ---Android Studio Preview.app/Contents/lib/fleet.reporting.api.jar
 ---Android Studio Preview.app/Contents/lib/fleet.reporting.shared.jar
----Android Studio Preview.app/Contents/lib/fleet.rhizomedb.jar
----Android Studio Preview.app/Contents/lib/fleet.rhizomedb.transactor.jar
----Android Studio Preview.app/Contents/lib/fleet.rhizomedb.transactor.rebase.jar
 ---Android Studio Preview.app/Contents/lib/fleet.rpc.jar
 ---Android Studio Preview.app/Contents/lib/fleet.rpc.server.jar
 ---Android Studio Preview.app/Contents/lib/fleet.util.codepoints.jar
