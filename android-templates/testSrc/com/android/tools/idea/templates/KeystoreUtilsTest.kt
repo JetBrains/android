@@ -19,6 +19,7 @@ import com.android.ide.common.signing.KeystoreHelper
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.ide.trustedProjects.TrustedProjects
+import com.intellij.testFramework.TrustedProjectsTestUtil
 import java.io.File
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
@@ -64,6 +65,8 @@ class KeystoreUtilsTest {
     val customPath = "${projectRule.fixture.tempDirPath}/debug.keystore"
     state.CUSTOM_DEBUG_KEYSTORE_PATH = customPath
 
+    // JetBrains: since IJPL-253268 the platform trusts every project in unit-test mode unless the test opts in.
+    TrustedProjectsTestUtil.enableTrustedProjectsCheck(projectRule.testRootDisposable)
     TrustedProjects.setProjectTrusted(projectRule.project, false)
 
     val keystoreFile = KeystoreUtils.getDebugKeystore(facet)
