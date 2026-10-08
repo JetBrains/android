@@ -27,6 +27,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -36,7 +37,6 @@ class EnvironmentsUpdater : Disposable {
 
   private val environments: Deferred<List<EnvironmentImage>>
   private val sourceDir: Path
-  private val destinationDir: Path
 
   @Volatile private var environmentsList: List<EnvironmentImage>? = null
 
@@ -48,22 +48,31 @@ class EnvironmentsUpdater : Disposable {
       }
 
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-    destinationDir = sdkHandler.location?.resolve(ENVIRONMENTS_DIR) ?: throw RuntimeException("Unable to get SDK location")
+    // JetBrains: an application service must not fail to construct. The IDE has no Android SDK while it builds its
+    // searchable options (traverseUI), and the first action that touches this service took the whole build down with
+    // "Unable to get SDK location". Without an SDK there is nowhere to copy the images to, so there are no environments.
+    val environmentsDir = sdkHandler.location?.resolve(ENVIRONMENTS_DIR)
 
     environments =
-      createCoroutineScope().async(Dispatchers.IO) {
-        try {
-          updateDirectory(sourceDir, destinationDir)
-        } catch (e: Exception) {
-          thisLogger().warn("Error updating environment images in $destinationDir", e)
-        }
-        try {
-          val list = EnvironmentImageScanner.scanEnvironments(destinationDir)
-          environmentsList = list
-          list
-        } catch (e: Exception) {
-          thisLogger().warn("Error loading environment images from $destinationDir", e)
-          emptyList()
+      if (environmentsDir == null) {
+        thisLogger().warn("Unable to get SDK location; no environment images are available")
+        CompletableDeferred(emptyList())
+      }
+      else {
+        createCoroutineScope().async(Dispatchers.IO) {
+          try {
+            updateDirectory(sourceDir, environmentsDir)
+          } catch (e: Exception) {
+            thisLogger().warn("Error updating environment images in $environmentsDir", e)
+          }
+          try {
+            val list = EnvironmentImageScanner.scanEnvironments(environmentsDir)
+            environmentsList = list
+            list
+          } catch (e: Exception) {
+            thisLogger().warn("Error loading environment images from $environmentsDir", e)
+            emptyList()
+          }
         }
       }
   }

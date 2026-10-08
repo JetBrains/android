@@ -91,4 +91,21 @@ class EnvironmentsUpdaterTest {
     assertThat(defaultEnv!!.path.fileName.toString()).isEqualTo("indoor-study-dark.jpg")
     assertThat(defaultEnv.title).isEqualTo("Indoor Study Dark")
   }
+
+  @Test
+  fun testGetEnvironmentsWithoutSdk() = runBlocking {
+    // JetBrains: the IDE builds its searchable options without an Android SDK; the service must still construct.
+    val mockSdks = mock<AndroidSdks>()
+    val mockHandler = mock<AndroidSdkHandler>()
+    whenever(mockHandler.location).thenReturn(null)
+    whenever(mockSdks.tryToChooseSdkHandler()).thenReturn(mockHandler)
+
+    val app = ApplicationManager.getApplication()
+    app.registerServiceInstance(AndroidSdks::class.java, mockSdks, disposableRule.disposable)
+
+    val updater = EnvironmentsUpdater()
+    Disposer.register(disposableRule.disposable, updater)
+
+    assertThat(updater.getEnvironments()).isEmpty()
+  }
 }
