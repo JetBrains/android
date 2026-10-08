@@ -71,6 +71,10 @@
     <orderEntry type="module" module-name="intellij.platform.util.jdom" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.analysis" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.plugin" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.groovy.scripting" scope="RUNTIME" />
+    <orderEntry type="module" module-name="kotlin.base.injection" scope="RUNTIME" />
+    <orderEntry type="module" module-name="kotlin.jvm-debugger.evaluation" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.codeStyle" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.adb" />

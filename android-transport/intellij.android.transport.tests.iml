@@ -50,6 +50,14 @@
     <orderEntry type="module" module-name="intellij.libraries.mockito.kotlin" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.concurrency" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.plugin" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.groovy.scripting" scope="RUNTIME" />
+    <orderEntry type="module" module-name="kotlin.base.injection" scope="RUNTIME" />
+    <orderEntry type="module" module-name="kotlin.gradle.gradle-java" scope="RUNTIME" />
+    <orderEntry type="module" module-name="kotlin.jvm-debugger.evaluation" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.platform.vcs.dvcs.impl" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.toml" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.transport" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.transport" />

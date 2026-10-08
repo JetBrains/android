@@ -126,6 +126,13 @@
     <orderEntry type="module" module-name="intellij.platform.concurrency" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.statistics" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.ex" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.sh.plugin" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.sh.core" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.layoutlib" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.lint" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.sh.backend" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.sh.spellchecker" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.core" />
