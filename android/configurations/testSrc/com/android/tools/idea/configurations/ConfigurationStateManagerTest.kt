@@ -16,6 +16,7 @@
 package com.android.tools.idea.configurations
 
 import com.intellij.ide.trustedProjects.TrustedProjects
+import com.intellij.testFramework.TrustedProjectsTestUtil
 import org.jetbrains.android.AndroidTestCase
 
 class ConfigurationStateManagerTest : AndroidTestCase() {
@@ -106,6 +107,8 @@ class ConfigurationStateManagerTest : AndroidTestCase() {
     manager.loadState(ConfigurationStateManager.State())
     assertNull(manager.getConfigurationState(file))
 
+    // JetBrains: since IJPL-253268 the platform trusts every project in unit-test mode unless the test opts in.
+    TrustedProjectsTestUtil.enableTrustedProjectsCheck(testRootDisposable)
     val wasTrusted = TrustedProjects.isProjectTrusted(project)
     try {
       TrustedProjects.setProjectTrusted(project, false)
