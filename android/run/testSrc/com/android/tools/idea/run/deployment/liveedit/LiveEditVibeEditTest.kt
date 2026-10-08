@@ -40,6 +40,7 @@ import org.mockito.kotlin.whenever
 class LiveEditVibeEditTest {
   private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
   private lateinit var myProject: Project
+  private lateinit var previousMode: LiveEditApplicationConfiguration.LiveEditMode
 
   @get:Rule var projectRule = AndroidProjectRule.onDisk().withKotlin()
 
@@ -49,10 +50,18 @@ class LiveEditVibeEditTest {
     myProject = projectRule.project
     FakeBuildSystemLiveEditServices().register(projectRule.testRootDisposable)
     setUpComposeInProjectFixture(projectRule)
+    // JetBrains: the mode is an application-level setting; sibling test classes in the same JVM call disableLiveEdit()
+    // and never restore it, which leaves notifyAppDeploy refusing the device and every vibe edit failing with
+    // "No running application available for Live Edit". The state is written directly: the `mode` setter runs
+    // toggleLiveEdit on every open project, which looks for connected devices through AndroidDebugBridge.getBridge(),
+    // and there is no bridge in this test.
+    previousMode = LiveEditApplicationConfiguration.getInstance().state.mode
+    LiveEditApplicationConfiguration.getInstance().state.mode = LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
   }
 
   @After
   fun tearDown() {
+    LiveEditApplicationConfiguration.getInstance().state.mode = previousMode
     UsageTracker.cleanAfterTesting()
   }
 
