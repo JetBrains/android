@@ -141,7 +141,7 @@ class ComposePreviewRepresentationProvider : PreviewRepresentationProvider {
   private fun PsiFile.isInLibrary() = ProjectRootManager.getInstance(project).fileIndex.isInLibrary(virtualFile ?: viewProvider.virtualFile)
 }
 
-private fun isCompatibleComposableClassAvailable(file: PsiFile): Boolean {
+internal fun isCompatibleComposableClassAvailable(file: PsiFile): Boolean {
   val module = ModuleUtilCore.findModuleForFile(file) ?: return false
   // we only accept modules that are:
   // - Android modules

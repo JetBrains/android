@@ -20,6 +20,7 @@ import com.android.tools.idea.compose.annotator.PreviewAnnotationCheck.hasIssues
 import com.android.tools.idea.compose.pickers.PsiPickerManager
 import com.android.tools.idea.compose.pickers.preview.model.PreviewPickerPropertiesModel
 import com.android.tools.idea.compose.pickers.preview.tracking.PreviewPickerTracker
+import com.android.tools.idea.compose.preview.isCompatibleComposableClassAvailable
 import com.android.tools.idea.compose.preview.isPreviewAnnotation
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -64,7 +65,7 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
     if (element !is LeafPsiElement) return null
     if (element.tokenType != KtTokens.IDENTIFIER) return null
     if (!element.isValid) return null
-    if (element.getModuleSystem()?.usesCompose != true) return null
+    if (element.getModuleSystem()?.usesCompose != true && !isCompatibleComposableClassAvailable(element.containingFile)) return null
     if (element.text != COMPOSE_PREVIEW_ANNOTATION_NAME) return null
 
     val annotationEntry = element.parentOfType<KtAnnotationEntry>() ?: return null
