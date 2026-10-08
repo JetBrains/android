@@ -18,6 +18,11 @@ jvm_library(
     ),
     module_name = "intellij.android.core.rendering",
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//android/android-kotlin/idea-android:android-kotlin-idea",
+        "//android/layoutlib",
+    ],
 )
 
 jvm_library(
@@ -38,6 +43,8 @@ jvm_library(
         # do not sort,
         ":rendering",
         "//platform/ide-core:ide-core_test_lib",
+        "//android/android-kotlin/idea-android:android-kotlin-idea_test_lib",
+        "//android/layoutlib:layoutlib_test_lib",
     ],
     deps = [
         # do not sort,

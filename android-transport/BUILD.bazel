@@ -123,6 +123,17 @@ jvm_library(
     ),
     module_name = "intellij.android.transport.tests",
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//plugins/kotlin/plugin",
+        "//plugins/groovy-scripting",
+        "//plugins/kotlin/injection/base:kotlin-base-injection",
+        "//plugins/kotlin/gradle/gradle-java",
+        "//plugins/kotlin/jvm-debugger/evaluation",
+        "//platform/dvcs-impl:vcs-dvcs-impl",
+        "//plugins/toml",
+        "//android/gradle-dsl",
+    ],
 )
 
 jvm_library(
@@ -146,6 +157,14 @@ jvm_library(
         ":transport-tests",
         "//platform/ide-core:ide-core_test_lib",
         "//platform/platform-util-io:ide-util-io_test_lib",
+        "//plugins/kotlin/plugin:plugin_test_lib",
+        "//plugins/groovy-scripting:groovy-scripting_test_lib",
+        "//plugins/kotlin/injection/base:kotlin-base-injection_test_lib",
+        "//plugins/kotlin/gradle/gradle-java:gradle-java_test_lib",
+        "//plugins/kotlin/jvm-debugger/evaluation:evaluation_test_lib",
+        "//platform/dvcs-impl:vcs-dvcs-impl_test_lib",
+        "//plugins/toml:toml_test_lib",
+        "//android/gradle-dsl:gradle-dsl_test_lib",
     ],
     deps = [
         # do not sort,

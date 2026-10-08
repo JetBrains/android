@@ -29,6 +29,13 @@ jvm_library(
         "@lib//:kotlin-stdlib",
         "//android/project-system-gradle-psd:projectSystem-gradle-psd",
         "//platform/editor-ui-ex:editor-ex",
+        "//plugins/sh/plugin",
+        "//android/android-kotlin/idea-android:android-kotlin-idea",
+        "//plugins/sh/core",
+        "//android/layoutlib",
+        "//android/android-lint:lint",
+        "//plugins/sh/backend",
+        "//plugins/sh/spellchecker",
     ],
 )
 
@@ -55,6 +62,13 @@ jvm_library(
         ":jetbrains",
         "//platform/ide-core:ide-core_test_lib",
         "//platform/platform-impl:ide-impl_test_lib",
+        "//plugins/sh/plugin:plugin_test_lib",
+        "//android/android-kotlin/idea-android:android-kotlin-idea_test_lib",
+        "//plugins/sh/core:core_test_lib",
+        "//android/layoutlib:layoutlib_test_lib",
+        "//android/android-lint:lint_test_lib",
+        "//plugins/sh/backend:backend_test_lib",
+        "//plugins/sh/spellchecker:spellchecker_test_lib",
     ],
     deps = [
         # do not sort,

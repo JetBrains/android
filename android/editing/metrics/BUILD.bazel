@@ -79,6 +79,14 @@ jvm_library(
     ),
     module_name = "intellij.android.core.editing.metrics.tests",
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//plugins/kotlin/plugin",
+        "//plugins/groovy-scripting",
+        "//plugins/kotlin/injection/base:kotlin-base-injection",
+        "//plugins/kotlin/jvm-debugger/evaluation",
+        "//plugins/kotlin/refactorings/rename.k2:kotlin-refactorings-rename",
+    ],
 )
 
 jvm_library(
@@ -101,6 +109,11 @@ jvm_library(
         # do not sort,
         ":android-core-editing-metrics-tests",
         "//platform/ide-core:ide-core_test_lib",
+        "//plugins/kotlin/plugin:plugin_test_lib",
+        "//plugins/groovy-scripting:groovy-scripting_test_lib",
+        "//plugins/kotlin/injection/base:kotlin-base-injection_test_lib",
+        "//plugins/kotlin/jvm-debugger/evaluation:evaluation_test_lib",
+        "//plugins/kotlin/refactorings/rename.k2:kotlin-refactorings-rename_test_lib",
     ],
     deps = [
         # do not sort,

@@ -10,6 +10,7 @@ jvm_library(
     ),
     module_name = "intellij.android.core.editors",
     visibility = ["//visibility:public"],
+    runtime_deps = ["//android/android-lint:lint"],
 )
 
 jvm_library(
@@ -28,7 +29,11 @@ jvm_library(
         "//android/android:core_test_lib",
     ],
     visibility = ["//visibility:public"],
-    runtime_deps = [":editors"],
+    runtime_deps = [
+        # do not sort,
+        ":editors",
+        "//android/android-lint:lint_test_lib",
+    ],
     deps = [
         # do not sort,
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",

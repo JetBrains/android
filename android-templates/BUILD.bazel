@@ -175,6 +175,11 @@ jvm_library(
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface",
+        "//plugins/kotlin/plugin",
+        "//plugins/groovy-scripting",
+        "//plugins/kotlin/injection/base:kotlin-base-injection",
+        "//plugins/kotlin/jvm-debugger/evaluation",
+        "//plugins/kotlin/base/fir/code-insight:kotlin-codeInsight-base",
     ],
 )
 
@@ -200,6 +205,11 @@ jvm_library(
         ":templates-tests",
         "//platform/ide-core-impl:ide-core-impl_test_lib",
         "//platform/ide-core:ide-core_test_lib",
+        "//plugins/kotlin/plugin:plugin_test_lib",
+        "//plugins/groovy-scripting:groovy-scripting_test_lib",
+        "//plugins/kotlin/injection/base:kotlin-base-injection_test_lib",
+        "//plugins/kotlin/jvm-debugger/evaluation:evaluation_test_lib",
+        "//plugins/kotlin/base/fir/code-insight:kotlin-codeInsight-base_test_lib",
     ],
     deps = [
         # do not sort,

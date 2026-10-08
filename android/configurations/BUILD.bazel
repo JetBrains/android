@@ -10,6 +10,7 @@ jvm_library(
     ),
     module_name = "intellij.android.core.configurations",
     visibility = ["//visibility:public"],
+    runtime_deps = ["//android/layoutlib"],
 )
 
 jvm_library(
@@ -25,7 +26,11 @@ jvm_library(
     ),
     module_name = "intellij.android.core.configurations",
     visibility = ["//visibility:public"],
-    runtime_deps = [":configurations"],
+    runtime_deps = [
+        # do not sort,
+        ":configurations",
+        "//android/layoutlib:layoutlib_test_lib",
+    ],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

@@ -219,7 +219,14 @@ jvm_library(
     ),
     module_name = "intellij.android.adb.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = ["@lib//:kotlin-stdlib"],
+    runtime_deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+        "//plugins/kotlin/plugin",
+        "//plugins/groovy-scripting",
+        "//plugins/kotlin/injection/base:kotlin-base-injection",
+        "//plugins/kotlin/jvm-debugger/evaluation",
+    ],
 )
 
 jvm_library(
@@ -245,6 +252,10 @@ jvm_library(
         "//platform/ide-core:ide-core_test_lib",
         "//platform/ide-core-impl:ide-core-impl_test_lib",
         "//platform/platform-impl:ide-impl_test_lib",
+        "//plugins/kotlin/plugin:plugin_test_lib",
+        "//plugins/groovy-scripting:groovy-scripting_test_lib",
+        "//plugins/kotlin/injection/base:kotlin-base-injection_test_lib",
+        "//plugins/kotlin/jvm-debugger/evaluation:evaluation_test_lib",
     ],
     deps = [
         # do not sort,

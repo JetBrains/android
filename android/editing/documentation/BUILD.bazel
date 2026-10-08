@@ -113,6 +113,7 @@ jvm_library(
     ),
     module_name = "intellij.android.core.editing.documentation.tests",
     visibility = ["//visibility:public"],
+    runtime_deps = ["//android/android-kotlin/idea-android:android-kotlin-idea"],
 )
 
 jvm_library(
@@ -136,6 +137,7 @@ jvm_library(
         ":android-core-editing-documentation-tests",
         "//platform/ide-core:ide-core_test_lib",
         "//platform/platform-impl:ide-impl_test_lib",
+        "//android/android-kotlin/idea-android:android-kotlin-idea_test_lib",
     ],
     deps = [
         # do not sort,

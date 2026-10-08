@@ -141,6 +141,10 @@ jvm_library(
         "//android/execution/common",
         "//android/android-test-framework:testFramework",
         "@lib//:kotlin-stdlib",
+        "//plugins/kotlin/plugin",
+        "//plugins/groovy-scripting",
+        "//plugins/kotlin/injection/base:kotlin-base-injection",
+        "//plugins/kotlin/jvm-debugger/evaluation",
     ],
 )
 
@@ -162,6 +166,10 @@ jvm_library(
         ":android-execution-common-tests",
         "//platform/ide-core:ide-core_test_lib",
         "//platform/platform-util-io:ide-util-io_test_lib",
+        "//plugins/kotlin/plugin:plugin_test_lib",
+        "//plugins/groovy-scripting:groovy-scripting_test_lib",
+        "//plugins/kotlin/injection/base:kotlin-base-injection_test_lib",
+        "//plugins/kotlin/jvm-debugger/evaluation:evaluation_test_lib",
     ],
     deps = [
         # do not sort,

@@ -10,6 +10,14 @@ jvm_library(
     ),
     module_name = "intellij.android.apkanalyzer.gradle.integration-tests",
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//plugins/kotlin/plugin",
+        "//plugins/groovy-scripting",
+        "//plugins/kotlin/injection/base:kotlin-base-injection",
+        "//plugins/kotlin/jvm-debugger/evaluation",
+        "//plugins/kotlin/base/fir/code-insight:kotlin-codeInsight-base",
+    ],
 )
 
 jvm_library(
@@ -25,7 +33,15 @@ jvm_library(
     ),
     module_name = "intellij.android.apkanalyzer.gradle.integration-tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [":integration-tests"],
+    runtime_deps = [
+        # do not sort,
+        ":integration-tests",
+        "//plugins/kotlin/plugin:plugin_test_lib",
+        "//plugins/groovy-scripting:groovy-scripting_test_lib",
+        "//plugins/kotlin/injection/base:kotlin-base-injection_test_lib",
+        "//plugins/kotlin/jvm-debugger/evaluation:evaluation_test_lib",
+        "//plugins/kotlin/base/fir/code-insight:kotlin-codeInsight-base_test_lib",
+    ],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

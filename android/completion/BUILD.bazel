@@ -10,6 +10,7 @@ jvm_library(
     ),
     module_name = "intellij.android.core.completion",
     visibility = ["//visibility:public"],
+    runtime_deps = ["//android/android-kotlin/idea-android:android-kotlin-idea"],
 )
 
 jvm_library(
@@ -29,6 +30,7 @@ jvm_library(
         # do not sort,
         ":completion",
         "//platform/ide-core:ide-core_test_lib",
+        "//android/android-kotlin/idea-android:android-kotlin-idea_test_lib",
     ],
     deps = [
         # do not sort,

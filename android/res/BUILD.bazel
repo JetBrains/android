@@ -14,6 +14,7 @@ jvm_library(
         # do not sort,
         "@lib//:kotlin-stdlib",
         "//platform/util/trove",
+        "//android/android-kotlin/idea-android:android-kotlin-idea",
     ],
 )
 
@@ -37,6 +38,7 @@ jvm_library(
         "//platform/ide-core-impl:ide-core-impl_test_lib",
         "//platform/platform-impl:ide-impl_test_lib",
         "//platform/progress/shared:ide-progress_test_lib",
+        "//android/android-kotlin/idea-android:android-kotlin-idea_test_lib",
     ],
     deps = [
         # do not sort,
