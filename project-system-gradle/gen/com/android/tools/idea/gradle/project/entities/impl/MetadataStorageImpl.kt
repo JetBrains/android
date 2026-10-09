@@ -8086,6 +8086,13 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
                                                                                                                   isComputable = false,
                                                                                                                   isKey = false,
                                                                                                                   isOpen = false,
+                                                                                                                  name = "hasComposeScreenshotPlugin",
+                                                                                                                  valueType = primitiveTypeBooleanNotNullable,
+                                                                                                                  withDefault = false),
+                                                                                                                OwnPropertyMetadata(
+                                                                                                                  isComputable = false,
+                                                                                                                  isKey = false,
+                                                                                                                  isOpen = false,
                                                                                                                   name = "hasFtlPlugin",
                                                                                                                   valueType = primitiveTypeBooleanNotNullable,
                                                                                                                   withDefault = false),
@@ -8516,9 +8523,9 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTableImpl", metadataHash = -618495050)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.KotlinMultiplatformIdeLibraryTable", metadataHash = 1979204270)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeJavaArtifactImpl", metadataHash = 586445021)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity", metadataHash = 1413038037)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleModuleModelEntity", metadataHash = 860414102)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleModuleModelEntityId", metadataHash = -409283803)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.model.GradleModuleModel", metadataHash = -991281719)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.model.GradleModuleModel", metadataHash = 1623172616)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleProjectPathEntity", metadataHash = -1975636342)
     addMetadataHash(typeFqn = "com.android.tools.idea.projectsystem.gradle.GradleProjectPath", metadataHash = -561408553)
     addMetadataHash(typeFqn = "com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath", metadataHash = -1572612363)
