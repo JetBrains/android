@@ -1213,7 +1213,8 @@ def android_studio(
             "--ide-configuration " + " ".join([Label(configuration).name for configuration in configurations]),
         ] + (["--plugins %s" % " ".join([Label(plugin).name for plugin in searchable_options_plugin_lst])] if searchable_options_plugin_lst else []),
         data = [
-            ":%s.%s.plugin.lst" % (name, Label(config).name) for config in configurations
+            ":%s.%s.plugin.lst" % (name, Label(config).name)
+            for config in configurations
         ] + select({
             "@platforms//os:linux": [":%s.%s.linux.zip" % (name, Label(config).name) for config in configurations],
             "//tools/base/bazel/platforms:macos-x86_64": [":%s.%s.mac.zip" % (name, Label(config).name) for config in configurations],
