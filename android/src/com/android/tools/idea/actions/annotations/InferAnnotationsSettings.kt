@@ -93,6 +93,7 @@ class InferAnnotationsSettings {
     val defaultValues = InferAnnotationsSettings()
     return InferAnnotationsSettings::class
       .declaredMemberProperties
+      .sortedBy { it.name }
       .filter { it.get(this) != it.get(defaultValues) }
       .joinToString(",") { it.name + "=" + it.get(this) }
   }
