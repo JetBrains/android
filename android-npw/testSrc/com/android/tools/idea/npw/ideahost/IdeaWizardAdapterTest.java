@@ -32,6 +32,9 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.RunsInEdt;
+import java.awt.Dimension;
+import javax.swing.JViewport;
+import javax.swing.Scrollable;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
@@ -119,6 +122,57 @@ public class IdeaWizardAdapterTest {
   @After
   public void disposeDialogs() {
     EdtTestUtil.runInEdtAndWait(() -> Disposer.dispose(myTestRootDisposable));
+  }
+
+  @Test
+  public void hostDoesNotMeasureUnboundedContent() {
+    var content = new JPanel() {
+      @Override
+      public Dimension getPreferredSize() {
+        throw new AssertionError("The host must not measure the Compose content");
+      }
+    };
+    var step = new SampleStep(new SampleModel()) {
+      @Override
+      protected JComponent getComponent() {
+        return content;
+      }
+    };
+    var adapter = new IdeaWizardAdapter(new SampleHost(), new ModelWizard.Builder(step).build());
+    var proxyStep = adapter.getCustomOptionsStep();
+    var component = proxyStep.getComponent();
+    assertThat(component.isPreferredSizeSet()).isTrue();
+    assertThat(component.getPreferredSize().width).isGreaterThan(0);
+    assertThat(component.getPreferredSize().height).isGreaterThan(0);
+    assertThat(proxyStep.getComponent()).isSameAs(component);
+    assertThat(adapter.getCustomOptionsStep()).isNotSameAs(proxyStep);
+  }
+
+  @Test
+  public void hostFollowsViewportAboveItsMinimumSize() {
+    var adapter = new IdeaWizardAdapter(new SampleHost(), new ModelWizard.Builder(new SampleStep(new SampleModel())).build());
+    var component = adapter.getCustomOptionsStep().getComponent();
+    var viewport = new JViewport();
+    viewport.setView(component);
+    var size = new Dimension(component.getMinimumSize().width + 200, component.getMinimumSize().height + 200);
+    viewport.setSize(size);
+    viewport.doLayout();
+    assertThat(component.getSize()).isEqualTo(size);
+    assertThat(((Scrollable)component).getScrollableTracksViewportWidth()).isTrue();
+    assertThat(((Scrollable)component).getScrollableTracksViewportHeight()).isTrue();
+  }
+
+  @Test
+  public void hostKeepsItsMinimumSizeInSmallViewport() {
+    var adapter = new IdeaWizardAdapter(new SampleHost(), new ModelWizard.Builder(new SampleStep(new SampleModel())).build());
+    var component = adapter.getCustomOptionsStep().getComponent();
+    var viewport = new JViewport();
+    viewport.setView(component);
+    viewport.setSize(100, 100);
+    viewport.doLayout();
+    assertThat(component.getSize()).isEqualTo(component.getMinimumSize());
+    assertThat(((Scrollable)component).getScrollableTracksViewportWidth()).isFalse();
+    assertThat(((Scrollable)component).getScrollableTracksViewportHeight()).isFalse();
   }
 
   @Test
