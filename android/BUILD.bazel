@@ -11977,6 +11977,7 @@ jvm_library(
         "//android/project-system-gradle-psd:projectSystem-gradle-psd",
         "//android/server-flags",
         "//android/gradle-dsl-kotlin",
+        "//idea/customization/plugin",
     ],
 )
 
@@ -12008,6 +12009,7 @@ jvm_library(
         "//platform/platform-impl:ide-impl_test_lib",
         "//android/gradle-dsl-kotlin:gradle-dsl-kotlin_test_lib",
         "//platform/platform-util-io:ide-util-io_test_lib",
+        "//idea/customization/plugin:plugin_test_lib",
     ],
     deps = [
         # do not sort,
