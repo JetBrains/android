@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.debug;
 
+import com.intellij.debugger.engine.DebuggerUtils;
 import com.intellij.debugger.engine.evaluation.EvaluateException;
 import com.intellij.debugger.engine.evaluation.EvaluationContext;
 import com.intellij.debugger.ui.tree.ValueDescriptor;
@@ -53,7 +54,7 @@ public class AndroidTypedIntegerRenderer extends NodeRendererImpl {
     }
 
     // only supported on Android VMs, https://youtrack.jetbrains.com/issue/IDEA-157010
-    return type.virtualMachine().name().startsWith("Dalvik");
+    return DebuggerUtils.isAndroidVM(type.virtualMachine());
   }
 
   @Override

@@ -22,10 +22,10 @@ import com.android.tools.r8.D8Command
 import com.android.tools.r8.DexIndexedConsumer
 import com.android.tools.r8.DiagnosticsHandler
 import com.android.tools.r8.origin.Origin
+import com.intellij.debugger.engine.DebuggerUtils.isAndroidVM
 import com.intellij.debugger.engine.JVMNameUtil
 import com.intellij.debugger.engine.evaluation.EvaluationContextImpl
 import com.intellij.debugger.impl.DebuggerUtilsEx
-import com.intellij.debugger.impl.DexDebugFacility
 import com.intellij.debugger.impl.JdiHelperClassLoader
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.getOrCreateUserData
@@ -54,7 +54,7 @@ private data class ClassWithDeps(val cls: Class<*>, val deps: List<String>)
  */
 class AndroidJdiHelperClassLoader : JdiHelperClassLoader {
   override fun isApplicable(evaluationContext: EvaluationContextImpl): Boolean {
-    return DexDebugFacility.isDex(evaluationContext.virtualMachineProxy.virtualMachine)
+    return isAndroidVM(evaluationContext.virtualMachineProxy.virtualMachine)
   }
 
   override fun getHelperClass(cls: Class<*>, context: EvaluationContextImpl, vararg additionalClassesToLoad: String): ClassType? {
