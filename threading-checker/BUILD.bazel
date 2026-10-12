@@ -45,7 +45,6 @@ jvm_library(
         # do not sort,
         ":threading-checker",
         "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
         "//libraries/guava:guava_test_lib",
         "//libraries/protobuf:protobuf_test_lib",
         "//platform/core-api:core_test_lib",

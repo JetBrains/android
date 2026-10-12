@@ -42,7 +42,6 @@ jvm_library(
         # do not sort,
         ":gradle-dsl-toml",
         "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
         "//android/gradle-dsl:gradle-dsl_test_lib",
         "//platform/core-api:core_test_lib",
         "//platform/core-impl:core-impl_test_lib",

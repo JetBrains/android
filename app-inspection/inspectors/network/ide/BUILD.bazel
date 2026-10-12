@@ -57,7 +57,6 @@ jvm_library(
         # do not sort,
         ":ide",
         "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
         "//libraries/kotlinx/coroutines/core:core_test_lib",
         "//libraries/protobuf:protobuf_test_lib",
         "//android/adt-ui:adt-ui_test_lib",

@@ -57,7 +57,6 @@ jvm_library(
         # do not sort,
         ":rendering",
         "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
         "//libraries/asm:asm_test_lib",
         "//libraries/guava:guava_test_lib",
         "//libraries/asm-tools:asm-tools_test_lib",

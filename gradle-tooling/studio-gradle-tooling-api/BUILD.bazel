@@ -36,7 +36,6 @@ jvm_library(
         # do not sort,
         ":android-gradle-tooling-api",
         "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
         "//libraries/jetbrains/annotations:annotations_test_lib",
     ],
 )

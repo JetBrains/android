@@ -102,7 +102,6 @@ jvm_library(
         "//android/project-system-gradle:projectSystem-gradle_test_lib",
         "//android/smali:smali_test_lib",
         "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
         "//libraries/commons/io:io_test_lib",
         "//libraries/guava:guava_test_lib",
         "//plugins/gradle:gradle-common_test_lib",

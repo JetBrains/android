@@ -46,7 +46,6 @@ jvm_library(
         # do not sort,
         ":gradle",
         "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
         "//android/android:core_test_lib",
         "//android/nav/safeargs/common:common_test_lib",
         "//android/project-system:project-system_test_lib",

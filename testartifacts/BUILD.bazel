@@ -78,7 +78,6 @@ jvm_library(
         # do not sort,
         ":testartifacts",
         "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
         "//libraries/guava:guava_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//libraries/protobuf:protobuf_test_lib",

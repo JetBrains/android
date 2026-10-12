@@ -40,7 +40,6 @@ jvm_library(
         # do not sort,
         ":layoutlib-loader",
         "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
         "//libraries/guava:guava_test_lib",
         "//platform/core-api:core_test_lib",
         "//platform/util:util_test_lib",

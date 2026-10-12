@@ -24,6 +24,7 @@ jvm_library(
     module_name = "intellij.android.adt.ui.tests",
     visibility = ["//visibility:public"],
     exports = ["@lib//:android-adt-ui-tests-ibm-db2-jcc"],
+    runtime_deps = ["//xml/plugin"],
 )
 
 jvm_library(
@@ -56,6 +57,7 @@ jvm_library(
         "//platform/platform-impl:ide-impl_test_lib",
         "//platform/platform-impl/color-picker:color-picker_test_lib",
         "//platform/platform-impl/ui:ui_test_lib",
+        "//xml/plugin:plugin_test_lib",
     ],
     deps = [
         # do not sort,

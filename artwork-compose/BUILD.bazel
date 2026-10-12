@@ -57,7 +57,6 @@ jvm_library(
         # do not sort,
         ":artwork-compose",
         "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
         "//android/artwork:artwork_test_lib",
         "//platform/compose/markdown:markdown_test_lib",
         "//platform/compose:compose_test_lib",

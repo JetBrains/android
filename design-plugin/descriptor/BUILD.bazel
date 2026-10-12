@@ -88,7 +88,6 @@ jvm_library(
     runtime_deps = [
         # do not sort,
         ":descriptor",
-        "@lib//:studio-test-platform",
         "//android/android-plugin/descriptor:descriptor_test_lib",
         "//platform/problemsView/plugin:plugin_test_lib",
         "//platform/problemsView/ui:ui_test_lib",

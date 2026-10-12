@@ -138,7 +138,6 @@ jvm_library(
         # do not sort,
         ":compose-designer",
         "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
         "//android/android:core_test_lib",
         "//android/designer:designer_test_lib",
         "//android/adt-ui:adt-ui_test_lib",

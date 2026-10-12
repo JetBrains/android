@@ -56,7 +56,6 @@ jvm_library(
         # do not sort,
         ":compose-common",
         "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//plugins/kotlin/references:references_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",

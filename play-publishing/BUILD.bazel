@@ -96,10 +96,6 @@ jvm_library(
         "//android/app-publishing:app-publishing_test_lib",
         "//android/apkanalyzer:apkanalyzer_test_lib",
         "//android/artwork:artwork_test_lib",
-        "//libraries/mockito",
-        "//libraries/mockito:mockito_test_lib",
-        "//libraries/mockito-kotlin",
-        "//libraries/mockito-kotlin:mockito-kotlin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.play-publishing` end
