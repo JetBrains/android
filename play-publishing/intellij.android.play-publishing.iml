@@ -59,7 +59,5 @@
     <orderEntry type="library" name="aapt-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.apkanalyzer" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
-    <orderEntry type="module" module-name="intellij.libraries.mockito" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.libraries.mockito.kotlin" scope="TEST" />
   </component>
 </module>
