@@ -25,8 +25,6 @@ import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.PathUtil;
-import com.intellij.util.PlatformUtils;
-import com.intellij.util.SystemProperties;
 import java.io.File;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
@@ -65,12 +63,7 @@ public final class WizardUtils {
     }
 
 
-    if (PlatformUtils.isIntelliJ()) {
-      return new File(ProjectUtil.getUserHomeProjectDir());
-    }
-    else {
-      return new File(SystemProperties.getUserHome(), PlatformUtils.getPlatformPrefix() + "Projects");
-    }
+    return new File(ProjectUtil.getUserHomeProjectDir());
   }
 
   /**
