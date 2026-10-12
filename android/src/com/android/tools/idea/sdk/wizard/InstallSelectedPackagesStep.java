@@ -283,10 +283,17 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     }
     customLogger.setIndicator(indicator);
     if (indicator instanceof Disposable disposableIndicator) {
-      Disposer.register(disposableIndicator, () -> customLogger.setIndicator(null));
+      runWhenDisposed(disposableIndicator, () -> customLogger.setIndicator(null));
     }
     indicator.setIndeterminate(false);
     ProgressManager.getInstance().runProcessWithProgressAsynchronously(task, indicator);
+  }
+
+  @VisibleForTesting
+  static void runWhenDisposed(@NotNull Disposable parent, @NotNull Runnable action) {
+    if (!Disposer.tryRegister(parent, action::run)) {
+      action.run();
+    }
   }
 
   private void setupUI() {

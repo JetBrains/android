@@ -49,6 +49,7 @@ import com.android.tools.idea.concurrency.FutureUtils;
 import com.android.tools.idea.progress.StudioProgressIndicatorAdapter;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressManagerListener;
@@ -64,6 +65,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -478,5 +480,15 @@ public class InstallTaskTest extends AndroidTestCase {
     finally {
       Disposer.dispose(wizard);
     }
+  }
+
+  public void testReleaseRunsWhenIndicatorDisposedBeforeHookRegistration() {
+    Disposable indicator = () -> {};
+    Disposer.dispose(indicator);
+    AtomicBoolean released = new AtomicBoolean();
+
+    InstallSelectedPackagesStep.runWhenDisposed(indicator, () -> released.set(true));
+
+    assertTrue(released.get());
   }
 }
