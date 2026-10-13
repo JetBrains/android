@@ -290,7 +290,6 @@ object ExpectedCompletionUtils {
         return result
     }
 
-    @OptIn(K1Deprecation::class)
     private val LookupElement.moduleName: String?
         get() = null
 

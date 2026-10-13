@@ -135,7 +135,6 @@ class NestedResourceClassImportFilterTest {
   }
 
   /** More of a unit test for the very specific behavior of the filter. */
-  @OptIn(K1Deprecation::class)
   @Test
   fun allowImport() {
     val ktFile: KtFile = mock()

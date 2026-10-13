@@ -171,7 +171,6 @@ internal open class PsiCallParameterPropertyItem(
   }
 
   @UiThread
-  @OptIn(K1Deprecation::class)
   fun deleteParameter() {
     runModification(DELETE_COMMAND) {
       argumentExpression?.parent?.deleteElementAndCleanParent()
