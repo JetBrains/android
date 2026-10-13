@@ -91,7 +91,7 @@ open class AttachAndroidSdkSourcesNotificationProvider : EditorNotificationProvi
     doCreatePanel(project, requestedSourceVersion, refreshAfterDownload, fileEditor)
   }
 
-  @RequiresEdt(generateAssertion = false /* IJPL-115548 */)
+  @RequiresEdt
   private fun doCreatePanel(
     project: Project,
     requestedSourceVersion: AndroidVersion,
