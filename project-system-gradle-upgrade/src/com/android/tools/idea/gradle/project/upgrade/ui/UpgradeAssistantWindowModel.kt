@@ -55,6 +55,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.application.runReadActionBlocking
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.progress.ProgressIndicator
@@ -462,8 +463,9 @@ class UpgradeAssistantWindowModel(
     val newProcessor =
       newVersion?.let {
         current?.let { current ->
+          // JetBrains patch: Enter in the AGP version field calls refresh on the EDT without a lock, and createProcessor reads the build model, which the platform allows only under a read action.
           if (newVersion >= current && !project.isDisposed)
-            project.getService(RefactoringProcessorInstantiator::class.java).createProcessor(project, current, it)
+            runReadActionBlocking { project.getService(RefactoringProcessorInstantiator::class.java).createProcessor(project, current, it) }
           else null
         }
       }
