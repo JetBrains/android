@@ -25,8 +25,6 @@ import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
 import com.android.adblib.testingutils.CoroutineTestUtils.yieldUntil
 import com.android.test.testutils.EnsureAndroidProjectRule
 import com.android.tools.idea.adblib.testing.FakeAdbSessionRule
-import com.android.tools.idea.adblib.testing.TestAdbLibService
-import com.android.tools.idea.testing.ProjectServiceRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import java.util.concurrent.TimeUnit
@@ -43,10 +41,7 @@ class DeviceStateReporterTest {
 
   private val adbSession = fakeAdbSessionRule.adbSession
 
-  private val adbLibServiceRule =
-    ProjectServiceRule(projectRule, AdbLibService::class.java, TestAdbLibService(adbSession))
-
-  @get:Rule val rule = RuleChain(projectRule, adbLibServiceRule, EnsureAndroidProjectRule())
+  @get:Rule val rule = RuleChain(projectRule, fakeAdbSessionRule, EnsureAndroidProjectRule())
 
   private val deviceSerial = "device1"
   private lateinit var deviceStateReporter: DeviceStateReporter

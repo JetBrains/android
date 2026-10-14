@@ -17,42 +17,35 @@
 package com.android.tools.idea.adblib
 
 import com.android.adblib.ServerStatus
+import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
 import com.android.test.testutils.EnsureAndroidProjectRule
 import com.android.tools.adblib.testutils.FakeAdbServerAdbLibRule
 import com.intellij.testFramework.ProjectRule
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.intellij.testFramework.RuleChain
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
-import java.util.concurrent.CountDownLatch
 
 class AdbServerStatusReporterTest {
   private val projectRule = ProjectRule()
   private val fakeAdbRule = FakeAdbServerAdbLibRule()
-  @get:Rule val ensureAndroidProjectRule = EnsureAndroidProjectRule()
   private lateinit var reporter: AdbServerStatusReporter
 
   private var statusCallbackCalled = false
-  private val latch = CountDownLatch(1)
 
-  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(fakeAdbRule)!!
+  @get:Rule val ruleChain = RuleChain(projectRule, fakeAdbRule, EnsureAndroidProjectRule())
 
   private fun statusReporterCallback(status: ServerStatus) {
     Assert.assertNotNull("No server-status version", status.version)
     Assert.assertNotNull("No server-status executable path", status.absoluteExecutablePath)
     Assert.assertNotNull("No server-status executable log", status.absoluteLogPath)
     statusCallbackCalled = true
-    latch.countDown()
   }
 
   @Test
-  fun badUsbCableNotificationTest() {
+  fun badUsbCableNotificationTest() = runBlockingWithTimeout {
     reporter = AdbServerStatusReporter(::statusReporterCallback)
-    CoroutineScope(Dispatchers.IO).launch { reporter.execute(projectRule.project) }
-    latch.await()
+    reporter.execute(projectRule.project)
     Assert.assertTrue("ServerStatus callback was not called", statusCallbackCalled)
   }
 }

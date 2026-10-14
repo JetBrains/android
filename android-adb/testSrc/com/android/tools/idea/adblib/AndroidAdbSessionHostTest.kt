@@ -19,15 +19,19 @@ import com.android.adblib.tools.AdbLibToolsProperties.PROCESS_PROPERTIES_COLLECT
 import com.android.adblib.tools.AdbLibToolsProperties.PROCESS_PROPERTIES_COLLECTOR_DELAY_USE_SHORT
 import com.intellij.openapi.application.ApplicationActivationListener
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.UI
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.IdeFrame
 import com.intellij.openapi.wm.StatusBar
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.common.timeoutRunBlocking
 import com.intellij.ui.BalloonLayout
 import java.awt.Rectangle
 import java.time.Duration
 import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Assert
 import org.junit.Assert.assertEquals
@@ -70,13 +74,13 @@ class AndroidAdbSessionHostTest {
   }
 
   @Test
-  fun propertiesCollectorUseShortDelayIsFalseWhenInactive() {
+  fun propertiesCollectorUseShortDelayIsFalseWhenInactive() = timeoutRunBlocking {
     // Prepare
     val publisher = ApplicationManager.getApplication().messageBus.syncPublisher(ApplicationActivationListener.TOPIC)
     val ideFrame = TestingIdeFrame()
 
     // Act
-    publisher.applicationDeactivated(ideFrame)
+    withContext(Dispatchers.UI) { publisher.applicationDeactivated(ideFrame) }
     val useShortDelay = host.getPropertyValue(PROCESS_PROPERTIES_COLLECTOR_DELAY_USE_SHORT)
 
     // Assert
@@ -84,16 +88,16 @@ class AndroidAdbSessionHostTest {
   }
 
   @Test
-  fun propertiesCollectorUseShortDelayIsTrueWhenReActivated() {
+  fun propertiesCollectorUseShortDelayIsTrueWhenReActivated() = timeoutRunBlocking {
     // Prepare
     val publisher = ApplicationManager.getApplication().messageBus.syncPublisher(ApplicationActivationListener.TOPIC)
     val ideFrame = TestingIdeFrame()
 
     // Act
-    publisher.applicationDeactivated(ideFrame)
+    withContext(Dispatchers.UI) { publisher.applicationDeactivated(ideFrame) }
     val useShortDelay1 = host.getPropertyValue(PROCESS_PROPERTIES_COLLECTOR_DELAY_USE_SHORT)
 
-    publisher.applicationActivated(ideFrame)
+    withContext(Dispatchers.UI) { publisher.applicationActivated(ideFrame) }
     val useShortDelay2 = host.getPropertyValue(PROCESS_PROPERTIES_COLLECTOR_DELAY_USE_SHORT)
 
     // Assert
