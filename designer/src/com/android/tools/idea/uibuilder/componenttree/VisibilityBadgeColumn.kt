@@ -50,14 +50,18 @@ import javax.swing.JPanel
 /** A BadgeItem for displaying visibility icons in the 3rd column of the component TreeTable. */
 class VisibilityBadgeColumn(private val badgeUpdated: () -> Unit) : IconColumn("Visibility") {
   private val unsetIcon = ColoredIconGenerator.generateDeEmphasizedIcon(StudioIcons.LayoutEditor.Properties.VISIBLE)
+  // JetBrains patch: visibility comes from XML attributes, so it is cached under a read action in refresh instead of read during paint.
+  private val visibilities = ComponentPresentationCache { it.combinedVisibility }
 
-  override fun getIcon(item: Any): Icon? = (item as? NlComponent)?.combinedVisibility?.icon
+  fun refresh(components: List<NlComponent>) = visibilities.refresh(components)
 
-  override fun getHoverIcon(item: Any): Icon? = if ((item as? NlComponent)?.combinedVisibility == Visibility.NONE) unsetIcon else null
+  override fun getIcon(item: Any): Icon? = (item as? NlComponent)?.let { visibilities[it] }?.icon
+
+  override fun getHoverIcon(item: Any): Icon? = if ((item as? NlComponent)?.let { visibilities[it] } == Visibility.NONE) unsetIcon else null
 
   override fun getTooltipText(item: Any): String {
     val component = item as? NlComponent ?: return ""
-    return component.combinedVisibility.value ?: "Visibility not set"
+    return visibilities[component]?.value ?: "Visibility not set"
   }
 
   override val leftDivider = true

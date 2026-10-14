@@ -64,6 +64,7 @@ import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBLabel
@@ -126,6 +127,11 @@ private class ComponentTreePanel(val project: Project, isPassThroughQueue: Boole
   private val modelSelectionListener: SelectionListener
   private val modelChangeListener: ModelListener
   private val selectionIsUpdating = AtomicBoolean(false)
+  // JetBrains patch: the tree paints from caches filled under a read action, because paint must not take the read lock and the presentation reads XML attributes.
+  private val nodeType = NlComponentNodeType { updateQueue.queue(Update.create("updateViewHandlers") { updateBadges() }) }
+  private val issueBadgeColumn = IssueBadgeColumn()
+  private val visibilityBadgeColumn = VisibilityBadgeColumn { updateBadges() }
+  private val issueModelListener = IssueModel.IssueModelListener { updateQueue.queue(Update.create("updateIssueBadges") { updateBadges() }) }
   private var wasDisposed = false
   private val updateQueue =
     MergingUpdateQueue("android.layout.structure-pane", UPDATE_DELAY_MILLISECONDS, true, null, this, null, SWING_THREAD)
@@ -134,13 +140,13 @@ private class ComponentTreePanel(val project: Project, isPassThroughQueue: Boole
     componentTree =
       ComponentTreeBuilder()
         .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
-        .withNodeType(NlComponentNodeType { repaint() })
+        .withNodeType(nodeType)
         .withNodeType(NlComponentReferenceNodeType())
         .withAutoScroll()
         .withDataProvider(EdtNoGetDataProvider { sink -> uiDataSnapshot(sink) })
         .withDnD(::mergeItems, deleteOriginOfInternalMove = false)
-        .withBadgeSupport(IssueBadgeColumn())
-        .withBadgeSupport(VisibilityBadgeColumn { updateBadges() })
+        .withBadgeSupport(issueBadgeColumn)
+        .withBadgeSupport(visibilityBadgeColumn)
         .withDoubleClick { activateComponent(it) }
         .withContextMenu { item, _, x, y -> showContextMenu(item, x, y) }
         .withMultipleSelection()
@@ -182,15 +188,18 @@ private class ComponentTreePanel(val project: Project, isPassThroughQueue: Boole
 
   override fun setToolContext(context: DesignSurface<*>?) {
     surface?.selectionModel?.removeListener(modelSelectionListener)
+    // JetBrains patch: issue changes and model switches refill the presentation caches, since paint no longer reads the model.
+    surface?.issueModel?.removeErrorModelListener(issueModelListener)
     surface = context as? NlDesignSurface
     surface?.selectionModel?.addListener(modelSelectionListener)
+    surface?.issueModel?.addErrorModelListener(issueModelListener)
     surface?.actionManager?.registerActionsShortcuts(focusedComponent)
     backNavigation.designSurface = surface
     model?.removeListener(modelChangeListener)
     model = surface?.model
     model?.addListener(modelChangeListener)
     facet = model?.facet
-    componentTree.model.treeRoot = model?.treeReader?.components?.firstOrNull()
+    fireHierarchyChanged(model)
     invokeLater { TreeUtil.expandAll(componentTree.tree) }
   }
 
@@ -203,7 +212,19 @@ private class ComponentTreePanel(val project: Project, isPassThroughQueue: Boole
   }
 
   private fun fireHierarchyChanged(model: NlModel?) {
-    componentTree.model.treeRoot = model?.treeReader?.components?.firstOrNull()
+    // JetBrains patch: the caches are filled under a read action before the new root reaches paint.
+    val root = model?.treeReader?.components?.firstOrNull()
+    refreshPresentation(root)
+    componentTree.model.treeRoot = root
+  }
+
+  private fun refreshPresentation(root: NlComponent? = componentTree.model.treeRoot as? NlComponent) {
+    val components = root?.flatten()?.toList().orEmpty()
+    runReadAction {
+      nodeType.refresh(components)
+      issueBadgeColumn.refresh(components)
+      visibilityBadgeColumn.refresh(components)
+    }
   }
 
   private fun activateComponent(component: Any) =
@@ -240,6 +261,8 @@ private class ComponentTreePanel(val project: Project, isPassThroughQueue: Boole
   }
 
   private fun updateBadges() {
+    // JetBrains patch: badges repaint from the caches, so they are refilled first.
+    refreshPresentation()
     componentTree.model.columnDataChanged()
   }
 
@@ -290,26 +313,31 @@ private class ComponentTreePanel(val project: Project, isPassThroughQueue: Boole
   private inner class NlComponentNodeType(private val update: Runnable) : ViewNodeType<NlComponent>() {
     override val clazz: Class<NlComponent> = NlComponent::class.java
 
-    override fun idOf(node: NlComponent): String? = stripIdPrefix(node.id).ifEmpty { null }
+    // JetBrains patch: the node getters read this cache instead of the view handlers, which read XML attributes and need the read lock that paint must not take.
+    private val presentations = ComponentPresentationCache { NlComponentPresentation(it) }
 
-    override fun tagNameOf(node: NlComponent): String = node.getViewHandler(update)?.getTitle(node)?.nullize() ?: node.tagName
+    fun refresh(components: List<NlComponent>) = presentations.refresh(components)
 
-    override fun textValueOf(node: NlComponent): String? = node.getViewHandler(update)?.getTitleAttributes(node)
+    override fun idOf(node: NlComponent): String? = presentations[node]?.id
 
-    override fun iconOf(node: NlComponent): Icon = node.getViewHandler(update)?.getIcon(node) ?: loadBuiltinIcon(getSimpleTagName(node))
+    override fun tagNameOf(node: NlComponent): String = presentations[node]?.tagName.orEmpty()
+
+    override fun textValueOf(node: NlComponent): String? = presentations[node]?.textValue
+
+    override fun iconOf(node: NlComponent): Icon? = presentations[node]?.icon
 
     override fun parentOf(node: NlComponent): NlComponent? = node.parent
 
-    override fun childrenOf(node: NlComponent): List<*> = node.getViewGroupHandler(update)?.getComponentTreeChildren(node) ?: node.children
+    override fun childrenOf(node: NlComponent): List<*> = presentations[node]?.children.orEmpty()
 
     override fun toSearchString(node: NlComponent): String = "${idOf(node)} - ${tagNameOf(node)} - ${textValueOf(node)}"
 
     /** Display items with a strikeout if the effective visibility is [Visibility.GONE] */
-    override fun isEnabled(node: NlComponent): Boolean = getVisibilityFromParents(node) != Visibility.GONE
+    override fun isEnabled(node: NlComponent): Boolean = presentations[node]?.visibility != Visibility.GONE
 
     /** Display items with a weaker font color if the effective visibility is [Visibility.GONE] or [Visibility.INVISIBLE] */
     override fun isDeEmphasized(node: NlComponent): Boolean =
-      when (getVisibilityFromParents(node)) {
+      when (presentations[node]?.visibility) {
         Visibility.GONE,
         Visibility.INVISIBLE -> true
         else -> false
@@ -400,6 +428,16 @@ private class ComponentTreePanel(val project: Project, isPassThroughQueue: Boole
 
     private fun loadBuiltinIcon(simpleTagName: String): Icon =
       AndroidDomElementDescriptorProvider.getIconForViewTag(simpleTagName) ?: StudioIcons.LayoutEditor.Palette.VIEW
+
+    // JetBrains patch: what the node getters computed during paint upstream, now computed in refresh under a read action.
+    private inner class NlComponentPresentation(node: NlComponent) {
+      val id: String? = stripIdPrefix(node.id).ifEmpty { null }
+      val tagName: String = node.getViewHandler(update)?.getTitle(node)?.nullize() ?: node.tagName
+      val textValue: String? = node.getViewHandler(update)?.getTitleAttributes(node)
+      val icon: Icon = node.getViewHandler(update)?.getIcon(node) ?: loadBuiltinIcon(getSimpleTagName(node))
+      val visibility: Visibility = getVisibilityFromParents(node)
+      val children: List<*> = node.getViewGroupHandler(update)?.getComponentTreeChildren(node) ?: node.children
+    }
   }
 
   /** A [NodeType] for [NlComponentReference]s from [NlComponent]s in the [NlModel] of the design surface. */
@@ -448,9 +486,14 @@ private class ComponentTreePanel(val project: Project, isPassThroughQueue: Boole
 
     override fun showPopup(item: Any, component: JComponent, x: Int, y: Int) {}
 
+    // JetBrains patch: the issue lookup reads PSI, so it runs in refresh under a read action instead of during paint.
+    private val issues = ComponentPresentationCache { surface?.issueModel?.getHighestSeverityIssue(it) }
+
+    fun refresh(components: List<NlComponent>) = issues.refresh(components)
+
     private fun issueOf(item: Any?): Issue? {
       val component = item as? NlComponent ?: return null
-      return surface?.issueModel?.getHighestSeverityIssue(component)
+      return issues[component]
     }
   }
 }

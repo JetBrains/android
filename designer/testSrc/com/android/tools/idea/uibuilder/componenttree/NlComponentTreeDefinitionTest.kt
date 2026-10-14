@@ -60,12 +60,16 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
+import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
+import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.google.common.collect.ImmutableCollection
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.application.ApplicationInfo
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ex.ApplicationManagerEx
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TestDialogManager
@@ -98,6 +102,10 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 private const val TEST_DATA_PATH = "tools/adt/idea/designer/testData/componenttree"
@@ -574,6 +582,11 @@ class NlComponentTreeDefinitionTest {
     val surface = model.surface
     val textView = model.treeReader.find("a")!!
     val issues = surface.issueModel
+    // JetBrains patch: attach before the issue arrives, so the badge has to follow the issue listener and not the first paint.
+    val table = attach(content, model)
+    val ui = FakeUi(table)
+    val rect = table.getCellRect(1, 1, false)
+    assertThat(table.getToolTipText(rect.midX, rect.midY)).isEmpty()
     val provider =
       object : IssueProvider() {
         override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
@@ -582,13 +595,42 @@ class NlComponentTreeDefinitionTest {
       }
     issues.addIssueProvider(provider)
     issues.updateErrorsList()
-    val table = attach(content, model)
-    val ui = FakeUi(table)
-    val rect = table.getCellRect(1, 1, false)
+    UIUtil.dispatchAllInvocationEvents()
     ui.mouse.moveTo(rect.midX, rect.midY)
     assertThat(table.getToolTipText(rect.midX, rect.midY)).isEqualTo("<html>Problem<br>Click the badge for detail.</html>")
+    assertPaintTakesNoLock(table)
     ui.mouse.click(rect.midX, rect.midY)
     verify(issueService).showIssueForComponent(surface, textView)
+
+    issues.removeIssueProvider(provider)
+    UIUtil.dispatchAllInvocationEvents()
+    assertThat(table.getToolTipText(rect.midX, rect.midY)).isEmpty()
+    assertPaintTakesNoLock(table)
+  }
+
+  // JetBrains patch: the presentation cache has to follow a view handler loaded after the tree was painted.
+  @RunsInEdt
+  @Test
+  fun testViewHandlerLoadedAfterAttach() {
+    val content = createToolContent()
+    val model = createFlowModel()
+    val textView = model.treeReader.find("a")!!
+    val handlers = projectRule.mockProjectService(ViewHandlerManager::class.java)
+    val handlerUpdates = argumentCaptor<Runnable>()
+    whenever(handlers.getHandler(eq(textView), handlerUpdates.capture())).thenReturn(null)
+    val table = attach(content, model)
+    val rect = table.getCellRect(1, 0, false)
+    assertThat(table.getToolTipText(rect.midX, rect.midY)).isEqualTo("<html>TextView<br/>a</html>")
+    val update = handlerUpdates.lastValue
+    val handler = mock<ViewHandler>()
+    whenever(handler.getTitle(textView)).thenReturn("Loaded handler")
+    whenever(handlers.getHandler(eq(textView), any())).thenReturn(handler)
+
+    update.run()
+    UIUtil.dispatchAllInvocationEvents()
+
+    assertThat(table.getToolTipText(rect.midX, rect.midY)).isEqualTo("<html>Loaded handler<br/>a</html>")
+    assertPaintTakesNoLock(table)
   }
 
   @RunsInEdt
@@ -632,6 +674,72 @@ class NlComponentTreeDefinitionTest {
       checkPaint(toolsButton, "tools_${expectedValue ?: "clear"}_set.png")
       assertThat(table.getToolTipText(rect.midX, rect.midY)).isEqualTo(expectedValue ?: "Visibility not set")
     }
+  }
+
+  // JetBrains patch: the tree must paint without the read lock, see the presentation caches in NlComponentTreeDefinition.
+  @RunsInEdt
+  @Test
+  fun testPaintTakesNoLock() {
+    val content = createToolContent()
+    val model = createFlowModel()
+    val textView = model.treeReader.find("a")!!
+    val issues = model.surface.issueModel
+    issues.addIssueProvider(
+      object : IssueProvider() {
+        override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
+          issueListBuilder.add(TestIssue("Problem", source = NlComponentIssueSource(textView)))
+        }
+      }
+    )
+    issues.updateErrorsList()
+    // Before the first render no component has a render snapshot, so every attribute comes from the XML file.
+    model.treeReader.flattenComponents().forEach { it.snapshot = null }
+    val table = attach(content, model)
+    TreeUtil.expandAll(table.tree)
+    UIUtil.dispatchAllInvocationEvents()
+
+    assertPaintTakesNoLock(table)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testPaintTakesNoLockWhileSwitchingModels() {
+    val content = createToolContent()
+    val model = createFlowModel()
+    val nextModel = createFlowModel("next_layout.xml")
+    model.treeReader.flattenComponents().forEach { it.snapshot = null }
+    nextModel.treeReader.flattenComponents().forEach { it.snapshot = null }
+    val table = attach(content, model)
+    val textView = model.treeReader.find("a")!!
+    val nextTextView = nextModel.treeReader.find("a")!!
+
+    content.setToolContext(nextModel.surface)
+
+    assertThat(table.getValueAt(1, 0) === textView).isTrue()
+    assertPaintTakesNoLock(table)
+
+    UIUtil.dispatchAllInvocationEvents()
+
+    assertThat(table.getValueAt(1, 0) === nextTextView).isTrue()
+    assertPaintTakesNoLock(table)
+  }
+
+  private fun assertPaintTakesNoLock(table: TreeTableImpl) {
+    val reported = mutableListOf<Throwable>()
+    @Suppress("UndesirableClassUsage") val image = BufferedImage(table.width, table.height, BufferedImage.TYPE_INT_ARGB)
+    // A test body holds the write-intent lock, under which a read action takes no lock. The IDE paints without it.
+    ApplicationManager.getApplication().threadingSupport.releaseTheAcquiredWriteIntentLockThenExecuteActionAndTakeWriteIntentLockBack {
+      ApplicationManagerEx.getApplicationEx().withLocksSoftlyProhibited("paint", { reported.add(it) }) {
+        val graphics = image.createGraphics()
+        try {
+          table.paint(graphics)
+        } finally {
+          graphics.dispose()
+        }
+      }
+    }
+    assertThat(table.rowCount).isGreaterThan(1)
+    assertThat(reported.map { it.stackTraceToString().take(1500) }).isEmpty()
   }
 
   private fun FakeBalloon.click(target: JComponent) {
@@ -678,13 +786,14 @@ class NlComponentTreeDefinitionTest {
     return builder.toString().trim()
   }
 
-  private fun createFlowModel(): SyncNlModel {
+  // JetBrains patch: a second layout file for testPaintTakesNoLockWhileSwitchingModels.
+  private fun createFlowModel(fileName: String = "some_layout.xml"): SyncNlModel {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     return NlModelBuilderUtil.model(
         AndroidBuildTargetReference.gradleOnly(facet),
         projectRule.fixture,
         SdkConstants.FD_RES_LAYOUT,
-        "some_layout.xml",
+        fileName,
         component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
           .withBounds(0, 0, 1000, 1000)
           .matchParentWidth()
