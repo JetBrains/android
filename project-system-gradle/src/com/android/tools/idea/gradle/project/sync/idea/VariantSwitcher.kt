@@ -23,8 +23,10 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.SwitchVariantRequest
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
+import com.android.tools.idea.gradle.project.sync.setProjectSyncRequest
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
@@ -32,6 +34,7 @@ import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.projectsystem.gradle.sync.createLibraryResolverFor
 import com.android.tools.idea.projectsystem.gradle.toHolder
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ExternalProjectInfo
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -131,8 +134,22 @@ fun ExternalProjectInfo.findAndSetupSelectedCachedVariantData(variantData: DataN
  * use the new variant information. If we don't we just trigger a new refresh project syncing the new variant.
  */
 fun switchVariant(project: Project, projectDataNode: DataNode<ProjectData>): Boolean {
-  ProjectDataManager.getInstance().importData(projectDataNode, project)
+  // JetBrains patch: IntelliJ recommends the AGP upgrade after an import without a sync request, so switching to cached variant data leaves its own request.
+  importAsVariantSwitch(project, projectDataNode.data.linkedExternalProjectPath) {
+    ProjectDataManager.getInstance().importData(projectDataNode, project)
+  }
   return true
+}
+
+// JetBrains patch: importing cached variant data runs the data services without a sync; the request keeps them from treating it as a finished sync.
+@VisibleForTesting
+fun importAsVariantSwitch(project: Project, rootPath: String, importData: () -> Unit) {
+  project.setProjectSyncRequest(rootPath, GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER))
+  try {
+    importData()
+  } finally {
+    project.setProjectSyncRequest(rootPath, null)
+  }
 }
 
 private fun DataNode<ProjectData>.repopulateProjectDataWith(from: VariantProjectDataNodes, variantData: DataNode<ProjectData>): Boolean {
