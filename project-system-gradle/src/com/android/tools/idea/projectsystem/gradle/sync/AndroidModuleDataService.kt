@@ -53,6 +53,7 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.serverflags.protos.AndroidSdkSupportConfiguration
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER
 import com.intellij.facet.ModifiableFacetModel
@@ -208,10 +209,13 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
       val trigger = projectSyncRequest?.trigger
       if (trigger != null) {
         project.setProjectSyncRequest(projectData.linkedExternalProjectPath, null)
-        if (trigger != TRIGGER_AGP_VERSION_UPDATED && trigger != TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER) {
-          AndroidPluginInfo.findFromModel(project)?.let { info ->
-            project.getService(AssistantInvoker::class.java).maybeForceOrRecommendPluginUpgrade(project, info)
-          }
+      }
+      // JetBrains patch: upstream recommends the AGP upgrade only after a GradleSyncExecutor sync, and IntelliJ imports on open and on Reload All Gradle Projects without one.
+      if (recommendsPluginUpgradeAfterImport(trigger, IdeInfo.getInstance().isAndroidStudio)) {
+        AndroidPluginInfo.findFromModel(project)?.let { info ->
+          project.getService(AssistantInvoker::class.java).maybeForceOrRecommendPluginUpgrade(project, info)
+        }
+        if (trigger != null) {
           GradleVersionCatalogDetector.getInstance(project).maybeSuggestToml(project)
         }
       }
@@ -343,6 +347,15 @@ fun syncSelectedVariant(facet: AndroidFacet, variant: IdeVariantCore) {
   val state = facet.properties
   state.SELECTED_BUILD_VARIANT = variant.name
 }
+
+// JetBrains patch: outside Android Studio the upgrade is recommended after an import without a sync request too, see onSuccessImport.
+private val TRIGGERS_WITHOUT_UPGRADE_RECOMMENDATION = setOf(TRIGGER_AGP_VERSION_UPDATED, TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER)
+
+// JetBrains patch: IntelliJ imports the project on open and on Reload All Gradle Projects without GradleSyncExecutor, so no sync request is left
+// behind; switching to a cached variant leaves its own request, so an import without a request still follows an actual sync.
+@VisibleForTesting
+fun recommendsPluginUpgradeAfterImport(syncTrigger: Trigger?, isAndroidStudio: Boolean): Boolean =
+  syncTrigger?.let { it !in TRIGGERS_WITHOUT_UPGRADE_RECOMMENDATION } ?: !isAndroidStudio
 
 internal fun createLibraryResolverFor(projectNode: DataNode<ProjectData>): IdeLibraryModelResolverImpl {
   val libraryTable = ExternalSystemApiUtil.find(projectNode, AndroidProjectKeys.IDE_LIBRARY_TABLE)?.data
