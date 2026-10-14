@@ -20,6 +20,8 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.MultiLineReceiver
 import com.android.ddmlib.MultiReceiver
 import com.android.tools.deployer.common.DeployerException
+// TODO studio-merge
+import com.android.tools.deployer.common.DeviceHolder
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.ComponentType
@@ -87,7 +89,9 @@ class AndroidTileConfigurationExecutor(
     val indexReceiver = AddTileCommandResultReceiver { indicator?.isCanceled == true }
     val receiver = MultiReceiver(outputReceiver, consoleReceiver, indexReceiver)
     try {
-      getActivator(app).activate(tileLaunchOptions.componentType, tileLaunchOptions.componentName!!, mode, receiver, device)
+      // TODO studio-merge
+      getActivator(app)
+        .activate(tileLaunchOptions.componentType, tileLaunchOptions.componentName!!, mode, receiver, DeviceHolder(device, null))
     } catch (ex: DeployerException) {
       throw ExecutionException("Error while setting the tile, message: ${outputReceiver.getOutput().ifEmpty { ex.details }}", ex)
     }

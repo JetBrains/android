@@ -26,7 +26,7 @@ import com.android.sdklib.devices.Camera
 import com.android.sdklib.devices.CameraLocation
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.Storage
-import com.android.sdklib.internal.avd.AiGlassesDisplayMode
+// TODO studio-merge
 import com.android.sdklib.internal.avd.AvdBuilder
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.AvdNetworkLatency
@@ -47,7 +47,7 @@ import com.android.tools.idea.adddevicedialog.FormFactors
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
-import com.android.tools.idea.flags.StudioFlags
+// TODO studio-merge
 import java.nio.file.Path
 
 /** A mutable state holder for a virtual device in the Add Device dialog. */
@@ -80,7 +80,7 @@ internal class VirtualDevice(
   var ram: StorageCapacity? by mutableStateOf(defaultRam)
   var vmHeapSize: StorageCapacity? by mutableStateOf(defaultVmHeapSize)
   var preferredAbi: String? by mutableStateOf(null)
-  var aiGlassesDisplayMode: AiGlassesDisplayMode by mutableStateOf(AvdBuilder.DEFAULT_AI_GLASSES_DISPLAY_MODE)
+// TODO studio-merge
 
   /**
    * The value of the [skin] property after it is initialized by [ConfigurationPage] via [ConfigureDevicePanelState].
@@ -93,6 +93,10 @@ internal class VirtualDevice(
 
   val isValid
     get() = image != null && internalStorage != null && expandedStorage != null && ram != null && vmHeapSize != null
+// TODO studio-merge
+
+  val isSkinAllowed
+    get() = formFactor !in setOf(FormFactors.XR_HEADSET, FormFactors.XR_GLASSES, FormFactors.AI_GLASSES)
 
   fun hasPlayStore(image: ISystemImage) = hasPlaystore && image.getServices() == Services.GOOGLE_PLAY_STORE
 
@@ -133,7 +137,7 @@ internal class VirtualDevice(
     ram = avdBuilder.ram.toStorageCapacity()
     vmHeapSize = avdBuilder.vmHeap.toStorageCapacity()
     preferredAbi = avdBuilder.userSettings[UserSettingsKey.PREFERRED_ABI]
-    aiGlassesDisplayMode = avdBuilder.aiGlassesDisplayMode
+  // TODO studio-merge
   }
 
   companion object {
@@ -178,13 +182,7 @@ internal fun AvdBuilder.copyFrom(device: VirtualDevice) {
     null -> userSettings.remove(UserSettingsKey.PREFERRED_ABI)
     else -> userSettings[UserSettingsKey.PREFERRED_ABI] = preferredAbi
   }
-
-  aiGlassesDisplayMode =
-    if (StudioFlags.AI_GLASSES_DISPLAY_SETTING_ENABLED.get()) {
-      device.aiGlassesDisplayMode
-    } else {
-      AiGlassesDisplayMode.MONOCULAR_RIGHT
-    }
+// TODO studio-merge
 }
 
 private fun StorageCapacity.toStorage(): Storage {

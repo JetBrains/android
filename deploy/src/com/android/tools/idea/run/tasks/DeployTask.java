@@ -23,6 +23,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerApplicationTerminator;
 import com.android.tools.deployer.common.DeployerException;
+import com.android.tools.deployer.common.DeviceHolder;
 import com.android.tools.deployer.common.InstallOptions;
 import com.android.tools.deployer.install.InstallMode;
 import com.android.tools.deployer.model.App;
@@ -146,7 +147,7 @@ public class DeployTask extends AbstractDeployTask {
     }
 
     // Skip verification if possible.
-    options.setSkipVerification(device, apkInfo.getApplicationId());
+    options.setSkipVerification(new DeviceHolder(device, null), apkInfo.getApplicationId()); // TODO studio-merge
 
     LOG.info("Installing application: " + apkInfo.getApplicationId());
     InstallMode installMode = InstallMode.DELTA;
