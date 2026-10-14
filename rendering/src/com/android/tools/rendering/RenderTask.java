@@ -780,7 +780,8 @@ public class RenderTask {
       params.setTransparentBackground();
     }
 
-    params.setImageFactory(factory);
+    // TODO studio-merge
+    // params.setImageFactory(factory);
 
     if (myTimeout > 0) {
       params.setTimeout(myTimeout);
