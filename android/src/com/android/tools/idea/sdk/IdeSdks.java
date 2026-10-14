@@ -731,7 +731,7 @@ public class IdeSdks {
   @NotNull
   private static List<File> getPotentialJdkPaths() {
     JavaSdk javaSdk = JavaSdk.getInstance();
-    List<String> jdkPaths = Lists.newArrayList(javaSdk.suggestHomePaths());
+    List<String> jdkPaths = Lists.newArrayList(javaSdk.suggestHomePaths(null));
     jdkPaths.add(SystemProperties.getJavaHome());
     jdkPaths.add(0, System.getenv("JDK_HOME"));
     List<File> virtualFiles = Lists.newArrayListWithCapacity(jdkPaths.size());

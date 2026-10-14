@@ -13,6 +13,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.sdk.AndroidSdkData;
 import com.intellij.CommonBundle;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.AdditionalDataConfigurable;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkType;
@@ -30,14 +31,17 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import javax.swing.Icon;
 import org.jdom.Element;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
-public class AndroidSdkType extends SdkType implements JavaSdkType {
+public final class AndroidSdkType extends SdkType implements JavaSdkType {
   @NonNls public static final String SDK_NAME = "Android SDK";
   @NonNls public static final String DEFAULT_EXTERNAL_DOCUMENTATION_PATH = "developer.android.com/reference/";
   @NonNls public static final String DEFAULT_EXTERNAL_DOCUMENTATION_URL = "http://" + DEFAULT_EXTERNAL_DOCUMENTATION_PATH;
@@ -74,6 +78,11 @@ public class AndroidSdkType extends SdkType implements JavaSdkType {
   @Nullable
   public String suggestHomePath(@NotNull Path path) {
     return null;
+  }
+
+  @Override
+  public @Unmodifiable @NotNull Collection<String> suggestHomePaths(@Nullable Project project) {
+    return Collections.emptyList();
   }
 
   @Override
