@@ -746,8 +746,7 @@ public class RenderTask {
       params.setTransparentBackground();
     }
 
-    // TODO studio-merge
-    // params.setSizeProvider(mySizeProvider);
+    params.setSizeProvider(mySizeProvider);
 
     if (myTimeout > 0) {
       params.setTimeout(myTimeout);
