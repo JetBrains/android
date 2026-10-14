@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElem
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.KTS_KNOWN_CONFIGURATIONS
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslAnchor
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression
@@ -50,6 +51,7 @@ import org.jetbrains.kotlin.idea.base.psi.appendValueArgument
 import org.jetbrains.kotlin.idea.base.psi.deleteValueArgument
 import org.jetbrains.kotlin.idea.base.psi.insertValueArgumentAfter
 import org.jetbrains.kotlin.lexer.KtTokens.BLOCK_COMMENT
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtArrayAccessExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
@@ -414,8 +416,25 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
   }
 
   override fun deleteDslLiteral(literal: GradleDslLiteral) {
+    namePositionalArgumentsAfter(literal)
     deletePsiElement(literal, literal.expression)
     deletePsiElement(literal, literal.nameElement.namedPsiElement)
+  }
+
+  /** A positional argument gets its key from its index, so the positional arguments after a deleted one get their names. */
+  private fun namePositionalArgumentsAfter(literal: GradleDslLiteral) {
+    val map = literal.parent as? GradleDslExpressionMap ?: return
+    val argument = literal.expression?.parent as? KtValueArgument ?: return
+    if (!map.asNamedArgs || argument.isNamed()) return
+    val arguments = (argument.parent as? KtValueArgumentList)?.arguments ?: return
+    val psiFactory = KtPsiFactory(argument.project)
+    for (element in map.allElements) {
+      val expression = (element as? GradleDslExpression)?.expression as? KtExpression ?: continue
+      val sibling = expression.parent as? KtValueArgument ?: continue
+      if (sibling.isNamed() || arguments.indexOf(sibling) <= arguments.indexOf(argument)) continue
+      val named = psiFactory.createArgument(expression, Name.identifier(element.name))
+      sibling.addRangeBefore(named.firstChild, named.getArgumentExpression()!!.prevSibling, expression)
+    }
   }
 
   override fun createDslMethodCall(methodCall: GradleDslMethodCall): PsiElement? {

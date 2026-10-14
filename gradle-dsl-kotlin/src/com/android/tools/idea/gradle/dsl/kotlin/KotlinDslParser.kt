@@ -88,6 +88,15 @@ import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.KtVisitor
 import org.jetbrains.kotlin.psi.psiUtil.referenceExpression
 
+/**
+ * Parameter names of the positional dependency notation: `implementation("group", "name", "version")`. The key of a positional argument
+ * comes from its index, so [KotlinDslWriter.deleteDslLiteral] names the later positional arguments before it deletes one.
+ */
+private val POSITIONAL_DEPENDENCY_ARGUMENTS = listOf("group", "name", "version")
+
+/** `DependencyHandler` methods that take several positional arguments but are not a configuration. */
+private val DEPENDENCY_HANDLER_METHODS = setOf("add", "addProvider", "addProviderConvertible")
+
 /** Parser for .gradle.kt files. This method produces a [GradleDslElement] tree. */
 class KotlinDslParser(val psiFile: KtFile, override val internalContext: BuildModelContext, val dslFile: GradleDslFile) :
   KtVisitor<Unit, GradlePropertiesDslElement>(), KotlinDslNameConverter, GradleDslParser {
@@ -595,6 +604,10 @@ class KotlinDslParser(val psiFile: KtFile, override val internalContext: BuildMo
     if (isFirstCall && arguments.size > 0 && arguments.all { it.isNamed() }) {
       return getArglistMap(parentElement, psiElement, name, argumentsList.arguments)
     }
+    // Kotlin DSL has no vararg configuration method: implementation("group", "name", "version") is one positional dependency notation.
+    if (isFirstCall && parentElement is DependenciesDslElement && isPositionalDependencyNotation(arguments, methodName)) {
+      return getArglistMap(parentElement, psiElement, name, argumentsList.arguments, POSITIONAL_DEPENDENCY_ARGUMENTS)
+    }
     // If the CallExpression has one argument only that is a callExpression, we skip the current CallExpression.
     if (arguments.size != 1) {
       return getMethodCall(parentElement, psiElement, name, methodName, argumentsList, false)
@@ -631,6 +644,20 @@ class KotlinDslParser(val psiFile: KtFile, override val internalContext: BuildMo
       }
       return call
     }
+  }
+
+  // A single positional argument with no named argument is the compact notation, so this needs two arguments in total. A positional
+  // argument must be a string or a reference: a class literal or a provider call marks a call that is not a dependency notation.
+  private fun isPositionalDependencyNotation(arguments: List<KtValueArgument>, methodName: String): Boolean {
+    if (methodName in DEPENDENCY_HANDLER_METHODS || arguments.size < 2) return false
+    val positional = arguments.withIndex().filter { !it.value.isNamed() }
+    return positional.size in 1..POSITIONAL_DEPENDENCY_ARGUMENTS.size &&
+      positional.all {
+        it.index < POSITIONAL_DEPENDENCY_ARGUMENTS.size &&
+          it.value.getArgumentExpression().let { e ->
+            e is KtStringTemplateExpression || e is KtNameReferenceExpression || e is KtDotQualifiedExpression
+          }
+      }
   }
 
   private fun getMethodCall(
@@ -685,14 +712,18 @@ class KotlinDslParser(val psiFile: KtFile, override val internalContext: BuildMo
     arglistPsiElement: PsiElement,
     propertyName: GradleNameElement,
     arguments: List<KtValueArgument>,
+    positionalNames: List<String> = emptyList(),
   ): GradleDslExpressionMap {
     val map = GradleDslExpressionMap(parentElement, arglistPsiElement, propertyName, false)
     map.asNamedArgs = true
-    arguments
-      .map { arg -> arg.getArgumentName() to arg.getArgumentExpression() }
-      .filter { e -> e.first != null && e.second != null }
-      .mapNotNull { e -> createExpressionElement(map, arglistPsiElement, GradleNameElement.from(e.first!!, this), e.second!!) }
-      .forEach(map::addParsedElement)
+    arguments.forEachIndexed { index, arg ->
+      val name =
+        arg.getArgumentName()?.let { GradleNameElement.from(it, this) }
+          ?: positionalNames.getOrNull(index)?.let(GradleNameElement::create)
+          ?: return@forEachIndexed
+      val expression = arg.getArgumentExpression() ?: return@forEachIndexed
+      createExpressionElement(map, arglistPsiElement, name, expression)?.let(map::addParsedElement)
+    }
     return map
   }
 
