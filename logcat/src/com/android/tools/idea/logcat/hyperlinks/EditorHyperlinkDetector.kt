@@ -36,7 +36,8 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.CancellationException
 import java.util.concurrent.ExecutorService
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.plugins.gradle.execution.GradleConsoleFilter
+import org.jetbrains.plugins.gradle.execution.GradleConsoleFilterProvider
+import kotlin.jvm.java
 
 /** A [HyperlinkDetector] that adds hyperlinks to an [Editor] */
 internal class EditorHyperlinkDetector(
@@ -91,7 +92,10 @@ internal class EditorHyperlinkDetector(
 
   companion object {
     // These filters don't apply to Logcat output
-    private val IGNORE_FILTERS =
-      setOf(GradleConsoleFilter::class.java.name, "com.intellij.debugger.impl.attach.JavaDebuggerAttachFilter", UrlFilter::class.java.name)
+    private val IGNORE_FILTERS = setOf(
+        GradleConsoleFilterProvider.GradleConsoleFilter::class.java.name,
+        "com.intellij.debugger.impl.attach.JavaDebuggerAttachFilter",
+        UrlFilter::class.java.name
+      )
   }
 }

@@ -39,13 +39,16 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerExtension
-import org.jetbrains.plugins.gradle.execution.GradleConsoleFilter
+import org.jetbrains.plugins.gradle.execution.GradleConsoleFilterProvider
 import org.junit.Rule
 import org.junit.Test
 
 // Intentionally split from HyperlinkDetector.IGNORE_FILTERS to make it harder to accidentally remove something from IGNORE_FILTERS
-private val UNSAFE_FILTERS =
-  listOf(GradleConsoleFilter::class.java.name, "com.intellij.debugger.impl.attach.JavaDebuggerAttachFilter", UrlFilter::class.java.name)
+private val UNSAFE_FILTERS = listOf(
+  GradleConsoleFilterProvider.GradleConsoleFilter::class.java.name,
+  "com.intellij.debugger.impl.attach.JavaDebuggerAttachFilter",
+  UrlFilter::class.java.name
+)
 
 /** Tests for [editorHyperlinkDetector] */
 @RunsInEdt
