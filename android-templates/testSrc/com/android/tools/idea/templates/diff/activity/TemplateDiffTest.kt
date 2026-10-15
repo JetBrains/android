@@ -43,6 +43,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameters
 import com.android.tools.idea.flags.StudioFlags.JOURNEYS_WITH_GEMINI_EXECUTION
+import com.android.tools.idea.flags.StudioFlags.NPW_ENABLE_AI_GLASSES_TEMPLATE
 import com.android.tools.idea.flags.StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE
 import com.android.tools.idea.flags.StudioFlags.NPW_ENABLE_XR_TEMPLATE
 
@@ -63,6 +64,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
   @get:Rule val xrTemplateFlagRule = FlagRule(NPW_ENABLE_XR_TEMPLATE, true)
   @get:Rule val navigationFlagRule = FlagRule(NPW_ENABLE_NAVIGATION_UI_TEMPLATE, true)
   @get:Rule val journeyFlagRule = FlagRule(JOURNEYS_WITH_GEMINI_EXECUTION, true)
+  @get:Rule val aiGlassesTemplateFlagRule = FlagRule(NPW_ENABLE_AI_GLASSES_TEMPLATE, true)
 
   companion object {
     /** Keeps track of whether the previous parameterized test failed */
