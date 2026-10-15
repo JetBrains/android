@@ -58,10 +58,10 @@
   </content>
 
   <change-notes><![CDATA[
-   This release contains updates from Android Studio Panda 2.
+   This release contains updates from Android Studio Quail 2.
 
     For detailed information, please refer to the release notes available at:
-    <a href="https://androidstudio.googleblog.com/2026/03/android-studio-panda-2-202532-now.html">Android Studio Panda 2</a>.]]>
+    <a href="https://androidstudio.googleblog.com/2026/07/android-studio-quail-2-now-available.html">Android Studio Quail 2</a>.]]>
   </change-notes>
 
   <xi:include href="/META-INF/designer.xml"/>
