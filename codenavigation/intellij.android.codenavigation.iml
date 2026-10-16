@@ -9,7 +9,6 @@
     <orderEntry type="module" module-name="intellij.libraries.guava" />
     <orderEntry type="module" module-name="intellij.libraries.jetbrains.annotations" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
-    <orderEntry type="module" module-name="intellij.libraries.maven.resolver.provider" />
     <orderEntry type="module" module-name="intellij.libraries.protobuf" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
