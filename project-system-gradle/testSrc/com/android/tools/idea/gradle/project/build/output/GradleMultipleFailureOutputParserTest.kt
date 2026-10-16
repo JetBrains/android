@@ -313,4 +313,107 @@ $stacktrace"""
         ),
     )
   }
+
+  @Test
+  fun multipleBuildExceptions_withBuildActionFailure() {
+    val buildGradle = temporaryFolder.newFile("/build.gradle")
+    val buildActionStacktrace =
+      RuntimeException("Multiple build operations failed.", RuntimeException("A problem occurred configuring project ':broken'."))
+        .stackTraceToString()
+    val taskStacktrace =
+      RuntimeException("Cannot configure project ':broken'", RuntimeException("cascade level 6", IllegalStateException("root cause")))
+        .stackTraceToString()
+
+    val buildOutput =
+      """
+FAILURE: Build completed with 2 failures.
+
+1: BuildAction failed with an exception.
+-----------
+* What went wrong:
+Multiple build operations failed.
+    A problem occurred configuring project ':broken'.
+    A problem occurred configuring project ':broken'.
+
+* Try:
+> Run with --info or --debug option to get more log output.
+
+* Exception is:
+$buildActionStacktrace
+
+==============================================================================
+
+2: Task failed with an exception.
+-----------
+* Where:
+Build file '$buildGradle' line: 10
+
+* What went wrong:
+Cannot configure project ':broken'
+> cascade level 6
+
+* Try:
+> Run with --info or --debug option to get more log output.
+
+* Exception is:
+$taskStacktrace
+
+==============================================================================
+
+CONFIGURE FAILED in 1s
+"""
+        .trimIndent()
+    parseOutput(
+      parentEventId = "testId",
+      gradleOutput = buildOutput,
+      // The 'Caused by:' lines of the stacktraces must not leak to other parsers as separate errors
+      expectedEvents =
+        listOf(
+          ExpectedEvent(
+            message = "Multiple build operations failed.",
+            isFileMessageEvent = false,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = true,
+            group = "Other Messages",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = "testId",
+            description =
+              """
+Multiple build operations failed.
+    A problem occurred configuring project ':broken'.
+    A problem occurred configuring project ':broken'.
+
+* Try:
+> Run with --info or --debug option to get more log output.
+
+* Exception is:
+$buildActionStacktrace"""
+                .trimIndent(),
+          ),
+          ExpectedEvent(
+            message = "cascade level 6",
+            isFileMessageEvent = true,
+            isBuildIssueEvent = false,
+            isDuplicateMessageAware = true,
+            group = "Other Messages",
+            kind = MessageEvent.Kind.ERROR,
+            parentId = "testId",
+            filePosition = "$buildGradle:10:1-10:1",
+            description =
+              """
+Build file '$buildGradle' line: 10
+
+Cannot configure project ':broken'
+> cascade level 6
+
+* Try:
+> Run with --info or --debug option to get more log output.
+
+* Exception is:
+$taskStacktrace"""
+                .trimIndent(),
+          ),
+        ),
+    )
+  }
 }
