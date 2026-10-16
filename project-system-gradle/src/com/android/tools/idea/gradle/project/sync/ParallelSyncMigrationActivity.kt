@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.AndroidGradleProjectStartupService
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
@@ -51,6 +52,9 @@ class ParallelSyncMigrationActivity : ProjectActivity {
         }
 
         if (!StudioFlags.SHOW_PARALLEL_SYNC_PROPERTY_MIGRATION_WINDOW.get()) return@runInitialization
+
+        // AND-156 JetBrains patch
+        if (!isMigrationApplicable()) return@runInitialization
 
         // Check if the user has opted out for THIS SPECIFIC project
         if (!PropertiesComponent.getInstance(project).getBoolean(SHOW_MIGRATION_DIALOG_KEY, true)) return@runInitialization
@@ -103,6 +107,12 @@ class ParallelSyncMigrationActivity : ProjectActivity {
             ModalityState.nonModal(),
           )
       } catch (_: Exception) {}
+    }
+
+    // AND-156 JetBrains patch: the dialog and the automatic migration describe an Android Studio behavior change, so outside Android
+    // Studio they are disabled for every project, including Android ones, until the Android plugin in IntelliJ IDEA gets its own UX.
+    fun isMigrationApplicable(): Boolean {
+      return IdeInfo.getInstance().isAndroidStudio
     }
 
     fun needsMigration(project: Project): Boolean {
