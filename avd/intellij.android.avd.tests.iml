@@ -75,6 +75,8 @@
     <orderEntry type="module" module-name="intellij.groovy.scripting" scope="RUNTIME" />
     <orderEntry type="module" module-name="kotlin.base.injection" scope="RUNTIME" />
     <orderEntry type="module" module-name="kotlin.jvm-debugger.evaluation" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.plugin.testFramework" scope="RUNTIME" />
+    <orderEntry type="module" module-name="kotlin.jvm.shared" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.avd" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.avd" />
