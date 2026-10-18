@@ -42,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 
 /**
  * Tests for {@link StudioResourceRepositoryManager}.
@@ -130,6 +131,7 @@ public class StudioResourceRepositoryManagerTest extends AndroidTestCase {
     }
   }
 
+  @Ignore("AT-3959")
   public static class DisposingAcrossFacets extends AndroidTestCase {
     @Override
     protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,

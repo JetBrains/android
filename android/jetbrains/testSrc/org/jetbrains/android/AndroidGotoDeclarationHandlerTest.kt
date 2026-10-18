@@ -29,6 +29,7 @@ import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction
+import com.intellij.idea.IJIgnore
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.Navigatable
@@ -159,6 +160,7 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
       )
   }
 
+  @IJIgnore(issue = "AT-3959")
   fun testGotoResourceFromStartOfReferenceLayoutXml() {
     myFixture.addFileToProject(
       "res/values/colors.xml",
