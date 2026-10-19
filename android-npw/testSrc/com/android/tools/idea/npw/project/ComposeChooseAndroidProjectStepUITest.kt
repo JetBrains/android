@@ -35,6 +35,7 @@ import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.npw.project.ChooseAndroidProjectStep.Companion.getProjectTemplates
+import com.android.tools.idea.npw.template.WizardPluginPromotionTemplateProvider
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.Thumb
@@ -79,6 +80,13 @@ class ComposeChooseAndroidProjectStepUITest {
       override fun getTemplates() = templates
     }
     ExtensionTestUtil.maskExtensions(point, listOf(provider), projectRule.project)
+
+    val promotionPoint = ExtensionPointName<WizardPluginPromotionTemplateProvider>(
+      "com.android.tools.idea.npw.template.wizardPluginPromotionTemplateProvider"
+    )
+    if (!area.hasExtensionPoint(promotionPoint)) {
+      area.registerExtensionPoint(promotionPoint, WizardPluginPromotionTemplateProvider::class.java.name, ExtensionPoint.Kind.INTERFACE, projectRule.project)
+    }
   }
 
   private fun template(name: String, formFactor: FormFactor): Template = mock<Template>().also {
@@ -91,7 +99,7 @@ class ComposeChooseAndroidProjectStepUITest {
 
   @Test
   fun keyboardMovesAcrossRowsAndStopsAtTheGridBoundary() {
-    val items = (1..4).map { template("Template $it", FormFactor.Mobile) }
+    val items = (1..4).map { TemplateGridItem(template("Template $it", FormFactor.Mobile)) }
     val entry = FormFactorProjectEntry("Test", items, items.first())
     composeTestRule.setContent { Box(Modifier.size(384.dp, 600.dp)) { entry.AndroidProjectEntryDetails() } }
     composeTestRule.onNodeWithText("Template 1").performClick()
@@ -99,7 +107,7 @@ class ComposeChooseAndroidProjectStepUITest {
     listOf(Key.DirectionRight to 1, Key.DirectionDown to 3, Key.DirectionLeft to 2, Key.DirectionUp to 0,
            Key.DirectionLeft to 0, Key.DirectionUp to 0).forEach { (key, index) ->
       grid.performKeyInput { pressKey(key) }
-      composeTestRule.runOnIdle { assertEquals(items[index], entry.selectedTemplate) }
+      composeTestRule.runOnIdle { assertEquals(items[index], entry.selectedGridItem) }
     }
   }
 
@@ -119,8 +127,8 @@ class ComposeChooseAndroidProjectStepUITest {
     val model = ChooseAndroidProjectStepModel(Supplier { listOf(FormFactor.Mobile) })
     model.getAndroidProjectEntries()
     val entry = model.selectedAndroidProjectEntry as FormFactorProjectEntry
-    assertEquals("Empty Activity", entry.selectedTemplate?.name)
-    assertEquals(true, entry.templates.any { it === entry.selectedTemplate })
+    assertEquals("Empty Activity", (entry.selectedGridItem as? TemplateGridItem)?.template?.name)
+    assertEquals(true, entry.gridItems.any { it === entry.selectedGridItem })
   }
 
   @Test
@@ -128,9 +136,9 @@ class ComposeChooseAndroidProjectStepUITest {
     val model = ChooseAndroidProjectStepModel(Supplier { listOf(FormFactor.Mobile) })
     model.getAndroidProjectEntries()
     var advances = 0
-    model.onTemplateDoubleClick = {
+    model.onGridItemDoubleClick = {
       val entry = model.selectedAndroidProjectEntry as FormFactorProjectEntry
-      assertEquals("Other Activity", entry.selectedTemplate?.name)
+      assertEquals("Other Activity", (entry.selectedGridItem as? TemplateGridItem)?.template?.name)
       advances++
     }
     composeTestRule.setContent { ChooseAndroidProjectStepUI(model) }
@@ -191,7 +199,7 @@ class ComposeChooseAndroidProjectStepUITest {
     composeTestRule.onNodeWithText("Other Activity").performClick()
     composeTestRule.runOnIdle {
       val entry = model.selectedAndroidProjectEntry as FormFactorProjectEntry
-      assertEquals("Other Activity", entry.selectedTemplate?.name)
+      assertEquals("Other Activity", (entry.selectedGridItem as? TemplateGridItem)?.template?.name)
     }
 
     composeTestRule.onNodeWithText(FormFactor.Wear.displayName).performClick()
@@ -211,8 +219,8 @@ class ComposeChooseAndroidProjectStepUITest {
       .assertCountEquals(FormFactor.Mobile.getProjectTemplates().size)
 
     assertEquals(
-      mobileTemplates[mobileTemplates.size - 1].name,
-      (model.chooseAndroidProjectEntries[0] as FormFactorProjectEntry).selectedTemplate?.name,
+      mobileTemplates.filterIsInstance<TemplateGridItem>().last().template.name,
+      ((model.chooseAndroidProjectEntries[0] as FormFactorProjectEntry).selectedGridItem as? TemplateGridItem)?.template?.name,
     )
   }
 
