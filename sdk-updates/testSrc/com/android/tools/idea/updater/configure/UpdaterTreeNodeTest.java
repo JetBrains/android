@@ -459,24 +459,18 @@ public class UpdaterTreeNodeTest {
   @NotNull
   private DetailsTreeNode createMultiVersionChild(boolean hasLocal, boolean hasRemote, @NotNull String version) {
     assert hasLocal || hasRemote;
-    FakePackage.FakeLocalPackage local;
-    UpdatablePackage updatablePackage = null;
+    // TODO studio-merge
+    FakePackage.FakeLocalPackage local = null;
     if (hasLocal) {
       local = new FakePackage.FakeLocalPackage("foo;" + version);
       local.setDisplayName("Foo " + version);
-      updatablePackage = new UpdatablePackage(local);
     }
-    FakePackage.FakeRemotePackage remote;
+    FakePackage.FakeRemotePackage remote = null;
     if (hasRemote) {
       remote = new FakePackage.FakeRemotePackage("foo;" + version);
       remote.setDisplayName("Foo " + version);
-      if (updatablePackage != null) {
-        updatablePackage.setRemote(remote);
-      }
-      else {
-        updatablePackage = new UpdatablePackage(remote);
-      }
     }
+    UpdatablePackage updatablePackage = new UpdatablePackage(local, remote);
     return new DetailsTreeNode(new PackageNodeModel(updatablePackage, true), null, myConfigurable);
   }
 

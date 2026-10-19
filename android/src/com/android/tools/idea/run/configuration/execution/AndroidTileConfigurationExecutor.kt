@@ -78,7 +78,8 @@ class AndroidTileConfigurationExecutor(
     val tileIndex = setWatchTile(app, mode, indicator, console, device)
     val showTileCommand = SHOW_TILE_COMMAND + tileIndex!!
     val showTileReceiver = CommandResultReceiverV1()
-    device.executeShellCommand(showTileCommand, console, showTileReceiver, indicator = indicator)
+    // TODO studio-merge
+    device.executeShellCommand(showTileCommand, console, showTileReceiver.asIShellOutputReceiver(), indicator = indicator)
     verifyResponse(showTileReceiver, console)
   }
 
@@ -89,7 +90,8 @@ class AndroidTileConfigurationExecutor(
     val receiver = MultiReceiver(outputReceiver, consoleReceiver, indexReceiver)
     try {
       getActivator(app)
-        .activate(tileLaunchOptions.componentType, tileLaunchOptions.componentName!!, mode, receiver, DeviceHolder(device, null))
+        // TODO studio-merge
+        .activate(tileLaunchOptions.componentType, tileLaunchOptions.componentName!!, mode, receiver.asDeployerReceiver(), DeviceHolder(device, java.util.Optional.empty()))
     } catch (ex: DeployerException) {
       throw ExecutionException("Error while setting the tile, message: ${outputReceiver.getOutput().ifEmpty { ex.details }}", ex)
     }
@@ -133,7 +135,8 @@ class TileLaunchOptions : WearSurfaceLaunchOptions {
 private fun getStopTileCallback(tileName: String, console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit = { device: IDevice ->
   val receiver = CommandResultReceiverV1()
   val removeTileCommand = Tile.ShellCommand.UNSET_TILE + tileName
-  device.executeShellCommand(removeTileCommand, console, receiver, indicator = null)
+  // TODO studio-merge
+  device.executeShellCommand(removeTileCommand, console, receiver.asIShellOutputReceiver(), indicator = null)
   if (receiver.resultCode != CommandResultReceiverV1.SUCCESS_CODE) {
     console.printlnError("Warning: Tile was not stopped.")
   }

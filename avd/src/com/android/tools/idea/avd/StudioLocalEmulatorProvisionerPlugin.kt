@@ -561,7 +561,8 @@ class StudioLocalEmulatorDeviceHandle(
         try {
           val adbSession = phoneDevice.session
           val pairing = AiGlassesPairing(adbSession)
-          withContext(ioDispatcher) { with(pairing) { phoneDevice.sendUnpairCommand() } }
+          // TODO studio-merge
+          withContext(ioDispatcher) { with(pairing) { state.connectedDevice?.getBluetoothAddress()?.let { phoneDevice.sendUnpairCommand(it) } } }
         } catch (e: CancellationException) {
           throw e
         } catch (e: ShellCommandException) {

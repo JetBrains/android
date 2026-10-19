@@ -62,6 +62,7 @@ private fun ServerStatus.UsbBackend.toProto(): AdbServerStatus.USBBackend =
     ServerStatus.UsbBackend.LIBUSB -> AdbServerStatus.USBBackend.TYPE_LIBUSB
     ServerStatus.UsbBackend.NATIVE -> AdbServerStatus.USBBackend.TYPE_NATIVE
     ServerStatus.UsbBackend.USB_DISABLED -> AdbServerStatus.USBBackend.TYPE_USB_DISABLED
+    ServerStatus.UsbBackend.LIBADBUSB -> AdbServerStatus.USBBackend.TYPE_LIBADBUSB
   }
 
 private fun ServerStatus.MdnsBackend.toProto(): AdbServerStatus.MDNSBackend =

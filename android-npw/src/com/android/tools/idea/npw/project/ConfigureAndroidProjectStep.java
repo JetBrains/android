@@ -216,7 +216,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myBindings.bindTwoWay(new SelectedProperty(myLaunchFirebaseCheckbox), myProjectModel.getLaunchFirebaseWizard());
 
       myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.KTS);
-      myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.Groovy);
 
       if (StudioFlags.NPW_SHOW_DCL.get()) {
         myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.DCL);

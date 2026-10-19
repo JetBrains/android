@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
+import com.android.ddmlib.IShellOutputReceiver
 import com.android.ddmlib.MultiLineReceiver
+import com.android.tools.deployer.common.DeployerIShellOutputReceiver
 import com.intellij.execution.ui.ConsoleView
 
 internal class ConsoleOutputReceiver(private val isCancelledCheck: () -> Boolean, private val consoleView: ConsoleView) :
@@ -40,3 +42,25 @@ internal class RecordOutputReceiver(private val isCancelledCheck: () -> Boolean)
 internal fun extractPattern(line: String, pattern: Regex): String? {
   return pattern.find(line)?.groupValues?.getOrNull(1)
 }
+
+/** Adapts an [IShellOutputReceiver] to a [DeployerIShellOutputReceiver]. */
+// TODO studio-merge
+internal fun IShellOutputReceiver.asDeployerReceiver(): DeployerIShellOutputReceiver =
+  object : DeployerIShellOutputReceiver {
+    override fun addOutput(data: ByteArray, offset: Int, length: Int) = this@asDeployerReceiver.addOutput(data, offset, length)
+
+    override fun flush() = this@asDeployerReceiver.flush()
+
+    override fun isCancelled(): Boolean = this@asDeployerReceiver.isCancelled
+  }
+
+/** Adapts a [DeployerIShellOutputReceiver] to an [IShellOutputReceiver]. */
+// TODO studio-merge
+internal fun DeployerIShellOutputReceiver.asIShellOutputReceiver(): IShellOutputReceiver =
+  object : IShellOutputReceiver {
+    override fun addOutput(data: ByteArray, offset: Int, length: Int) = this@asIShellOutputReceiver.addOutput(data, offset, length)
+
+    override fun flush() = this@asIShellOutputReceiver.flush()
+
+    override fun isCancelled(): Boolean = this@asIShellOutputReceiver.isCancelled
+  }

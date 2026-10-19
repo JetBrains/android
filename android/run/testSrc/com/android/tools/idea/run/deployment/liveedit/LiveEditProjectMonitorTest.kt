@@ -206,7 +206,8 @@ class LiveEditProjectMonitorTest {
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
 
     val installer: Installer = LiveEditProjectMonitor.newInstaller(device)
-    val adb = AdbClient(device, TestLogger())
+    // TODO studio-merge
+    val adb = AdbClient(com.android.tools.deployer.common.DeviceHolder(device, java.util.Optional.empty()), TestLogger())
     val deployer: LiveUpdateDeployer = mock()
 
     whenever(deployer.retrieveComposeStatus(any(), any(), any())).then {
@@ -243,7 +244,8 @@ class LiveEditProjectMonitorTest {
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
 
     val installer: Installer = LiveEditProjectMonitor.newInstaller(device)
-    val adb = AdbClient(device, TestLogger())
+    // TODO studio-merge
+    val adb = AdbClient(com.android.tools.deployer.common.DeviceHolder(device, java.util.Optional.empty()), TestLogger())
     val deployer: LiveUpdateDeployer = mock()
 
     var totalStatusRetrieve = 0
@@ -293,7 +295,8 @@ class LiveEditProjectMonitorTest {
     whenever(device.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
 
     val installer: Installer = LiveEditProjectMonitor.newInstaller(device)
-    val adb = AdbClient(device, TestLogger())
+    // TODO studio-merge
+    val adb = AdbClient(com.android.tools.deployer.common.DeviceHolder(device, java.util.Optional.empty()), TestLogger())
     val deployer: LiveUpdateDeployer = mock()
 
     whenever(deployer.retrieveComposeStatus(any(), any(), any())).thenReturn(listOf(Deploy.ComposeException.newBuilder().build()))

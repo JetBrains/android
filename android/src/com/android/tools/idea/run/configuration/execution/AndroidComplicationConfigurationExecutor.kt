@@ -119,8 +119,10 @@ class AndroidComplicationConfigurationExecutor(
           complicationLaunchOptions.componentName!!,
           "$watchFaceInfo ${slot.id} ${slot.type}",
           mode,
-          receiver,
-          DeviceHolder(device, null),
+          // TODO studio-merge
+          receiver.asDeployerReceiver(),
+          // TODO studio-merge
+          DeviceHolder(device, java.util.Optional.empty()),
         )
     } catch (ex: DeployerException) {
       throw ExecutionException("Error while launching complication, message: ${receiver.getOutput().ifEmpty { ex.details }}", ex)
@@ -190,10 +192,12 @@ private fun getStopComplicationCallback(complicationComponentName: String, conso
   { device: IDevice ->
     val removeReceiver = CommandResultReceiverV1()
     val removeComplicationCommand = Complication.ShellCommand.REMOVE_ALL_INSTANCES_FROM_CURRENT_WF + complicationComponentName
-    device.executeShellCommand(removeComplicationCommand, console, removeReceiver, indicator = null)
+    // TODO studio-merge
+    device.executeShellCommand(removeComplicationCommand, console, removeReceiver.asIShellOutputReceiver(), indicator = null)
 
     val unsetReceiver = CommandResultReceiverV1()
-    device.executeShellCommand(UNSET_WATCH_FACE, console, unsetReceiver, indicator = null)
+    // TODO studio-merge
+    device.executeShellCommand(UNSET_WATCH_FACE, console, unsetReceiver.asIShellOutputReceiver(), indicator = null)
     if (
       removeReceiver.resultCode != CommandResultReceiverV1.SUCCESS_CODE || unsetReceiver.resultCode != CommandResultReceiverV1.SUCCESS_CODE
     ) {

@@ -114,7 +114,8 @@ internal fun IDevice.getWearDebugSurfaceVersion(indicator: ProgressIndicator): I
     val outputReceiver = RecordOutputReceiver { indicator.isCanceled }
     val resultReceiver = CommandResultReceiverV1()
     val versionReceiver = VersionReceiver { indicator.isCanceled }
-    val receiver = MultiReceiver(outputReceiver, resultReceiver, versionReceiver)
+    // TODO studio-merge
+    val receiver = MultiReceiver(outputReceiver, resultReceiver.asIShellOutputReceiver(), versionReceiver)
     executeShellCommand(WearComponent.ShellCommand.GET_WEAR_DEBUG_SURFACE_VERSION, receiver, 5, TimeUnit.SECONDS)
 
     val timeElapsed = System.currentTimeMillis() - startTime

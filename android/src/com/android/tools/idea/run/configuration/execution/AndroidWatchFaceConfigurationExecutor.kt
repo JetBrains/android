@@ -73,8 +73,10 @@ class AndroidWatchFaceConfigurationExecutor(
           watchFaceLaunchOptions.componentType,
           watchFaceLaunchOptions.componentName!!,
           mode,
-          outputReceiver,
-          DeviceHolder(device, null),
+          // TODO studio-merge
+          outputReceiver.asDeployerReceiver(),
+          // TODO studio-merge
+          DeviceHolder(device, java.util.Optional.empty()),
         )
     } catch (ex: DeployerException) {
       throw ExecutionException("Error while launching watch face, message: ${outputReceiver.getOutput().ifEmpty { ex.details }}", ex)
@@ -97,7 +99,8 @@ class WatchFaceLaunchOptions : WearSurfaceLaunchOptions {
 
 internal fun getStopWatchFaceCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit = { device: IDevice ->
   val receiver = CommandResultReceiverV1()
-  device.executeShellCommand(UNSET_WATCH_FACE, console, receiver, indicator = null)
+  // TODO studio-merge
+  device.executeShellCommand(UNSET_WATCH_FACE, console, receiver.asIShellOutputReceiver(), indicator = null)
   if (receiver.resultCode != CommandResultReceiverV1.SUCCESS_CODE) {
     console.printlnError("Warning: Watch face was not stopped.")
   }

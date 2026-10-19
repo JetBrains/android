@@ -33,6 +33,8 @@ import com.android.tools.deployer.common.ChangeType;
 import com.android.tools.deployer.common.DeployMetric;
 import com.android.tools.deployer.common.DeployerException;
 import com.android.tools.deployer.common.DeployerOption;
+// TODO studio-merge
+import com.android.tools.deployer.common.DeviceHolder;
 import com.android.tools.deployer.common.DeploymentCacheDatabase;
 import com.android.tools.deployer.common.Installer;
 import com.android.tools.deployer.common.UIService;
@@ -130,7 +132,8 @@ public abstract class AbstractDeployTask {
     long wallClockStartMs = System.currentTimeMillis();
 
     AdbSession adbSession = AdbLibService.getSession(myProject);
-    AdbClient adb = new AdbClient(device, logger, adbSession);
+    // TODO studio-merge
+    AdbClient adb = new AdbClient(new DeviceHolder(device, null, adbSession), logger, adbSession);
 
     AdbHelper.setAbbExecAllowed(StudioFlags.DDMLIB_ABB_EXEC_INSTALL_ENABLE.get());
 

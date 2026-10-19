@@ -227,7 +227,8 @@ private suspend fun findModule(element: KtElement): Module? {
 
 fun newInstaller(device: IDevice): com.android.tools.deployer.common.Installer {
   val metrics = MetricsRecorder()
-  val adb = AdbClient(device, DexFinder.LOGGER)
+  // TODO studio-merge
+  val adb = AdbClient(com.android.tools.deployer.common.DeviceHolder(device, java.util.Optional.empty()), DexFinder.LOGGER)
   return AdbInstaller(LocalInstallerPathManager.getLocalInstaller(), adb, metrics.deployMetrics, DexFinder.LOGGER, AdbInstaller.Mode.DAEMON)
 }
 

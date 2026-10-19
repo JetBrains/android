@@ -26,6 +26,8 @@ import com.android.tools.deploy.proto.Deploy.UnsupportedChange
 import com.android.tools.deployer.AdbInstaller
 import com.android.tools.deployer.MetricsRecorder
 import com.android.tools.deployer.common.AdbClient
+// TODO studio-merge
+import com.android.tools.deployer.common.DeviceHolder
 import com.android.tools.deployer.common.Installer
 import com.android.tools.deployer.tasks.LiveUpdateDeployer
 import com.android.tools.deployer.tasks.LiveUpdateDeployer.UpdateLiveEditError
@@ -578,7 +580,8 @@ open class LiveEditProjectMonitor(liveEditService: LiveEditService, private val 
   private fun pushUpdatesToDevice(applicationId: String, device: IDevice, update: LiveEditDesugarResponse): UpdateLiveEditResult {
     val deployer = LiveUpdateDeployer(logger)
     val installer = newInstaller(device)
-    val adb = AdbClient(device, logger)
+    // TODO studio-merge
+    val adb = AdbClient(DeviceHolder(device, java.util.Optional.empty()), logger)
 
     val config = LiveEditAdvancedConfiguration.getInstance()
     val useDebugMode = config.useDebugMode
@@ -726,7 +729,8 @@ open class LiveEditProjectMonitor(liveEditService: LiveEditService, private val 
     @VisibleForTesting
     fun newInstaller(device: IDevice): Installer {
       val metrics = MetricsRecorder()
-      val adb = AdbClient(device, logger)
+      // TODO studio-merge
+      val adb = AdbClient(DeviceHolder(device, java.util.Optional.empty()), logger)
       return AdbInstaller(getLocalInstaller(), adb, metrics.deployMetrics, logger, AdbInstaller.Mode.DAEMON)
     }
   }

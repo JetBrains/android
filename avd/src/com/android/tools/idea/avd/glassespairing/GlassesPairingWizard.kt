@@ -716,7 +716,8 @@ private suspend fun FlowCollector<PairingState>.runPairingSequence(
 
     if ((phoneDevice.getPairedBluetoothDeviceCount() ?: 0) > 0) {
       try {
-        phoneDevice.sendUnpairCommand()
+        // TODO studio-merge
+        glassesDevice.getBluetoothAddress()?.let { phoneDevice.sendUnpairCommand(it) }
       } catch (e: ShellCommandException) {
         logger.warn("Failed to send unpair command", e)
       }

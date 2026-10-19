@@ -54,7 +54,8 @@ class MaterialSymbolsLoader {
       materialIconsMetadataUrlProvider: MaterialIconsMetadataUrlProvider,
       scope: CoroutineScope,
       forceDownload: Boolean,
-      callback: @UiThread (MaterialIconsMetadata) -> Unit,
+      // TODO studio-merge
+      @UiThread callback: (MaterialIconsMetadata) -> Unit,
     ) {
       val symbolDownloadsToStart =
         Symbols.entries.filter {
