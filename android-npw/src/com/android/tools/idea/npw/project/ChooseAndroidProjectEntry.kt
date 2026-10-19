@@ -23,7 +23,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.model.NewProjectModuleModel
-import com.android.tools.idea.wizard.template.Template
+import com.android.tools.idea.npw.template.installPromotedPlugin
+import com.android.tools.idea.wizard.model.ModelWizard.ActionCancellationException
 import com.android.tools.idea.wizard.template.Template.NoActivity
 import com.android.tools.idea.wizard.template.WizardUiContext
 import com.intellij.openapi.application.ApplicationManager
@@ -61,11 +62,11 @@ interface AndroidProjectEntryProvider {
 
 class FormFactorProjectEntry(
   val formFactorTitle: String,
-  val templates: List<Template>,
-  selectedTemplate: Template?,
-  val onTemplateDoubleClick: () -> Unit = {},
+  val gridItems: List<GridItem>,
+  selectedGridItem: GridItem?,
+  val onGridItemDoubleClick: () -> Unit = {},
 ) : ChooseAndroidProjectEntry {
-  var selectedTemplate by mutableStateOf(selectedTemplate)
+  var selectedGridItem by mutableStateOf(selectedGridItem)
 
   @Composable
   override fun AndroidProjectListEntry(isSelected: Boolean, isFocused: Boolean) {
@@ -75,24 +76,31 @@ class FormFactorProjectEntry(
   @Composable
   override fun AndroidProjectEntryDetails() {
     TemplateGrid(
-      templates = templates,
-      selectedTemplate = selectedTemplate,
-      onTemplateClick = { template -> selectedTemplate = template },
-      onTemplateDoubleClick = { template ->
-        selectedTemplate = template
-        onTemplateDoubleClick()
+      gridItems = gridItems,
+      selectedGridItem = selectedGridItem,
+      onGridItemClick = { item -> selectedGridItem = item },
+      onGridItemDoubleClick = { item ->
+        selectedGridItem = item
+        onGridItemDoubleClick()
       },
     )
   }
 
-  override val canGoForward = derivedStateOf { selectedTemplate != null }
+  override val canGoForward = derivedStateOf { selectedGridItem != null }
 
   override fun onProceeding(newProjectModuleModel: NewProjectModuleModel, model: NewProjectModel) {
-    selectedTemplate?.let { template ->
-      newProjectModuleModel.formFactor.set(template.formFactor)
-      newProjectModuleModel.newRenderTemplate.setNullableValue(template)
-      val hasExtraDetailStep = template.uiContexts.contains(WizardUiContext.NewProjectExtraDetail)
-      newProjectModuleModel.extraRenderTemplateModel.newTemplate = if (hasExtraDetailStep) template else NoActivity
+    when (val item = selectedGridItem) {
+      is TemplateGridItem -> {
+        newProjectModuleModel.formFactor.set(item.formFactor)
+        newProjectModuleModel.newRenderTemplate.setNullableValue(item.template)
+        val hasExtraDetailStep = item.uiContexts.contains(WizardUiContext.NewProjectExtraDetail)
+        newProjectModuleModel.extraRenderTemplateModel.newTemplate = if (hasExtraDetailStep) item.template else NoActivity
+      }
+      is PluginPromotionGridItem -> {
+        installPromotedPlugin(item.pluginId, item.template.name, item.formFactor)
+        throw ActionCancellationException(null, null)
+      }
+      null -> {}
     }
   }
 }

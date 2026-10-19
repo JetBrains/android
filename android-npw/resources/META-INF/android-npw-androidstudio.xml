@@ -18,4 +18,7 @@
     <actionConfigurationCustomizer id="Startup.NewProjectActionsInitializer" order="after Startup.AndroidStudioInitializer"
                                    implementation="com.android.tools.idea.npw.startup.NewProjectActionsInitializer"/>
   </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea.npw.template">
+    <wizardPluginPromotionTemplateProvider implementation="com.android.tools.idea.npw.template.KmpPluginPlaceholderProvider"/>
+  </extensions>
 </idea-plugin>
