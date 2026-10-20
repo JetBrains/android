@@ -38,6 +38,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorProvider
+import com.intellij.openapi.fileEditor.ex.FileEditorProviderManager
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
@@ -87,7 +88,7 @@ fun goToDiff(context: ContextDataForDiff, project: Project) {
       // TestEditorManagerImpl#openFileImpl3.
       it.putUserData(
         FileEditorProvider.KEY,
-        FileEditorProvider.EP_FILE_EDITOR_PROVIDER.extensionList.first { ex -> ex.accept(project, it) },
+        FileEditorProviderManager.getInstance().getProviderList(project, it).first(),
       )
     }
 

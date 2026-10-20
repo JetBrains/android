@@ -23,7 +23,7 @@ import com.intellij.openapi.application.EDT
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerKeys
-import com.intellij.openapi.fileEditor.FileEditorProvider
+import com.intellij.openapi.fileEditor.FileEditorProviderBean
 import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.RunsInEdt
@@ -127,10 +127,10 @@ class DesignToolsSplitEditorLifecycleTest {
       .createDesignEditor(any(), any(), any())
 
     val fileEditorExtensions =
-      FileEditorProvider.EP_FILE_EDITOR_PROVIDER.extensionList.map {
-        if (it is DesignFilesPreviewEditorProvider) designFilesPreviewEditorProvider else it
+      FileEditorProviderBean.EP_NAME.extensionList.map {
+        if (it.instance is DesignFilesPreviewEditorProvider) FileEditorProviderBean(designFilesPreviewEditorProvider) else it
       }
-    ExtensionTestUtil.maskExtensions(FileEditorProvider.EP_FILE_EDITOR_PROVIDER, fileEditorExtensions, projectRule.testRootDisposable)
+    ExtensionTestUtil.maskExtensions(FileEditorProviderBean.EP_NAME, fileEditorExtensions, projectRule.testRootDisposable)
     return surfaceLoaded
   }
 }
