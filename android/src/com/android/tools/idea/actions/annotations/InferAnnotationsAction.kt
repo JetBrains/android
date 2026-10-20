@@ -33,7 +33,7 @@ import com.intellij.analysis.BaseAnalysisActionDialog
 import com.intellij.codeInsight.FileModificationService
 import com.intellij.history.LocalHistory
 import com.intellij.ide.scratch.ScratchFileService
-import com.intellij.ide.scratch.ScratchRootType
+import com.intellij.ide.scratch.ScratchFileCreator
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.AppUIExecutor
@@ -220,7 +220,7 @@ class InferAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", I
         report = generateReport(usages.toTypedArray())
         val fileName = "InferenceReport.txt"
         val option = ScratchFileService.Option.create_new_always
-        val f = ScratchRootType.getInstance().createScratchFile(project, fileName, PlainTextLanguage.INSTANCE, report, option)
+        val f = ScratchFileCreator.createScratchFile(project, fileName, PlainTextLanguage.INSTANCE, report, option)
         if (f != null) {
           FileEditorManager.getInstance(project).openFile(f, true)
         }

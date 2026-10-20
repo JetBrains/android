@@ -16,8 +16,8 @@
 package com.android.tools.idea.actions
 
 import com.android.tools.idea.lang.androidSql.room.RoomSchemaManager
+import com.intellij.ide.scratch.ScratchFileCreator
 import com.intellij.ide.scratch.ScratchFileService
-import com.intellij.ide.scratch.ScratchRootType
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -61,14 +61,13 @@ class ShowRoomSchemaAction : AnAction("Show Room schema") {
       writer.println("Failed to get PSI file.")
     }
 
-    ScratchRootType.getInstance()
-      .createScratchFile(
+    ScratchFileCreator.createScratchFile(
         project,
         "roomSchema.txt",
         PlainTextLanguage.INSTANCE,
         output.toString(),
         ScratchFileService.Option.create_new_always,
       )
-      .let { FileEditorManager.getInstance(project).openFile(it!!, true) }
+      ?.let { FileEditorManager.getInstance(project).openFile(it, true) }
   }
 }

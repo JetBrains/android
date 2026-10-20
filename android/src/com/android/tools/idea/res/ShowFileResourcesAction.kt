@@ -16,8 +16,8 @@
 package com.android.tools.idea.res
 
 import com.android.tools.idea.namespacing
+import com.intellij.ide.scratch.ScratchFileCreator
 import com.intellij.ide.scratch.ScratchFileService
-import com.intellij.ide.scratch.ScratchRootType
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys.PSI_FILE
@@ -42,8 +42,7 @@ class ShowFileResourcesAction : AnAction("Show resources defined in file") {
       )
 
     val scratchFile =
-      ScratchRootType.getInstance()
-        .createScratchFile(
+      ScratchFileCreator.createScratchFile(
           project,
           "resources from ${psiFile.name}",
           PlainTextLanguage.INSTANCE,
