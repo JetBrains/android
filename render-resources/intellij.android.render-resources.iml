@@ -6,18 +6,17 @@
       <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
-    <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
-    <orderEntry type="module" module-name="intellij.libraries.asm" />
+    <orderEntry type="module" module-name="intellij.libraries.guava" />
     <orderEntry type="module" module-name="intellij.libraries.asm.tools" />
     <orderEntry type="module" module-name="intellij.libraries.fastutil" />
-    <orderEntry type="module" module-name="intellij.libraries.guava" />
     <orderEntry type="module" module-name="intellij.libraries.jetbrains.annotations" />
+    <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.kxml2" />
+    <orderEntry type="module" module-name="intellij.libraries.asm" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.layoutlib-loader" />
-    <orderEntry type="module" module-name="intellij.android.concurrency" exported="" />
     <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" />
     <orderEntry type="module" module-name="intellij.java.psi" />
     <orderEntry type="module" module-name="intellij.platform.core" />
@@ -31,5 +30,6 @@
     <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="module" module-name="intellij.platform.util.base" />
     <orderEntry type="module" module-name="intellij.platform.util.trove" />
+    <orderEntry type="module" module-name="intellij.android.concurrency" exported="" />
   </component>
 </module>
