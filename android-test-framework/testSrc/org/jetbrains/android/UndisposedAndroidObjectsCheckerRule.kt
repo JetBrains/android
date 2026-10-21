@@ -18,6 +18,7 @@ package org.jetbrains.android
 import com.android.tools.idea.testing.DisposerExplorer
 import com.android.tools.idea.testing.NamedExternalResource
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.module.impl.LazyModuleComponentManager
 import com.intellij.openapi.module.impl.ModuleComponentManager
 import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.util.Ref
@@ -50,6 +51,7 @@ class UndisposedAndroidObjectsCheckerRule : NamedExternalResource() {
             disposable is ProjectEx && (disposable.isDefault || disposable.isLight) ||
             disposable.toString().startsWith("services of ") ||
             (disposable is ModuleComponentManager && disposable.getModuleName() == LightProjectDescriptor.TEST_MODULE_NAME) ||
+            (disposable is LazyModuleComponentManager && disposable.getModuleName() == LightProjectDescriptor.TEST_MODULE_NAME) ||
             disposable is PsiReferenceContributor
         ) {
           // Ignore application services and light projects and modules that are not disposed by
