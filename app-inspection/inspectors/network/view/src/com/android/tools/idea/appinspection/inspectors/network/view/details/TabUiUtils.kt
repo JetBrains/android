@@ -19,6 +19,7 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.common.borderLight
 import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.adtui.ui.HideablePanel.ClickableComponent.NONE
+import com.android.tools.adtui.util.disableHtml
 import com.intellij.icons.AllIcons
 import com.intellij.ui.TitledSeparator
 import com.intellij.ui.components.JBCheckBox
@@ -116,6 +117,7 @@ fun createStyledMapComponent(map: Map<String, List<String>>): JComponent {
         layout = BorderLayout(scaled5, scaled5)
         add(
           NoWrapBoldLabel("$key:").apply {
+            disableHtml()
             border = emptyBorder
             verticalAlignment = JLabel.TOP
           },

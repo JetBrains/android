@@ -16,11 +16,13 @@
 package com.android.tools.idea.apk.debugging;
 
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.io.OSAgnosticPathUtil.isUncPath;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 import com.android.sdklib.devices.Abi;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -95,6 +97,10 @@ public class NativeLibrary {
     List<String> nonExistingPaths = new ArrayList<>();
     VirtualFileSystem fileSystem = StandardFileSystems.local();
     for (String path : sharedObjectFilePaths) {
+      if (isUncPath(path)) {
+        Logger.getInstance(this.getClass()).warn("Ignoring UNC path: " + path);
+        continue;
+      }
       VirtualFile file = fileSystem.findFileByPath(path);
       if (file != null) {
         Abi abi = extractAbiFrom(file);

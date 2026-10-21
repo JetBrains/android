@@ -30,19 +30,20 @@ import java.io.File
 object ReformatUtil {
   @JvmStatic
   fun reformatRearrangeAndSave(project: Project, files: Iterable<File>) {
-    WriteCommandAction.runWriteCommandAction(project) {
-      files
-        .asSequence()
-        .filter { it.isFile }
-        // We skip gradlew files, which IntelliJ recognizes as shell files and offers to install the bash IDE plugin. These files are
-        // created with the right formatting by the templates and we don't want the balloon on startup.
-        .filterNot { it.name.startsWith("gradlew") }
-        .forEach {
-          val virtualFile = StandardFileSystems.local().findFileByPath(it.absolutePath)!!
+    files
+      .asSequence()
+      .filter { it.isFile }
+      // We skip gradlew files, which IntelliJ recognizes as shell files and offers to install the bash IDE plugin. These files are
+      // created with the right formatting by the templates and we don't want the balloon on startup.
+      .filterNot { it.name.startsWith("gradlew") }
+      .forEach {
+        val virtualFile = StandardFileSystems.local().findFileByPath(it.absolutePath) ?: return@forEach
+        virtualFile.refresh(false, false)
+        WriteCommandAction.runWriteCommandAction(project) {
           reformatAndRearrange(project, virtualFile, keepDocumentLocked = true)
           FileDocumentManager.getInstance().run { getDocument(virtualFile)?.let { document -> saveDocument(document) } }
         }
-    }
+      }
   }
 
   /**

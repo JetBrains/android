@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.structure.model.PsIssueCollection;
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
+import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.ListTableModel;
@@ -84,6 +85,21 @@ public abstract class AbstractDeclaredDependenciesTableModel<T extends PsBaseDep
       @Nullable
       public String valueOf(T dependency) {
         return dependency.getJoinedConfigurationNames();
+      }
+
+      @Override
+      public @Nullable TableCellRenderer getRenderer(T t) {
+        return new ColoredTableCellRenderer() {
+          @Override
+          protected void customizeCellRenderer(@NotNull JTable table,
+                                               @Nullable Object value,
+                                               boolean selected,
+                                               boolean hasFocus,
+                                               int row,
+                                               int column) {
+            append(value == null ? "null" : value.toString());
+          }
+        };
       }
 
       @Override

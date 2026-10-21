@@ -32,6 +32,17 @@ val TEST_DATA_RELATIVE_PATH = "tools/adt/idea/gradle-declarative-lang-ide/testDa
 val TEST_PATCHED_DATA_RELATIVE_PATH = "tools/adt/idea/gradle-declarative-lang-ide/testData/patchedSchemas"
 
 internal fun createTestDeclarativeSchemas(path: String): BuildDeclarativeSchemas {
+  try {
+    return loadDeclarativeSchemas(path)
+  } catch (e: Exception) {
+    if (!path.endsWith("-2026.2")) {
+      return loadDeclarativeSchemas("$path-2026.2")
+    }
+    throw e
+  }
+}
+
+private fun loadDeclarativeSchemas(path: String): BuildDeclarativeSchemas {
   val folder = File(FileUtil.toSystemDependentName(path))
   val children = folder.list()
 
@@ -40,7 +51,8 @@ internal fun createTestDeclarativeSchemas(path: String): BuildDeclarativeSchemas
 
   children?.forEach { fileName ->
     val file = File(folder, fileName)
-    val analysisSchema: AnalysisSchema = SchemaSerialization.schemaFromJsonString(file.readText())
+    val fileText = file.readText()
+    val analysisSchema: AnalysisSchema = SchemaSerialization.schemaFromJsonString(fileText)
     val ideSchema = analysisSchema.convert()
     if (fileName.startsWith("settings")) settingsSchemas.add(ideSchema) else projectSchemas.add(ideSchema)
   }

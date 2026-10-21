@@ -15,6 +15,7 @@
  */
 package com.google.idea.blaze.qsync.java
 
+import com.google.common.base.Supplier
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
@@ -25,15 +26,19 @@ import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdate
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
+import kotlin.jvm.JvmOverloads
 
 /**
  * Adds checked-in `.srcjar` files from external dependencies to the project proto. This allows those sources to be shown in the IDE instead
  * of decompiled class files.
  */
-class AddDependencySrcJars(
+class AddDependencySrcJars
+@JvmOverloads
+constructor(
   private val projectDefinition: ProjectDefinition,
   private val pathResolver: ProjectPath.Resolver,
   private val srcJarInnerPathFinder: SrcJarInnerPathFinder,
+  private val navigationPolicyExperiment: Supplier<Boolean> = Supplier { ENABLED_NAVIGATION_POLICY.value },
 ) : ProjectProtoUpdateOperation {
   @Throws(BuildException::class)
   override fun update(
@@ -42,7 +47,7 @@ class AddDependencySrcJars(
     context: Context<*>,
     externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
   ) {
-    if (ENABLED_NAVIGATION_POLICY.value) {
+    if (navigationPolicyExperiment.get()) {
       return
     }
     for (target in artifactState.targets()) {

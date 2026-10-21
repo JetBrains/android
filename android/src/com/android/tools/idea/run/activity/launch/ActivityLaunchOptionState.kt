@@ -17,6 +17,7 @@ package com.android.tools.idea.run.activity.launch
 
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.Activator
+import com.android.tools.deployer.common.DeviceHolder
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.ComponentType
@@ -89,7 +90,7 @@ abstract class ActivityLaunchOptionState : ComponentLaunchOptions, LaunchOptionS
     val activityQualifiedName = getQualifiedActivityName(device, apkProvider, app.appId)
     val receiver = AndroidBackgroundTaskReceiver(console)
     val activator = Activator(app, ConsoleLogger(logger, console))
-    activator.activate(componentType, activityQualifiedName, extraFlags, mode, receiver, device)
+    activator.activate(componentType, activityQualifiedName, extraFlags, mode, receiver, DeviceHolder(device, null))
     val matcher = activityDoesNotExistPattern.matcher(receiver.output.joinToString())
     if (matcher.find()) {
       throw AndroidExecutionException(ACTIVITY_DOES_NOT_EXIST, matcher.group())

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.ui
 
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.isCancellableTimeoutException
 import com.intellij.util.text.DateFormatUtil
@@ -59,7 +59,7 @@ data class Timestamp(val time: Instant?, val state: TimestampState) {
   }
 }
 
-fun Flow<AppInsightsState>.toTimestamp(clock: Clock): Flow<Timestamp> {
+fun Flow<AppInsightsCrashState>.toTimestamp(clock: Clock): Flow<Timestamp> {
   return map { state ->
     when (val issues = state.issues) {
       is LoadingState.Ready -> {

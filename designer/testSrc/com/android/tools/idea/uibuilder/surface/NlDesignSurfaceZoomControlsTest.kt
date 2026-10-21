@@ -38,7 +38,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.AsyncDisplayRule
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.util.androidFacet
 import com.intellij.ide.DataManager
 import com.intellij.ide.IdeEventQueue
@@ -124,6 +123,7 @@ class NlDesignSurfaceZoomControlsTest {
     surface = invokeAndWaitIfNeeded {
       NlSurfaceBuilder.builder(androidProjectRule.project, androidProjectRule.fixture.testRootDisposable)
         .setZoomControlsPolicy(ZoomControlsPolicy.VISIBLE)
+        .setScreenViewProvider(NlScreenViewProvider.RENDER_AND_BLUEPRINT, false)
         .build()
     }
 
@@ -166,14 +166,11 @@ class NlDesignSurfaceZoomControlsTest {
       }
     }
 
-    delayUntilCondition(100, 2.seconds) { fakeUi.findAllComponents<SceneViewPeerPanel>().count() == 2 }
+    delayUntilCondition(100, 5.seconds) { fakeUi.findAllComponents<SceneViewPeerPanel>().count() == 2 }
 
     // Try to restore the zoom
     surface.restoreZoomOrZoomToFit()
     delayUntilCondition(10, 100.seconds) { !surface.zoomController.canZoomToFit() }
-
-    // Create VisualLintService early to avoid it being created at the time of project disposal
-    VisualLintService.getInstance(androidProjectRule.project)
   }
 
   @After

@@ -19,6 +19,7 @@ import com.android.emulator.control.ParameterValue
 import com.android.emulator.control.PhysicalModelValue
 import com.android.emulator.control.PhysicalModelValue.PhysicalType.WRIST_TILT
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.idea.streaming.emulator.getEmptyObserver
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 
@@ -28,7 +29,7 @@ internal class EmulatorTiltAction : AbstractEmulatorAction(configFilter = { it.d
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController = getEmulatorController(event) ?: return
     val physicalModelValue = PhysicalModelValue.newBuilder().setTarget(WRIST_TILT).setValue(ParameterValue.newBuilder().addData(1F))
-    emulatorController.setPhysicalModel(physicalModelValue.build())
+    emulatorController.setPhysicalModel(physicalModelValue.build(), getEmptyObserver())
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT

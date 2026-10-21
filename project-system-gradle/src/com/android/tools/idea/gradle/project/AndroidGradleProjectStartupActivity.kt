@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.gradle.project
 
-import com.android.Version
-import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.entities.setGradleAndroidModelFromDataNode
 import com.android.tools.idea.gradle.project.entities.setGradleModuleModelFromDataNode
@@ -121,8 +120,8 @@ class AndroidGradleProjectStartupActivity : ProjectActivity {
 
       runInitialization {
         // Need to wait for both JpsProjectLoadingManager and ExternalProjectsManager, as well as the completion of
-        // AndroidNewProjectInitializationStartupActivity.  In old-skool thread
-        // programming I'd probably use an atomic integer and wait for the count to reach 3.
+        // AndroidNewProjectInitializationStartupActivity and AndroidIdeSdksInitializationStartupActivity.  In old-skool thread
+        // programming I'd probably use an atomic integer and wait for the count to reach 4.
         coroutineScope {
           val myJob = currentCoroutineContext().job
           val externalProjectsJob = CompletableDeferred<Unit>(parent = myJob)
@@ -131,10 +130,13 @@ class AndroidGradleProjectStartupActivity : ProjectActivity {
             project.service<AndroidNewProjectInitializationStartupActivity.StartupService>().awaitInitialization()
           }
           val parallelSyncMigrationJob = async { project.service<ParallelSyncMigrationActivity.StartupService>().awaitInitialization() }
+          val ideSdksStartupJob = async {
+            project.service<AndroidIdeSdksInitializationStartupActivity.StartupService>().awaitInitialization()
+          }
 
           ExternalProjectsManager.getInstance(project).runWhenInitializedInBackground { externalProjectsJob.complete(Unit) }
           whenAllModulesLoaded(project, isJpsProjectLoaded) { jpsProjectJob.complete(Unit) }
-          awaitAll(newProjectStartupJob, parallelSyncMigrationJob, externalProjectsJob, jpsProjectJob)
+          awaitAll(newProjectStartupJob, parallelSyncMigrationJob, ideSdksStartupJob, externalProjectsJob, jpsProjectJob)
         }
 
         performActivity(project)
@@ -394,9 +396,9 @@ private suspend fun attachCachedModelsOrTriggerSyncBody(project: Project, gradle
     moduleSetupData.flatMap { data ->
       fun GradleAndroidModelData.validate() =
         shouldDisableForceUpgrades() ||
-          AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION).let { latestKnown ->
-            !ApplicationManager.getApplication().getService(AgpVersionChecker::class.java).versionsAreIncompatible(agpVersion, latestKnown)
-          }
+          !ApplicationManager.getApplication()
+            .getService(AgpVersionChecker::class.java)
+            .versionsAreIncompatible(agpVersion, AgpVersions.latestKnown)
 
       /** Returns an action that attaches a model from the data node to the appropriate place. */
       fun <T, V : Facet<*>> prepare(

@@ -53,6 +53,9 @@
     <orderEntry type="module" module-name="intellij.groovy.scripting" scope="RUNTIME" />
     <orderEntry type="module" module-name="kotlin.base.injection" scope="RUNTIME" />
     <orderEntry type="module" module-name="kotlin.jvm-debugger.evaluation" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.kotlin.jsr223" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.plugin.testFramework" scope="RUNTIME" />
+    <orderEntry type="module" module-name="kotlin.jvm.shared" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.codeStyle" scope="TEST" />
   </component>
 </module>

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.events
 
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Timed
@@ -23,15 +23,15 @@ import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.toCrashType
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.openapi.diagnostic.thisLogger
 
 /** Issue selection changed. */
-data class SelectedIssueChanged(val issue: AppInsightsIssue?, val selectionSource: IssueSelectionSource) : ChangeEvent {
+data class SelectedIssueChanged(val issue: AppInsightsCrash?, val selectionSource: IssueSelectionSource) : ChangeEvent {
   override fun transition(
-    state: AppInsightsState,
+    state: AppInsightsCrashState,
     tracker: AppInsightsTracker,
     provider: InsightsProvider,
     cache: AppInsightsCache,

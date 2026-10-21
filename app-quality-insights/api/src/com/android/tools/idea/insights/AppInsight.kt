@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights
 
 import com.android.tools.idea.insights.analysis.Cause
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.model.stacktrace.Frame
 import com.intellij.openapi.diagnostic.Logger
 
@@ -30,7 +30,7 @@ data class AppInsight(
   val line: Int,
 
   /** [Issue] found in this element. */
-  val issue: AppInsightsIssue,
+  val issue: AppInsightsCrash,
 
   /** The stack frame referencing this [element]. */
   val stackFrame: Frame,
@@ -47,7 +47,7 @@ data class AppInsight(
    * The [CrashlyticsState] uses the concept of a [Selection] to represent the list of issues, and to mark one of them as the currently
    * active/selected one. This action modifies the state this Insight belongs to mark it as selected.
    */
-  private val markAsSelectedCallback: (AppInsightsIssue) -> Unit,
+  private val markAsSelectedCallback: (AppInsightsCrash) -> Unit,
 ) {
   fun markAsSelected() {
     Logger.getInstance(AppInsight::class.java).info("Mark issue as selected $issue")

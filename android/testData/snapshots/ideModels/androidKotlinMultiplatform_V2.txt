@@ -3061,7 +3061,7 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/main
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : Kotlin Multiplatform:kmpJvmOnly
                     noReflect                     : true
                     noStdlib                      : true
@@ -3143,7 +3143,7 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/kmpJvmOnly/build/classes/kotlin/jvm/test
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : Kotlin Multiplatform:kmpJvmOnly_test
                     noReflect                     : true
                     noStdlib                      : true
@@ -3656,8 +3656,8 @@ MODULE                        : build-logic.lib-foo
         SarifReport                   : false
     JavaCompileOptions
         Encoding                      : UTF-8
-        SourceCompatibility           : 21
-        TargetCompatibility           : 21
+        SourceCompatibility           : 25
+        TargetCompatibility           : 25
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
         ApplicationRClassConstantIds  : false
@@ -3874,7 +3874,7 @@ MODULE                        : build-logic.lib-foo
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/build-logic/lib-foo/build/classes/kotlin/android/deviceTest
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : build-logic:lib-foo_deviceTest
                     noReflect                     : true
                     noStdlib                      : true
@@ -3953,7 +3953,7 @@ MODULE                        : build-logic.lib-foo
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/build-logic/lib-foo/build/classes/kotlin/android/hostTest
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : build-logic:lib-foo_hostTest
                     noReflect                     : true
                     noStdlib                      : true
@@ -4026,7 +4026,7 @@ MODULE                        : build-logic.lib-foo
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/build-logic/lib-foo/build/classes/kotlin/android/main
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : build-logic:lib-foo
                     noReflect                     : true
                     noStdlib                      : true

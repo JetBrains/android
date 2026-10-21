@@ -20,8 +20,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.idea.blaze.base.async.process.ExternalTask;
-import com.google.idea.blaze.base.execution.BazelGuard;
-import com.google.idea.blaze.base.execution.ExecutionDeniedException;
 import com.google.idea.blaze.base.io.FileOperationProvider;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot;
@@ -32,6 +30,7 @@ import com.google.idea.blaze.base.sync.workspace.WorkingSet;
 import com.google.idea.blaze.base.vcs.BlazeVcsHandlerProvider;
 import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.exception.BuildException;
+import com.intellij.ide.trustedProjects.TrustedProjects;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
@@ -54,10 +53,7 @@ public class GitBlazeVcsHandlerProvider implements BlazeVcsHandlerProvider {
 
   @Override
   public boolean handlesProject(Project project, WorkspaceRoot workspaceRoot) {
-    try {
-      BazelGuard.checkExtensionsIsExecutionAllowed(project);
-    } catch (ExecutionDeniedException e) {
-      logger.warn("Git provider is not allowed because of", e);
+    if (!TrustedProjects.isProjectTrusted(project)) {
       return false;
     }
     return Blaze.getBuildSystemName(project) == BuildSystemName.Bazel
@@ -116,7 +112,7 @@ public class GitBlazeVcsHandlerProvider implements BlazeVcsHandlerProvider {
 
     @Override
     public Optional<VcsState> vcsStateForWorkspaceStatus(Map<String, String> workspaceStatus)
-      throws BuildException {
+        throws BuildException {
       return Optional.empty();
     }
   }

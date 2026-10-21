@@ -87,10 +87,6 @@ class MyMusicService : MediaBrowserServiceCompat() {
         session = MediaSessionCompat(this, "MyMusicService")
         sessionToken = session.sessionToken
         session.setCallback(callback)
-        session.setFlags(
-            MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or
-                    MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
-        )
     }
 
     override fun onDestroy() {

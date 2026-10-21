@@ -41,6 +41,8 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.util.IconLoader
+import com.intellij.openapi.util.text.HtmlChunk
+import com.intellij.openapi.util.text.StringUtil.escapeXmlEntities
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.DoubleClickListener
 import com.intellij.ui.ExperimentalUI
@@ -232,8 +234,8 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     keepConnectionsOpenButton.name = "keep-connections-open-button"
     keepConnectionsOpenButton.isEnabled = false
     HelpTooltip()
-      .setTitle(DatabaseInspectorBundle.message("action.keep.open.tooltip.title"))
-      .setDescription(DatabaseInspectorBundle.message("action.keep.open.tooltip.desc"))
+      .setPlainTextTitle(DatabaseInspectorBundle.message("action.keep.open.tooltip.title"))
+      .setDescription(HtmlChunk.text(DatabaseInspectorBundle.message("action.keep.open.tooltip.desc")))
       .setLink(DatabaseInspectorBundle.message("learn.more")) {
         BrowserUtil.browse("https://d.android.com/r/studio-ui/db-inspector-help/lock-connections")
       }
@@ -244,7 +246,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
 
     exportButton.name = "export-button"
     exportButton.disabledIcon = IconLoader.getDisabledIcon(exportButton.icon)
-    HelpTooltip().setTitle(DatabaseInspectorBundle.message("action.export.button.tooltip.title")).installOn(exportButton)
+    HelpTooltip().setPlainTextTitle(DatabaseInspectorBundle.message("action.export.button.tooltip.title")).installOn(exportButton)
     northPanel.add(exportButton)
 
     exportButton.addActionListener {
@@ -268,7 +270,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
     val selected = selectedNode?.userObject
     val parent = selectedNode?.let { (it.parent as? DefaultMutableTreeNode)?.userObject }
     return when {
-      selected is ViewDatabase -> ExportDatabaseDialogParams(selected.databaseId, actionOrigin)
+      selected is ViewDatabase && selected.isOpen -> ExportDatabaseDialogParams(selected.databaseId, actionOrigin)
       selected is SqliteTable && parent is ViewDatabase -> ExportTableDialogParams(parent.databaseId, selected.name, actionOrigin)
       else -> null
     }
@@ -470,9 +472,9 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
             }
             toolTipText = buildString {
               append("<html>")
-              append(databaseId.path)
+              append(escapeXmlEntities(databaseId.path))
               if (apiClassName != null) {
-                append("<br>Opened with $apiClassName")
+                append("<br>Opened with ").append(escapeXmlEntities(apiClassName))
               }
               append("</html>")
             }

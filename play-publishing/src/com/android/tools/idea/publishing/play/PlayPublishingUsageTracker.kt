@@ -16,8 +16,11 @@
 package com.android.tools.idea.publishing.play
 
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.gservices.DevServiceDeprecationInfoBuilder
+import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.publishing.AppPublishingSource
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.DevServiceDeprecationInfo.DeliveryType
 import com.google.wireless.android.sdk.stats.PlayPublishingEvent.CreateAppDetails.CreateAppResult
 import com.google.wireless.android.sdk.stats.PlayPublishingEvent.CreateReleaseDetails.CreateReleaseResult
 import com.google.wireless.android.sdk.stats.PlayPublishingEvent.CreateReleaseDetails.TrackType
@@ -30,6 +33,7 @@ import com.google.wireless.android.sdk.stats.PlayPublishingEventKt.createRelease
 import com.google.wireless.android.sdk.stats.PlayPublishingEventKt.wizardShownDetails
 import com.google.wireless.android.sdk.stats.androidStudioEvent
 import com.google.wireless.android.sdk.stats.playPublishingEvent
+import com.google.wireless.android.sdk.stats.studioDeprecationNotificationEvent
 
 object PlayPublishingUsageTracker {
 
@@ -75,6 +79,31 @@ object PlayPublishingUsageTracker {
         uploadTimeMs?.let { timeToUploadBundleMs = it }
       }
     }
+  }
+
+  fun trackDeprecation(
+    status: DevServicesDeprecationStatus,
+    userNotified: Boolean? = null,
+    moreInfoClicked: Boolean? = null,
+    updateClicked: Boolean? = null,
+    dismissed: Boolean? = null,
+  ) {
+    UsageTracker.log(
+      androidStudioEvent {
+        kind = AndroidStudioEvent.EventKind.STUDIO_DEPRECATION_NOTIFICATION_EVENT
+        studioDeprecationNotificationEvent = studioDeprecationNotificationEvent {
+          devServiceDeprecationInfo =
+            DevServiceDeprecationInfoBuilder(
+              deprecationStatus = status,
+              deliveryType = DeliveryType.BANNER,
+              userNotified = userNotified,
+              moreInfoClicked = moreInfoClicked,
+              updateClicked = updateClicked,
+              deliveryDismissed = dismissed,
+            )
+        }
+      }
+    )
   }
 
   private fun trackEvent(block: PlayPublishingEventKt.Dsl.() -> Unit) {

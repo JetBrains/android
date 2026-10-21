@@ -34,17 +34,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.compose.StudioComposePanel
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.JourneyActionArtifacts
+import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
 import java.awt.BorderLayout
 import java.io.File
 import javax.swing.JComponent
-import javax.swing.JOptionPane
 import javax.swing.JPanel
 
 class JourneysResultsPanel(private val project: Project) : JPanel(BorderLayout()), Disposable {
@@ -108,9 +109,13 @@ class JourneysResultsPanel(private val project: Project) : JPanel(BorderLayout()
 
   @VisibleForTesting
   fun openImageInEditor(imageFile: File) {
+    if (ScreenshotTestUtils.containUnderProjectRoot(project, imageFile.path) == null) {
+      Messages.showErrorDialog(project, "Screenshot path is outside the project: " + imageFile.absolutePath, "Cannot Open Screenshot")
+      return
+    }
     val virtualFile = VfsUtil.findFileByIoFile(imageFile, true)
     if (virtualFile == null) {
-      JOptionPane.showMessageDialog(this, "Image file not found: " + imageFile.absolutePath, "Error", JOptionPane.ERROR_MESSAGE)
+      Messages.showErrorDialog(project, "Image file not found: " + imageFile.absolutePath, "Error")
       return
     }
 

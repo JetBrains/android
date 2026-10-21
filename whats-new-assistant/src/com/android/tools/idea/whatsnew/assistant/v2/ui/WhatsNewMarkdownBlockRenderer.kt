@@ -19,7 +19,9 @@ package com.android.tools.idea.whatsnew.assistant.v2.ui
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -36,16 +38,24 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.android.tools.adtui.compose.IntUiPaletteDefaults
+import com.android.tools.adtui.compose.rememberColor
 import com.android.tools.idea.whatsnew.assistant.v2.ui.composeutils.ImagePainterLoaderMarkdownRendererExtension
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.modifier.onHover
 import org.jetbrains.jewel.foundation.modifier.thenIf
 import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.markdown.InlineMarkdown
 import org.jetbrains.jewel.markdown.MarkdownBlock
+import org.jetbrains.jewel.markdown.WithInlineMarkdown
 import org.jetbrains.jewel.markdown.extensions.MarkdownRendererExtension
 import org.jetbrains.jewel.markdown.rendering.DefaultMarkdownBlockRenderer
 import org.jetbrains.jewel.markdown.rendering.InlineMarkdownRenderer
@@ -95,13 +105,17 @@ internal class WhatsNewMarkdownBlockRenderer(
             .onHover { hovering -> isHoveredState.value = hovering }
             .graphicsLayer {
               this.shadowElevation = elevation.toPx()
-              this.shape = RoundedCornerShape(8.dp)
+              this.shape = RoundedCornerShape(20.dp)
               this.clip = false
             }
             .thenIf(isHovered) { zIndex(1f) }
 
         val cardColor = JewelTheme.globalColors.borders.normal
-        popupModifier.background(cardColor, RoundedCornerShape(8.dp)).padding(8.dp)
+        popupModifier
+          .clip(RoundedCornerShape(20.dp))
+          .background(cardColor)
+          .border(1.dp, cardBorderColor(), RoundedCornerShape(20.dp))
+          .padding(16.dp)
       } else {
         modifier
       }
@@ -121,7 +135,7 @@ internal class WhatsNewMarkdownBlockRenderer(
     val markdownGroups = remember(blocks) { groupBlocksByH1ThenH2Blocks(blocks) }
 
     BoxWithConstraints(modifier = modifier) {
-      val columnHorizontalPadding = 32.dp
+      val columnHorizontalPadding = 24.dp
       val columnMinWidth = 400.dp
       val containerWidth = maxWidth
       val columnCount = maxOf(1, (maxWidth / columnMinWidth).toInt())
@@ -130,12 +144,23 @@ internal class WhatsNewMarkdownBlockRenderer(
       // We simulate a grid by displaying a bunch of rows that span the entire
       // width. For "grid", we display Rows that contain `columns` elements of `columnWidth` size
       Column {
+        var isFirstCellRow = true
         val groupIterator = markdownGroups.listIterator()
         while (groupIterator.hasNext()) {
           when (val markdownGroup = groupIterator.next()) {
             is MarkdownGroup.Rows -> {
-              CompositionLocalProvider(ImagePainterLoaderMarkdownRendererExtension.LocalContainerWidth provides containerWidth) {
-                RenderBlocks(markdownGroup.blocks, enabled, onUrlClick, Modifier)
+              // Check if it's the top level, i.e. beginning of the markdown content, to place the release animal icon on the left
+              val blocks = markdownGroup.blocks
+              val hasH1 = blocks.any { it is MarkdownBlock.Heading && it.level == 1 }
+              val imageBlocks = blocks.filter { block ->
+                block is WithInlineMarkdown && block.inlineContent.any { it is InlineMarkdown.Image }
+              }
+              if (hasH1 && imageBlocks.size == 1) {
+                RenderHeaderWithReleaseIcon(blocks, imageBlocks.single(), enabled, onUrlClick, containerWidth)
+              } else {
+                CompositionLocalProvider(ImagePainterLoaderMarkdownRendererExtension.LocalContainerWidth provides containerWidth) {
+                  RenderBlocks(blocks, enabled, onUrlClick, Modifier)
+                }
               }
             }
             is MarkdownGroup.Cell -> {
@@ -143,9 +168,13 @@ internal class WhatsNewMarkdownBlockRenderer(
               // create "chunks" of "columnCount" elements (one chunk == one row)
               val rows = collectNextCells(markdownGroup, groupIterator).chunked(columnCount)
               rows.forEach { cells ->
+                val topPadding = if (isFirstCellRow) 20.dp else 0.dp
+                isFirstCellRow = false
                 // Make all Columns within the Row the same height
                 Row(
-                  Modifier.fillMaxWidth().height(IntrinsicSize.Min).padding(vertical = rootStyling.blockVerticalSpacing),
+                  Modifier.fillMaxWidth()
+                    .height(IntrinsicSize.Min)
+                    .padding(top = rootStyling.blockVerticalSpacing + topPadding, bottom = rootStyling.blockVerticalSpacing),
                   horizontalArrangement = Arrangement.spacedBy(columnHorizontalPadding),
                 ) {
                   cells.forEach { cell ->
@@ -160,6 +189,56 @@ internal class WhatsNewMarkdownBlockRenderer(
         }
       }
     }
+  }
+
+  @Composable
+  private fun RenderHeaderWithReleaseIcon(
+    blocks: List<MarkdownBlock>,
+    imageBlock: MarkdownBlock,
+    enabled: Boolean,
+    onUrlClick: (String) -> Unit,
+    containerWidth: Dp,
+  ) {
+    // Split the content such that anything before the image is placed on the same row as the image, while everything after is rendered
+    // normally
+    val imageIndex = blocks.indexOf(imageBlock)
+    val blocksBefore = blocks.subList(0, imageIndex)
+    val blocksAfter = blocks.subList(imageIndex + 1, blocks.size)
+
+    Row(
+      modifier = Modifier.fillMaxWidth().padding(vertical = rootStyling.blockVerticalSpacing),
+      horizontalArrangement = Arrangement.spacedBy(16.dp),
+      verticalAlignment = Alignment.Top,
+    ) {
+      Box(modifier = Modifier.width(100.dp)) {
+        CompositionLocalProvider(ImagePainterLoaderMarkdownRendererExtension.LocalContainerWidth provides 120.dp) {
+          RenderBlocks(listOf(imageBlock), enabled, onUrlClick, Modifier)
+        }
+      }
+      Column(modifier = Modifier.weight(1f)) {
+        val rightContainerWidth =
+          if (containerWidth != Dp.Unspecified && containerWidth > 136.dp) containerWidth - 136.dp else containerWidth
+        CompositionLocalProvider(ImagePainterLoaderMarkdownRendererExtension.LocalContainerWidth provides rightContainerWidth) {
+          RenderBlocks(blocksBefore, enabled, onUrlClick, Modifier)
+        }
+      }
+    }
+    if (blocksAfter.isNotEmpty()) {
+      CompositionLocalProvider(ImagePainterLoaderMarkdownRendererExtension.LocalContainerWidth provides containerWidth) {
+        RenderBlocks(blocksAfter, enabled, onUrlClick, Modifier)
+      }
+    }
+  }
+
+  @Composable
+  private fun cardBorderColor(): Color {
+    return rememberColor(
+      key = "WNACard.borderColor",
+      darkFallbackKey = "ColorPalette.Gray3",
+      darkDefault = Color(IntUiPaletteDefaults.Dark.Gray3),
+      lightFallbackKey = "ColorPalette.Gray11",
+      lightDefault = Color(IntUiPaletteDefaults.Light.Gray11),
+    )
   }
 
   private fun collectNextCells(markdownGroup: MarkdownGroup.Cell, groupIterator: ListIterator<MarkdownGroup>): List<MarkdownGroup.Cell> {

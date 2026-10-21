@@ -38,7 +38,6 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.org.objectweb.asm.Opcodes
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -488,7 +487,6 @@ class ComposableCompileTest {
 
   // Regression test for incorrect fix for b/295257198 where we filtered the
   // parent context in the incremental analysis too much.
-  @Ignore("AT-4013")
   @Test
   fun incrementalAnalysisFunctionBodyWithArgumentsTest() {
     val fileName = "Test.kt"

@@ -101,6 +101,7 @@ constructor(
         }
       }
       .apply {
+        putClientProperty("html.disable", true)
         border = JBUI.Borders.empty(0, 10)
         isFocusable = true
         AccessibleContextUtil.setName(this, "Heading: Test Results")

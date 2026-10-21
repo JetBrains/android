@@ -4,7 +4,9 @@ package org.jetbrains.android.exportSignedPackage;
 
 import static icons.StudioIcons.Common.WARNING_INLINE;
 
+import com.android.annotations.concurrency.AnyThread;
 import com.android.annotations.concurrency.Slow;
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.ModuleTypeComparator;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
@@ -31,6 +33,7 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ModalityUiUtil;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.io.IOException;
@@ -48,6 +51,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Executor;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -91,10 +95,19 @@ public class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSi
   public AndroidFacet mySelection;
   public @VisibleForTesting final List<AndroidFacet> myFacets;
   public @VisibleForTesting FileSystem myFileSystem = FileSystems.getDefault();
+  private final Executor myBackgroundExecutor;
 
   public KeystoreStep(@NotNull ExportSignedPackageWizard wizard,
                       @NotNull List<AndroidFacet> facets) {
+    this(wizard, facets, AppExecutorUtil.getAppExecutorService());
+  }
+
+  @VisibleForTesting
+  KeystoreStep(@NotNull ExportSignedPackageWizard wizard,
+               @NotNull List<AndroidFacet> facets,
+               @NotNull Executor backgroundExecutor) {
     setupUI();
+    myBackgroundExecutor = backgroundExecutor;
     myWizard = wizard;
     myFacets = facets;
     Project project = wizard.getProject();
@@ -334,7 +347,7 @@ public class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSi
   private void tryLoadSavedPasswords() {
     String keyStorePath = myKeyStorePathField.getText();
     String keyAlias = myKeyAliasField.getText();
-    executeInBackground(() -> {
+    myBackgroundExecutor.execute(() -> {
       String keyStorePasswordKey = makePasswordKey(KEY_STORE_PASSWORD_KEY, keyStorePath, null);
       String keyPasswordKey = makePasswordKey(KEY_PASSWORD_KEY, keyStorePath, keyAlias);
       try {
@@ -370,18 +383,6 @@ public class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSi
         Logger.getInstance(KeystoreStep.class).error("Unable to use password safe", t);
       }
     });
-  }
-
-  /**
-   * Execute task in background unless it is a unit test. Otherwise testing passwords loading becomes very tricky.
-   */
-  private void executeInBackground(Runnable runnable) {
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      runnable.run();
-    }
-    else {
-      ApplicationManager.getApplication().executeOnPooledThread(runnable);
-    }
   }
 
   /**

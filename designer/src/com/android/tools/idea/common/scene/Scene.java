@@ -1211,7 +1211,7 @@ public class Scene implements SelectionListener, Disposable {
         }
 
         XmlTag tag = neleComponent.getTagDeprecated();
-        return task.measureChild(new PsiXmlTag(tag), filter).whenCompleteAsync((map, ex) -> task.dispose(), PooledThreadExecutor.INSTANCE);
+        return task.measureChild(new PsiXmlTag(tag), filter).whenCompleteAsync((map, ex) -> task.disposeAsync(), PooledThreadExecutor.INSTANCE);
       })
       .thenApply(viewInfo -> {
         if (viewInfo == null) {

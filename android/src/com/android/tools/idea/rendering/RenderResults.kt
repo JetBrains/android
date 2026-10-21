@@ -17,11 +17,11 @@
 
 package com.android.tools.idea.rendering
 
+import com.android.ide.common.rendering.api.RecyclableImage
 import com.android.ide.common.rendering.api.Result
 import com.android.tools.rendering.RenderLogger
 import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.RenderResultStats
-import com.android.tools.rendering.imagepool.ImagePool
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.application.ReadAction
@@ -54,7 +54,7 @@ private fun createErrorResult(file: PsiFile, errorResult: Result, logger: Render
       errorResult,
       ImmutableList.of(),
       ImmutableList.of(),
-      ImagePool.NULL_POOLED_IMAGE,
+      RecyclableImage.NULL,
       ImmutableMap.of(),
       ImmutableMap.of(),
       null,

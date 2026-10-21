@@ -33,7 +33,7 @@ import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.xdebugger.impl.XDebugSessionImpl
+import com.intellij.xdebugger.XSessionStartedResult
 
 abstract class AndroidTestRunConfigurationExecutorBase(val env: ExecutionEnvironment) : AndroidConfigurationExecutor {
   final override val configuration: AndroidTestRunConfiguration =
@@ -66,12 +66,13 @@ abstract class AndroidTestRunConfigurationExecutorBase(val env: ExecutionEnviron
     module.androidFacet ?: throw RuntimeException("AndroidTestRunConfigurationExecutorBase shouldn't be invoked for module without facet")
   protected val LOG = Logger.getInstance(this::class.java)
 
+  @Suppress("UnstableApiUsage")
   protected suspend fun startDebuggerSession(
     indicator: ProgressIndicator,
     device: IDevice,
     applicationContext: ApplicationProjectContext,
     console: AndroidTestSuiteView,
-  ): XDebugSessionImpl {
+  ): XSessionStartedResult {
     val debugger =
       configuration.androidDebuggerContext.androidDebugger
         ?: throw ExecutionException("Unable to determine debugger to use for this launch")
@@ -83,7 +84,7 @@ abstract class AndroidTestRunConfigurationExecutorBase(val env: ExecutionEnviron
     indicator.text = "Connecting debugger"
 
     val packageNameForDebug = packageName
-    val session =
+    val sessionStarted =
       if (
         TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR == executionType || TestExecutionOption.ANDROID_TEST_ORCHESTRATOR == executionType
       ) {
@@ -116,6 +117,6 @@ abstract class AndroidTestRunConfigurationExecutorBase(val env: ExecutionEnviron
           Long.MAX_VALUE,
         )
       }
-    return session
+    return sessionStarted
   }
 }

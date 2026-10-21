@@ -20,6 +20,8 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.runReadActionBlocking
+import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.junit.Before
@@ -31,6 +33,8 @@ class ComposeFoldingBuilderTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val myFixture: CodeInsightTestFixtureImpl by lazy { projectRule.fixture as CodeInsightTestFixtureImpl }
+
+  private lateinit var testFile: PsiFile
 
   @Before
   fun setUp() {
@@ -51,50 +55,49 @@ class ComposeFoldingBuilderTest {
     """
         .trimIndent(),
     )
-  }
 
-  @Test
-  fun test() {
-    // We can't use standard [myFixture.testFolding] because we need properly load file to be able
-    // resolve references inside
-    // [ComposeFoldingBuilder].
-    myFixture.loadNewFile(
-      "src/com/example/Test.kt",
-      // language=kotlin
-      """
-      package com.example
-
-      import androidx.compose.runtime.Composable
-      import androidx.compose.ui.Modifier
-
-      @Composable
-      fun HomeScreen() {
-        val m = Modifier
-          .adjust()
-          .adjust()
-      }
-      """
-        .trimIndent(),
-    )
-
-    val res = myFixture.getFoldingDescription(false, false)
-
-    assertThat(res)
-      .isEqualTo(
+    // We can't use standard [myFixture.testFolding] because we need to properly load the file in the project so references can resolve.
+    // We also can't use [myFixture.getFoldingDescription] because it hardcodes "quick" to true, and our resolution only should function
+    // when not "quick".
+    // Instead, we can set up the files and call into the folding builder directly to verify its returned descriptors.
+    testFile =
+      myFixture.loadNewFile(
+        "src/com/example/Test.kt",
+        // language=kotlin
         """
         package com.example
 
-        import <fold text='...'>androidx.compose.runtime.Composable
-        import androidx.compose.ui.Modifier</fold>
+        import androidx.compose.runtime.Composable
+        import androidx.compose.ui.Modifier
 
         @Composable
-        fun HomeScreen() <fold text='{...}'>{
-          val m = <fold text='Modifier.(...)'>Modifier
+        fun HomeScreen() {
+          val m = Modifier
             .adjust()
-            .adjust()</fold>
-        }</fold>
+            .adjust()
+        }
         """
-          .trimIndent()
+          .trimIndent(),
       )
+  }
+
+  @Test
+  fun `validate folding generated with quick = false`() {
+    val composeFoldingBuilder = ComposeFoldingBuilder()
+    val descriptors = runReadActionBlocking { composeFoldingBuilder.buildFoldRegions(testFile, testFile.fileDocument, /* quick= */ false) }
+    assertThat(descriptors).hasLength(1)
+
+    runReadActionBlocking {
+      assertThat(descriptors[0].element.text).isEqualTo("Modifier\n    .adjust()\n    .adjust()")
+
+      val placeholderText = composeFoldingBuilder.getPlaceholderText(descriptors[0].element, descriptors[0].range)
+      assertThat(placeholderText).isEqualTo("Modifier.(...)")
+    }
+  }
+
+  @Test
+  fun `validate no foldings generated with quick = true`() {
+    val descriptors = runReadActionBlocking { ComposeFoldingBuilder().buildFoldRegions(testFile, testFile.fileDocument, /* quick= */ true) }
+    assertThat(descriptors).isEmpty()
   }
 }

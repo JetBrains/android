@@ -20,8 +20,10 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.PackageResolutionException
 import com.android.tools.idea.util.formatElementListString
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.util.text.StringUtil
 import java.io.File
 
 /** Install or updates SDK components if needed. */
@@ -66,15 +68,16 @@ class InstallSdkComponentsOperation(
   }
 
   companion object {
-    private fun getRetryMessage(packages: Collection<RemotePackage>): String? {
+    @VisibleForTesting
+    internal fun getRetryMessage(packages: Collection<RemotePackage>): String? {
       if (packages.isEmpty()) {
         return null
       }
       return formatElementListString(
-        packages.map { it.displayName },
+        packages.map { StringUtil.escapeXmlEntities(it.displayName) },
         "The following SDK component was not installed: %s",
         "The following SDK components were not installed: %1\$s and %2\$s",
-        "%1\$s and %2\$s more SDK components were not installed",
+        "The following SDK components were not installed: %1\$s and %2\$s more",
       )
     }
   }

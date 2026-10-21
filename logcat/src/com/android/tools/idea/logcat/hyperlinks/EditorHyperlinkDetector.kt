@@ -20,6 +20,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatConsoleFilterProvider
 import com.android.tools.idea.logcat.util.LOGGER
 import com.intellij.execution.filters.Filter
+import com.intellij.execution.filters.UrlFilter
 import com.intellij.execution.impl.ConsoleViewUtil
 import com.intellij.execution.impl.EditorHyperlinkSupport
 import com.intellij.openapi.Disposable
@@ -35,6 +36,7 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.CancellationException
 import java.util.concurrent.ExecutorService
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.plugins.gradle.execution.GradleConsoleFilter
 
 /** A [HyperlinkDetector] that adds hyperlinks to an [Editor] */
 internal class EditorHyperlinkDetector(
@@ -64,8 +66,9 @@ internal class EditorHyperlinkDetector(
     ReadAction.nonBlocking<List<Filter>> { ConsoleViewUtil.computeConsoleFilters(project, null, GlobalSearchScope.allScope(project)) }
       .expireWith(parentDisposable)
       .finishOnUiThread(modalityState) { filters: List<Filter> ->
-        filters.forEach { filter.addFilter(it) }
+        filters.filterNot { it::class.java.name in IGNORE_FILTERS }.forEach { filter.addFilter(it) }
         filter.addFilter(SimpleFileLinkFilter(project))
+        filter.addFilter(SafeUrlFilter())
       }
       .submit(executor)
   }
@@ -84,5 +87,11 @@ internal class EditorHyperlinkDetector(
 
   override fun dispose() {
     isDisposed = true
+  }
+
+  companion object {
+    // These filters don't apply to Logcat output
+    private val IGNORE_FILTERS =
+      setOf(GradleConsoleFilter::class.java.name, "com.intellij.debugger.impl.attach.JavaDebuggerAttachFilter", UrlFilter::class.java.name)
   }
 }

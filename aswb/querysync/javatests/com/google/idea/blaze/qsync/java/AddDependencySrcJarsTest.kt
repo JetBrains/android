@@ -57,30 +57,17 @@ class AddDependencySrcJarsTest {
   private lateinit var workspaceRoot: Path
   private var pathResolver: ProjectPath.Resolver? = null
   private val syncer = TestDataSyncRunner(NoopContext())
+  private lateinit var mockExperimentService: MockExperimentService
   private lateinit var original: QuerySyncProjectSnapshot
 
   private fun createJavaArtifactInfo(label: Label, srcJars: Set<ProjectPath> = emptySet()): JavaArtifactInfo {
-    return JavaArtifactInfo(
-      label = label,
-      isExternalDependency = false,
-      isKotlinToolchain = false,
-      jars = emptySet(),
-      outputJars = emptySet(),
-      ideAar = null,
-      genSrcs = emptySet(),
-      genAndroidRes = emptySet(),
-      protoSrcjars = emptySet(),
-      sources = emptySet(),
-      srcJars = srcJars,
-      androidResourcesPackage = "",
-      kotlinCompilerFlags = emptyList(),
-    )
+    return JavaArtifactInfo.empty(label).copy(srcJars = srcJars)
   }
 
   @Before
   @Throws(IOException::class)
   fun setUp() {
-    val mockExperimentService = MockExperimentService()
+    mockExperimentService = MockExperimentService()
     intellij.registerApplicationService(ExperimentService::class.java, mockExperimentService)
     original = syncer.sync(TestData.JAVA_LIBRARY_EXTERNAL_DEP_QUERY)
     workspaceRoot = tempDir.newFolder("workspace").toPath()
@@ -113,6 +100,22 @@ class AddDependencySrcJarsTest {
   @Throws(Exception::class)
   fun external_srcjar_added() {
     val addSrcJars = AddDependencySrcJars(original.projectDefinition, pathResolver!!, SrcJarInnerPathFinder(PackageStatementParser()))
+    external_srcjar_added(
+      addSrcJars,
+      ProjectProto.Library(
+        name = Label.of("//java/com/google/common/collect:collect"),
+        classesJarList = emptyList(),
+        sourcesList =
+          listOf(ProjectPath.workspaceRelativeForTests(Path.of("source/path/external.srcjar")).withInnerJarPath(Path.of("root"))),
+      ),
+    )
+  }
+
+  @Test
+  @Throws(Exception::class)
+  fun external_srcjar_added_via_supplier_override() {
+    val addSrcJars =
+      AddDependencySrcJars(original.projectDefinition, pathResolver!!, SrcJarInnerPathFinder(PackageStatementParser()), { false })
     external_srcjar_added(
       addSrcJars,
       ProjectProto.Library(

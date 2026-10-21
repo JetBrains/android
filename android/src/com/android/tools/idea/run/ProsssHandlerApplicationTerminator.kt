@@ -18,19 +18,23 @@ package com.android.tools.idea.run
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.DeployerApplicationTerminator
+import com.android.tools.deployer.DeployerDevice
 import com.android.tools.idea.execution.common.ApplicationTerminator
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.progress.ProgressIndicator
 
 class ProcessHandlerApplicationTerminator(indicator: ProgressIndicator, devices: List<IDevice>, appId: String) :
   DeployerApplicationTerminator(
-    devices,
+    devices.map { DeployerDevice(it.serialNumber) },
     appId,
     { targetDevice, targetAppId ->
-      if (StudioFlags.INSTALL_USE_PM_TERMINATE.get() && targetDevice.version.isAtLeast(AndroidVersion.VersionCodes.TIRAMISU)) {
-        indicator.text = "Terminating $targetAppId"
-        ApplicationTerminator(targetDevice, targetAppId).killApp()
-        indicator.text = "$targetAppId }is terminated"
+      val iDevice = devices.firstOrNull { it.serialNumber == targetDevice.serialNumber }
+      if (iDevice != null) {
+        if (StudioFlags.INSTALL_USE_PM_TERMINATE.get() && iDevice.version.isAtLeast(AndroidVersion.VersionCodes.TIRAMISU)) {
+          indicator.text = "Terminating $targetAppId"
+          ApplicationTerminator(iDevice, targetAppId).killApp()
+          indicator.text = "$targetAppId is terminated"
+        }
       }
     },
   )

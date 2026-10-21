@@ -27,6 +27,7 @@ import com.google.api.services.drive.Drive
 import com.google.api.services.drive.model.File as DriveFile
 import com.intellij.openapi.diagnostic.thisLogger
 import java.io.InputStream
+import kotlin.time.Duration.Companion.minutes
 
 private const val FILE_COUNT_LIMIT = 10
 
@@ -50,6 +51,10 @@ class GoogleDriveClient(private val credentialProvider: () -> Credential) {
       httpRequest.apply {
         headers = HttpHeaders()
         credentialProvider().initialize(this)
+        // The drive API can be quite slow.
+        // Note that there is a shorter timeout (60s) specified in SettingsSyncBridge that will sometimes apply. We will need to see if
+        // that also needs to be modified (if the associated timeout log messages are seen).
+        readTimeout = 5.minutes.inWholeMilliseconds.toInt()
       }
     }
 

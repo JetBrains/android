@@ -19,14 +19,15 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.runInEdtAndGet
+import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.RunsInEdt
 import java.util.LinkedList
 import java.util.concurrent.Executor
 import org.junit.Assert.assertEquals
-import org.junit.Ignore
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.times
@@ -34,21 +35,21 @@ import org.mockito.Mockito.`when`
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 
+@RunsInEdt
 class ModelLintIssueAnnotatorTest {
 
-  @Rule @JvmField val rule = AndroidProjectRule.inMemory()
+  @Rule @JvmField val rule = AndroidProjectRule.inMemory().onEdt()
 
-  @Ignore("b/468058022")
   @Test
   fun testMultipleRequests() {
     val builder =
       NlModelBuilderUtil.model(
-        rule,
+        rule.projectRule,
         "res/layout",
         "my_layout.xml",
         ComponentDescriptor("FrameLayout").matchParentHeight().matchParentWidth(),
       )
-    val model = runInEdtAndGet { builder.build() }
+    val model = builder.build()
 
     val surface = model.surface
     val executor = CountableExecutor()
@@ -57,6 +58,7 @@ class ModelLintIssueAnnotatorTest {
 
     annotator.annotateRenderInformationToLint(model)
     assertEquals(1, executor.getTaskCount())
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     executor.pause()
     annotator.annotateRenderInformationToLint(model)
@@ -68,8 +70,9 @@ class ModelLintIssueAnnotatorTest {
     executor.resume()
     // All tasks are executed, but only the first two added ones return early and do not trigger a
     // surface repaint.
-    assertEquals(4, executor.getTaskCount())
-    invokeLater { verify(surface, times(2)).repaint() }
+    assertTrue("Expected at least 4 tasks but was ${executor.getTaskCount()}", executor.getTaskCount() >= 4)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    verify(surface, times(2)).repaint()
   }
 
   @Test

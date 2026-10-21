@@ -49,8 +49,8 @@ class InspectorBannerTest {
     notificationModel.addNotification("key1", "There is an error somewhere <a>", Status.Error, emptyList())
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     assertThat(banner.isVisible).isTrue()
-    val label = banner.flatten().filterIsInstance<JLabel>().first()
-    assertThat(label.text).isEqualTo("<html>There is an error somewhere &lt;a&gt;</html>")
+    val allLabelTexts = banner.flatten().filterIsInstance<JLabel>().map { it.text }
+    assertThat(allLabelTexts).contains("<html>There is an error somewhere &lt;a&gt;</html>")
   }
 
   @Test

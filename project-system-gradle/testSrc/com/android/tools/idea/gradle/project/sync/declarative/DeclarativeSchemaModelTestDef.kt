@@ -74,7 +74,7 @@ data class DeclarativeSchemaModelTestDef(
   }
 
   override fun runTest(root: File, project: Project) {
-    val text = project.dumpDeclarativeSchemaModel()
+    val text = project.dumpDeclarativeSchemaModel().trim()
     val snapshotContext =
       SnapshotContext(testProject.projectName, agpVersion, "tools/adt/idea/android/testData/snapshots/declarativeSchema")
     snapshotContext.assertIsEqualToSnapshot(text)
@@ -213,7 +213,7 @@ fun Project.dumpDeclarativeSchemaModel(): String {
 
     fun ClassModel.dump() {
       out("Name", name.name)
-      nest("MemberFunctions") { memberFunctions.sortedBy { it.name }.forEach { nestArrayElement { it.dump() } } }
+      nest("MemberFunctions") { memberFunctions.sortedBy { it.toSignatureString() }.forEach { nestArrayElement { it.dump() } } }
       nest("Properties") { properties.sortedBy { it.name }.forEach { nestArrayElement { it.dump() } } }
       out("Supertypes", supertypes.joinToString(",") { it.name })
     }
@@ -261,4 +261,28 @@ fun Project.dumpDeclarativeSchemaModel(): String {
       }
     }
   }
+}
+
+private fun DataTypeReference.toSignatureString(): String = when (this) {
+  is DataClassRef -> fqName.name
+  is SimpleTypeRef -> dataType.name
+  is GenericTypeRef -> "<T>"
+  is DataClassRefWithTypes -> fqName.name + typeArgument.joinToString(prefix = "<", postfix = ">") {
+    when (it) {
+      is ConcreteGeneric -> it.reference.toSignatureString()
+      is StarGeneric -> "*"
+      else -> it.toString()
+    }
+  }
+}
+
+private fun FunctionSemantic.toSignatureString(): String = when (this) {
+  is PlainFunction -> returnValue.toSignatureString()
+  is BlockFunction -> accessor.fqName.name
+}
+
+private fun SchemaMemberFunction.toSignatureString(): String {
+  val params = parameters.joinToString(prefix = "(", postfix = ")") { it.type.toSignatureString() }
+  val returnType = semantic.toSignatureString()
+  return "$name$params:$returnType"
 }

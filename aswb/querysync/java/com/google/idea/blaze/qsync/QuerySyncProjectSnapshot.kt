@@ -17,6 +17,7 @@ package com.google.idea.blaze.qsync
 
 import com.google.common.base.Preconditions
 import com.google.idea.blaze.common.Label
+import com.google.idea.blaze.common.vcs.VcsState
 import com.google.idea.blaze.qsync.deps.ArtifactIndex
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
 import com.google.idea.blaze.qsync.project.BuildGraphData
@@ -26,6 +27,7 @@ import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectStructureData
 import com.google.idea.blaze.qsync.project.ProjectTarget
 import com.google.idea.blaze.qsync.project.RequestedTargets
+import com.google.idea.blaze.qsync.project.computeSufficientTargets
 import com.google.idea.blaze.qsync.project.pathToLabel
 import com.google.idea.blaze.qsync.project.requiredTargets
 import java.nio.file.Path
@@ -49,6 +51,8 @@ data class QuerySyncProjectSnapshot(
   val project: ProjectProto.Project,
   val incompleteTargets: Set<Label>,
   val projectDefinition: ProjectDefinition,
+  val vcsState: VcsState?,
+  val bazelVersion: String?,
 ) {
   companion object {
     @JvmField
@@ -61,6 +65,8 @@ data class QuerySyncProjectSnapshot(
         project = ProjectProto.Project.getDefaultInstance(),
         incompleteTargets = emptySet(),
         projectDefinition = ProjectDefinition.EMPTY,
+        vcsState = null,
+        bazelVersion = null,
       )
   }
 
@@ -75,6 +81,10 @@ data class QuerySyncProjectSnapshot(
   fun withProject(value: ProjectProto.Project): QuerySyncProjectSnapshot = copy(project = value)
 
   fun withProjectDefinition(value: ProjectDefinition): QuerySyncProjectSnapshot = copy(projectDefinition = value)
+
+  fun withVcsState(value: VcsState?): QuerySyncProjectSnapshot = copy(vcsState = value)
+
+  fun withBazelVersion(value: String?): QuerySyncProjectSnapshot = copy(bazelVersion = value)
 
   /**
    * Given a path to a file it returns the targets that own the file.

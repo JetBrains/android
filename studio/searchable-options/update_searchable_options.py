@@ -70,7 +70,18 @@ def generate_searchable_options(work_dir, out_dir, ide_path, plugins):
     if id and id in content:
       for entry in content[id]:
         name = entry["file"]
-        shutil.move(os.path.join(options_dir, name), out_dir)
+        src_file = os.path.join(options_dir, name)
+        dst_file = os.path.join(out_dir, name)
+        with open(src_file, "r", encoding="utf-8") as sf:
+          lines = sf.readlines()
+        lines.sort()
+        with open(dst_file, "w", encoding="utf-8") as df:
+          # IntelliJ writes a full JSON object per line, often resulting in very long lines.
+          # We reformat the JSON here to be more readable and VCS friendly.
+          for line in lines:
+            json.dump(json.loads(line), df, indent=2)
+            df.write("\n")
+
 
   return plugin_list
 

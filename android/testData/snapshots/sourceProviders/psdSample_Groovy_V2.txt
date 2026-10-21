@@ -1990,6 +1990,66 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./dyn_feature/src/main/keepRules
+            basic
+                Manifest:
+                    ./dyn_feature/src/basic/AndroidManifest.xml
+                AssetsDirectories:
+                    ./dyn_feature/src/basic/assets
+                JavaDirectories:
+                    ./dyn_feature/src/basic/java
+                KotlinDirectories:
+                    ./dyn_feature/src/basic/java
+                    ./dyn_feature/src/basic/kotlin
+                JniLibsDirectories:
+                    ./dyn_feature/src/basic/jniLibs
+                ResDirectories:
+                    ./dyn_feature/src/basic/res
+                ResourcesDirectories:
+                    ./dyn_feature/src/basic/resources
+                BaselineProfileDirectories:
+                    ./dyn_feature/src/basic/baselineProfiles
+                KeepRulesDirectories:
+                    ./dyn_feature/src/basic/keepRules
+            bar
+                Manifest:
+                    ./dyn_feature/src/bar/AndroidManifest.xml
+                AssetsDirectories:
+                    ./dyn_feature/src/bar/assets
+                JavaDirectories:
+                    ./dyn_feature/src/bar/java
+                KotlinDirectories:
+                    ./dyn_feature/src/bar/java
+                    ./dyn_feature/src/bar/kotlin
+                JniLibsDirectories:
+                    ./dyn_feature/src/bar/jniLibs
+                ResDirectories:
+                    ./dyn_feature/src/bar/res
+                ResourcesDirectories:
+                    ./dyn_feature/src/bar/resources
+                BaselineProfileDirectories:
+                    ./dyn_feature/src/bar/baselineProfiles
+                KeepRulesDirectories:
+                    ./dyn_feature/src/bar/keepRules
+            basicBar
+                Manifest:
+                    ./dyn_feature/src/basicBar/AndroidManifest.xml
+                AssetsDirectories:
+                    ./dyn_feature/src/basicBar/assets
+                JavaDirectories:
+                    ./dyn_feature/src/basicBar/java
+                KotlinDirectories:
+                    ./dyn_feature/src/basicBar/java
+                    ./dyn_feature/src/basicBar/kotlin
+                JniLibsDirectories:
+                    ./dyn_feature/src/basicBar/jniLibs
+                ResDirectories:
+                    ./dyn_feature/src/basicBar/res
+                ResourcesDirectories:
+                    ./dyn_feature/src/basicBar/resources
+                BaselineProfileDirectories:
+                    ./dyn_feature/src/basicBar/baselineProfiles
+                KeepRulesDirectories:
+                    ./dyn_feature/src/basicBar/keepRules
             debug
                 Manifest:
                     ./dyn_feature/src/debug/AndroidManifest.xml
@@ -2010,6 +2070,26 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./dyn_feature/src/debug/keepRules
+            basicBarDebug
+                Manifest:
+                    ./dyn_feature/src/basicBarDebug/AndroidManifest.xml
+                AssetsDirectories:
+                    ./dyn_feature/src/basicBarDebug/assets
+                JavaDirectories:
+                    ./dyn_feature/src/basicBarDebug/java
+                KotlinDirectories:
+                    ./dyn_feature/src/basicBarDebug/java
+                    ./dyn_feature/src/basicBarDebug/kotlin
+                JniLibsDirectories:
+                    ./dyn_feature/src/basicBarDebug/jniLibs
+                ResDirectories:
+                    ./dyn_feature/src/basicBarDebug/res
+                ResourcesDirectories:
+                    ./dyn_feature/src/basicBarDebug/resources
+                BaselineProfileDirectories:
+                    ./dyn_feature/src/basicBarDebug/baselineProfiles
+                KeepRulesDirectories:
+                    ./dyn_feature/src/basicBarDebug/keepRules
         All:
             main
                 Manifest:
@@ -2031,6 +2111,86 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/main/baselineProfiles
                 KeepRulesDirectories:
                     ./dyn_feature/src/main/keepRules
+            bar
+                Manifest:
+                    ./dyn_feature/src/bar/AndroidManifest.xml
+                AssetsDirectories:
+                    ./dyn_feature/src/bar/assets
+                JavaDirectories:
+                    ./dyn_feature/src/bar/java
+                KotlinDirectories:
+                    ./dyn_feature/src/bar/java
+                    ./dyn_feature/src/bar/kotlin
+                JniLibsDirectories:
+                    ./dyn_feature/src/bar/jniLibs
+                ResDirectories:
+                    ./dyn_feature/src/bar/res
+                ResourcesDirectories:
+                    ./dyn_feature/src/bar/resources
+                BaselineProfileDirectories:
+                    ./dyn_feature/src/bar/baselineProfiles
+                KeepRulesDirectories:
+                    ./dyn_feature/src/bar/keepRules
+            basic
+                Manifest:
+                    ./dyn_feature/src/basic/AndroidManifest.xml
+                AssetsDirectories:
+                    ./dyn_feature/src/basic/assets
+                JavaDirectories:
+                    ./dyn_feature/src/basic/java
+                KotlinDirectories:
+                    ./dyn_feature/src/basic/java
+                    ./dyn_feature/src/basic/kotlin
+                JniLibsDirectories:
+                    ./dyn_feature/src/basic/jniLibs
+                ResDirectories:
+                    ./dyn_feature/src/basic/res
+                ResourcesDirectories:
+                    ./dyn_feature/src/basic/resources
+                BaselineProfileDirectories:
+                    ./dyn_feature/src/basic/baselineProfiles
+                KeepRulesDirectories:
+                    ./dyn_feature/src/basic/keepRules
+            basicBar
+                Manifest:
+                    ./dyn_feature/src/basicBar/AndroidManifest.xml
+                AssetsDirectories:
+                    ./dyn_feature/src/basicBar/assets
+                JavaDirectories:
+                    ./dyn_feature/src/basicBar/java
+                KotlinDirectories:
+                    ./dyn_feature/src/basicBar/java
+                    ./dyn_feature/src/basicBar/kotlin
+                JniLibsDirectories:
+                    ./dyn_feature/src/basicBar/jniLibs
+                ResDirectories:
+                    ./dyn_feature/src/basicBar/res
+                ResourcesDirectories:
+                    ./dyn_feature/src/basicBar/resources
+                BaselineProfileDirectories:
+                    ./dyn_feature/src/basicBar/baselineProfiles
+                KeepRulesDirectories:
+                    ./dyn_feature/src/basicBar/keepRules
+            basicBarDebug
+                Manifest:
+                    ./dyn_feature/src/basicBarDebug/AndroidManifest.xml
+                AssetsDirectories:
+                    ./dyn_feature/src/basicBarDebug/assets
+                JavaDirectories:
+                    ./dyn_feature/src/basicBarDebug/java
+                KotlinDirectories:
+                    ./dyn_feature/src/basicBarDebug/java
+                    ./dyn_feature/src/basicBarDebug/kotlin
+                JniLibsDirectories:
+                    ./dyn_feature/src/basicBarDebug/jniLibs
+                ResDirectories:
+                    ./dyn_feature/src/basicBarDebug/res
+                ResourcesDirectories:
+                    ./dyn_feature/src/basicBarDebug/resources
+                BaselineProfileDirectories:
+                    ./dyn_feature/src/basicBarDebug/baselineProfiles
+                KeepRulesDirectories:
+                    ./dyn_feature/src/basicBarDebug/keepRules
             debug
                 Manifest:
                     ./dyn_feature/src/debug/AndroidManifest.xml
@@ -2051,6 +2211,46 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/debug/baselineProfiles
                 KeepRulesDirectories:
                     ./dyn_feature/src/debug/keepRules
+            otherBar
+                Manifest:
+                    ./dyn_feature/src/otherBar/AndroidManifest.xml
+                AssetsDirectories:
+                    ./dyn_feature/src/otherBar/assets
+                JavaDirectories:
+                    ./dyn_feature/src/otherBar/java
+                KotlinDirectories:
+                    ./dyn_feature/src/otherBar/java
+                    ./dyn_feature/src/otherBar/kotlin
+                JniLibsDirectories:
+                    ./dyn_feature/src/otherBar/jniLibs
+                ResDirectories:
+                    ./dyn_feature/src/otherBar/res
+                ResourcesDirectories:
+                    ./dyn_feature/src/otherBar/resources
+                BaselineProfileDirectories:
+                    ./dyn_feature/src/otherBar/baselineProfiles
+                KeepRulesDirectories:
+                    ./dyn_feature/src/otherBar/keepRules
+            paid
+                Manifest:
+                    ./dyn_feature/src/paid/AndroidManifest.xml
+                AssetsDirectories:
+                    ./dyn_feature/src/paid/assets
+                JavaDirectories:
+                    ./dyn_feature/src/paid/java
+                KotlinDirectories:
+                    ./dyn_feature/src/paid/java
+                    ./dyn_feature/src/paid/kotlin
+                JniLibsDirectories:
+                    ./dyn_feature/src/paid/jniLibs
+                ResDirectories:
+                    ./dyn_feature/src/paid/res
+                ResourcesDirectories:
+                    ./dyn_feature/src/paid/resources
+                BaselineProfileDirectories:
+                    ./dyn_feature/src/paid/baselineProfiles
+                KeepRulesDirectories:
+                    ./dyn_feature/src/paid/keepRules
             release
                 Manifest:
                     ./dyn_feature/src/release/AndroidManifest.xml
@@ -2071,6 +2271,26 @@ MODULE: project.dyn_feature
                     ./dyn_feature/src/release/baselineProfiles
                 KeepRulesDirectories:
                     ./dyn_feature/src/release/keepRules
+            specialRelease
+                Manifest:
+                    ./dyn_feature/src/specialRelease/AndroidManifest.xml
+                AssetsDirectories:
+                    ./dyn_feature/src/specialRelease/assets
+                JavaDirectories:
+                    ./dyn_feature/src/specialRelease/java
+                KotlinDirectories:
+                    ./dyn_feature/src/specialRelease/java
+                    ./dyn_feature/src/specialRelease/kotlin
+                JniLibsDirectories:
+                    ./dyn_feature/src/specialRelease/jniLibs
+                ResDirectories:
+                    ./dyn_feature/src/specialRelease/res
+                ResourcesDirectories:
+                    ./dyn_feature/src/specialRelease/resources
+                BaselineProfileDirectories:
+                    ./dyn_feature/src/specialRelease/baselineProfiles
+                KeepRulesDirectories:
+                    ./dyn_feature/src/specialRelease/keepRules
         HostTest:
             UnitTest
                 test
@@ -2093,6 +2313,66 @@ MODULE: project.dyn_feature
                         ./dyn_feature/src/test/baselineProfiles
                     KeepRulesDirectories:
                         ./dyn_feature/src/test/keepRules
+                testBasic
+                    Manifest:
+                        ./dyn_feature/src/testBasic/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./dyn_feature/src/testBasic/assets
+                    JavaDirectories:
+                        ./dyn_feature/src/testBasic/java
+                    KotlinDirectories:
+                        ./dyn_feature/src/testBasic/java
+                        ./dyn_feature/src/testBasic/kotlin
+                    JniLibsDirectories:
+                        ./dyn_feature/src/testBasic/jniLibs
+                    ResDirectories:
+                        ./dyn_feature/src/testBasic/res
+                    ResourcesDirectories:
+                        ./dyn_feature/src/testBasic/resources
+                    BaselineProfileDirectories:
+                        ./dyn_feature/src/testBasic/baselineProfiles
+                    KeepRulesDirectories:
+                        ./dyn_feature/src/testBasic/keepRules
+                testBar
+                    Manifest:
+                        ./dyn_feature/src/testBar/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./dyn_feature/src/testBar/assets
+                    JavaDirectories:
+                        ./dyn_feature/src/testBar/java
+                    KotlinDirectories:
+                        ./dyn_feature/src/testBar/java
+                        ./dyn_feature/src/testBar/kotlin
+                    JniLibsDirectories:
+                        ./dyn_feature/src/testBar/jniLibs
+                    ResDirectories:
+                        ./dyn_feature/src/testBar/res
+                    ResourcesDirectories:
+                        ./dyn_feature/src/testBar/resources
+                    BaselineProfileDirectories:
+                        ./dyn_feature/src/testBar/baselineProfiles
+                    KeepRulesDirectories:
+                        ./dyn_feature/src/testBar/keepRules
+                testBasicBar
+                    Manifest:
+                        ./dyn_feature/src/testBasicBar/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./dyn_feature/src/testBasicBar/assets
+                    JavaDirectories:
+                        ./dyn_feature/src/testBasicBar/java
+                    KotlinDirectories:
+                        ./dyn_feature/src/testBasicBar/java
+                        ./dyn_feature/src/testBasicBar/kotlin
+                    JniLibsDirectories:
+                        ./dyn_feature/src/testBasicBar/jniLibs
+                    ResDirectories:
+                        ./dyn_feature/src/testBasicBar/res
+                    ResourcesDirectories:
+                        ./dyn_feature/src/testBasicBar/resources
+                    BaselineProfileDirectories:
+                        ./dyn_feature/src/testBasicBar/baselineProfiles
+                    KeepRulesDirectories:
+                        ./dyn_feature/src/testBasicBar/keepRules
                 testDebug
                     Manifest:
                         ./dyn_feature/src/testDebug/AndroidManifest.xml
@@ -2113,6 +2393,24 @@ MODULE: project.dyn_feature
                         ./dyn_feature/src/testDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./dyn_feature/src/testDebug/keepRules
+                testBasicBarDebug
+                    Manifest:
+                        ./dyn_feature/src/testBasicBarDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./dyn_feature/src/testBasicBarDebug/assets
+                    JavaDirectories:
+                        ./dyn_feature/src/testBasicBarDebug/java
+                    KotlinDirectories:
+                        ./dyn_feature/src/testBasicBarDebug/java
+                        ./dyn_feature/src/testBasicBarDebug/kotlin
+                    JniLibsDirectories:
+                        ./dyn_feature/src/testBasicBarDebug/jniLibs
+                    ResourcesDirectories:
+                        ./dyn_feature/src/testBasicBarDebug/resources
+                    BaselineProfileDirectories:
+                        ./dyn_feature/src/testBasicBarDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./dyn_feature/src/testBasicBarDebug/keepRules
         DeviceTest:
             AndroidTest
                 androidTest
@@ -2135,6 +2433,66 @@ MODULE: project.dyn_feature
                         ./dyn_feature/src/androidTest/baselineProfiles
                     KeepRulesDirectories:
                         ./dyn_feature/src/androidTest/keepRules
+                androidTestBasic
+                    Manifest:
+                        ./dyn_feature/src/androidTestBasic/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./dyn_feature/src/androidTestBasic/assets
+                    JavaDirectories:
+                        ./dyn_feature/src/androidTestBasic/java
+                    KotlinDirectories:
+                        ./dyn_feature/src/androidTestBasic/java
+                        ./dyn_feature/src/androidTestBasic/kotlin
+                    JniLibsDirectories:
+                        ./dyn_feature/src/androidTestBasic/jniLibs
+                    ResDirectories:
+                        ./dyn_feature/src/androidTestBasic/res
+                    ResourcesDirectories:
+                        ./dyn_feature/src/androidTestBasic/resources
+                    BaselineProfileDirectories:
+                        ./dyn_feature/src/androidTestBasic/baselineProfiles
+                    KeepRulesDirectories:
+                        ./dyn_feature/src/androidTestBasic/keepRules
+                androidTestBar
+                    Manifest:
+                        ./dyn_feature/src/androidTestBar/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./dyn_feature/src/androidTestBar/assets
+                    JavaDirectories:
+                        ./dyn_feature/src/androidTestBar/java
+                    KotlinDirectories:
+                        ./dyn_feature/src/androidTestBar/java
+                        ./dyn_feature/src/androidTestBar/kotlin
+                    JniLibsDirectories:
+                        ./dyn_feature/src/androidTestBar/jniLibs
+                    ResDirectories:
+                        ./dyn_feature/src/androidTestBar/res
+                    ResourcesDirectories:
+                        ./dyn_feature/src/androidTestBar/resources
+                    BaselineProfileDirectories:
+                        ./dyn_feature/src/androidTestBar/baselineProfiles
+                    KeepRulesDirectories:
+                        ./dyn_feature/src/androidTestBar/keepRules
+                androidTestBasicBar
+                    Manifest:
+                        ./dyn_feature/src/androidTestBasicBar/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./dyn_feature/src/androidTestBasicBar/assets
+                    JavaDirectories:
+                        ./dyn_feature/src/androidTestBasicBar/java
+                    KotlinDirectories:
+                        ./dyn_feature/src/androidTestBasicBar/java
+                        ./dyn_feature/src/androidTestBasicBar/kotlin
+                    JniLibsDirectories:
+                        ./dyn_feature/src/androidTestBasicBar/jniLibs
+                    ResDirectories:
+                        ./dyn_feature/src/androidTestBasicBar/res
+                    ResourcesDirectories:
+                        ./dyn_feature/src/androidTestBasicBar/resources
+                    BaselineProfileDirectories:
+                        ./dyn_feature/src/androidTestBasicBar/baselineProfiles
+                    KeepRulesDirectories:
+                        ./dyn_feature/src/androidTestBasicBar/keepRules
                 androidTestDebug
                     Manifest:
                         ./dyn_feature/src/androidTestDebug/AndroidManifest.xml
@@ -2155,6 +2513,26 @@ MODULE: project.dyn_feature
                         ./dyn_feature/src/androidTestDebug/baselineProfiles
                     KeepRulesDirectories:
                         ./dyn_feature/src/androidTestDebug/keepRules
+                androidTestBasicBarDebug
+                    Manifest:
+                        ./dyn_feature/src/androidTestBasicBarDebug/AndroidManifest.xml
+                    AssetsDirectories:
+                        ./dyn_feature/src/androidTestBasicBarDebug/assets
+                    JavaDirectories:
+                        ./dyn_feature/src/androidTestBasicBarDebug/java
+                    KotlinDirectories:
+                        ./dyn_feature/src/androidTestBasicBarDebug/java
+                        ./dyn_feature/src/androidTestBasicBarDebug/kotlin
+                    JniLibsDirectories:
+                        ./dyn_feature/src/androidTestBasicBarDebug/jniLibs
+                    ResDirectories:
+                        ./dyn_feature/src/androidTestBasicBarDebug/res
+                    ResourcesDirectories:
+                        ./dyn_feature/src/androidTestBasicBarDebug/resources
+                    BaselineProfileDirectories:
+                        ./dyn_feature/src/androidTestBasicBarDebug/baselineProfiles
+                    KeepRulesDirectories:
+                        ./dyn_feature/src/androidTestBasicBarDebug/keepRules
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -2164,92 +2542,199 @@ MODULE: project.dyn_feature
                 ScopeType: MAIN
                 ManifestFileUrls:
                     file://./dyn_feature/src/main/AndroidManifest.xml
+                    file://./dyn_feature/src/basic/AndroidManifest.xml
+                    file://./dyn_feature/src/bar/AndroidManifest.xml
+                    file://./dyn_feature/src/basicBar/AndroidManifest.xml
                     file://./dyn_feature/src/debug/AndroidManifest.xml
+                    file://./dyn_feature/src/basicBarDebug/AndroidManifest.xml
                 ManifestFiles:
                     file://./dyn_feature/src/main/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./dyn_feature/src/main
+                    file://./dyn_feature/src/basic
+                    file://./dyn_feature/src/bar
+                    file://./dyn_feature/src/basicBar
                     file://./dyn_feature/src/debug
+                    file://./dyn_feature/src/basicBarDebug
                 ManifestDirectories:
                     file://./dyn_feature/src/main
                 AssetsDirectoryUrls:
                     file://./dyn_feature/src/main/assets
+                    file://./dyn_feature/src/basic/assets
+                    file://./dyn_feature/src/bar/assets
+                    file://./dyn_feature/src/basicBar/assets
                     file://./dyn_feature/src/debug/assets
+                    file://./dyn_feature/src/basicBarDebug/assets
                 JavaDirectoryUrls:
                     file://./dyn_feature/src/main/java
+                    file://./dyn_feature/src/basic/java
+                    file://./dyn_feature/src/bar/java
+                    file://./dyn_feature/src/basicBar/java
                     file://./dyn_feature/src/debug/java
+                    file://./dyn_feature/src/basicBarDebug/java
                 KotlinDirectoryUrls:
                     file://./dyn_feature/src/main/java
                     file://./dyn_feature/src/main/kotlin
+                    file://./dyn_feature/src/basic/java
+                    file://./dyn_feature/src/basic/kotlin
+                    file://./dyn_feature/src/bar/java
+                    file://./dyn_feature/src/bar/kotlin
+                    file://./dyn_feature/src/basicBar/java
+                    file://./dyn_feature/src/basicBar/kotlin
                     file://./dyn_feature/src/debug/java
                     file://./dyn_feature/src/debug/kotlin
+                    file://./dyn_feature/src/basicBarDebug/java
+                    file://./dyn_feature/src/basicBarDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/main/jniLibs
+                    file://./dyn_feature/src/basic/jniLibs
+                    file://./dyn_feature/src/bar/jniLibs
+                    file://./dyn_feature/src/basicBar/jniLibs
                     file://./dyn_feature/src/debug/jniLibs
+                    file://./dyn_feature/src/basicBarDebug/jniLibs
                 ResDirectoryUrls:
                     file://./dyn_feature/src/main/res
+                    file://./dyn_feature/src/basic/res
+                    file://./dyn_feature/src/bar/res
+                    file://./dyn_feature/src/basicBar/res
                     file://./dyn_feature/src/debug/res
+                    file://./dyn_feature/src/basicBarDebug/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/main/resources
+                    file://./dyn_feature/src/basic/resources
+                    file://./dyn_feature/src/bar/resources
+                    file://./dyn_feature/src/basicBar/resources
                     file://./dyn_feature/src/debug/resources
+                    file://./dyn_feature/src/basicBarDebug/resources
         HostTestSources:
             UnitTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./dyn_feature/src/test/AndroidManifest.xml
+                    file://./dyn_feature/src/testBasic/AndroidManifest.xml
+                    file://./dyn_feature/src/testBar/AndroidManifest.xml
+                    file://./dyn_feature/src/testBasicBar/AndroidManifest.xml
                     file://./dyn_feature/src/testDebug/AndroidManifest.xml
+                    file://./dyn_feature/src/testBasicBarDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./dyn_feature/src/test
+                    file://./dyn_feature/src/testBasic
+                    file://./dyn_feature/src/testBar
+                    file://./dyn_feature/src/testBasicBar
                     file://./dyn_feature/src/testDebug
+                    file://./dyn_feature/src/testBasicBarDebug
                 AssetsDirectoryUrls:
                     file://./dyn_feature/src/test/assets
+                    file://./dyn_feature/src/testBasic/assets
+                    file://./dyn_feature/src/testBar/assets
+                    file://./dyn_feature/src/testBasicBar/assets
                     file://./dyn_feature/src/testDebug/assets
+                    file://./dyn_feature/src/testBasicBarDebug/assets
                 JavaDirectoryUrls:
                     file://./dyn_feature/src/test/java
+                    file://./dyn_feature/src/testBasic/java
+                    file://./dyn_feature/src/testBar/java
+                    file://./dyn_feature/src/testBasicBar/java
                     file://./dyn_feature/src/testDebug/java
+                    file://./dyn_feature/src/testBasicBarDebug/java
                 KotlinDirectoryUrls:
                     file://./dyn_feature/src/test/java
                     file://./dyn_feature/src/test/kotlin
+                    file://./dyn_feature/src/testBasic/java
+                    file://./dyn_feature/src/testBasic/kotlin
+                    file://./dyn_feature/src/testBar/java
+                    file://./dyn_feature/src/testBar/kotlin
+                    file://./dyn_feature/src/testBasicBar/java
+                    file://./dyn_feature/src/testBasicBar/kotlin
                     file://./dyn_feature/src/testDebug/java
                     file://./dyn_feature/src/testDebug/kotlin
+                    file://./dyn_feature/src/testBasicBarDebug/java
+                    file://./dyn_feature/src/testBasicBarDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/test/jniLibs
+                    file://./dyn_feature/src/testBasic/jniLibs
+                    file://./dyn_feature/src/testBar/jniLibs
+                    file://./dyn_feature/src/testBasicBar/jniLibs
                     file://./dyn_feature/src/testDebug/jniLibs
+                    file://./dyn_feature/src/testBasicBarDebug/jniLibs
                 ResDirectoryUrls:
                     file://./dyn_feature/src/test/res
+                    file://./dyn_feature/src/testBasic/res
+                    file://./dyn_feature/src/testBar/res
+                    file://./dyn_feature/src/testBasicBar/res
                     file://./dyn_feature/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/test/resources
+                    file://./dyn_feature/src/testBasic/resources
+                    file://./dyn_feature/src/testBar/resources
+                    file://./dyn_feature/src/testBasicBar/resources
                     file://./dyn_feature/src/testDebug/resources
+                    file://./dyn_feature/src/testBasicBarDebug/resources
         DeviceTestSources:
             AndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./dyn_feature/src/androidTest/AndroidManifest.xml
+                    file://./dyn_feature/src/androidTestBasic/AndroidManifest.xml
+                    file://./dyn_feature/src/androidTestBar/AndroidManifest.xml
+                    file://./dyn_feature/src/androidTestBasicBar/AndroidManifest.xml
                     file://./dyn_feature/src/androidTestDebug/AndroidManifest.xml
+                    file://./dyn_feature/src/androidTestBasicBarDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./dyn_feature/src/androidTest
+                    file://./dyn_feature/src/androidTestBasic
+                    file://./dyn_feature/src/androidTestBar
+                    file://./dyn_feature/src/androidTestBasicBar
                     file://./dyn_feature/src/androidTestDebug
+                    file://./dyn_feature/src/androidTestBasicBarDebug
                 AssetsDirectoryUrls:
                     file://./dyn_feature/src/androidTest/assets
+                    file://./dyn_feature/src/androidTestBasic/assets
+                    file://./dyn_feature/src/androidTestBar/assets
+                    file://./dyn_feature/src/androidTestBasicBar/assets
                     file://./dyn_feature/src/androidTestDebug/assets
+                    file://./dyn_feature/src/androidTestBasicBarDebug/assets
                 JavaDirectoryUrls:
                     file://./dyn_feature/src/androidTest/java
+                    file://./dyn_feature/src/androidTestBasic/java
+                    file://./dyn_feature/src/androidTestBar/java
+                    file://./dyn_feature/src/androidTestBasicBar/java
                     file://./dyn_feature/src/androidTestDebug/java
+                    file://./dyn_feature/src/androidTestBasicBarDebug/java
                 KotlinDirectoryUrls:
                     file://./dyn_feature/src/androidTest/java
                     file://./dyn_feature/src/androidTest/kotlin
+                    file://./dyn_feature/src/androidTestBasic/java
+                    file://./dyn_feature/src/androidTestBasic/kotlin
+                    file://./dyn_feature/src/androidTestBar/java
+                    file://./dyn_feature/src/androidTestBar/kotlin
+                    file://./dyn_feature/src/androidTestBasicBar/java
+                    file://./dyn_feature/src/androidTestBasicBar/kotlin
                     file://./dyn_feature/src/androidTestDebug/java
                     file://./dyn_feature/src/androidTestDebug/kotlin
+                    file://./dyn_feature/src/androidTestBasicBarDebug/java
+                    file://./dyn_feature/src/androidTestBasicBarDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./dyn_feature/src/androidTest/jniLibs
+                    file://./dyn_feature/src/androidTestBasic/jniLibs
+                    file://./dyn_feature/src/androidTestBar/jniLibs
+                    file://./dyn_feature/src/androidTestBasicBar/jniLibs
                     file://./dyn_feature/src/androidTestDebug/jniLibs
+                    file://./dyn_feature/src/androidTestBasicBarDebug/jniLibs
                 ResDirectoryUrls:
                     file://./dyn_feature/src/androidTest/res
+                    file://./dyn_feature/src/androidTestBasic/res
+                    file://./dyn_feature/src/androidTestBar/res
+                    file://./dyn_feature/src/androidTestBasicBar/res
                     file://./dyn_feature/src/androidTestDebug/res
+                    file://./dyn_feature/src/androidTestBasicBarDebug/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/androidTest/resources
+                    file://./dyn_feature/src/androidTestBasic/resources
+                    file://./dyn_feature/src/androidTestBar/resources
+                    file://./dyn_feature/src/androidTestBasicBar/resources
                     file://./dyn_feature/src/androidTestDebug/resources
+                    file://./dyn_feature/src/androidTestBasicBarDebug/resources
         TestSuiteSources:
         TestFixturesSources:
             TestFixturesSources (IDEA)
@@ -2258,17 +2743,17 @@ MODULE: project.dyn_feature
             GeneratedSources (IDEA)
                 ScopeType: MAIN
                 JavaDirectoryUrls:
-                    file://./dyn_feature/build/generated/ap_generated_sources/debug/out
+                    file://./dyn_feature/build/generated/ap_generated_sources/basicBarDebug/out
         GeneratedHostTestSources:
             GeneratedUnitTestTestSources (IDEA)
                 ScopeType: UNIT_TEST
                 JavaDirectoryUrls:
-                    file://./dyn_feature/build/generated/ap_generated_sources/debugUnitTest/out
+                    file://./dyn_feature/build/generated/ap_generated_sources/basicBarDebugUnitTest/out
         GeneratedDeviceTestSources:
             GeneratedAndroidTestTestSources (IDEA)
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
-                    file://./dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out
+                    file://./dyn_feature/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
                 ScopeType: TEST_FIXTURES
@@ -2315,6 +2800,82 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/androidTest/resources
+            androidTestBar (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/androidTestBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBar
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBar/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBar/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBar/java
+                    file://./dyn_feature/src/androidTestBar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBar/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBar/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBar/resources
+            androidTestBasic (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/androidTestBasic/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasic
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasic/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasic/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasic/java
+                    file://./dyn_feature/src/androidTestBasic/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasic/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasic/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasic/resources
+            androidTestBasicBar (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/androidTestBasicBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBar
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBar/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBar/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBar/java
+                    file://./dyn_feature/src/androidTestBasicBar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBar/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBar/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBar/resources
+            androidTestBasicBarDebug (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/androidTestBasicBarDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBarDebug
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBarDebug/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBarDebug/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBarDebug/java
+                    file://./dyn_feature/src/androidTestBasicBarDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBarDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBarDebug/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBarDebug/resources
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2334,6 +2895,120 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/androidTestDebug/resources
+            androidTestOtherBar (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/androidTestOtherBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/androidTestOtherBar
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/androidTestOtherBar/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/androidTestOtherBar/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/androidTestOtherBar/java
+                    file://./dyn_feature/src/androidTestOtherBar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/androidTestOtherBar/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/androidTestOtherBar/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/androidTestOtherBar/resources
+            androidTestPaid (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/androidTestPaid/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/androidTestPaid
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/androidTestPaid/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/androidTestPaid/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/androidTestPaid/java
+                    file://./dyn_feature/src/androidTestPaid/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/androidTestPaid/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/androidTestPaid/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/androidTestPaid/resources
+            bar (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./dyn_feature/src/bar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/bar
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/bar/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/bar/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/bar/java
+                    file://./dyn_feature/src/bar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/bar/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/bar/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/bar/resources
+            basic (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./dyn_feature/src/basic/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/basic
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/basic/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/basic/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/basic/java
+                    file://./dyn_feature/src/basic/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/basic/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/basic/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/basic/resources
+            basicBar (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./dyn_feature/src/basicBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/basicBar
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/basicBar/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/basicBar/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/basicBar/java
+                    file://./dyn_feature/src/basicBar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/basicBar/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/basicBar/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/basicBar/resources
+            basicBarDebug (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./dyn_feature/src/basicBarDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/basicBarDebug
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/basicBarDebug/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/basicBarDebug/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/basicBarDebug/java
+                    file://./dyn_feature/src/basicBarDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/basicBarDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/basicBarDebug/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/basicBarDebug/resources
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2353,6 +3028,44 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/debug/resources
+            otherBar (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./dyn_feature/src/otherBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/otherBar
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/otherBar/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/otherBar/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/otherBar/java
+                    file://./dyn_feature/src/otherBar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/otherBar/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/otherBar/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/otherBar/resources
+            paid (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./dyn_feature/src/paid/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/paid
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/paid/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/paid/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/paid/java
+                    file://./dyn_feature/src/paid/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/paid/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/paid/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/paid/resources
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2372,6 +3085,25 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/release/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/release/resources
+            specialRelease (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./dyn_feature/src/specialRelease/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/specialRelease
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/specialRelease/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/specialRelease/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/specialRelease/java
+                    file://./dyn_feature/src/specialRelease/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/specialRelease/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/specialRelease/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/specialRelease/resources
             test (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -2391,6 +3123,80 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/test/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/test/resources
+            testBar (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/testBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/testBar
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/testBar/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/testBar/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/testBar/java
+                    file://./dyn_feature/src/testBar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/testBar/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/testBar/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/testBar/resources
+            testBasic (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/testBasic/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/testBasic
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/testBasic/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/testBasic/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/testBasic/java
+                    file://./dyn_feature/src/testBasic/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/testBasic/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/testBasic/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/testBasic/resources
+            testBasicBar (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/testBasicBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBar
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBar/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBar/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBar/java
+                    file://./dyn_feature/src/testBasicBar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBar/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBar/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBar/resources
+            testBasicBarDebug (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/testBasicBarDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBarDebug
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBarDebug/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBarDebug/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBarDebug/java
+                    file://./dyn_feature/src/testBasicBarDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBarDebug/jniLibs
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBarDebug/resources
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -2410,6 +3216,44 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/testDebug/resources
+            testOtherBar (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/testOtherBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/testOtherBar
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/testOtherBar/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/testOtherBar/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/testOtherBar/java
+                    file://./dyn_feature/src/testOtherBar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/testOtherBar/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/testOtherBar/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/testOtherBar/resources
+            testPaid (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/testPaid/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/testPaid
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/testPaid/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/testPaid/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/testPaid/java
+                    file://./dyn_feature/src/testPaid/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/testPaid/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/testPaid/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/testPaid/resources
         CurrentAndSomeFrequentlyUsedInactiveSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -2434,6 +3278,82 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/main/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/main/resources
+            bar (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./dyn_feature/src/bar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/bar
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/bar/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/bar/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/bar/java
+                    file://./dyn_feature/src/bar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/bar/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/bar/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/bar/resources
+            basic (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./dyn_feature/src/basic/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/basic
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/basic/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/basic/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/basic/java
+                    file://./dyn_feature/src/basic/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/basic/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/basic/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/basic/resources
+            basicBar (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./dyn_feature/src/basicBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/basicBar
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/basicBar/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/basicBar/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/basicBar/java
+                    file://./dyn_feature/src/basicBar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/basicBar/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/basicBar/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/basicBar/resources
+            basicBarDebug (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./dyn_feature/src/basicBarDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/basicBarDebug
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/basicBarDebug/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/basicBarDebug/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/basicBarDebug/java
+                    file://./dyn_feature/src/basicBarDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/basicBarDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/basicBarDebug/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/basicBarDebug/resources
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2453,6 +3373,44 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/debug/resources
+            otherBar (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./dyn_feature/src/otherBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/otherBar
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/otherBar/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/otherBar/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/otherBar/java
+                    file://./dyn_feature/src/otherBar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/otherBar/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/otherBar/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/otherBar/resources
+            paid (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./dyn_feature/src/paid/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/paid
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/paid/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/paid/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/paid/java
+                    file://./dyn_feature/src/paid/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/paid/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/paid/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/paid/resources
             release (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2472,6 +3430,25 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/release/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/release/resources
+            specialRelease (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./dyn_feature/src/specialRelease/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/specialRelease
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/specialRelease/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/specialRelease/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/specialRelease/java
+                    file://./dyn_feature/src/specialRelease/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/specialRelease/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/specialRelease/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/specialRelease/resources
         CurrentSourceProviders:
             main (IDEA)
                 ScopeType: MAIN
@@ -2496,6 +3473,63 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/main/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/main/resources
+            basic (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./dyn_feature/src/basic/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/basic
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/basic/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/basic/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/basic/java
+                    file://./dyn_feature/src/basic/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/basic/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/basic/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/basic/resources
+            bar (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./dyn_feature/src/bar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/bar
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/bar/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/bar/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/bar/java
+                    file://./dyn_feature/src/bar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/bar/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/bar/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/bar/resources
+            basicBar (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./dyn_feature/src/basicBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/basicBar
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/basicBar/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/basicBar/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/basicBar/java
+                    file://./dyn_feature/src/basicBar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/basicBar/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/basicBar/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/basicBar/resources
             debug (IDEA)
                 ScopeType: MAIN
                 ManifestFileUrls:
@@ -2515,6 +3549,25 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/debug/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/debug/resources
+            basicBarDebug (IDEA)
+                ScopeType: MAIN
+                ManifestFileUrls:
+                    file://./dyn_feature/src/basicBarDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/basicBarDebug
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/basicBarDebug/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/basicBarDebug/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/basicBarDebug/java
+                    file://./dyn_feature/src/basicBarDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/basicBarDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/basicBarDebug/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/basicBarDebug/resources
         CurrentHostTestSourceProviders:
             test (IDEA)
                 ScopeType: UNIT_TEST
@@ -2535,6 +3588,63 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/test/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/test/resources
+            testBasic (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/testBasic/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/testBasic
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/testBasic/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/testBasic/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/testBasic/java
+                    file://./dyn_feature/src/testBasic/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/testBasic/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/testBasic/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/testBasic/resources
+            testBar (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/testBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/testBar
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/testBar/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/testBar/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/testBar/java
+                    file://./dyn_feature/src/testBar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/testBar/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/testBar/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/testBar/resources
+            testBasicBar (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/testBasicBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBar
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBar/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBar/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBar/java
+                    file://./dyn_feature/src/testBasicBar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBar/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBar/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBar/resources
             testDebug (IDEA)
                 ScopeType: UNIT_TEST
                 ManifestFileUrls:
@@ -2554,6 +3664,23 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/testDebug/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/testDebug/resources
+            testBasicBarDebug (IDEA)
+                ScopeType: UNIT_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/testBasicBarDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBarDebug
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBarDebug/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBarDebug/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBarDebug/java
+                    file://./dyn_feature/src/testBasicBarDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBarDebug/jniLibs
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/testBasicBarDebug/resources
         CurrentDeviceTestSourceProviders:
             androidTest (IDEA)
                 ScopeType: ANDROID_TEST
@@ -2574,6 +3701,63 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/androidTest/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/androidTest/resources
+            androidTestBasic (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/androidTestBasic/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasic
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasic/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasic/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasic/java
+                    file://./dyn_feature/src/androidTestBasic/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasic/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasic/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasic/resources
+            androidTestBar (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/androidTestBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBar
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBar/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBar/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBar/java
+                    file://./dyn_feature/src/androidTestBar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBar/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBar/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBar/resources
+            androidTestBasicBar (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/androidTestBasicBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBar
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBar/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBar/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBar/java
+                    file://./dyn_feature/src/androidTestBasicBar/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBar/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBar/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBar/resources
             androidTestDebug (IDEA)
                 ScopeType: ANDROID_TEST
                 ManifestFileUrls:
@@ -2593,6 +3777,25 @@ MODULE: project.dyn_feature
                     file://./dyn_feature/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
                     file://./dyn_feature/src/androidTestDebug/resources
+            androidTestBasicBarDebug (IDEA)
+                ScopeType: ANDROID_TEST
+                ManifestFileUrls:
+                    file://./dyn_feature/src/androidTestBasicBarDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBarDebug
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBarDebug/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBarDebug/java
+                KotlinDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBarDebug/java
+                    file://./dyn_feature/src/androidTestBasicBarDebug/kotlin
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBarDebug/jniLibs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBarDebug/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/androidTestBasicBarDebug/resources
         CurrentTestSuiteSourceProviders:
         CurrentTestFixturesSourceProviders:
 MODULE: project.lib

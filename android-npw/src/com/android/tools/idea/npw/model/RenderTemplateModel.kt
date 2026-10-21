@@ -257,16 +257,19 @@ private constructor(
           useAppCompat = false,
         )
 
-      val renderStrategy =
+      @Suppress("UNCHECKED_CAST")
+      // Allow generic call below as templateRenderStrategyAdditionalUserSettings values are typed by keys.
+      val renderStrategy: TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>? =
         TemplateRendererStrategy.EP_NAME.extensions.firstOrNull {
           it.isProjectApplicable(context.project) && it.isTemplateApplicable(newTemplate)
-        }
+        } as TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>?
 
       val executor =
         if (dryRun) {
           FindReferencesRecipeExecutor(context)
         } else {
-          renderStrategy?.createRecipeExecutor(context) ?: DefaultRecipeExecutor(context)
+          renderStrategy?.createRecipeExecutor(context, templateRenderStrategyAdditionalUserSettings[templateRendererStrategy.value]!!)
+            ?: DefaultRecipeExecutor(context)
         }
 
       return newTemplate.render(context, executor, metrics).also {

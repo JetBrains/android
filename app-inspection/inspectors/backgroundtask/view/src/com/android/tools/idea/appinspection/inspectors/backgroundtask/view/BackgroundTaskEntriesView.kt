@@ -35,6 +35,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.openapi.util.text.StringUtil.escapeXmlEntities
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBViewport
 import java.awt.BorderLayout
@@ -100,7 +101,7 @@ class BackgroundTaskEntriesView(
     override fun update(event: AnActionEvent) {
       if (selectedTag != tableView.treeModel.filterTag) {
         selectedTag = tableView.treeModel.filterTag
-        event.presentation.text = selectedTag ?: BackgroundTaskInspectorBundle.message("action.tag.all")
+        event.presentation.text = selectedTag?.let { escapeXmlEntities(it) } ?: BackgroundTaskInspectorBundle.message("action.tag.all")
       }
       val isTableActive = (contentMode == Mode.TABLE)
       if (event.presentation.isVisible != isTableActive) {
@@ -118,7 +119,7 @@ class BackgroundTaskEntriesView(
   }
 
   /** ToggleAction that filters works with a specific [tag]. */
-  private inner class FilterWithTagToggleAction(private val tag: String?) : ToggleAction(tag ?: "All tags") {
+  private inner class FilterWithTagToggleAction(private val tag: String?) : ToggleAction(tag?.let { escapeXmlEntities(it) } ?: "All tags") {
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
 

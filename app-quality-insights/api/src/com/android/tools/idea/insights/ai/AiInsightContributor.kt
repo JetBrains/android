@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.insights.ai
 
-import com.android.tools.idea.insights.ai.codecontext.CodeContextResolver
-import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
@@ -24,7 +22,7 @@ import kotlinx.coroutines.delay
 import org.jetbrains.annotations.TestOnly
 
 interface AiInsightContributor {
-  suspend fun fetchInsight(connection: Connection, event: Event, project: Project, codeContextResolver: CodeContextResolver): AiInsight
+  suspend fun fetchInsight(event: Event): AiInsight
 
   fun canContribute(): Boolean
 
@@ -48,12 +46,7 @@ class StubAiInsightContributor : AiInsightContributor {
 
   override fun showOnboarding(project: Project) = Unit
 
-  override suspend fun fetchInsight(
-    connection: Connection,
-    event: Event,
-    project: Project,
-    codeContextResolver: CodeContextResolver,
-  ): AiInsight {
+  override suspend fun fetchInsight(event: Event): AiInsight {
     delay(2000)
     return AiInsight(rawInsight = "Fake insight for testing purposes.", event = event, insightSource = InsightSource.STUDIO_BOT)
   }

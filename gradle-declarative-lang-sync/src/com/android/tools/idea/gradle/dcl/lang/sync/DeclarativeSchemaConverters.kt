@@ -60,9 +60,14 @@ fun AnalysisSchema.convert(): BuildDeclarativeSchema {
     dataClasses.putAll(
       genericInstantiationsByFqName
         .mapNotNull {
-          // deliberately ignore generic type for now
+          // deliberately ignore generic type for now, but sort deterministically.
           keyValue ->
-          keyValue.value.values.firstOrNull()?.convert(schema)?.let { keyValue.key.convert() to it }
+          val sortedInstantiations =
+            keyValue.value.entries
+              .sortedBy { (key, _) -> key.joinToString { it.toString() } }
+              .sortedByDescending { (key, _) -> key.any { it.isGeneric() } }
+
+          sortedInstantiations.firstOrNull()?.value?.convert(schema)?.let { keyValue.key.convert() to it }
         }
         .toMap()
     )
@@ -215,5 +220,8 @@ private fun DataType.ParameterizedTypeInstance.TypeArgument.convert(): GenericTy
   }
 
 private fun Name.convert(): DataClassRef = DataClassRef(fqName.convert())
+
+private fun DataType.ParameterizedTypeInstance.TypeArgument.isGeneric(): Boolean =
+  this is DataType.ParameterizedTypeInstance.TypeArgument.ConcreteTypeArgument && type.convert() is GenericTypeRef
 
 private val LOG = Logger.getInstance(GradleSchemaProjectResolver::class.java)

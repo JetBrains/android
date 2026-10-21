@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.FAKE_6_DAYS_AGO
 import com.android.tools.idea.insights.LoadingState
@@ -41,13 +41,13 @@ class DistributionsContainerPanelTest {
   @Test
   fun `show proper empty state message upon receiving exceptional state`() = runBlocking {
     val initialState =
-      AppInsightsState(
+      AppInsightsCrashState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(null, emptyList()), FAKE_6_DAYS_AGO)),
         currentIssueDetails = LoadingState.Loading,
       )
-    val flow = MutableSharedFlow<AppInsightsState>()
+    val flow = MutableSharedFlow<AppInsightsCrashState>()
     val panel = DistributionsContainerPanel(AndroidCoroutineScope(projectRule.disposable, Dispatchers.EDT), flow)
 
     withContext(Dispatchers.EDT) {

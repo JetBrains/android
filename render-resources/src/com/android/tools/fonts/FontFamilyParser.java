@@ -26,6 +26,7 @@ import com.android.ide.common.fonts.MutableFontDetail;
 import com.android.ide.common.fonts.ParseResult;
 import com.android.ide.common.fonts.QueryResolver;
 import com.android.tools.environment.Logger;
+import com.android.utils.XmlUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedHashMap;
@@ -63,9 +64,8 @@ public class FontFamilyParser {
 
   private static ParseResult parseFontReference(@NotNull InputStream xmlStream, @NotNull String fileName)
     throws SAXException, ParserConfigurationException, IOException {
-    SAXParserFactory factory = SAXParserFactory.newInstance();
-    factory.setNamespaceAware(true);
-    SAXParser parser = factory.newSAXParser();
+    SAXParserFactory factory = XmlUtils.getConfiguredSaxFactory(true, false);
+    SAXParser parser = XmlUtils.createSaxParser(factory);
     FontFamilyHandler handler = new FontFamilyHandler(fileName);
     parser.parse(xmlStream, handler);
     return handler.getResult();

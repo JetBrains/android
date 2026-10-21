@@ -69,7 +69,7 @@ public final class EmbeddedDistributionPaths {
       }
 
       // Development build.
-      String embeddedJdkPath = System.getProperty("embedded.jdk.path", "prebuilts/studio/jdk/jbr-next").trim();
+      String embeddedJdkPath = System.getProperty("embedded.jdk.path", "prebuilts/studio/jdk/jbr25").trim();
       Path jdkDir = getJdkRootPathFromSourcesRoot(embeddedJdkPath);
 
       // Resolve real path

@@ -26,11 +26,14 @@ import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
+import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.RunsInEdt
 import java.math.BigDecimal
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
+import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import org.junit.Assume.assumeThat
 import org.junit.Before
 import org.junit.Rule
@@ -380,6 +383,35 @@ class PsVariablesTest {
         otherVariables.entries.keys,
         equalTo(setOf("tmp321", "rootBool", "rootBool3", "tmp999", "rootFloat", "listProp", "mapProp", "boolRoot", "dependencyVersion")),
       )
+    }
+  }
+
+  @Test
+  fun testRenameExtVariablePreservesPrefix() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
+    val projectDir = preparedProject.root
+
+    preparedProject.open { project ->
+      runWriteCommandAction(project) {
+        val buildFile = projectDir.toVirtualFile()!!.createChildData(this, "build.gradle")
+        VfsUtil.saveText(
+          buildFile,
+          """
+          ext.version1 = '1.0'
+          """
+            .trimIndent(),
+        )
+
+        val psProject = PsProjectImpl(project)
+        val variables = psProject.variables
+        val variable = variables.findElement("version1")!!
+
+        variable.setName("version2")
+        psProject.applyChanges()
+
+        val updatedContent = VfsUtil.loadText(buildFile)
+        assertThat(updatedContent.trim(), equalTo("ext.version2 = '1.0'"))
+      }
     }
   }
 }

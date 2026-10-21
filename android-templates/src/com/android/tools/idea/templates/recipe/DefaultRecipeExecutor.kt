@@ -153,6 +153,13 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     applyPluginToProjectAndModule(pluginId, classpathModule, version, buildModel)
   }
 
+  override fun addPluginDeclaration(pluginId: String, classpathModule: String, version: String) {
+    referencesExecutor.addPluginDeclaration(pluginId, classpathModule, version)
+    val projectModel = projectBuildModel ?: return
+    val pluginsHelper = PluginsHelper.withModel(projectModel)
+    pluginsHelper.addPluginOrClasspath(pluginId, classpathModule, version, emptyList())
+  }
+
   override fun applyPluginWithClasspathInModule(pluginId: String, module: Module, classpathModule: String, version: String) {
     referencesExecutor.applyPluginInModule(pluginId, module, classpathModule, version)
     val buildModel = projectBuildModel?.getModuleBuildModel(module) ?: return

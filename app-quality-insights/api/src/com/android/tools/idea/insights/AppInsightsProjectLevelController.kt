@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2026 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,113 +15,17 @@
  */
 package com.android.tools.idea.insights
 
-import com.android.tools.idea.insights.ai.AiInsightToolkit
-import com.android.tools.idea.insights.analytics.IssueSelectionSource
-import com.android.tools.idea.insights.events.actions.Action
-import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.android.tools.idea.insights.model.connection.Connection
-import com.android.tools.idea.insights.model.event.Device
-import com.android.tools.idea.insights.model.event.OperatingSystemInfo
-import com.android.tools.idea.insights.model.event.Version
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
-import com.android.tools.idea.insights.model.issue.FailureType
-import com.android.tools.idea.insights.model.issue.IssueVariant
-import com.android.tools.idea.insights.model.issue.SignalType
-import com.android.tools.idea.insights.model.issue.VisibilityType
-import com.android.tools.idea.insights.model.note.Note
-import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiFile
-import kotlin.reflect.KClass
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
-/** The source-based controller which provides lifecycle and App Insights state data. */
+/**
+ * Base interface for App Insights tab controllers.
+ *
+ * Exposes common information needed for global integration (like connection selection).
+ */
 interface AppInsightsProjectLevelController {
-  /** The source of insights data this controller is for. */
   val provider: InsightsProvider
+  val connections: StateFlow<Selection<Connection>>
 
-  /**
-   * This flow represents the App Insights state of a host Android app module.
-   *
-   * The state includes:
-   * * Active and available [Connection]s of a project.
-   * * Active and available issues of the app(crashes).
-   * * Active and available filters used to fetch the above issues.
-   *
-   * It contains many pieces of data all of which can change independently resulting in a new value produced, as a result it is more
-   * convenient to [map] this flow into multiple sub flows that "focus" on a subset of the data you care about. e.g.
-   *
-   * ```kotlin
-   * val connections: Flow<Selection<VariantConnection>> = ctrl.state.map { it.connections }.distinctUntilChanged()
-   * val issues: Flow<Selection<Issue>> = ctrl.state.filters.map { it.issues }.distinctUntilChanged() }
-   * val selectedIssue: Flow<Issue?> = issues.mapReady { it.selected }.readyOrNull()
-   * ```
-   */
-  val state: Flow<AppInsightsState>
-
-  /** [CoroutineScope] whose lifecycle is tied to current configuration of the host module. */
-  val coroutineScope: CoroutineScope
-
-  /** The project this controller is associated with. */
-  val project: Project
-
-  /** The set of tools used to assist with Ai */
-  val aiInsightToolkit: AiInsightToolkit
-
-  // events
   fun refresh()
-
-  fun selectIssue(value: AppInsightsIssue?, selectionSource: IssueSelectionSource)
-
-  fun selectVersions(values: Set<Version>)
-
-  fun selectDevices(values: Set<Device>)
-
-  fun selectOperatingSystems(values: Set<OperatingSystemInfo>)
-
-  fun selectTimeInterval(value: TimeIntervalFilter)
-
-  fun toggleFailureType(value: FailureType)
-
-  fun enterOfflineMode()
-
-  fun insightsInFile(file: PsiFile): List<AppInsight>
-
-  fun revertToSnapshot(state: AppInsightsState)
-
-  fun selectSignal(value: SignalType)
-
-  fun selectConnection(value: Connection)
-
-  fun nextEvent()
-
-  fun previousEvent()
-
-  fun openIssue(issue: AppInsightsIssue)
-
-  fun closeIssue(issue: AppInsightsIssue)
-
-  fun addNote(issue: AppInsightsIssue, message: String)
-
-  fun deleteNote(note: Note)
-
-  fun selectVisibilityType(value: VisibilityType)
-
-  fun selectIssueVariant(variant: IssueVariant?)
-
-  fun refreshInsight(regenerateWithContext: Boolean, forceGenerateNewInsight: Boolean = false)
-
-  fun submitInsightFeedback(insightFeedback: InsightFeedback)
-
-  /** Disables the [action]. Use [enableAction] to enable the action. */
-  fun disableAction(action: KClass<out Action>)
-
-  /**
-   * Enables the [action].
-   *
-   * **Enabling an action does not call it**. It is the enabler's responsibility to call the enabled action.
-   *
-   * Use [disableAction] to disable the action.
-   */
-  fun enableAction(action: KClass<out Action>)
 }

@@ -29,11 +29,11 @@ import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeAsciiOnly
 
 // This Gradle version is exclusively used for the Sync Comparison Benchmarks and gets updated
 // frequently. Please do not use for other purposes
-const val GRADLE_SNAPSHOT_VERSION = "9.6.0-20260605023413+0000"
-const val GRADLE_DECLARATIVE_SNAPSHOT_VERSION = "9.5.0"
+const val GRADLE_SNAPSHOT_VERSION = "9.7.0-20260731012555+0000"
+const val GRADLE_DECLARATIVE_SNAPSHOT_VERSION = "9.6.0"
 // For available versions:
 // https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev/org/jetbrains/kotlin/kotlin-compiler/maven-metadata.xml
-const val KOTLIN_SNAPSHOT_VERSION = "2.4.0-dev-8268"
+const val KOTLIN_SNAPSHOT_VERSION = "2.5.0-dev-3375"
 
 /** An AGP Version definition to be used in AGP integration tests. */
 enum class AgpVersionSoftwareEnvironmentDescriptor(

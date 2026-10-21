@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.structure.model.PsQuickFix
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Before
+import org.junit.BeforeClass
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations.initMocks
@@ -32,15 +33,43 @@ class DependencyViewIssueRendererTest {
   @Mock private lateinit var context: PsContext
   private lateinit var testIssuePath: PsPath
   private lateinit var testIssue: PsGeneralIssue
-  private lateinit var quickFix: PsQuickFix
-  private lateinit var quickFix2: PsQuickFix
+
+  companion object {
+    private fun createFix(text: String): PsQuickFix =
+      object : PsQuickFix() {
+        override val text = text
+
+        override fun serializedInfo() =
+          when (text) {
+            "QUICK_FIX" -> "1"
+            "QUICK_FIX2" -> "2"
+            else -> "0"
+          }.let { listOf("FIX", it) }
+
+        override fun execute(context: PsContext): Unit = TODO("not implemented")
+      }
+
+    val quickFix = createFix("QUICK_FIX")
+    val quickFix2 = createFix("QUICK_FIX2")
+
+    @BeforeClass
+    @JvmStatic
+    fun beforeClass() {
+      PsQuickFix.registerDeserializer("FIX") { args ->
+        if (args.size != 1) throw IllegalArgumentException()
+        when (args[0]) {
+          "1" -> quickFix
+          "2" -> quickFix2
+          else -> throw IllegalStateException()
+        }
+      }
+    }
+  }
 
   @Before
   fun setUp() {
     initMocks(this)
     testIssuePath = createPath("/PATH")
-    quickFix = createFix("QUICK_FIX")
-    quickFix2 = createFix("QUICK_FIX2")
     testIssue = PsGeneralIssue("TEXT", "DESCRIPTION", testIssuePath, PsIssueType.PROJECT_ANALYSIS, PsIssue.Severity.ERROR, emptyList())
   }
 
@@ -49,13 +78,6 @@ class DependencyViewIssueRendererTest {
       override fun getHyperlinkDestination(context: PsContext): String? = "@$text"
 
       override fun toString(): String = text
-    }
-
-  private fun createFix(text: String): PsQuickFix =
-    object : PsQuickFix {
-      override val text = text
-
-      override fun execute(context: PsContext): Unit = TODO("not implemented")
     }
 
   @Test
@@ -68,7 +90,7 @@ class DependencyViewIssueRendererTest {
   fun testRenderIssue_quickFix() {
     testIssue = testIssue.copy(quickFixes = listOf(quickFix))
     val renderer = DependencyViewIssueRenderer(context, false)
-    assertThat(renderIssue(renderer, testIssuePath), equalTo("TEXT<br/> <a href='go:QUICK_FIX'>[QUICK_FIX]</a>"))
+    assertThat(renderIssue(renderer, testIssuePath), equalTo("TEXT<br/> <a href='psdFix://FIX|1'>[QUICK_FIX]</a>"))
   }
 
   @Test
@@ -81,7 +103,7 @@ class DependencyViewIssueRendererTest {
   fun testRenderIssue_renderPathAndQuickFix() {
     testIssue = testIssue.copy(quickFixes = listOfNotNull(quickFix))
     val renderer = DependencyViewIssueRenderer(context, false)
-    assertThat(renderIssue(renderer, null), equalTo("""<a href="@/PATH">/PATH</a>: TEXT<br/> <a href='go:QUICK_FIX'>[QUICK_FIX]</a>"""))
+    assertThat(renderIssue(renderer, null), equalTo("""<a href="@/PATH">/PATH</a>: TEXT<br/> <a href='psdFix://FIX|1'>[QUICK_FIX]</a>"""))
   }
 
   @Test
@@ -90,16 +112,16 @@ class DependencyViewIssueRendererTest {
     val renderer = DependencyViewIssueRenderer(context, false)
     assertThat(
       renderIssue(renderer, null),
-      equalTo("""<a href="@/PATH">/PATH</a>: TEXT<br/> <a href='go:QUICK_FIX'>[QUICK_FIX]</a> <a href='go:QUICK_FIX2'>[QUICK_FIX2]</a>"""),
+      equalTo(
+        """<a href="@/PATH">/PATH</a>: TEXT<br/> <a href='psdFix://FIX|1'>[QUICK_FIX]</a> <a href='psdFix://FIX|2'>[QUICK_FIX2]</a>"""
+      ),
     )
   }
 
   private fun renderIssue(renderer: IssueRenderer, scope: PsPath?): String {
     val sb = StringBuilder()
     renderer.renderIssue(sb, testIssue, scope)
-    val text = sb.toString()
-    val regex = Regex("psdFix://[0123456789abcdef]+")
-    return regex.replace(text) { match -> match.value.substring("psdFix://".length).let { "go:${PsQuickFix.deserialize(it).text}" } }
+    return sb.toString()
   }
 
   @Test
@@ -112,6 +134,6 @@ class DependencyViewIssueRendererTest {
   fun testRenderIssue_renderDescriptionAndQuickFix() {
     testIssue = testIssue.copy(quickFixes = listOfNotNull(quickFix))
     val renderer = DependencyViewIssueRenderer(context, true)
-    assertThat(renderIssue(renderer, testIssuePath), equalTo("""TEXT<br/> <a href='go:QUICK_FIX'>[QUICK_FIX]</a><br/><br/>DESCRIPTION"""))
+    assertThat(renderIssue(renderer, testIssuePath), equalTo("""TEXT<br/> <a href='psdFix://FIX|1'>[QUICK_FIX]</a><br/><br/>DESCRIPTION"""))
   }
 }

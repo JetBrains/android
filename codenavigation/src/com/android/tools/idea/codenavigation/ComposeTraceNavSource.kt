@@ -23,15 +23,15 @@ import com.google.wireless.android.sdk.stats.ResolveComposeTracingCodeLocationMe
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.JDOMUtil
 import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.util.text.VersionComparatorUtil
 import java.io.File
-import org.apache.maven.artifact.versioning.ComparableVersion
-import org.apache.maven.model.io.DefaultModelReader
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
@@ -143,7 +143,9 @@ internal constructor(
         fileSignaturePairs
           .mapNotNull { (f, s) -> if (s == null) null else f to s }
           .groupBy { (_, s) -> "${s.groupId}:${s.artifactId}" }
-          .mapNotNull { (_, fileSignatureList) -> fileSignatureList.maxByOrNull { (_, s) -> s.version } }
+          .mapNotNull { (_, fileSignatureList) ->
+            fileSignatureList.maxWithOrNull(Comparator { a, b -> VersionComparatorUtil.compare(a.second.version, b.second.version) })
+          }
           .map { (f, _) -> f }
 
       val noSignatureFiles = fileSignaturePairs.filter { (_, s) -> s == null }.map { (f, _) -> f }
@@ -164,8 +166,12 @@ internal constructor(
         val jarPath = file.virtualFile.path.split(".jar!")[0] + ".jar"
         val parentDir = File(jarPath).parentFile?.parentFile ?: return null
         val pomFile: File = parentDir.walkBottomUp().singleOrNull { it.extension == "pom" } ?: return null
-        val model = DefaultModelReader().read(pomFile, mutableMapOf<String, Any>()) ?: return null
-        return with(model) { LibrarySignature(groupId, artifactId, ComparableVersion(version)) }
+        val root = JDOMUtil.load(pomFile)
+        val ns = root.namespace
+        val groupId = root.getChildTextTrim("groupId", ns) ?: root.getChild("parent", ns)?.getChildTextTrim("groupId", ns) ?: return null
+        val artifactId = root.getChildTextTrim("artifactId", ns) ?: return null
+        val version = root.getChildTextTrim("version", ns) ?: root.getChild("parent", ns)?.getChildTextTrim("version", ns) ?: return null
+        return LibrarySignature(groupId, artifactId, version)
       } catch (e: Exception) {
         logger.warn("Issue while trying to get metadata to navigate to code location in file: ${file.virtualFile.path}", e)
         return null
@@ -186,5 +192,5 @@ internal constructor(
     override fun canNavigateToSource(): Boolean = navigatables.any { it.canNavigateToSource() }
   }
 
-  @VisibleForTesting internal data class LibrarySignature(val groupId: String, val artifactId: String, val version: ComparableVersion)
+  @VisibleForTesting internal data class LibrarySignature(val groupId: String, val artifactId: String, val version: String)
 }

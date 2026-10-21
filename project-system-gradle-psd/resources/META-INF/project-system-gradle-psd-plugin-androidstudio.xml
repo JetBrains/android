@@ -20,4 +20,7 @@
     <actionConfigurationCustomizer id="Startup.PsdActionsInitializer" order="after Startup.AndroidStudioInitializer"
                                    implementation="com.android.tools.idea.gradle.structure.PsdActionsInitializer"/>
   </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea.projectsystem">
+    <androidShowStructureSettingsActionToken implementation="com.android.tools.idea.gradle.structure.actions.AndroidShowStructureSettingsActionGradleToken"/>
+  </extensions>
 </idea-plugin>

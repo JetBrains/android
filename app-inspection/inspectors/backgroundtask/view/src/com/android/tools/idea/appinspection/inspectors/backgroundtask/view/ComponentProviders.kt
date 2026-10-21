@@ -20,6 +20,7 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.Constraints
 import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol.JobInfo
 import com.android.tools.adtui.ui.HideablePanel
+import com.android.tools.adtui.util.disableHtml
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorClient
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTracker
@@ -27,6 +28,8 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entr
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
 import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.ui.VerticalFlowLayout
+import com.intellij.openapi.util.text.HtmlChunk
+import com.intellij.openapi.util.text.StringUtil.escapeXmlEntities
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.HorizontalLayout
@@ -50,7 +53,7 @@ interface ComponentProvider<T> {
  * for simple cases.
  */
 class ToStringProvider<T> : ComponentProvider<T> {
-  override fun convert(data: T) = JBLabel(data.toString())
+  override fun convert(data: T) = JBLabel(data.toString()).disableHtml()
 }
 
 /** Provides a component that represents a class name which can be navigated to. */
@@ -61,11 +64,12 @@ class ClassNameProvider(
 ) : ComponentProvider<String> {
   override fun convert(data: String): JComponent {
     return ActionLink(data) {
-      scope.launch {
-        ideServices.navigateTo(AppInspectionIdeServices.CodeLocation.forClass(data))
-        tracker.trackJumpedToSource()
+        scope.launch {
+          ideServices.navigateTo(AppInspectionIdeServices.CodeLocation.forClass(data))
+          tracker.trackJumpedToSource()
+        }
       }
-    }
+      .disableHtml()
   }
 }
 
@@ -96,17 +100,20 @@ class EnqueuedAtProvider(
         add(JBLabel("Unavailable"))
         add(Box.createHorizontalStrut(5))
         val icon = JLabel(StudioIcons.Common.HELP)
-        HelpTooltip().setDescription("Enqueue location is only known for workers started after opening the inspector.").installOn(icon)
+        HelpTooltip()
+          .setDescription(HtmlChunk.text("Enqueue location is only known for workers started after opening the inspector."))
+          .installOn(icon)
         add(icon)
       }
     } else {
       val frame0 = data.getFrames(0)
       ActionLink("${frame0.fileName} (${frame0.lineNumber})") {
-        scope.launch {
-          ideServices.navigateTo(AppInspectionIdeServices.CodeLocation.forFile(frame0.fileName, frame0.lineNumber))
-          tracker.trackJumpedToSource()
+          scope.launch {
+            ideServices.navigateTo(AppInspectionIdeServices.CodeLocation.forFile(frame0.fileName, frame0.lineNumber))
+            tracker.trackJumpedToSource()
+          }
         }
-      }
+        .disableHtml()
     }
   }
 }
@@ -129,7 +136,7 @@ object StringListProvider : ComponentProvider<List<String>> {
  */
 class EntryIdProvider(private val selectEntry: (BackgroundTaskEntry) -> Unit) : ComponentProvider<BackgroundTaskEntry> {
   override fun convert(data: BackgroundTaskEntry): JComponent {
-    return ActionLink(data.className) { selectEntry(data) }.apply { icon = data.icon() }
+    return ActionLink(data.className) { selectEntry(data) }.apply { icon = data.icon() }.disableHtml()
   }
 }
 
@@ -157,7 +164,7 @@ class IdListProvider(
                 .apply {
                   icon = entry.icon()
                   if (work.tagsCount > 0) {
-                    toolTipText = "<html><b>Tags</b><br>${work.tagsList.joinToString("<br>") { "\"$it\"" }}</html>"
+                    toolTipText = "<html><b>Tags</b><br>${work.tagsList.joinToString("<br>") { "\"${escapeXmlEntities(it)}\"" }}</html>"
                   }
                 }
             mixedLabel.add(actionLink)
@@ -166,7 +173,7 @@ class IdListProvider(
             }
             add(mixedLabel)
           } else {
-            add(JBLabel(id))
+            add(JBLabel(id).disableHtml())
           }
         }
       }
@@ -251,8 +258,10 @@ object OutputDataProvider : ComponentProvider<WorkInfo> {
         JPanel(VerticalFlowLayout(0, 0)).apply {
           protoData.entriesList.forEach { pair ->
             val pairPanel = JPanel(HorizontalLayout(0))
-            pairPanel.add(JLabel("${pair.key} = "))
-            pairPanel.add(JLabel("\"${pair.value}\"").apply { foreground = BackgroundTaskInspectorColors.DATA_VALUE_TEXT_COLOR })
+            pairPanel.add(JBLabel("${pair.key} = ").disableHtml())
+            pairPanel.add(
+              JBLabel("\"${pair.value}\"").disableHtml().apply { foreground = BackgroundTaskInspectorColors.DATA_VALUE_TEXT_COLOR }
+            )
             add(pairPanel)
           }
         }

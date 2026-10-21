@@ -37,7 +37,7 @@ class GradleBuildMultipleFailuresParser(failureHandlers: List<FailureDetailsHand
    * ```
    * FAILURE: Build completed with N failures.
    *
-   * i: Task failed with an exception.
+   * i: <Task|BuildAction|...> failed with an exception.
    * -----------
    * * Where:
    * ...
@@ -74,7 +74,8 @@ class GradleBuildMultipleFailuresParser(failureHandlers: List<FailureDetailsHand
   }
 
   private fun parseFailureDetails(id: Int, reader: BuildOutputInstantReader): ParsedFailureDetails? {
-    if (reader.readNextNonEmptyLine() != "$id: Task failed with an exception.") return null
+    val header = reader.readNextNonEmptyLine() ?: return null
+    if (!header.startsWith("$id: ") || !header.endsWith(" failed with an exception.")) return null
     if (reader.readLine() != "-----------") return null
     val result = ParsedFailureDetails()
     var currentBuilder: MutableList<String>? = null

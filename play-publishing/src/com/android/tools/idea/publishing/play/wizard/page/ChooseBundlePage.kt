@@ -16,17 +16,17 @@
 package com.android.tools.idea.publishing.play.wizard.page
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.Composable
@@ -39,42 +39,48 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.focusTarget
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toPainter
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.tools.adtui.compose.LocalProject
 import com.android.tools.adtui.compose.WizardAction
 import com.android.tools.adtui.compose.WizardPageScope
+import com.android.tools.idea.publishing.AdiClient
+import com.android.tools.idea.publishing.RegistrationState
 import com.android.tools.idea.publishing.play.AppMetadata
 import com.android.tools.idea.publishing.play.PlayPublishingUsageTracker
 import com.android.tools.idea.publishing.play.client.PlayPublishingClient
-import com.android.tools.idea.publishing.play.client.PlayPublishingException
 import com.android.tools.idea.publishing.play.client.type.App
 import com.android.tools.idea.publishing.play.extractAppMetadata
 import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardHeader
 import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardState
 // AND-142 JetBrains patch (Google Play Publishing): com.google.gct.login2 is tools/vendor/google/login, which this repository does not carry.
 // import com.google.gct.login2.GoogleLoginService
+// import com.google.gct.login2.ui.GoogleLoginUserRow
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.LocalFileSystem
-// AND-142 JetBrains patch (Google Play Publishing): icons.GoogleLoginIcons is tools/vendor/google/login, which this repository does not
-// carry, and com.intellij.util.ui.ImageUtil was only used by the avatar fallback that goes with it.
-// import com.intellij.util.ui.ImageUtil
-// import icons.GoogleLoginIcons
-import java.awt.geom.Ellipse2D
-import java.awt.image.BufferedImage
+import com.intellij.openapi.vfs.toNioPathOrNull
+import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.Path
+import kotlin.io.path.extension
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.LocalComponent
 import org.jetbrains.jewel.foundation.theme.JewelTheme
@@ -91,139 +97,227 @@ private const val UPLOAD_BUNDLE_DAC_URL = "https://developer.android.com/r/studi
 @Suppress("UnstableApiUsage")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalJewelApi::class)
 @Composable
-fun WizardPageScope.ChooseBundlePage(extractMetadata: suspend (Path) -> AppMetadata = ::extractAppMetadata) {
+fun WizardPageScope.ChooseBundlePage(
+  createAdiClient: (CoroutineScope) -> AdiClient = { AdiClient(it) },
+  shouldExtractMetadata: suspend (Path) -> Boolean = ::shouldExtractMetadata,
+  extractMetadata: suspend (Path) -> AppMetadata = ::extractAppMetadata,
+) {
   // AND-142 JetBrains patch (Google Play Publishing): the signed in user comes from com.google.gct.login2.GoogleLoginService in
   // tools/vendor/google/login, which this repository does not carry.
   // val user by GoogleLoginService.instance.activeUserFlow.collectAsState()
   val project = LocalProject.current
+  val adiClient = remember(coroutineScope) { createAdiClient(coroutineScope) }
   val component = LocalComponent.current
   val state = getOrCreateState<PlayPublishingWizardState> { error("State not initialized") }
-  val isPathLocked = !state.bundlePath.isNullOrEmpty()
-  val initialBundlePath = remember { state.bundlePath ?: project?.guessProjectDir()?.path ?: "" }
+  val pageState = getOrCreateState { ChooseBundlePageState(isPathLocked = !state.bundlePath.isNullOrEmpty()) }
+  val initialBundlePath = remember { state.bundlePath ?: project?.guessBuildPath() ?: "" }
   val bundlePathState = rememberTextFieldState(initialBundlePath)
-  var errorMessage: String? by remember { mutableStateOf(null) }
-  var isAppsLoading by remember { mutableStateOf(true) }
-  val apps: List<App>? by
-    produceState(initialValue = null) {
-      isAppsLoading = true
+  val listAppsResult: ListAppsResult by
+    produceState<ListAppsResult>(initialValue = ListAppsResult.Loading) {
       value =
         try {
-          PlayPublishingClient.getInstance().listApps()
-        } catch (e: PlayPublishingException) {
-          errorMessage = "Failed to check package availability: ${e.message}"
-          null
+          val apps = PlayPublishingClient.getInstance().listApps()
+          ListAppsResult.Success(apps)
         } catch (e: Exception) {
-          errorMessage = "Failed to check package availability: ${e.message}"
-          null
-        } finally {
-          isAppsLoading = false
+          ListAppsResult.Error("Failed to check package availability: ${e.message}")
         }
     }
-  val isAppInConsole = remember(state.packageName, apps) { apps?.any { it.packageName == state.packageName } ?: false }
-  var versionCode: String? by remember { mutableStateOf(null) }
-  var versionName: String? by remember { mutableStateOf(null) }
-  var bannerData: BannerData? by remember { mutableStateOf(null) }
-  var packageNameCheck: PackageNameCheck? by remember { mutableStateOf(null) }
+  val isAppInConsole =
+    remember(state.packageName, listAppsResult) {
+      (listAppsResult as? ListAppsResult.Success)?.apps?.any { it.packageName == state.packageName } ?: false
+    }
+  var metadataResult by pageState::metadataResult
+  fun updateMetadataResult(result: MetadataResult) {
+    metadataResult = result
+    if (result is MetadataResult.Success) {
+      state.appName = result.metadata.appName
+      state.packageName = result.metadata.packageName
+    } else {
+      state.appName = null
+      state.packageName = null
+    }
+  }
+  val metadata = (metadataResult as? MetadataResult.Success)?.metadata
+  val versionName = metadata?.versionName
+  val versionCode = metadata?.versionCode
 
-  LaunchedEffect(apps, isAppInConsole, isAppsLoading, state.packageName, state.isRegistered) {
-    bannerData =
-      when {
-        // Don't show any banner when we are still determining if the user has access to the app.
-        isAppsLoading || state.packageName.isNullOrEmpty() -> null
-        apps != null && state.isRegistered == true && !isAppInConsole -> {
-          BannerData(
-            ElementType.ERROR,
-            """
-      The package name (${state.packageName}) is not available. You can change your package name to another available name from Project Settings and rebuild the distributable.
-    """
-              .trimIndent(),
-          )
+  var registrationResult: RegistrationResult by
+    remember(state.packageName) {
+      mutableStateOf(
+        if (pageState.isPathLocked && state.isRegistered != null) {
+          RegistrationResult.Success(state.isRegistered)
+        } else {
+          RegistrationResult.Loading
         }
-        isPathLocked -> {
-          BannerData(ElementType.SUCCESS, "Field pre-filled from the 'Generate Signed App Bundle or APK' wizard.")
+      )
+    }
+
+  LaunchedEffect(state.packageName, adiClient) {
+    if (pageState.isPathLocked && state.isRegistered != null) {
+      registrationResult = RegistrationResult.Success(state.isRegistered)
+      return@LaunchedEffect
+    }
+    val packageName = state.packageName
+    if (packageName.isNullOrEmpty()) {
+      state.isRegistered = null
+      registrationResult = RegistrationResult.Success(null)
+      return@LaunchedEffect
+    }
+    registrationResult = RegistrationResult.Loading
+
+    try {
+      val (resultMap, _) = withContext(Dispatchers.IO) { adiClient.checkPackageRegistrationStatus(setOf(packageName), null) }
+      val isReg =
+        when (resultMap[packageName]) {
+          RegistrationState.REGISTERED -> true
+          RegistrationState.NOT_REGISTERED -> false
+          else -> null
         }
-        else -> null
+      state.isRegistered = isReg
+      registrationResult = RegistrationResult.Success(isReg)
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      Logger.getInstance("ChooseBundlePage").warn("Failed to check package registration status", e)
+      state.isRegistered = null
+      registrationResult = RegistrationResult.Success(null)
+    }
+  }
+
+  val bundleState =
+    remember(metadataResult, listAppsResult, state.packageName, registrationResult, isAppInConsole) {
+      val registrationResult = registrationResult
+      when (metadataResult) {
+        is MetadataResult.Idle,
+        is MetadataResult.Loading -> BundleState.Loading
+        is MetadataResult.InvalidPath -> BundleState.InvalidPath
+        is MetadataResult.ParseError -> BundleState.ParseError
+        is MetadataResult.Success -> {
+          when (listAppsResult) {
+            is ListAppsResult.Loading -> BundleState.Loading
+            is ListAppsResult.Error -> BundleState.Empty
+            is ListAppsResult.Success -> {
+              when (registrationResult) {
+                is RegistrationResult.Loading -> BundleState.Loading
+                is RegistrationResult.Success -> {
+                  val isRegistered = registrationResult.isRegistered
+                  when {
+                    state.packageName.isNullOrEmpty() -> BundleState.Empty
+                    isRegistered == true && !isAppInConsole -> BundleState.PackageNotAvailable
+                    metadata?.isSigned == false -> BundleState.Unsigned
+                    metadata?.isDebug == true -> BundleState.Debug
+                    else -> BundleState.Valid
+                  }
+                }
+              }
+            }
+          }
+        }
       }
+    }
 
-    packageNameCheck =
+  val packageNameCheck =
+    remember(metadataResult, listAppsResult, state.packageName, registrationResult, isAppInConsole) {
+      val isRegistered = (registrationResult as? RegistrationResult.Success)?.isRegistered
       when {
-        isAppsLoading || apps == null -> null
-        state.isRegistered == false && !state.packageName.isNullOrEmpty() -> {
+        listAppsResult !is ListAppsResult.Success || metadataResult !is MetadataResult.Success -> null
+        isRegistered == false && !state.packageName.isNullOrEmpty() -> {
           PackageNameCheck(ElementType.SUCCESS, "Package name available")
         }
-        state.isRegistered == true && isAppInConsole -> {
+        isRegistered == true && isAppInConsole -> {
           PackageNameCheck(ElementType.SUCCESS, "Matches existing app")
         }
         else -> null
       }
-  }
+    }
 
   LaunchedEffect(bundlePathState.text) {
-    val path = bundlePathState.text.toString()
-    state.bundlePath = path
-    if (errorMessage == "Failed to parse metadata. Please verify that the selected App Bundle (.aab) is valid and not corrupted.") {
-      errorMessage = null
+    val bundlePath = bundlePathState.text.toString()
+    val path =
+      try {
+        Path(bundlePath)
+      } catch (_: Exception) {
+        updateMetadataResult(MetadataResult.InvalidPath)
+        return@LaunchedEffect
+      }
+    if (!shouldExtractMetadata(path)) {
+      updateMetadataResult(MetadataResult.InvalidPath)
+      return@LaunchedEffect
     }
+    state.bundlePath = bundlePath
+    updateMetadataResult(MetadataResult.Loading)
     val metadata =
       try {
-        extractMetadata(Path(path))
+        extractMetadata(path)
       } catch (e: Exception) {
         Logger.getInstance("ChooseBundlePage").warn("Failed to read metadata from bundle", e)
-        errorMessage = "Failed to parse metadata. Please verify that the selected App Bundle (.aab) is valid and not corrupted."
+        updateMetadataResult(MetadataResult.ParseError)
         null
       }
-    state.appName = metadata?.appName
-    state.packageName = metadata?.packageName
-    versionName = metadata?.versionName
-    versionCode = metadata?.versionCode
+
+    if (metadata != null) {
+      updateMetadataResult(MetadataResult.Success(metadata))
+    } else {
+      updateMetadataResult(MetadataResult.ParseError)
+    }
   }
 
   val fileChooserDescriptor = remember {
     FileChooserDescriptor(true, false, false, false, false, false).withFileFilter { it.extension?.lowercase() == "aab" }
   }
 
-  // AND-142 JetBrains patch (Google Play Publishing): the avatar is built from the signed in user and from the fallback icon in
-  // tools/vendor/google/login, which this repository does not carry.
-  // val avatarPainter =
-  //   remember(user) {
-  //     val icon =
-  //       user?.picture?.let { src ->
-  //         val width = 64
-  //         val height = 64
-  //         val dest = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
-  //         val g2d = dest.createGraphics()
-  //         g2d.clip(Ellipse2D.Float(0f, 0f, width.toFloat(), height.toFloat()))
-  //         g2d.drawImage(src, 0, 0, width, height, null)
-  //         g2d.dispose()
-  //         dest
-  //       }
-  //         ?: run {
-  //           val fallbackIcon = GoogleLoginIcons.LOGGED_IN_FALLBACK_USER_AVATAR
-  //           val width = fallbackIcon.iconWidth
-  //           val height = fallbackIcon.iconHeight
-  //           val image = ImageUtil.createImage(width, height, BufferedImage.TYPE_INT_ARGB)
-  //           val g = image.createGraphics()
-  //           fallbackIcon.paintIcon(null, g, 0, 0)
-  //           g.dispose()
-  //           image
-  //         }
-  //     icon.toPainter()
-  //   }
+  val bannerData =
+    when (bundleState) {
+      BundleState.ParseError ->
+        BannerData(
+          ElementType.ERROR,
+          "Failed to parse metadata. Please verify that the selected App Bundle (.aab) is valid and not corrupted.",
+        )
+      BundleState.PackageNotAvailable ->
+        BannerData(
+          ElementType.ERROR,
+          buildAnnotatedString {
+            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("The package name (${state.packageName}) is not available. ") }
+            append("You can change your package name to another available name from Project Settings and rebuild the distributable.")
+          },
+        )
+      BundleState.Unsigned ->
+        BannerData(
+          ElementType.ERROR,
+          buildAnnotatedString {
+            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("App is unsigned. ") }
+            append(
+              "Unsigned apps cannot be uploaded to Google Play. You can generate a signed release build via Build > Generate Signed App Bundle or APK."
+            )
+          },
+        )
+      BundleState.Debug ->
+        BannerData(
+          ElementType.ERROR,
+          buildAnnotatedString {
+            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append("Build type is incorrect. ") }
+            append(
+              "Your app needs to be built for release. You can generate a signed release build via Build > Generate Signed App Bundle or APK."
+            )
+          },
+        )
+      BundleState.Valid ->
+        if (pageState.isPathLocked) BannerData(ElementType.SUCCESS, "Field pre-filled from the 'Generate Signed App Bundle or APK' wizard.")
+        else null
+      BundleState.Loading,
+      BundleState.Empty,
+      BundleState.InvalidPath -> null
+    }
 
   Column(modifier = Modifier.fillMaxSize()) {
     PlayPublishingWizardHeader(subtitle = "Choose App Bundle")
     Column(modifier = Modifier.weight(1f).padding(24.dp).focusTarget()) {
       // User Info
-      // AND-142 JetBrains patch (Google Play Publishing): the signed in account and its avatar come from tools/vendor/google/login, which
-      // this repository does not carry.
-      // Row(verticalAlignment = Alignment.CenterVertically) {
-      //   Image(painter = avatarPainter, contentDescription = null, modifier = Modifier.size(24.dp).clip(RoundedCornerShape(12.dp)))
-      //   Spacer(modifier = Modifier.width(8.dp))
+      // AND-142 JetBrains patch (Google Play Publishing): the signed in account row comes from
+      // com.google.gct.login2.ui.GoogleLoginUserRow in tools/vendor/google/login, which this repository does not carry.
+      // Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
       //   Text("Signed in as: ", style = JewelTheme.defaultTextStyle.copy(fontSize = 13.sp))
-      //   Text(
-      //     text = user?.email ?: throw IllegalStateException("Logged in user not found"),
-      //     style = JewelTheme.defaultTextStyle.copy(fontSize = 13.sp, fontWeight = FontWeight.Bold),
-      //   )
+      //   GoogleLoginUserRow(user = user ?: throw IllegalStateException("Logged in user not found"))
       // }
       //
       // Spacer(modifier = Modifier.height(24.dp))
@@ -241,9 +335,9 @@ fun WizardPageScope.ChooseBundlePage(extractMetadata: suspend (Path) -> AppMetad
         TextField(
           state = bundlePathState,
           modifier = Modifier.weight(1f),
-          enabled = !isPathLocked,
+          enabled = !pageState.isPathLocked,
           trailingIcon =
-            if (isPathLocked) null
+            if (pageState.isPathLocked) null
             else {
               {
                 Icon(
@@ -272,8 +366,8 @@ fun WizardPageScope.ChooseBundlePage(extractMetadata: suspend (Path) -> AppMetad
           // Match the width of the spacer with the label above to align the banner with the path field
           Spacer(Modifier.width(100.dp))
           when (it.type) {
-            ElementType.SUCCESS -> InlineSuccessBanner(it.message)
-            ElementType.ERROR -> InlineErrorBanner(it.message)
+            ElementType.SUCCESS -> InlineSuccessBanner(modifier = Modifier.weight(1f)) { Text(it.message) }
+            ElementType.ERROR -> InlineErrorBanner(modifier = Modifier.weight(1f)) { Text(it.message) }
           }
         }
       }
@@ -297,7 +391,7 @@ fun WizardPageScope.ChooseBundlePage(extractMetadata: suspend (Path) -> AppMetad
           }
         }
 
-        if (bannerData?.type != ElementType.ERROR) {
+        if (bannerData?.type != ElementType.ERROR && !state.packageName.isNullOrEmpty()) {
           Spacer(modifier = Modifier.height(4.dp))
           Column(modifier = Modifier.padding(start = 100.dp)) {
             Text(
@@ -329,12 +423,14 @@ fun WizardPageScope.ChooseBundlePage(extractMetadata: suspend (Path) -> AppMetad
       }
     }
 
-    errorMessage?.let { InlineErrorBanner(it, Modifier.align(Alignment.End).padding(24.dp)) }
+    (listAppsResult as? ListAppsResult.Error)?.let {
+      InlineErrorBanner(it.message, Modifier.align(Alignment.End).padding(24.dp).fillMaxWidth())
+    }
   }
 
   nextActionName = "Next"
   nextAction =
-    if (state.packageName.isNullOrEmpty() || (state.isRegistered == true && !isAppInConsole)) WizardAction.Disabled
+    if (!bundleState.isNextEnabled) WizardAction.Disabled
     else
       WizardAction {
         PlayPublishingUsageTracker.trackChooseBundle(
@@ -352,11 +448,67 @@ fun WizardPageScope.ChooseBundlePage(extractMetadata: suspend (Path) -> AppMetad
       }
 }
 
+internal suspend fun shouldExtractMetadata(path: Path) =
+  withContext(Dispatchers.IO) { path.extension.lowercase() == "aab" && Files.isRegularFile(path) }
+
+private fun Project.guessBuildPath(): String? {
+  val projectDir = guessProjectDir()?.toNioPathOrNull() ?: return guessProjectDir()?.path
+  val appDir = projectDir.resolve("app")
+  return if (Files.isDirectory(appDir)) {
+    appDir.toAbsolutePath().toString()
+  } else {
+    projectDir.toAbsolutePath().toString()
+  }
+}
+
 private enum class ElementType {
   SUCCESS,
   ERROR,
 }
 
-private data class BannerData(val type: ElementType, val message: String)
+private data class BannerData(val type: ElementType, val message: AnnotatedString) {
+  constructor(type: ElementType, text: String) : this(type, buildAnnotatedString { append(text) })
+}
+
+private class ChooseBundlePageState(val isPathLocked: Boolean) {
+  var metadataResult by mutableStateOf<MetadataResult>(MetadataResult.Idle)
+}
 
 private data class PackageNameCheck(val type: ElementType, val message: String)
+
+private enum class BundleState(val isNextEnabled: Boolean = false) {
+  Valid(isNextEnabled = true),
+  InvalidPath,
+  ParseError,
+  PackageNotAvailable,
+  Unsigned,
+  Debug,
+  Loading,
+  Empty,
+}
+
+private sealed interface ListAppsResult {
+  data object Loading : ListAppsResult
+
+  data class Success(val apps: List<App>) : ListAppsResult
+
+  data class Error(val message: String) : ListAppsResult
+}
+
+private sealed interface MetadataResult {
+  data object Idle : MetadataResult
+
+  data object Loading : MetadataResult
+
+  data object InvalidPath : MetadataResult
+
+  data object ParseError : MetadataResult
+
+  data class Success(val metadata: AppMetadata) : MetadataResult
+}
+
+private sealed interface RegistrationResult {
+  data object Loading : RegistrationResult
+
+  data class Success(val isRegistered: Boolean?) : RegistrationResult
+}

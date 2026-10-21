@@ -35,6 +35,7 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.util.ui.JBUI
+import kotlinx.coroutines.launch
 
 /**
  * [AnAction] that triggers a compilation of the current module. The build will automatically trigger a refresh of the surface. The action
@@ -63,15 +64,17 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
       return
     }
 
-    // The PreviewInvalidationManager will avoid refreshing its corresponding preview if it detects
-    // that nothing has changed. But we want to always force a refresh when this button is
-    // pressed.
-    e.dataContext.findPreviewManager(PreviewInvalidationManager.KEY)?.invalidate()
+    e.coroutineScope.launch {
+      // The PreviewInvalidationManager will avoid refreshing its corresponding preview if it detects
+      // that nothing has changed. But we want to always force a refresh when this button is
+      // pressed.
+      e.dataContext.findPreviewManager(PreviewInvalidationManager.KEY)?.invalidate()
 
-    if (!requestBuildForSurface(surface)) {
-      // If there are no models in the surface, we can not infer which models we should trigger
-      // the build for. The fallback is to find the virtual file for the editor and trigger that.
-      LangDataKeys.VIRTUAL_FILE.getData(e.dataContext)?.let { surface.project.requestBuildArtifactsForRendering(it) }
+      if (!requestBuildForSurface(surface)) {
+        // If there are no models in the surface, we can not infer which models we should trigger
+        // the build for. The fallback is to find the virtual file for the editor and trigger that.
+        LangDataKeys.VIRTUAL_FILE.getData(e.dataContext)?.let { surface.project.requestBuildArtifactsForRendering(it) }
+      }
     }
   }
 

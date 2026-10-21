@@ -123,7 +123,7 @@ class HProfBuilder(dos: DataOutputStream, val classNameMapping: ((Class<*>) -> S
       )
     }
     val stackTraceSerialNumber = nextStackTraceSerialNumberID()
-    writer.writeStackTrace(stackTraceSerialNumber, thread.id, stackFrameIds)
+    writer.writeStackTrace(stackTraceSerialNumber, stackTraceSerialNumber.toLong(), stackFrameIds)
     return stackTraceSerialNumber
   }
 

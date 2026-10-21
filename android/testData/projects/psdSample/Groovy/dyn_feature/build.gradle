@@ -19,11 +19,30 @@ apply plugin: 'com.android.dynamic-feature'
 
 android {
     compileSdkVersion 27
-}
 
-configurations {
+    buildTypes {
+        specialRelease {
+        }
+    }
+
+    flavorDimensions 'foo', 'bar'
+    productFlavors {
+        basic {
+            dimension 'foo'
+        }
+        paid {
+            dimension 'foo'
+        }
+        bar {
+            dimension 'bar'
+        }
+        otherBar {
+            dimension 'bar'
+        }
+    }
 }
 
 dependencies {
+    implementation project(':app')
 }
 

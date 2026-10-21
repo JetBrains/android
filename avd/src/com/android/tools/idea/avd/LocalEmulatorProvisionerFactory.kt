@@ -26,8 +26,8 @@ import com.android.tools.idea.avdmanager.AvdScannerService
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerFactory
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
+import kotlin.time.Clock
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.datetime.Clock
 
 /** Builds a LocalEmulatorProvisionerPlugin with its dependencies provided by Studio. */
 class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {

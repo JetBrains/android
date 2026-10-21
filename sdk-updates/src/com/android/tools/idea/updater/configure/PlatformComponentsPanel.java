@@ -20,9 +20,11 @@ import static java.util.Comparator.naturalOrder;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
 import com.android.sdklib.AndroidVersion;
+import com.android.sdklib.devices.Abi;
+import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.utils.ComputerArchUtilsKt;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.TreeMultimap;
@@ -34,17 +36,15 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
 import com.intellij.ui.treeStructure.treetable.TreeColumnInfo;
-import com.intellij.uiDesigner.core.GridConstraints;
-import com.intellij.uiDesigner.core.GridLayoutManager;
-import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.ColumnInfo;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.tree.TreeUtil;
+import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.FlowLayout;
 import java.awt.Insets;
-import java.util.Comparator;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.Set;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -58,16 +58,16 @@ import org.jetbrains.annotations.NotNull;
  */
 public class PlatformComponentsPanel {
   private static final String PLATFORM_DETAILS_CHECKBOX_SELECTED = "updater.configure.platform.details.checkbox.selected";
+  private static final String HIDE_INCOMPATIBLE_SYSTEM_IMAGES_CHECKBOX_SELECTED = "updater.configure.hide.incompatible.system.images.checkbox.selected";
 
-  private TreeTableView myPlatformSummaryTable;
-  private TreeTableView myPlatformDetailTable;
-  private JPanel myPlatformPanel;
-  private JCheckBox myPlatformDetailsCheckbox;
-  private JCheckBox myHideObsoletePackagesCheckbox;
-  private JPanel myPlatformLoadingPanel;
-  private JBLabel myPlatformLoadingLabel;
-  @SuppressWarnings("unused") private AsyncProcessIcon myPlatformLoadingIcon;
-  @SuppressWarnings("unused") private JPanel myRootPanel;
+  private final TreeTableView myPlatformSummaryTable;
+  private final TreeTableView myPlatformDetailTable;
+  private final JPanel myPlatformPanel;
+  private final JCheckBox myPlatformDetailsCheckbox;
+  private final JCheckBox myHideObsoletePackagesCheckbox;
+  private final JCheckBox myHideIncompatibleSystemImagesCheckbox;
+  private final JPanel myPlatformLoadingPanel;
+  private final JPanel myRootPanel;
   private boolean myModified;
 
   @VisibleForTesting
@@ -95,18 +95,71 @@ public class PlatformComponentsPanel {
 
   @VisibleForTesting
   PlatformComponentsPanel(@NotNull PropertiesComponent propertiesComponent) {
-    setupUI();
-    myPlatformSummaryTable.setColumnSelectionAllowed(false);
-    myPlatformLoadingLabel.setForeground(JBColor.GRAY);
+    UpdaterTreeNode.Renderer renderer = new SummaryTreeNode.Renderer();
 
+    ColumnInfo[] platformSummaryColumns =
+      new ColumnInfo[]{new DownloadStatusColumnInfo(), new TreeColumnInfo("Name"), new ApiLevelColumnInfo(), new RevisionColumnInfo(),
+        new StatusColumnInfo()};
+    myPlatformSummaryRootNode = new RootNode();
+    myPlatformSummaryTable = new TreeTableView(new ListTreeTableModelOnColumns(myPlatformSummaryRootNode, platformSummaryColumns));
+    SdkUpdaterConfigPanel.setTreeTableProperties(myPlatformSummaryTable, renderer, myModificationListener);
+    myPlatformSummaryTable.setColumnSelectionAllowed(false);
+
+    ColumnInfo[] platformDetailColumns =
+      new ColumnInfo[]{new DownloadStatusColumnInfo(), new TreeColumnInfo("Name"), new ApiLevelColumnInfo(), new RevisionColumnInfo(),
+        new StatusColumnInfo()};
+    myPlatformDetailsRootNode = new RootNode();
+    myPlatformDetailTable = new TreeTableView(new ListTreeTableModelOnColumns(myPlatformDetailsRootNode, platformDetailColumns));
+    SdkUpdaterConfigPanel.setTreeTableProperties(myPlatformDetailTable, renderer, myModificationListener);
+
+    final JBScrollPane summaryScrollPane = new JBScrollPane(myPlatformSummaryTable);
+    final JBScrollPane detailsScrollPane = new JBScrollPane(myPlatformDetailTable);
+    myPlatformPanel = new JPanel(new CardLayout());
+    myPlatformPanel.add(summaryScrollPane, "summary");
+    myPlatformPanel.add(detailsScrollPane, "details");
+
+    JBLabel platformLoadingLabel = new JBLabel("Looking for updates...");
+    platformLoadingLabel.setForeground(JBColor.GRAY);
+
+    myPlatformLoadingPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, JBUI.scale(5), 0));
+    myPlatformLoadingPanel.add(platformLoadingLabel);
+    myPlatformLoadingPanel.add(new AsyncProcessIcon(CommonBundle.getLoadingTreeNodeText()));
+
+    myHideObsoletePackagesCheckbox = new JCheckBox("Hide obsolete packages");
+    myHideObsoletePackagesCheckbox.setSelected(true);
+    myHideObsoletePackagesCheckbox.addActionListener(e -> updatePlatformItems());
+
+    myHideIncompatibleSystemImagesCheckbox = new JCheckBox("Hide incompatible system images");
+    myHideIncompatibleSystemImagesCheckbox.setSelected(propertiesComponent.getBoolean(HIDE_INCOMPATIBLE_SYSTEM_IMAGES_CHECKBOX_SELECTED, true));
+    myHideIncompatibleSystemImagesCheckbox.addActionListener(e -> {
+      propertiesComponent.setValue(HIDE_INCOMPATIBLE_SYSTEM_IMAGES_CHECKBOX_SELECTED, myHideIncompatibleSystemImagesCheckbox.isSelected());
+      updatePlatformItems();
+    });
+
+    myPlatformDetailsCheckbox = new JCheckBox("Show package details");
     myPlatformDetailsCheckbox.setSelected(propertiesComponent.getBoolean(PLATFORM_DETAILS_CHECKBOX_SELECTED, false));
     myPlatformDetailsCheckbox.addActionListener(e -> {
       propertiesComponent.setValue(PLATFORM_DETAILS_CHECKBOX_SELECTED, myPlatformDetailsCheckbox.isSelected());
       updatePlatformTable();
     });
-    updatePlatformTable();
 
-    myHideObsoletePackagesCheckbox.addActionListener(e -> updatePlatformItems());
+    final JPanel checkboxPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, JBUI.scale(10), 0));
+    checkboxPanel.add(myHideIncompatibleSystemImagesCheckbox);
+    checkboxPanel.add(myHideObsoletePackagesCheckbox);
+    checkboxPanel.add(myPlatformDetailsCheckbox);
+
+    final JPanel bottomControlsPanel = new JPanel(new BorderLayout());
+    bottomControlsPanel.add(myPlatformLoadingPanel, BorderLayout.WEST);
+    bottomControlsPanel.add(checkboxPanel, BorderLayout.EAST);
+
+    myRootPanel = new JPanel(new BorderLayout(0, JBUI.scale(10)));
+    final JBLabel descriptionLabel = new JBLabel(
+      "<html>Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check \"show package details\" to display individual SDK components.</html>");
+    myRootPanel.add(descriptionLabel, BorderLayout.NORTH);
+    myRootPanel.add(myPlatformPanel, BorderLayout.CENTER);
+    myRootPanel.add(bottomControlsPanel, BorderLayout.SOUTH);
+
+    updatePlatformTable();
   }
 
   private void updatePlatformTable() {
@@ -132,6 +185,13 @@ public class PlatformComponentsPanel {
         RepoPackage pkg = info.getRepresentative();
         if (pkg.obsolete() && myHideObsoletePackagesCheckbox.isSelected()) {
           continue;
+        }
+        if (myHideIncompatibleSystemImagesCheckbox.isSelected()) {
+          if (pkg.getTypeDetails() instanceof DetailsTypes.SysImgDetailsType details
+              && !isCompatibleAbi(Abi.getEnum(details.getAbi()))
+              && !info.hasLocal()) {
+            continue;
+          }
         }
         PackageNodeModel model = new PackageNodeModel(info, false);
         myStates.add(model);
@@ -164,25 +224,6 @@ public class PlatformComponentsPanel {
   public void finishLoading() {
     updatePlatformItems();
     myPlatformLoadingPanel.setVisible(false);
-  }
-
-  private void createUIComponents() {
-    UpdaterTreeNode.Renderer renderer = new SummaryTreeNode.Renderer();
-
-    myPlatformLoadingIcon = new AsyncProcessIcon(CommonBundle.getLoadingTreeNodeText());
-    myPlatformSummaryRootNode = new RootNode();
-    myPlatformDetailsRootNode = new RootNode();
-    ColumnInfo[] platformSummaryColumns =
-      new ColumnInfo[]{new DownloadStatusColumnInfo(), new TreeColumnInfo("Name"), new ApiLevelColumnInfo(), new RevisionColumnInfo(),
-        new StatusColumnInfo()};
-    myPlatformSummaryTable = new TreeTableView(new ListTreeTableModelOnColumns(myPlatformSummaryRootNode, platformSummaryColumns));
-    SdkUpdaterConfigPanel.setTreeTableProperties(myPlatformSummaryTable, renderer, myModificationListener);
-
-    ColumnInfo[] platformDetailColumns =
-      new ColumnInfo[]{new DownloadStatusColumnInfo(), new TreeColumnInfo("Name"), new ApiLevelColumnInfo(), new RevisionColumnInfo(),
-        new StatusColumnInfo()};
-    myPlatformDetailTable = new TreeTableView(new ListTreeTableModelOnColumns(myPlatformDetailsRootNode, platformDetailColumns));
-    SdkUpdaterConfigPanel.setTreeTableProperties(myPlatformDetailTable, renderer, myModificationListener);
   }
 
   public void setPackages(@NotNull Multimap<AndroidVersion, UpdatablePackage> packages) {
@@ -219,72 +260,22 @@ public class PlatformComponentsPanel {
     myPlatformDetailTable.setEnabled(enabled);
     myPlatformSummaryTable.setEnabled(enabled);
     myPlatformDetailsCheckbox.setEnabled(enabled);
+    myHideIncompatibleSystemImagesCheckbox.setEnabled(enabled);
   }
 
   public void setConfigurable(@NotNull SdkUpdaterConfigurable configurable) {
     myConfigurable = configurable;
-  }
-
-  private void setupUI() {
-    createUIComponents();
-    myRootPanel = new JPanel();
-    myRootPanel.setLayout(new GridLayoutManager(3, 1, new Insets(0, 0, 0, 0), -1, -1));
-    final JPanel panel1 = new JPanel();
-    panel1.setLayout(new GridLayoutManager(1, 4, new Insets(0, 0, 0, 0), -1, -1));
-    myRootPanel.add(panel1, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
-                                                null, 0, false));
-    myPlatformDetailsCheckbox = new JCheckBox();
-    myPlatformDetailsCheckbox.setText("Show Package Details");
-    panel1.add(myPlatformDetailsCheckbox,
-               new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
-                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myPlatformLoadingPanel = new JPanel();
-    myPlatformLoadingPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-    panel1.add(myPlatformLoadingPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                           GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                           null, null, null, 0, false));
-    myPlatformLoadingLabel = new JBLabel();
-    myPlatformLoadingLabel.setText("Looking for updates...");
-    myPlatformLoadingPanel.add(myPlatformLoadingLabel,
-                               new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
-                                                   GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0,
-                                                   false));
-    myPlatformLoadingPanel.add(myPlatformLoadingIcon,
-                               new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
-                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                   GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
-                                                   null, 0, false));
-    myHideObsoletePackagesCheckbox = new JCheckBox();
-    myHideObsoletePackagesCheckbox.setSelected(true);
-    myHideObsoletePackagesCheckbox.setText("Hide Obsolete Packages");
-    panel1.add(myHideObsoletePackagesCheckbox,
-               new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
-                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    final Spacer spacer1 = new Spacer();
-    panel1.add(spacer1, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                            GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
-    final JBLabel jBLabel1 = new JBLabel();
-    jBLabel1.setText(
-      "<html>Each Android SDK Platform package includes the Android platform and sources pertaining to an API level by default. Once installed, the IDE will automatically check for updates. Check \"show package details\" to display individual SDK components.</html>");
-    myRootPanel.add(jBLabel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
-                                                  GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myPlatformPanel = new JPanel();
-    myPlatformPanel.setLayout(new CardLayout(0, 0));
-    myRootPanel.add(myPlatformPanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                         GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null,
-                                                         null, null, 0, false));
-    final JBScrollPane jBScrollPane1 = new JBScrollPane();
-    myPlatformPanel.add(jBScrollPane1, "summary");
-    jBScrollPane1.setViewportView(myPlatformSummaryTable);
-    final JBScrollPane jBScrollPane2 = new JBScrollPane();
-    myPlatformPanel.add(jBScrollPane2, "details");
-    jBScrollPane2.setViewportView(myPlatformDetailTable);
+    PackageDetailsPopup.addPackageDetailsPopup(myPlatformDetailTable);
   }
 
   public JComponent getRootComponent() { return myRootPanel; }
+
+  private static boolean isCompatibleAbi(@NotNull Abi abi) {
+    return switch (ComputerArchUtilsKt.getOsArchitecture()) {
+      case X86_64 -> abi == Abi.X86_64 || abi == Abi.X86;
+      case ARM, X86_ON_ARM -> abi == Abi.ARM64_V8A;
+      // The emulator doesn't run on 32-bit x86 or other architectures.
+      default -> false;
+    };
+  }
 }

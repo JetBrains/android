@@ -20,6 +20,7 @@ import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.idea.common.error.DesignerCommonIssuePanel
+import com.android.tools.idea.common.error.IssueProviderListener
 import com.android.tools.idea.common.error.SharedIssuePanelProvider
 import com.android.tools.idea.common.surface.getDesignSurface
 import com.android.tools.idea.compose.ComposeProjectRule
@@ -63,14 +64,19 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.So
 import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.PreviewDisplaySettings.Background
+import com.android.tools.visuallint.VisualLintErrorType
+import com.android.utils.HtmlBuilder
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataSink
 import com.intellij.openapi.actionSystem.EdtNoGetDataProvider
@@ -122,6 +128,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.clearInvocations
+import org.mockito.Mockito.spy
+import org.mockito.Mockito.verify
+import org.mockito.kotlin.whenever
 
 /**
  * Utility method for tests that shows the string by splitting [background] into two separate components as it is defined in the `Preview`
@@ -821,6 +831,53 @@ class ComposePreviewRepresentationTest {
   }
 
   @Test
+  fun testInteractivePreviewNavigationPanelAndZoomToFitState() = runComposePreviewRepresentationTest {
+    val composePreviewRepresentation = createPreviewAndCompile(expectedModelCount = 2)
+    val previewElements = mainSurface.models.mapNotNull { it.dataProvider?.previewElement() }
+    val selectedPreviewElement = previewElements.first()
+    val interactiveNavigationController = composePreviewRepresentation.getInteractiveNavigationControllerForTestOnly()
+
+    // When interactivePreviewNavigationController.canShowNavigationPanel() is true, starting Interactive Preview mode should automatically
+    // display the bottom navigation panel
+    val composeViewAdapterWithNavigationDisplay = TestComposeViewAdapterViewObj(onBackPressProgressCallback = { _, _ -> })
+    interactiveNavigationController.updateObjects(
+      currentNavigationEventDispatcherOwnerObj = null,
+      currentComposeViewAdapterObj = composeViewAdapterWithNavigationDisplay,
+      hasNavDisplay = true,
+    )
+    assertThat(interactiveNavigationController.canShowNavigationPanel()).isTrue()
+
+    setModeAndWaitForRefresh(PreviewMode.Interactive(selectedPreviewElement))
+
+    assertThat(interactiveNavigationController.canShowNavigationPanel()).isTrue()
+    assertThat(composePreviewRepresentation.getBottomPanelForTestOnly()).isNotNull()
+
+    // Ensure the view to zoom-to-fit (canZoomToFit is false).
+    assertThat(mainSurface.zoomController.canZoomToFit()).isFalse()
+
+    // Switch back to Default mode.
+    setModeAndWaitForRefresh(PreviewMode.Default())
+
+    // When interactivePreviewNavigationController.canShowNavigationPanel() is false starting Interactive Preview mode should keep the
+    // bottom navigation panel null.
+    val composeViewAdapterWithoutNavigationDisplay = TestComposeViewAdapterViewObj(onBackPressProgressCallback = { _, _ -> })
+    interactiveNavigationController.updateObjects(
+      currentNavigationEventDispatcherOwnerObj = null,
+      currentComposeViewAdapterObj = composeViewAdapterWithoutNavigationDisplay,
+      hasNavDisplay = false,
+    )
+    assertThat(interactiveNavigationController.canShowNavigationPanel()).isFalse()
+
+    setModeAndWaitForRefresh(PreviewMode.Interactive(selectedPreviewElement))
+
+    assertThat(interactiveNavigationController.canShowNavigationPanel()).isFalse()
+    assertThat(composePreviewRepresentation.getBottomPanelForTestOnly()).isNull()
+
+    // Ensure the view is in zoom-to-fit (canZoomToFit is false).
+    assertThat(mainSurface.zoomController.canZoomToFit()).isFalse()
+  }
+
+  @Test
   fun testResizePanelIsCreatedInFocusMode_flagTrue() = runComposePreviewRepresentationTest {
     StudioFlags.COMPOSE_PREVIEW_RESIZING.overrideForTest(true, projectRule.fixture.testRootDisposable)
     createPreviewAndCompile()
@@ -1293,6 +1350,68 @@ class ComposePreviewRepresentationTest {
           assertTrue(composeView.hasContent)
         }
       )
+    }
+  }
+
+  // Regression test for b/414550996
+  @Test
+  fun testUiCheckZoomToFitOnIssueUpdate() {
+    val surface = NlSurfaceBuilder.builder(fixture.project, fixture.testRootDisposable, false).build()
+
+    // Use a Mockito spy to keep real DesignSurface behavior, but intercept the zoomController.
+    // A spy is needed here because mocking the entire NlDesignSurface is too complex and would break most of its internal state flows and
+    // lifecycle management required by the preview representation.
+    val surfaceSpy = spy(surface)
+
+    // Register the spy with Disposer to avoid undisposed resource leaks.
+    Disposer.register(fixture.testRootDisposable, surfaceSpy)
+
+    // A Mockito spy is needed for zoomController to verify zoomToFit() call without overriding other zoom behaviors or state transitions of
+    // the real ZoomController.
+    val zoomControllerSpy = spy(surface.zoomController)
+    whenever(surfaceSpy.zoomController).thenReturn(zoomControllerSpy)
+
+    runComposePreviewRepresentationTest(mainSurface = surfaceSpy) {
+      createPreviewAndCompile()
+      val previewElements = surfaceSpy.models.mapNotNull { it.dataProvider?.previewElement() }
+      val uiCheckElement = previewElements.first()
+
+      // Start UI Check mode
+      setModeAndWaitForRefresh(PreviewMode.UiCheck(UiCheckInstance(uiCheckElement, isWearPreview = false)))
+
+      // Clear invocations on the zoomControllerSpy from setting up UI check mode
+      clearInvocations(zoomControllerSpy)
+
+      val model = surfaceSpy.models.first()
+      val issue =
+        VisualLintRenderIssue.builder()
+          .model(model)
+          .summary("Test Visual Lint Issue")
+          .severity(HighlightSeverity.WARNING)
+          .contentDescriptionProvider { HtmlBuilder() }
+          .components(mutableListOf())
+          .type(VisualLintErrorType.BOUNDS)
+          .build()
+
+      surfaceSpy.visualLintIssueProvider.addAllIssues(listOf(issue))
+
+      val issueModel = VisualLintService.getInstance(project).issueModel
+
+      // Associate the issue with the Composable instance ID so the notification is not filtered out.
+      issueModel.uiCheckInstanceId = uiCheckElement.instanceId
+
+      // Trigger issue update notification
+      project.messageBus.syncPublisher(IssueProviderListener.UI_CHECK).issueUpdated(issueModel, listOf(issue))
+
+      // Wait for EDT to process the invokeLater in postIssueUpdateListenerForUiCheck
+      delayUntilCondition(100) {
+        try {
+          verify(zoomControllerSpy).zoomToFit()
+          true
+        } catch (_: Throwable) {
+          false
+        }
+      }
     }
   }
 

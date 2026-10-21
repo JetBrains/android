@@ -121,7 +121,7 @@ PROJECT                       : kotlinMultiPlatform
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:app:main]
@@ -289,7 +289,7 @@ PROJECT                       : kotlinMultiPlatform
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
@@ -414,7 +414,7 @@ PROJECT                       : kotlinMultiPlatform
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:app:main]
@@ -641,7 +641,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/module2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -767,7 +767,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/module2/build/generated/ap_generated_sources/debug/out [-]
@@ -885,7 +885,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/module2/build/generated/ap_generated_sources/debugUnitTest/out [-]

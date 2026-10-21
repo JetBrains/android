@@ -25,6 +25,7 @@ import junit.framework.TestCase
 
 private const val NAME_FORMAT = "ZipUtilTest/file%d.txt"
 private const val TEXT_FORMAT = "This is file %d."
+private const val FILE_COUNT = 3
 
 class ZipUtilTest : TestCase() {
   lateinit var testDirectoryPath: Path
@@ -41,7 +42,7 @@ class ZipUtilTest : TestCase() {
 
   fun testZipFiles() {
     val list = mutableListOf<ZipData>()
-    for (i in 1..3) {
+    for (i in 1..FILE_COUNT) {
       val filePath = testDirectoryPath.resolve("file$i.txt").toString()
       File(filePath).writeText(TEXT_FORMAT.format(i))
       val data = ZipData(filePath, NAME_FORMAT.format(i))
@@ -49,10 +50,15 @@ class ZipUtilTest : TestCase() {
     }
 
     val archive = testDirectoryPath.resolve("archive.zip").toString()
-    zipFiles(list.toTypedArray(), archive)
+    var count = 0
+    val data = mutableListOf<ZipData>()
+    zipFiles(list, archive) {
+      count++
+      data.add(it)
+    }
 
     ZipFile(archive).use {
-      assertThat(it.entries().toList().count()).isEqualTo(3)
+      assertThat(it.entries().toList().count()).isEqualTo(FILE_COUNT)
 
       var i = 0
       for (entry in it.entries()) {
@@ -62,6 +68,11 @@ class ZipUtilTest : TestCase() {
         val bytes = String(input.readBytes())
         assertThat(bytes).isEqualTo(TEXT_FORMAT.format(i))
       }
+    }
+
+    assertThat(count).isEqualTo(FILE_COUNT)
+    for (i in 1..FILE_COUNT) {
+      assertThat(data[i - 1].path).isEqualTo(testDirectoryPath.resolve("file$i.txt").toString())
     }
   }
 }

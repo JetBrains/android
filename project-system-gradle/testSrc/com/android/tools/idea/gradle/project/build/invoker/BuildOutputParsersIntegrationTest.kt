@@ -32,8 +32,8 @@ import com.google.wireless.android.sdk.stats.BuildErrorMessage.ErrorType.XML_PAR
 import com.google.wireless.android.sdk.stats.BuildErrorMessage.FileType.PROJECT_FILE
 import com.google.wireless.android.sdk.stats.BuildErrorMessage.FileType.UNKNOWN_FILE_TYPE
 import com.intellij.build.BuildTreeConsoleView
+import com.intellij.build.BuildTreeNode
 import com.intellij.build.BuildViewManager
-import com.intellij.build.ExecutionNode
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.FailureResultImpl
@@ -50,6 +50,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.platform.testFramework.assertion.BuildViewAssertions
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.BuildViewTestFixture
 import com.intellij.testFramework.registerExtension
@@ -201,8 +202,10 @@ class BuildOutputParsersIntegrationTest {
 
   private fun getMatchingNodesConsoleContent(nameFilter: Predicate<String>): String {
     val buildView = projectRule.project.getService(BuildViewManager::class.java).getBuildView(myTaskId)!!
-    val eventView = buildView.getView(BuildTreeConsoleView::class.java.name, BuildTreeConsoleView::class.java)
-    eventView!!.addFilter { true }
+    val eventView = buildView.getView(BuildTreeConsoleView::class.java.name, BuildTreeConsoleView::class.java)!!
+    BuildViewAssertions.showAllNodes(eventView)
+    BuildViewAssertions.assertBuildViewTreeText(buildView) { println("=== Tree Presentation\n$it\n===") }
+
     val tree = eventView.tree
     val nodes = runInEdtAndGet {
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -211,7 +214,7 @@ class BuildOutputParsersIntegrationTest {
       TreeUtil.treeNodeTraverser(tree.model.root as DefaultMutableTreeNode)
         .filter {
           val userObject = (it as DefaultMutableTreeNode).userObject
-          userObject is ExecutionNode && nameFilter.test(userObject.name)
+          nameFilter.test(userObject.toString())
         }
         .toList()
     }
@@ -235,11 +238,11 @@ class BuildOutputParsersIntegrationTest {
       }
       val selectedNodeConsole = runInEdtAndGet { eventView.selectedNodeConsole }
 
-      val executionNode = (node as DefaultMutableTreeNode).userObject as ExecutionNode
+      val buildTreeNode = (node as DefaultMutableTreeNode).userObject as BuildTreeNode
       val kind =
         when {
-          executionNode.isFailed -> "ERROR"
-          executionNode.hasWarnings() -> "WARNING"
+          buildTreeNode.visibleAlways -> "ERROR"
+          buildTreeNode.visibleAsWarning -> "WARNING"
           else -> ""
         }
 

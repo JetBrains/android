@@ -18,52 +18,63 @@ package com.android.tools.profilers
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
-import com.android.tools.profilers.cpu.CpuCaptureStageUtils
 import com.android.tools.profilers.cpu.ProfilerInEditorUtils
+import com.android.tools.profilers.memory.HeapProfdSessionArtifact
+import com.android.tools.profilers.memory.HprofSessionArtifact
+import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact
 import com.android.tools.profilers.sessions.SessionItem
+import com.android.tools.profilers.tasks.ProfilerTaskType
 import java.io.File
 
 /** Helper class responsible for handling the opening of editor enabled tasks via the Unified Profiler. */
 class UnifiedTraceOpener(private val profilers: StudioProfilers) {
 
   fun openUnifiedTrace(session: Common.Session, sessionItems: Map<Long, SessionItem>): Boolean {
-    val services = profilers.ideServices
-    val config = services.featureConfig
-
     val currentTaskType = profilers.sessionsManager.currentTaskType
-    val isTraceInEditorEnabled = ProfilerInEditorUtils.isEditorEnabled(config, currentTaskType)
-
-    if (!isTraceInEditorEnabled) {
+    if (!ProfilerInEditorUtils.isEditorEnabled(profilers.ideServices.featureConfig, currentTaskType)) {
       return false
     }
 
     // Try opening from a saved Artifact (Completed session)
     val sessionItem = sessionItems[session.sessionId] ?: return false
+    val artifacts = sessionItem.getChildArtifacts()
 
-    // Find the first CpuCaptureSessionArtifact (Kotlin makes this cleaner than streams)
-    val cpuArtifact = sessionItem.getChildArtifacts().filterIsInstance<CpuCaptureSessionArtifact>().firstOrNull() ?: return false
+    val isCpuTrace =
+      currentTaskType == ProfilerTaskType.SYSTEM_TRACE ||
+        currentTaskType == ProfilerTaskType.CALLSTACK_SAMPLE ||
+        currentTaskType == ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING
 
-    return openArtifactFile(session, cpuArtifact)
+    if (isCpuTrace) {
+      val traceId = artifacts.firstNotNullOfOrNull { (it as? CpuCaptureSessionArtifact)?.artifactProto?.traceId } ?: return false
+      return openTrace(session, traceId, ProfilerCaptureFileUtils.getTraceFile(traceId))
+    }
+
+    return artifacts
+      .firstNotNullOfOrNull {
+        when (it) {
+          is HprofSessionArtifact -> Pair(it.artifactProto.startTime, "hprof")
+          is LegacyAllocationsSessionArtifact -> Pair(it.artifactProto.startTime, "alloc")
+          is HeapProfdSessionArtifact -> Pair(it.artifactProto.fromTimestamp, "heapprofd")
+          else -> null
+        }
+      }
+      ?.let { (startTime, extension) ->
+        openTrace(session, startTime, ProfilerCaptureFileUtils.getCaptureFile("capture_$startTime.$extension"))
+      } ?: false
   }
 
-  private fun openArtifactFile(session: Common.Session, artifact: CpuCaptureSessionArtifact): Boolean {
-    val traceId = artifact.artifactProto.traceId
-
+  private fun openTrace(session: Common.Session, traceId: Long, localCache: File): Boolean {
     // Ask the transport daemon for the file path
-    val traceRequest = Transport.BytesRequest.newBuilder().setStreamId(session.streamId).setId(traceId.toString()).build()
+    val request = Transport.BytesRequest.newBuilder().setStreamId(session.streamId).setId(traceId.toString()).build()
+    val response = profilers.client.transportClient.getFile(request)
 
-    val traceResponse = profilers.client.transportClient.getFile(traceRequest)
-    if (traceResponse.filePath.isEmpty()) {
+    if (response.filePath.isEmpty()) {
       return false
     }
 
     // Resolve the actual file on disk
-    var traceFile = File(traceResponse.filePath)
-    val localCache = CpuCaptureStageUtils.getTraceFile(traceId)
+    val traceFile = localCache.takeIf { it.exists() } ?: File(response.filePath)
 
-    if (localCache.exists()) {
-      traceFile = localCache
-    }
     return profilers.ideServices.openTraceFile(traceFile)
   }
 }

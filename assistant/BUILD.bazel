@@ -66,7 +66,6 @@ jvm_library(
         # do not sort,
         ":assistant",
         "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
         "//libraries/guava:guava_test_lib",
         "//libraries/http-client:http-client_test_lib",
         "//libraries/jaxb:jaxb_test_lib",

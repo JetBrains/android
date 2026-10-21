@@ -183,6 +183,21 @@ class VersionCatalogFindKeyTest {
   }
 
   @Test
+  fun testFindWhenKeyContainsBackticks() {
+    testFindKeyInCatalog(
+      """
+      [libraries]
+      groovy-for-core = "lib"
+      """
+        .trimIndent(),
+      "groovy.`for`.core",
+    ) {
+      assertThat(it).isNotNull()
+      assertThat(it!!.text).isEqualTo("groovy-for-core = \"lib\"")
+    }
+  }
+
+  @Test
   fun testFindFirstLetterWithDifferentCase() {
     testFindKeyInCatalog(
       """

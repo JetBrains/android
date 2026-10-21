@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.memory
 
+import com.android.tools.profilers.ProfilerContext
 import com.android.tools.profilers.StreamingStage
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.adapters.CaptureObject
@@ -32,9 +33,13 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 
-abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val loader: CaptureObjectLoader) : StreamingStage(profilers) {
+abstract class BaseMemoryProfilerStage(
+  profilers: StudioProfilers,
+  val context: ProfilerContext,
+  protected val loader: CaptureObjectLoader,
+) : StreamingStage(profilers) {
 
-  val captureSelection = MemoryCaptureSelection(profilers.ideServices)
+  val captureSelection = MemoryCaptureSelection(context.ideProfilerServices)
   protected var pendingCaptureStartTime = INVALID_START_TIME
   protected var updateCaptureOnSelection = true
   val isPendingCapture
@@ -50,6 +55,7 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
   }
 
   override fun onExit() {
+    captureSelection.selectCaptureEntry(null)
     hasExited = true
   }
 
@@ -91,8 +97,7 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
 
     updateCaptureOnSelection = true
 
-    val isSessionAlive = studioProfilers.sessionsManager.isSessionAlive
-    val isTaskBasedUxEnabled = studioProfilers.ideServices.featureConfig.isTaskBasedUxEnabled
+    val isTaskBasedUxEnabled = context.ideProfilerServices.featureConfig.isTaskBasedUxEnabled
     val queryRange = timeline.selectionRange
     val load = Runnable {
       // This might be scheduled to run later when this stage has been exited, so need to check
@@ -143,11 +148,11 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
       )
     }
 
-    studioProfilers.ideServices.runAsync(captureObject::canSafelyLoad) { canLoad ->
+    context.ideProfilerServices.runAsync(captureObject::canSafelyLoad) { canLoad ->
       when {
         canLoad -> load.run()
         else ->
-          studioProfilers.ideServices.openYesNoDialog(
+          context.ideProfilerServices.openYesNoDialog(
             "The hprof file is large, and " +
               ApplicationNamesInfo.getInstance().getFullProductName() +
               " may become unresponsive while " +

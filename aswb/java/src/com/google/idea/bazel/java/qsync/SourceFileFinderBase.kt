@@ -87,7 +87,7 @@ constructor(
 
   private val javaArtifactInfos: List<JavaArtifactInfo> by lazy {
     val file = clsFile.containingFile.virtualFile
-    val jar = JarFileSystem.getInstance().getLocalVirtualFileFor(file) ?: return@lazy emptyList()
+    val jar = JarFileSystem.getInstance().getVirtualFileForJar(file) ?: return@lazy emptyList()
 
     var jarPath = jar.toNioPath()
     if (!jarPath.startsWith(projectPath)) {
@@ -105,8 +105,12 @@ constructor(
 
   protected fun containsClass(file: PsiFile?): Boolean {
     if (file is KtFile) {
-      val facadeFqName = JvmFileClassUtil.getFileClassInfoNoResolve(file).facadeClassFqName
-      if (facadeFqName.asString() in qualifiedClassNames) {
+      val facadeFqName = JvmFileClassUtil.getFileClassInfoNoResolve(file).facadeClassFqName.asString()
+      if (facadeFqName in qualifiedClassNames) {
+        return true
+      }
+      val facadeFqNameWithoutKt = facadeFqName.removeSuffix("Kt")
+      if (facadeFqNameWithoutKt in qualifiedClassNames) {
         return true
       }
     }

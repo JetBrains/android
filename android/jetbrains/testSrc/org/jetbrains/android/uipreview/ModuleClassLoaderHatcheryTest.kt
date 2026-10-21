@@ -17,9 +17,11 @@ package org.jetbrains.android.uipreview
 
 import com.android.tools.idea.rendering.StudioModuleRenderContext
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.rendering.classloading.ClassTransform
 import com.android.tools.rendering.classloading.FirewalledResourcesClassLoader
 import com.android.tools.rendering.classloading.toClassTransform
 import com.android.tools.rendering.classloading.useWithClassLoader
+import java.util.concurrent.Executor
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -103,6 +105,90 @@ class ModuleClassLoaderHatcheryTest {
       // This request is using a different parent, we should not have anything available and should return null
       val parent2 = FirewalledResourcesClassLoader(null)
       assertNull(hatchery.requestClassLoader(parent2, donor.projectClassesTransform, donor.nonProjectClassesTransform))
+    }
+  }
+
+  @Test
+  fun `hatchery does not mix null and non-null parent requests`() {
+    val hatchery = ModuleClassLoaderHatchery(1, 1, parentDisposable = project.testRootDisposable)
+    val parent = FirewalledResourcesClassLoader(null)
+
+    StudioModuleClassLoaderManager.get().getPrivate(parent, StudioModuleRenderContext.forModule(project.module)).useWithClassLoader { donor
+      ->
+      val creationContext = StudioModuleClassLoaderCreationContext.fromClassLoaderOrThrow(donor)
+      val cloner: (StudioModuleClassLoaderCreationContext) -> StudioModuleClassLoader? = { d -> d.createClassLoader() }
+
+      // 1. Request with null parent
+      assertNull(hatchery.requestClassLoader(null, donor.projectClassesTransform, donor.nonProjectClassesTransform))
+
+      // 2. Try to incubate with a donor that has a non-null parent.
+      // Under buggy Request.equals contract, it would match and return true.
+      // Under correct contract, it should return false because they have different parent class loaders.
+      assertFalse(hatchery.incubateIfNeeded(creationContext, cloner))
+    }
+  }
+
+  @Test
+  fun `clutch retrieval handles GCed classloader gracefully`() {
+    val hatchery = ModuleClassLoaderHatchery(capacity = 1, copies = 2, parentDisposable = project.testRootDisposable)
+
+    StudioModuleClassLoaderManager.get().getPrivate(null, StudioModuleRenderContext.forModule(project.module)).useWithClassLoader { donor ->
+      val creationContext = StudioModuleClassLoaderCreationContext.fromClassLoaderOrThrow(donor)
+      val cloner: (StudioModuleClassLoaderCreationContext) -> StudioModuleClassLoader? = { d -> d.createClassLoader() }
+
+      // 1. Record the request
+      assertNull(hatchery.requestClassLoader(null, donor.projectClassesTransform, donor.nonProjectClassesTransform))
+
+      // 2. Incubate a clutch with 2 copies
+      assertTrue(hatchery.incubateIfNeeded(creationContext, cloner))
+
+      // 3. Clear/dispose the first copy's classloader to simulate GC
+      hatchery.disposeFirstEggForTesting()
+
+      // 4. Request classloader. Under buggy code, sequence terminates and returns null.
+      // Under correct code, the second copy is successfully retrieved and returned.
+      val retrieved = hatchery.requestClassLoader(null, donor.projectClassesTransform, donor.nonProjectClassesTransform)
+      assertNotNull(retrieved)
+    }
+  }
+
+  @Test
+  fun `hatchery limits the number of pending requests`() {
+    val hatchery = ModuleClassLoaderHatchery(capacity = 1, copies = 1, maxRequestsSize = 5, parentDisposable = project.testRootDisposable)
+
+    // Request many unique configurations
+    repeat(50) { i ->
+      val projectTransform = toClassTransform({ TestClassVisitorWithId("project-$i") })
+      hatchery.requestClassLoader(null, projectTransform, ClassTransform.identity)
+    }
+
+    // Verify that the size of pending requests is bounded to the configured limit
+    assertEquals(5, hatchery.getRequestsSizeForTesting())
+  }
+
+  @Test
+  fun `clutch fallback compatibility check during background preloading`() {
+    val commands = mutableListOf<Runnable>()
+    val delayedExecutor = Executor { command -> commands.add(command) }
+
+    val hatchery =
+      ModuleClassLoaderHatchery(capacity = 1, copies = 1, executor = delayedExecutor, parentDisposable = project.testRootDisposable)
+
+    StudioModuleClassLoaderManager.get().getPrivate(null, StudioModuleRenderContext.forModule(project.module)).useWithClassLoader { donor ->
+      val creationContext = StudioModuleClassLoaderCreationContext.fromClassLoaderOrThrow(donor)
+      val cloner: (StudioModuleClassLoaderCreationContext) -> StudioModuleClassLoader? = { d -> d.createClassLoader() }
+
+      // 1. Record the request
+      assertNull(hatchery.requestClassLoader(null, donor.projectClassesTransform, donor.nonProjectClassesTransform))
+
+      // 2. Incubate. This will submit the preloading command to our delayedExecutor, so eggs queue remains empty!
+      assertTrue(hatchery.incubateIfNeeded(creationContext, cloner))
+
+      // 3. Request classloader again. Since eggs queue is empty, isCompatible should fall back to donor metadata check
+      // and find it compatible, but return null since no copies are fully prepared yet.
+      // We verify that it does not add a new request by incubating again with the same donor.
+      // If it recorded a new request, incubateIfNeeded would return true. If it found it compatible (and didn't record), it returns false.
+      assertFalse(hatchery.incubateIfNeeded(creationContext, cloner))
     }
   }
 }

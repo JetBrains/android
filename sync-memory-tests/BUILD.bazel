@@ -16,7 +16,6 @@ jvm_library(
     visibility = ["//visibility:public"],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
         "//libraries/gson",
         "@lib//:kotlin-stdlib",
     ],
@@ -34,7 +33,6 @@ jvm_library(
     runtime_deps = [
         # do not sort,
         ":sync-memory-tests",
-        "@lib//:studio-platform-provided",
         "//libraries/gson:gson_test_lib",
     ],
 )

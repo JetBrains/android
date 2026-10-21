@@ -30,6 +30,7 @@ import kotlin.test.assertFailsWith
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class DefaultActivityLaunchTest : AndroidTestCase() {
   lateinit var apk: String
@@ -44,6 +45,7 @@ class DefaultActivityLaunchTest : AndroidTestCase() {
     apk = "${myFixture.testDataPath}/configurations/activity/apkWithDefaultActivity.apk"
     state = DefaultActivityLaunch.State()
     device = mock<IDevice>()
+    whenever(device.serialNumber).thenReturn("1234")
     app = createApp(device, "com.example.myapplication", emptyList(), ArrayList(setOf("com.example.myapplication.MainActivity")))
     stats = RunStats(myFixture.project)
   }

@@ -47,7 +47,6 @@ jvm_library(
         # do not sort,
         ":gradle",
         "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
         "//android/android-common:common_test_lib",
         "//android/android:core_test_lib",
         "//android/native-symbolizer:native-symbolizer_test_lib",

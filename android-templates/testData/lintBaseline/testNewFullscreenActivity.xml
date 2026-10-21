@@ -3,17 +3,6 @@
 <issues format="6" by="lint %AGP_VERSION_PLACEHOLDER%" type="baseline" client="gradle" dependencies="false" name="AGP (%AGP_VERSION_PLACEHOLDER%)" variant="all" version="%AGP_VERSION_PLACEHOLDER%">
 
     <issue
-        id="Instantiatable"
-        message="`FullscreenActivity` must extend android.app.Activity"
-        errorLine1="            android:name=&quot;.FullscreenActivity&quot;"
-        errorLine2="                          ~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/AndroidManifest.xml"
-            line="15"
-            column="27"/>
-    </issue>
-
-    <issue
         id="OldTargetApi"
         message="Not targeting the latest versions of Android; compatibility modes apply. Consider testing and updating this version. Consult the `android.os.Build.VERSION_CODES` javadoc for details."
         errorLine1="        targetSdk 35"
@@ -33,6 +22,17 @@
             file="src/main/AndroidManifest.xml"
             line="18"
             column="13"/>
+    </issue>
+
+    <issue
+        id="ClickableViewAccessibility"
+        message="Custom view ``Button`` has `setOnTouchListener` called on it but does not override `performClick`"
+        errorLine1="        binding.dummyButton.setOnTouchListener(mDelayHideTouchListener);"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/template/test/in/FullscreenActivity.java"
+            line="127"
+            column="9"/>
     </issue>
 
 </issues>

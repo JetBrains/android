@@ -103,6 +103,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 public class GradleProjectSystemUtil {
@@ -542,12 +543,10 @@ public class GradleProjectSystemUtil {
    */
   @NotNull
   public static File getUserGradlePropertiesFile(@NotNull Project project) {
-    GradleExecutionSettings settings = getGradleExecutionSettings(project);
-    if (settings != null) {
-      String gradleHomePath = settings.getServiceDirectory();
-      if (!Strings.isNullOrEmpty(gradleHomePath)) {
-        return new File(gradleHomePath, FN_GRADLE_PROPERTIES);
-      }
+    GradleSettings settings = GradleSettings.getInstance(project);
+    String gradleHomePath = settings.getServiceDirectoryPath();
+    if (!Strings.isNullOrEmpty(gradleHomePath)) {
+      return new File(gradleHomePath, FN_GRADLE_PROPERTIES);
     }
     return getUserGradlePropertiesFile();
   }

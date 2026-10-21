@@ -20,7 +20,7 @@
         errorLine2="                                 ~~~~~~~~~~">
         <location
             file="src/main/java/template/test/in/AdMobFragment.kt"
-            line="127"
+            line="124"
             column="34"/>
     </issue>
 

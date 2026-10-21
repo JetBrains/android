@@ -22,6 +22,7 @@ import com.android.tools.apk.analyzer.ArchiveNode
 import com.android.tools.apk.analyzer.ArchivePathEntry
 import com.android.tools.apk.analyzer.dex.tree.DexClassNode
 import com.android.tools.apk.analyzer.internal.ArchiveTreeNode
+import com.android.tools.idea.apk.viewer.ApkEditor.Companion.createEditor
 import com.android.tools.idea.apk.viewer.ApkViewPanel.ApkTreeModel
 import com.android.tools.idea.apk.viewer.arsc.ArscViewer
 import com.android.tools.idea.apk.viewer.dex.DexFileViewer
@@ -29,6 +30,7 @@ import com.android.tools.idea.apk.viewer.pagealign.AlignmentWarningViewer
 import com.android.tools.idea.apk.viewer.testing.FakeAndroidApplicationInfoProvider
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.idea.testing.TemporaryDirectoryRule
+import com.android.tools.idea.testing.WaitForIndexRule
 import com.google.common.truth.Truth.assertThat
 import com.google.devrel.gmscore.tools.apk.arsc.Chunk
 import com.google.devrel.gmscore.tools.apk.arsc.ChunkWithChunks
@@ -38,6 +40,8 @@ import com.google.gson.JsonObject
 import com.intellij.diff.util.FileEditorBase
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.editor.Document
+import com.intellij.openapi.fileEditor.AsyncFileEditorProvider
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorPolicy
 import com.intellij.openapi.fileEditor.FileEditorProvider
@@ -49,10 +53,12 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.vfs.findDocument
 import com.intellij.openapi.vfs.newvfs.events.VFileContentChangeEvent
 import com.intellij.openapi.vfs.readText
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
@@ -68,6 +74,7 @@ import java.util.zip.ZipInputStream
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.JTable
 import javax.swing.text.JTextComponent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
@@ -76,6 +83,8 @@ import kotlin.io.path.createParentDirectories
 import kotlin.io.path.pathString
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -113,6 +122,7 @@ class ApkEditorTest(val isPageAlignFeatureEnabled: Boolean) {
       disposableRule,
       ApplicationServiceRule(FileEditorProviderManager::class.java, FakeFileEditorProviderManager()),
       temporaryDirectoryRule,
+      WaitForIndexRule(projectRule),
       EdtRule(),
     )
 
@@ -293,6 +303,32 @@ class ApkEditorTest(val isPageAlignFeatureEnabled: Boolean) {
     val editor = apkEditor.getEditor<ArscViewer>(apkEditor.getNode("/resources.arsc"))
 
     assertThat(editor.file.getAllChunks().count()).isEqualTo(124)
+  }
+
+  @Test
+  fun treeSorting() {
+    val apkEditor = apkEditor("/test.apk")
+    apkEditor.waitForUpdateComplete()
+
+    val model = apkEditor.getNodesModel() as ApkTreeModel
+    val rootNode = model.root as ArchiveTreeNode
+
+    val table = TreeWalker(apkEditor.getTopPane()).descendants().filterIsInstance<JTable>().first()
+
+    // 1. Sort by File Name Ascending
+    table.rowSorter.toggleSortOrder(0)
+    val sortedAscending = rootNode.children().asSequence().map { (it as ArchiveTreeNode).data.getNodeDisplayString() }.toList()
+    assertThat(sortedAscending).containsExactly("AndroidManifest.xml", "instant-run.zip", "res").inOrder()
+
+    // 2. Sort by File Name Descending
+    table.rowSorter.toggleSortOrder(0)
+    val sortedDescending = rootNode.children().asSequence().map { (it as ArchiveTreeNode).data.getNodeDisplayString() }.toList()
+    assertThat(sortedDescending).containsExactly("res", "instant-run.zip", "AndroidManifest.xml").inOrder()
+
+    // 3. Sort by Size (raw file size) Ascending
+    table.rowSorter.toggleSortOrder(1)
+    val sortedBySize = rootNode.children().asSequence().map { (it as ArchiveTreeNode).data.rawFileSize }.toList()
+    assertThat(sortedBySize).isOrdered()
   }
 
   @Test
@@ -604,6 +640,28 @@ class ApkEditorTest(val isPageAlignFeatureEnabled: Boolean) {
       )
   }
 
+  @Test
+  fun createEditor() {
+    val provider = RecordingFileEditorProvider()
+    val file = LightVirtualFile()
+
+    provider.createEditor(project, disposableRule.disposable, file)
+
+    assertThat(provider.calls).containsExactly(EditorCall(project, file, document = null))
+  }
+
+  @Test
+  fun createEditor_asyncProvider(): Unit = runBlocking {
+    val provider = RecordingAsyncFileEditorProvider()
+    val file = LightVirtualFile()
+
+    provider.createEditor(project, disposableRule.disposable, file)
+
+    val document = file.findDocument()
+    assertThat(document).isNotNull()
+    assertThat(provider.calls).containsExactly(EditorCall(project, file, document))
+  }
+
   private fun apkEditor(path: String, isResource: Boolean = true): ApkEditor {
     val file = if (isResource) TestResources.getFile(path) else File(path)
     val archive = StandardFileSystems.local().refreshAndFindFileByPath(file.absolutePath) ?: fail("File not found: $path")
@@ -666,6 +724,39 @@ class ApkEditorTest(val isPageAlignFeatureEnabled: Boolean) {
     override fun getEditorTypeId(): String = "apk-editor-test-fake"
 
     override fun getPolicy(): FileEditorPolicy = FileEditorPolicy.NONE
+  }
+
+  private data class EditorCall(val project: Project, val file: VirtualFile, val document: Document?)
+
+  private open class RecordingFileEditorProvider : FileEditorProvider {
+    val calls = mutableListOf<EditorCall>()
+
+    override fun accept(project: Project, file: VirtualFile): Boolean = true
+
+    override fun createEditor(project: Project, file: VirtualFile): FileEditor {
+      calls.add(EditorCall(project, file, document = null))
+      return TestFileEditor(file)
+    }
+
+    override fun getEditorTypeId(): String = "apk-editor-test-recording"
+
+    override fun getPolicy(): FileEditorPolicy = FileEditorPolicy.NONE
+  }
+
+  @Suppress("UnstableApiUsage")
+  private class RecordingAsyncFileEditorProvider : RecordingFileEditorProvider(), AsyncFileEditorProvider {
+    override fun createEditor(project: Project, file: VirtualFile): FileEditor =
+      error("An async provider must be called through createFileEditor")
+
+    override suspend fun createFileEditor(
+      project: Project,
+      file: VirtualFile,
+      document: Document?,
+      editorCoroutineScope: CoroutineScope,
+    ): FileEditor {
+      calls.add(EditorCall(project, file, document))
+      return TestFileEditor(file)
+    }
   }
 
   private class FakeFileEditorProviderManager : FileEditorProviderManager {

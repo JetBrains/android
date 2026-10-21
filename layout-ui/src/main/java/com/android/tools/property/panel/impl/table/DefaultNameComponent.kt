@@ -20,6 +20,7 @@ import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.api.TableSupport
+import com.android.tools.property.panel.impl.support.toHtmlString
 import com.android.tools.property.panel.impl.ui.PropertyTooltip
 import com.android.tools.property.ptable.KEY_IS_VISUALLY_RESTRICTED
 import com.android.tools.property.ptable.PTable
@@ -150,7 +151,13 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) : JPa
 
   /** Call this method to setup the component as a renderer or editor for a given property item. */
   fun setUpItem(table: PTable, item: PTableItem, depth: Int, isSelected: Boolean, hasFocus: Boolean, isExpanded: Boolean): JComponent {
-    label.text = if (isExpanded) "<html><nobr>${item.name}</nobr></html>" else item.name
+    if (isExpanded) {
+      label.putClientProperty("html.disable", null)
+      label.text = toHtmlString(item.name)
+    } else {
+      label.putClientProperty("html.disable", true)
+      label.text = item.name
+    }
     label.font = labelFont
     background = UIUtil.getTableSelectionBackground(true)
     var indent = standardIndent + depth * depthIndent

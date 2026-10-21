@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.events
 
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.CONNECTION1
 import com.android.tools.idea.insights.DynamicEventGallery
 import com.android.tools.idea.insights.FAKE_INSIGHTS_PROVIDER
@@ -38,7 +38,7 @@ class SelectedIssueChangedTest {
   @Test
   fun `selecting a different issue causes selection to update and actions to dispatch`() {
     val currentState =
-      AppInsightsState(
+      AppInsightsCrashState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1, ISSUE2)), Instant.now())),
@@ -69,7 +69,7 @@ class SelectedIssueChangedTest {
   @Test
   fun `selecting the same issue causes no-op`() {
     val currentState =
-      AppInsightsState(
+      AppInsightsCrashState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1, ISSUE2)), Instant.now())),
@@ -85,7 +85,7 @@ class SelectedIssueChangedTest {
   @Test
   fun `provider does not support multiple events causes event to immediately update, and does not include notes and variants actions`() {
     val currentState =
-      AppInsightsState(
+      AppInsightsCrashState(
         Selection(CONNECTION1, listOf(CONNECTION1)),
         TEST_FILTERS,
         LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1, ISSUE2)), Instant.now())),

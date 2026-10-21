@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui
 
-import com.android.ide.common.rendering.api.SessionParams
 import com.android.ide.common.vectordrawable.VdIcon
-import com.android.resources.ResourceType
 import com.android.tools.idea.concurrency.createCoroutineScope
-import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.localization.MessageBundleReference
 import com.android.tools.idea.material.icons.MaterialSymbolsLoader
 import com.android.tools.idea.material.icons.MaterialSymbolsLoader.Companion.getMaterialSymbolsFontsAndMetadata
@@ -32,10 +29,7 @@ import com.android.tools.idea.material.icons.common.SymbolsSdkUrlProvider
 import com.android.tools.idea.material.icons.metadata.MaterialIconsMetadata
 import com.android.tools.idea.material.icons.metadata.MaterialMetadataIcon
 import com.android.tools.idea.npw.assetstudio.assets.MaterialSymbolsVirtualFile
-import com.android.tools.idea.ui.resourcemanager.plugin.LayoutRenderOptions
-import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerImpl
 import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
-import com.android.tools.idea.ui.resourcemanager.rendering.SlowResourcePreviewManager
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -44,7 +38,6 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.CollectionComboBoxModel
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.HyperlinkLabel
@@ -55,7 +48,6 @@ import com.intellij.ui.hover.TableHoverListener
 import com.intellij.ui.table.JBTable
 import com.intellij.uiDesigner.core.GridConstraints
 import com.intellij.uiDesigner.core.GridLayoutManager
-import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
@@ -67,7 +59,6 @@ import java.awt.Insets
 import java.awt.event.ItemEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
-import java.awt.image.BufferedImage
 import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JComponent
@@ -84,7 +75,6 @@ import kotlin.reflect.KClass
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.PropertyKey
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
@@ -101,13 +91,12 @@ private const val MAX_CACHE_SIZE = 2048
 open class SymbolPickerDialog
 @JvmOverloads
 constructor(
-  facet: AndroidFacet,
   parentDisposable: Disposable,
   materialSymbolsUrlProvider: MaterialSymbolsUrlProvider? = null,
   materialIconsMetadataUrlProvider: MaterialIconsMetadataUrlProvider? = null,
   @VisibleForTesting
   private val vdIconLoader:
-    suspend (SymbolConfiguration, MaterialMetadataIcon, MaterialIconsMetadata, MaterialSymbolsUrlProvider) -> VdIcon =
+    suspend (SymbolConfiguration, MaterialMetadataIcon, MaterialIconsMetadata, MaterialSymbolsUrlProvider) -> VdIcon? =
     { sc, im, ims, sup ->
       MaterialSymbolsLoader.loadVdIcon(sc, im, ims, sup)
     },
@@ -192,16 +181,6 @@ constructor(
   // We provide a lighter color for higher contrast.
   private val iconBackgroundColor: Color = UIUtil.getListBackground()
 
-  private val placeholderImage =
-    ImageUtil.createImage(80, 80, BufferedImage.TYPE_INT_ARGB).apply {
-      with(createGraphics()) {
-        this.color = iconBackgroundColor
-        fillRect(0, 0, 80, 80)
-        dispose()
-      }
-    }
-  private val renderingOptions = LayoutRenderOptions(SessionParams.RenderingMode.SHRINK, true, transparentBackground = true)
-
   private val layoutModel = TableModel(MaterialSymbolsVirtualFile::class, filteredSymbolList)
 
   private val iconTable = JBTable()
@@ -215,13 +194,8 @@ constructor(
       .launch {
         loadingPanel.startLoading()
         try {
-          val resourceResolver =
-            withContext(Dispatchers.IO) {
-              ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(LightVirtualFile()).getResourceResolver()
-            }
-          val assetPreviewManager = AssetPreviewManagerImpl(facet, imageCache, resourceResolver, null, renderingOptions, placeholderImage)
           val layoutRenderer =
-            IconPickerCellLayoutRenderer(assetPreviewManager.getPreviewProvider(ResourceType.LAYOUT) as SlowResourcePreviewManager)
+            IconPickerCellLayoutRenderer(coroutineScope, { metadata }, materialSymbolsUrlProvider ?: SymbolsSdkUrlProvider(), vdIconLoader)
 
           withContext(Dispatchers.Main) { iconTable.setDefaultRenderer(MaterialSymbolsVirtualFile::class.java, layoutRenderer) }
 
@@ -276,9 +250,12 @@ constructor(
 
   private fun selectVdIcon(icon: MaterialSymbolsVirtualFile) {
     coroutineScope.launch {
-      val vdIcon = vdIconLoader(icon.symbolConfiguration, icon.metadata, metadata, materialSymbolsUrlProvider)
-      selectedIcon = vdIcon
-      isOKActionEnabled = true
+      val vdIcon =
+        withContext(Dispatchers.IO) { vdIconLoader(icon.symbolConfiguration, icon.metadata, metadata, materialSymbolsUrlProvider) }
+      if (vdIcon != null) {
+        selectedIcon = vdIcon
+        isOKActionEnabled = true
+      }
     }
   }
 

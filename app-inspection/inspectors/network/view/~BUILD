@@ -11,6 +11,7 @@ iml_module(
     deps = [
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common",
         "//tools/adt/idea/app-inspection/inspector/ide:app-inspection.inspector.ide",
         "//tools/adt/idea/app-inspection/inspectors/network/model:app-inspection.inspectors.network.model",
         "//tools/adt/idea/.idea/libraries:studio-proto",

@@ -15,23 +15,18 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.util
 
-import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
-import com.intellij.openapi.module.ModuleUtilCore
-import com.intellij.openapi.progress.ProcessCanceledException
-import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
-import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.search.GlobalSearchScope
 import java.awt.image.BufferedImage
 import java.io.File
+import java.io.IOException
 import java.nio.file.Files
+import java.nio.file.InvalidPathException
+import java.nio.file.Paths
 import java.nio.file.attribute.BasicFileAttributes
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.concurrent.ConcurrentHashMap
 import javax.imageio.ImageIO
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -49,55 +44,69 @@ const val NOT_APPLICABLE = "N/A"
 data class ImageMetadata(val dimensions: String = NOT_APPLICABLE, val size: String = NOT_APPLICABLE, val date: String = NOT_APPLICABLE)
 
 object ScreenshotTestUtils {
-  private val classToRootPathCache = ConcurrentHashMap<String, String>()
 
   /**
-   * Resolves a relative path to an absolute path based on the Gradle external root project path of the given class.
+   * Resolves a relative or absolute path to an absolute path based on the root project path of the given project.
+   *
+   * This method performs validation to prevent directory traversal and rejects network/UNC paths outright.
    *
    * @param project The IntelliJ project.
-   * @param className The fully qualified name of the test class.
-   * @param path The relative path to resolve.
-   * @return The absolute path, or the original path if it cannot be resolved.
+   * @param path The relative or absolute path to resolve.
+   * @return The resolved absolute path if it is safely contained under the computed root path; otherwise, returns null.
    */
-  fun resolvePath(project: Project?, className: String?, path: String?): String? {
-    if (path == null) return null
-    val file = File(path)
-    if (file.isAbsolute) return path
-    val p = project ?: return path
-    val basePath = p.basePath ?: return path
+  @JvmStatic
+  fun resolvePath(project: Project?, path: String?): String? {
+    val contained = containUnderProjectRoot(project, path) ?: return null
+    val ext = Paths.get(contained).fileName?.toString()?.substringAfterLast('.', "")?.lowercase()
+    if (ext !in setOf("png", "jpg", "jpeg", "webp", "gif", "bmp")) return null
+    return contained
+  }
 
-    val rootPath =
-      if (className != null) {
-        classToRootPathCache.getOrPut(className) {
-          var foundPath = basePath
-          try {
-            ReadAction.compute<Unit, Exception> {
-              val projectScope = GlobalSearchScope.projectScope(p)
-              val psiClass = JavaPsiFacade.getInstance(p).findClass(className, projectScope)
-              if (psiClass != null) {
-                val module = ModuleUtilCore.findModuleForPsiElement(psiClass)
-                if (module != null) {
-                  val externalRootPath = ExternalSystemApiUtil.getExternalRootProjectPath(module)
-                  if (externalRootPath != null) {
-                    foundPath = externalRootPath
-                  }
-                }
-              }
-            }
-          } catch (e: ProcessCanceledException) {
-            throw e
-          } catch (e: IndexNotReadyException) {
-            LOG.warn("Index not ready while resolving absolute path for class name $className", e)
-          } catch (e: Exception) {
-            LOG.warn("Failed to resolve absolute path using class name $className", e)
-          }
-          foundPath
-        }
-      } else {
-        basePath
+  @JvmStatic fun resolvePath(project: Project?, className: String?, path: String?): String? = resolvePath(project, path)
+
+  /** Returns true if the given [path] starts with obvious network or Windows UNC prefixes, unless it is a WSL path. */
+  @JvmStatic
+  fun isNetworkPath(path: String?): Boolean {
+    if (path.isNullOrEmpty()) return false
+    val trimmed = path.trim().replace('/', '\\')
+    if (trimmed.startsWith("\\\\wsl$\\", ignoreCase = true) || trimmed.startsWith("\\\\wsl.localhost\\", ignoreCase = true)) {
+      return false
+    }
+    return trimmed.startsWith("\\\\")
+  }
+
+  /**
+   * Normalises [raw] and returns it as an absolute path string only if the result is contained under the given [project]'s base directory;
+   * otherwise returns null.
+   *
+   * Used to prevent externally-supplied path strings from escaping the project root or addressing network locations.
+   */
+  @JvmStatic
+  fun containUnderProjectRoot(project: Project?, raw: String?): String? {
+    if (raw.isNullOrEmpty()) return null
+    val base = project?.basePath ?: return null
+    val rootPathNio =
+      try {
+        File(base).canonicalFile.toPath()
+      } catch (_: IOException) {
+        return null
+      } catch (_: InvalidPathException) {
+        return null
       }
-
-    return File(rootPath, path).absolutePath
+    if (isNetworkPath(raw)) return null
+    return try {
+      val resolvedPathNio = Paths.get(base).resolve(raw)
+      val resolvedCanonical = resolvedPathNio.toFile().canonicalFile.toPath()
+      if (resolvedCanonical.startsWith(rootPathNio)) {
+        resolvedCanonical.toString()
+      } else {
+        null
+      }
+    } catch (_: IOException) {
+      null
+    } catch (_: InvalidPathException) {
+      null
+    }
   }
 
   /**

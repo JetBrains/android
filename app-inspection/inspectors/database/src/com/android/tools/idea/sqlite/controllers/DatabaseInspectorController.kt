@@ -74,6 +74,7 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.text.StringUtil.escapeXmlEntities
 import com.intellij.util.text.UniqueNameGenerator
 import icons.StudioIcons
 import java.util.concurrent.Executor
@@ -664,7 +665,7 @@ class DatabaseInspectorControllerImpl(
           thisLogger().warn(title, throwable)
           appInspectionIdeServices?.showNotification(
             title = title,
-            content = throwable?.message ?: throwable?.toString() ?: "",
+            content = escapeXmlEntities(throwable?.message ?: throwable?.toString() ?: ""),
             severity = Severity.ERROR,
           )
         },

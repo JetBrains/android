@@ -91,7 +91,7 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
     environment: ExecutionEnvironment,
     executor: AndroidConfigurationExecutor,
     indicator: ProgressIndicator,
-  ): RunContentDescriptor {
+  ): RunContentDescriptor? {
     if (!isProfilerExecutor(environment.executor.id)) {
       throw RuntimeException("Not a profiler executor")
     }

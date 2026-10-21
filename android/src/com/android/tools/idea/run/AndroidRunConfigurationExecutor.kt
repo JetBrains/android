@@ -61,7 +61,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.util.Disposer
-import com.intellij.xdebugger.impl.XDebugSessionImpl
+import com.intellij.xdebugger.XSessionStartedResult
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -168,11 +168,11 @@ class AndroidRunConfigurationExecutor(
       processHandler.addTargetDevice(device)
       if (!StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.get()) {
         console.printHyperlink(getShowLogcatLinkText(device)) { project ->
-          project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, applicationId)
+          project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(project, device, applicationId)
         }
       }
       if (configuration.SHOW_LOGCAT_AUTOMATICALLY) {
-        project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, applicationId)
+        project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(project, device, applicationId)
       }
     }
     AndroidSessionInfo.create(processHandler, devices, applicationId)
@@ -210,7 +210,7 @@ class AndroidRunConfigurationExecutor(
       }
     }
 
-  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
+  override fun debug(indicator: ProgressIndicator): RunContentDescriptor? = runBlockingCancellable {
     val applicationId = applicationContext.applicationId
     val devices = getDevices(env, deviceFutures, indicator)
 
@@ -274,17 +274,18 @@ class AndroidRunConfigurationExecutor(
     indicator.text = "Connecting debugger"
     val session = startDebugSession(device, applicationId, indicator, console)
     if (configuration.SHOW_LOGCAT_AUTOMATICALLY) {
-      project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, applicationId)
+      project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(project, device, applicationId)
     }
-    session.runContentDescriptor
+    @Suppress("UnstableApiUsage") session.runContentDescriptor
   }
 
+  @Suppress("UnstableApiUsage")
   private suspend fun startDebugSession(
     device: IDevice,
     applicationId: String,
     indicator: ProgressIndicator,
     console: ConsoleView,
-  ): XDebugSessionImpl {
+  ): XSessionStartedResult {
     val debugger =
       configuration.androidDebuggerContext.androidDebugger
         ?: throw ExecutionException("Unable to determine debugger to use for this launch")
@@ -458,7 +459,7 @@ class AndroidRunConfigurationExecutor(
     ) {
       existingRunContentDescriptor?.processHandler?.detachProcess()
       if (env.executor.isDebug) {
-        startDebugSession(devices.single(), applicationId, indicator, createConsole()).runContentDescriptor
+        @Suppress("UnstableApiUsage") startDebugSession(devices.single(), applicationId, indicator, createConsole()).runContentDescriptor
       } else {
         val processHandler = AndroidProcessHandler(applicationId).apply { devices.forEach { addTargetDevice(it) } }
         AndroidSessionInfo.create(processHandler, devices, applicationId)
@@ -469,7 +470,7 @@ class AndroidRunConfigurationExecutor(
     }
   }
 
-  inner class HiddenRunContentDescriptor(existingRunContentDescriptor: RunContentDescriptor) :
+  class HiddenRunContentDescriptor(existingRunContentDescriptor: RunContentDescriptor) :
     RunContentDescriptor(
       existingRunContentDescriptor.executionConsole,
       existingRunContentDescriptor.processHandler,
@@ -479,7 +480,7 @@ class AndroidRunConfigurationExecutor(
     override fun isHiddenContent() = true
 
     init {
-      Disposer.register(project, this)
+      Disposer.register(existingRunContentDescriptor, this)
     }
   }
 

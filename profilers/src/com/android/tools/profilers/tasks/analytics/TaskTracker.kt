@@ -17,18 +17,18 @@ package com.android.tools.profilers.tasks.analytics
 
 import com.android.tools.profiler.proto.Common.Process.ExposureLevel
 import com.android.tools.profiler.proto.Common.Session
+import com.android.tools.profilers.ProfilerContext
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration
-import com.android.tools.profilers.cpu.config.ArtSampledConfiguration
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel
 import com.android.tools.profilers.cpu.config.LeakCanaryConfiguration
 import com.android.tools.profilers.cpu.config.PerfettoNativeAllocationsConfiguration
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
 import com.android.tools.profilers.sessions.SessionsManager
-import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.android.tools.profilers.tasks.analytics.TaskTracker.Companion.createTaskTracker
 
 /**
  * A class responsible for tracking the lifecycle events of a profiler task.
@@ -43,8 +43,11 @@ import com.android.tools.profilers.tasks.ProfilerTaskType
  * at the wrong time (e.g., before a session is fully initialized) will result in incorrect or stale telemetry.
  *
  * Use [createTaskTracker] to obtain an instance. If the task-based UX is disabled, a no-op [NullTaskTracker] will be returned.
+ *
+ * This class is strictly for generic lifecycle events. To add task-specific telemetry, define your methods as extension functions in your
+ * own feature package.
  */
-open class TaskTracker(private val profilers: StudioProfilers, private val taskMetadata: TaskMetadata) {
+open class TaskTracker private constructor(private val profilers: StudioProfilers, val taskMetadata: TaskMetadata) {
 
   /** Tracks the event where the user enters a task. */
   open fun trackTaskEntered() {
@@ -87,16 +90,6 @@ open class TaskTracker(private val profilers: StudioProfilers, private val taskM
     profilers.ideServices.featureTracker.trackTaskFailed(taskMetadata, metadata)
   }
 
-  /** Tracks a user interaction within an active LeakCanary task (e.g. clicking "Force Dump"). */
-  open fun trackLeakCanaryUiAction(uiAction: LeakCanaryUiAction) {
-    profilers.ideServices.featureTracker.trackLeakCanaryEvent(taskMetadata, uiAction)
-  }
-
-  /** Tracks the completion of a LeakCanary memory analysis, logging the specific leak metrics. */
-  open fun trackLeakCanaryAnalysis(leakAnalysis: LeakCanaryLeakAnalysis) {
-    profilers.ideServices.featureTracker.trackLeakCanaryEvent(taskMetadata, leakAnalysis)
-  }
-
   /**
    * A no-op implementation of [TaskTracker] used when task tracking is disabled or as a safe default value.
    *
@@ -125,10 +118,6 @@ open class TaskTracker(private val profilers: StudioProfilers, private val taskM
     override fun trackStopTaskFailed(metadata: TaskStopFailedMetadata) {}
 
     override fun trackProcessingTaskFailed(metadata: TaskProcessingFailedMetadata) {}
-
-    override fun trackLeakCanaryUiAction(uiAction: LeakCanaryUiAction) {}
-
-    override fun trackLeakCanaryAnalysis(leakAnalysis: LeakCanaryLeakAnalysis) {}
   }
 
   companion object {
@@ -144,6 +133,22 @@ open class TaskTracker(private val profilers: StudioProfilers, private val taskM
     fun createTaskTracker(profilers: StudioProfilers): TaskTracker {
       val taskMetadata = buildTaskMetadata(profilers)
       return TaskTracker(profilers, taskMetadata)
+    }
+
+    /**
+     * Creates a [TaskTracker] utilizing deferred offline metadata from the [context] if loaded.
+     *
+     * @param profilers The [StudioProfilers] instance used to retrieve state and services.
+     * @param context The [com.android.tools.profilers.ProfilerContext] to inspect for offline metadata.
+     */
+    @JvmStatic
+    fun createTaskTracker(profilers: StudioProfilers, context: ProfilerContext): TaskTracker {
+      val proto = context.taskMetadata
+      if (proto != null) {
+        val taskMetadata = TaskMetadataConverter.fromProto(proto)
+        return TaskTracker(profilers, taskMetadata)
+      }
+      return createTaskTracker(profilers)
     }
 
     /**
@@ -203,13 +208,7 @@ open class TaskTracker(private val profilers: StudioProfilers, private val taskM
           availableConfigs.filterIsInstance<SimpleperfConfiguration>().firstOrNull()
         }
         ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING -> {
-          val recordingType = profilers.taskHomeTabModel.persistentStateOnTaskEnter.recordingType
-          when (recordingType) {
-            TaskHomeTabModel.TaskRecordingType.SAMPLED -> availableConfigs.filterIsInstance<ArtSampledConfiguration>().firstOrNull()
-            TaskHomeTabModel.TaskRecordingType.INSTRUMENTED ->
-              availableConfigs.filterIsInstance<ArtInstrumentedConfiguration>().firstOrNull()
-            else -> null
-          }
+          availableConfigs.filterIsInstance<ArtInstrumentedConfiguration>().firstOrNull()
         }
         ProfilerTaskType.NATIVE_ALLOCATIONS -> {
           availableConfigs.filterIsInstance<PerfettoNativeAllocationsConfiguration>().firstOrNull()

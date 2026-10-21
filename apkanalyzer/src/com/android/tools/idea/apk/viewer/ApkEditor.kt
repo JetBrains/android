@@ -30,6 +30,7 @@ import com.android.tools.idea.apk.viewer.dex.DexFileViewer
 import com.android.tools.idea.apk.viewer.diff.ApkDiffPanel
 import com.android.tools.idea.apk.viewer.pagealign.AlignmentWarningViewer
 import com.android.tools.idea.apk.viewer.pagealign.getAlignmentFinding
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerUtil
 import com.android.tools.proguard.ProguardMap
@@ -38,10 +39,14 @@ import com.android.utils.FileUtils
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
+import com.intellij.openapi.fileEditor.AsyncFileEditorProvider
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.fileEditor.FileEditorState
@@ -59,9 +64,11 @@ import com.intellij.openapi.vfs.JarFileSystem
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.vfs.findDocument
 import com.intellij.openapi.vfs.limits.FileSizeLimit
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.io.URLUtil
@@ -72,7 +79,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
-import java.util.Optional
 import javax.swing.JComponent
 import javax.swing.LayoutFocusTraversalPolicy
 import kotlin.io.path.extension
@@ -190,13 +196,18 @@ internal class ApkEditor(
 
   /** Changes the editor displayed based on the path selected in the tree. */
   override fun selectionChanged(entries: Array<ArchiveTreeNode>?) {
+    val editor =
+      try {
+        getEditor(entries)
+      } catch (e: Throwable) {
+        thisLogger().error("Failed to create editor", e)
+        return
+      }
     if (currentEditor != null) {
       Disposer.dispose(currentEditor!!)
       // Null out the field immediately after disposal, in case an exception is thrown later in the method.
       currentEditor = null
     }
-
-    val editor = getEditor(entries)
     splitter.setSecondComponent(editor.getComponent())
     currentEditor = editor
   }
@@ -329,16 +340,11 @@ internal class ApkEditor(
       return EmptyPanel()
     }
 
-    val file = createVirtualFile(n.data.archive, p)
-    val providers = getFileEditorProviders(file)
-    if (providers.isEmpty) {
-      return EmptyPanel()
-    } else if (file != null) {
-      val editor = providers.get().createEditor(project, file)
-      return FileEditorComponent(editor)
-    } else {
-      return EmptyPanel()
-    }
+    val file = createVirtualFile(n.data.archive, p) ?: return EmptyPanel()
+    val provider = getFileEditorProvider(file) ?: return EmptyPanel()
+    val editor = provider.createEditor(project, this, file)
+
+    return FileEditorComponent(editor)
   }
 
   private fun createVirtualFile(archive: Archive, p: Path): VirtualFile? {
@@ -416,20 +422,15 @@ internal class ApkEditor(
     return file?.findFileByRelativePath(p.toString()) ?: ApkVirtualFile.create(p, content)
   }
 
-  private fun getFileEditorProviders(file: VirtualFile?): Optional<FileEditorProvider> {
+  private fun getFileEditorProvider(file: VirtualFile?): FileEditorProvider? {
     if (file == null || file.isDirectory) {
-      return Optional.empty<FileEditorProvider>()
+      return null
     }
 
     val providers = FileEditorProviderManager.getInstance().getProviderList(project, file)
 
     // Skip 9 patch editor since nine patch information has been stripped out.
-    return providers
-      .stream()
-      .filter { fileEditorProvider: FileEditorProvider? ->
-        fileEditorProvider!!.javaClass.getName() != "com.android.tools.idea.editors.NinePatchEditorProvider"
-      }
-      .findFirst()
+    return providers.filterNot { it.javaClass.getName() == "com.android.tools.idea.editors.NinePatchEditorProvider" }.firstOrNull()
   }
 
   companion object {
@@ -531,6 +532,23 @@ internal class ApkEditor(
       } catch (e: IOException) {
         log.warn("Error loading Proguard mapping from $mapping", e)
         null
+      }
+    }
+
+    @VisibleForTesting
+    internal fun FileEditorProvider.createEditor(project: Project, disposable: Disposable, file: VirtualFile): FileEditor {
+      return when (this is AsyncFileEditorProvider) {
+        true -> createEditor(project, disposable, file)
+        false -> createEditor(project, file)
+      }
+    }
+
+    private fun AsyncFileEditorProvider.createEditor(project: Project, disposable: Disposable, file: VirtualFile): FileEditor {
+      val scope = disposable.createCoroutineScope()
+      @Suppress("UnstableApiUsage")
+      return runWithModalProgressBlocking(project, "Creating editor...") {
+        // findDocument() requires a read lock in this platform (IJPL-244698), so it cannot be called directly on the worker thread.
+        createFileEditor(project, file, readAction { file.findDocument() }, scope)
       }
     }
   }

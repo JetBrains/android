@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 /** A local cache of project dependencies. */
@@ -44,6 +45,11 @@ public interface ArtifactTracker<ContextT extends Context<?>> {
     public static final State EMPTY = create(ImmutableMap.of(), ImmutableMap.of());
 
     protected abstract ImmutableMap<Label, TargetBuildInfo> depsMap();
+
+    @Nullable
+    public TargetBuildInfo getTargetBuildInfo(Label label) {
+      return depsMap().get(label);
+    }
 
     public abstract ImmutableMap<String, CcToolchain> ccToolchainMap();
 
@@ -105,20 +111,7 @@ public interface ArtifactTracker<ContextT extends Context<?>> {
     }
 
     private static JavaArtifactInfo createEmpty(Label label) {
-      return new JavaArtifactInfo(
-          label,
-          false,
-          false,
-          Set.of(),
-          Set.of(),
-          null,
-          Set.of(),
-          Set.of(),
-          Set.of(),
-          Set.of(),
-          Set.of(),
-          "",
-          java.util.List.of());
+      return JavaArtifactInfo.empty(label);
     }
 
     @VisibleForTesting

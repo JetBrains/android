@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons
+import kotlinx.coroutines.launch
 
 /**
  * Action to stop the interactive preview (including animation inspection). Only visible when it's already running and if the preview is not
@@ -43,7 +44,7 @@ class StopInteractivePreviewAction(private val isDisabled: (e: AnActionEvent) ->
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    navigateBack(e)
+    e.coroutineScope.launch { navigateBack(e) }
   }
 
   /** BGT is needed when calling [findPreviewManager] because it accesses the VirtualFile */

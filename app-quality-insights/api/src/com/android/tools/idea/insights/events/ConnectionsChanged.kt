@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.events
 
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.Filters
 import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
@@ -30,7 +30,7 @@ import com.android.tools.idea.insights.model.connection.Connection
 data class ConnectionsChanged(val connections: List<Connection>, private val defaultFilters: Filters) : ChangeEvent {
 
   override fun transition(
-    state: AppInsightsState,
+    state: AppInsightsCrashState,
     tracker: AppInsightsTracker,
     provider: InsightsProvider,
     cache: AppInsightsCache,
@@ -55,7 +55,7 @@ data class ConnectionsChanged(val connections: List<Connection>, private val def
     }
   }
 
-  private fun findActiveConnection(state: AppInsightsState): Connection? {
+  private fun findActiveConnection(state: AppInsightsCrashState): Connection? {
     val currentSelection = state.connections.selected
     if (currentSelection in connections) return currentSelection
 

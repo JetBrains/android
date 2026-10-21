@@ -31,5 +31,5 @@ internal class ConnectedDeviceFinder @NonInjectable @VisibleForTesting construct
   constructor(project: Project) : this(project.service<DeviceProvisionerService>().deviceProvisioner)
 
   override suspend fun findDevice(serialNumber: String): Device? =
-    deviceProvisioner.findConnectedDeviceHandle(DeviceSelector.fromSerialNumber(serialNumber))?.state?.toDevice()
+    deviceProvisioner.findConnectedDeviceHandle(DeviceSelector.fromSerialNumber(serialNumber))?.toDevice()
 }

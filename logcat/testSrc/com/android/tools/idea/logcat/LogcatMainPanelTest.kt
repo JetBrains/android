@@ -19,6 +19,7 @@ import com.android.processmonitor.common.ProcessEvent.ProcessAdded
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeMouse.Button.CTRL_LEFT
@@ -173,8 +174,10 @@ class LogcatMainPanelTest {
   private val disposable
     get() = disposableRule.disposable
 
-  private val device1 = Device.createPhysical("device1", true, "11", AndroidVersion(30, 0), "Google", "Pixel")
-  private val device2 = Device.createPhysical("device2", true, "11", AndroidVersion(30, 0), "Google", "Pixel")
+  private val device1 =
+    Device.createPhysical(DeviceId("Fake", false, "id1"), "device1", true, "11", AndroidVersion(30, 0), "Google", "Pixel")
+  private val device2 =
+    Device.createPhysical(DeviceId("Fake", false, "id2"), "device2", true, "11", AndroidVersion(30, 0), "Google", "Pixel")
 
   @RunsInEdt
   @Test

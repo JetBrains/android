@@ -23,7 +23,6 @@ import com.android.tools.perflib.heap.ext.NativeRegistryPostProcessor
 import com.android.tools.perflib.heap.io.InMemoryBuffer
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
-import com.android.tools.profiler.proto.Transport
 import com.android.tools.profilers.IdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.analytics.FeatureTracker
@@ -55,6 +54,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent.Loading
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.text.StringUtil
 import it.unimi.dsi.fastutil.Hash
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import java.io.File
@@ -70,6 +70,7 @@ open class HeapDumpCaptureObject(
   private val proguardMap: ProguardMap?,
   private val featureTracker: FeatureTracker,
   private val ideProfilerServices: IdeProfilerServices,
+  private val fileSupplier: (() -> File?)? = null,
 ) : CaptureObject {
   private val logger = Logger.getInstance(HeapDumpCaptureObject::class.java)
 
@@ -80,7 +81,8 @@ open class HeapDumpCaptureObject(
 
   @get:VisibleForTesting val classDb = ClassDb()
 
-  @Volatile private var hasLoaded = false
+  @Volatile private var hasInstancesLoaded = false
+  @Volatile private var isFullyLoaded = false
 
   @Volatile private var isLoadingError = false
   var hasNativeAllocations = false
@@ -115,12 +117,12 @@ open class HeapDumpCaptureObject(
 
   override fun saveToFile(outputStream: OutputStream) = saveHeapDumpToFile(client, _session, heapDumpInfo, outputStream, featureTracker)
 
-  override fun getHeapSets() = if (hasLoaded) _heapSets.values else emptyList()
+  override fun getHeapSets() = if (hasInstancesLoaded) _heapSets.values else emptyList()
 
   override fun getHeapSet(heapId: Int) = _heapSets.getOrDefault(heapId, null)
 
   override fun getInstances(): Stream<InstanceObject> =
-    if (hasLoaded) heapSets.find { it is AllHeapSet }!!.instancesStream else Stream.empty()
+    if (hasInstancesLoaded) heapSets.find { it is AllHeapSet }!!.instancesStream else Stream.empty()
 
   override fun getStartTimeNs() = heapDumpInfo.startTime
 
@@ -130,26 +132,33 @@ open class HeapDumpCaptureObject(
 
   override fun getSession() = _session
 
-  override fun load(queryRange: Range?, queryJoiner: Executor?) =
-    doGetBytesRequest().let { response ->
-      val file = if (response.filePath.isEmpty()) null else File(response.filePath)
+  override fun load(queryRange: Range?, queryJoiner: Executor?): Boolean {
+    val file = fileSupplier?.invoke()
+    if (file == null || !file.exists() || file.length() == 0L) {
+      logger.warn("Heap dump file is missing or empty. Path: ${file?.absolutePath}")
+      isLoadingError = true
+      return false
+    }
 
-      if (file == null || !file.exists() || file.length() == 0L) {
-        // If any check fails, enter the error state and return false.
-        logger.warn("Heap dump file is missing or empty. Path: ${response.filePath}")
-        false.also { isLoadingError = true }
-      } else {
-        true.also {
-          ideProfilerServices.featureTracker.trackLoading(
-            Loading.Type.HPROF,
-            sizeKb = (file.length() / 1024).toInt(),
-            measure = { instanceIndex.size.toLong() },
-          ) {
-            load(InMemoryBuffer(file))
-          }
-        }
+    val buffer =
+      try {
+        InMemoryBuffer(file)
+      } catch (e: Exception) {
+        logger.warn("Heap dump file failed to parse into buffer.", e)
+        isLoadingError = true
+        return false
+      }
+
+    return true.also {
+      ideProfilerServices.featureTracker.trackLoading(
+        Loading.Type.HPROF,
+        sizeKb = (file.length() / 1024).toInt(),
+        measure = { instanceIndex.size.toLong() },
+      ) {
+        load(buffer)
       }
     }
+  }
 
   @VisibleForTesting
   fun load(buffer: InMemoryBuffer) {
@@ -157,8 +166,7 @@ open class HeapDumpCaptureObject(
     val snapshot = Snapshot.createSnapshot(buffer!!, proguardMap ?: ProguardMap(), listOf(nativeRegistryPostProcessor))
     snapshot.computeRetainedSizes()
     hasNativeAllocations = nativeRegistryPostProcessor.hasNativeAllocations
-    hasLoaded = true
-    val heapSetMappings = snapshot.heaps.associateWith { HeapSet(this, it.name, it.id) }
+    val heapSetMappings = snapshot.heaps.associateWith { HeapSet(this, StringUtil.escapeXmlEntities(it.name), it.id) }
     val addInstanceToRightHeap: (HeapSet, Long, InstanceObject) -> Unit =
       AllHeapSet(this, heapSetMappings.values.toTypedArray()).let { superHeap ->
         superHeap.clearClassifierSets() // forces sub-classifier creation
@@ -194,6 +202,7 @@ open class HeapDumpCaptureObject(
         _heapSets.put(heap.id, heapSet)
       }
     }
+    hasInstancesLoaded = true
     // Run analysis after all instances are loaded into instanceIndex
     bitmapDuplicationAnalyzer.analyze(allInstances)
     bitmapDuplicationFilter = BitmapDuplicationInstanceFilter(bitmapDuplicationAnalyzer.getDuplicateInstances())
@@ -205,6 +214,7 @@ open class HeapDumpCaptureObject(
         activityFragmentLeakFilter,
         bitmapDuplicationFilter,
       )
+    isFullyLoaded = true
   }
 
   private fun addInstance(heapSet: HeapSet, id: Long, instObj: InstanceObject) {
@@ -213,7 +223,7 @@ open class HeapDumpCaptureObject(
     heapSet.addDeltaInstanceObject(instObj)
   }
 
-  override fun isDoneLoading() = hasLoaded || isLoadingError
+  override fun isDoneLoading() = isFullyLoaded || isLoadingError
 
   override fun isError() = isLoadingError
 
@@ -236,7 +246,7 @@ open class HeapDumpCaptureObject(
       )
     else listOf(InstanceAttribute.LABEL, InstanceAttribute.DEPTH, InstanceAttribute.SHALLOW_SIZE, InstanceAttribute.RETAINED_SIZE)
 
-  open fun findInstanceObject(instance: Instance) = if (hasLoaded) instanceIndex.get(instance.id) else null
+  open fun findInstanceObject(instance: Instance) = if (hasInstancesLoaded) instanceIndex.get(instance.id) else null
 
   fun createClassObjectInstance(classObj: ClassObj, isTransient: Boolean = false): InstanceObject {
     // The ClassEntry associated with this InstanceObject should be for the class it represents
@@ -303,8 +313,12 @@ open class HeapDumpCaptureObject(
   }
 
   override fun canSafelyLoad(): Boolean {
-    val response = doGetBytesRequest()
-    return if (response.filePath.isEmpty()) false else MainMemoryProfilerStage.canSafelyLoadHprof(File(response.filePath).length())
+    val file = fileSupplier?.invoke()
+    return if (file != null) {
+      MainMemoryProfilerStage.canSafelyLoadHprof(file.length())
+    } else {
+      false
+    }
   }
 
   override fun isGroupingSupported(grouping: ClassGrouping?): Boolean {
@@ -314,11 +328,6 @@ open class HeapDumpCaptureObject(
       else -> false
     }
   }
-
-  private fun doGetBytesRequest() =
-    client.transportClient.getFile(
-      Transport.BytesRequest.newBuilder().setStreamId(_session.streamId).setId(heapDumpInfo.startTime.toString()).build()
-    )
 
   private fun ClassObj.makeEntry(name: String = this.className) =
     if (superClassObj != null) classDb.registerClass(id, superClassObj!!.id, name, totalRetainedSize)

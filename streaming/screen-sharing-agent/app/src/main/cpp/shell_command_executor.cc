@@ -22,23 +22,23 @@ namespace screensharing {
 
 using namespace std;
 
-string ExecuteShellCommand(const char* command) {
-  string output;
+ShellCommandResult ExecuteShellCommand(const char* command) {
+  ShellCommandResult result;
   FILE* stream = popen(command, "r");
   if (stream != nullptr) {
     char buffer[256];
     while (!feof(stream)) {
       if (fgets(buffer, size(buffer), stream) != nullptr) {
-        output.append(buffer);
+        result.output.append(buffer);
       }
     }
-    auto retcode = pclose(stream);
-    if (retcode != 0) {
-      Log::E("\"%s\" returned %d", command, retcode);
+    result.exit_code = pclose(stream);
+    if (result.exit_code != 0) {
+      Log::E("\"%s\" returned %d", command, result.exit_code);
     }
   }
-  Log::D(R"(Shell command "%s" produced "%s")", command, output.c_str());
-  return output;
+  Log::D(R"(Shell command "%s" produced "%s")", command, result.output.c_str());
+  return result;
 }
 
 }  // namespace screensharing

@@ -34,7 +34,6 @@ jvm_library(
     visibility = ["//visibility:public"],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
         "//platform/analysis-api:analysis",
         "//platform/analysis-impl",
         "//platform/core-api:core",
@@ -62,7 +61,6 @@ jvm_library(
     runtime_deps = [
         # do not sort,
         ":smali",
-        "@lib//:studio-platform-provided",
         "//platform/analysis-api:analysis_test_lib",
         "//platform/analysis-impl:analysis-impl_test_lib",
         "//platform/core-api:core_test_lib",
@@ -104,6 +102,12 @@ jvm_library(
     ),
     module_name = "intellij.android.smali.tests",
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//xml/plugin",
+        "//platform/structure-view-impl/plugin",
+        "//aether-dependency-resolver/plugin",
+    ],
 )
 
 jvm_library(
@@ -126,6 +130,9 @@ jvm_library(
         # do not sort,
         ":smali-tests",
         "//platform/platform-impl:ide-impl_test_lib",
+        "//xml/plugin:plugin_test_lib",
+        "//platform/structure-view-impl/plugin:plugin_test_lib",
+        "//aether-dependency-resolver/plugin:plugin_test_lib",
     ],
     deps = [
         # do not sort,

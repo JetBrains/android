@@ -11,6 +11,7 @@ import com.android.tools.idea.run.TargetSelectionMode;
 import com.android.tools.idea.util.CommonAndroidUtil;
 import com.android.tools.rendering.AndroidXmlFiles;
 import com.android.tools.rendering.HtmlLinkManager;
+import java.net.URLEncoder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import com.android.utils.HtmlBuilder;
@@ -317,7 +318,10 @@ public class AndroidUtils extends CommonAndroidUtil {
                                            @NotNull String methodName,
                                            @NotNull String fileName,
                                            int lineNumber) {
-    return "open:" + className + "#" + methodName + ";" + fileName + ":" + lineNumber;
+    String encodedClass = URLEncoder.encode(className, java.nio.charset.StandardCharsets.UTF_8);
+    String encodedMethod = URLEncoder.encode(methodName, java.nio.charset.StandardCharsets.UTF_8);
+    String encodedFile = URLEncoder.encode(fileName, java.nio.charset.StandardCharsets.UTF_8);
+    return "open:" + encodedClass + "#" + encodedMethod + ";" + encodedFile + ":" + lineNumber;
   }
 
   /**

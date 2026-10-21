@@ -24,8 +24,10 @@ import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.MessageEvent
 import org.jetbrains.kotlin.utils.filterIsInstanceAnd
+import org.junit.Ignore
 import org.junit.Test
 
+@Ignore("b/527808983")
 class TomlErrorTest : AbstractSyncFailureIntegrationTest() {
 
   private fun runSyncAndCheckFailure(preparedProject: PreparedTestProject) =

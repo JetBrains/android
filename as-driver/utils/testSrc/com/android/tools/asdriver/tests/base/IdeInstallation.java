@@ -278,7 +278,6 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
     return run(display, env, new String[]{ projectPath.toString() });
   }
 
-
   public T run(Display display, Map<String, String> userEnv, String[] args) throws IOException, InterruptedException {
     Map<String, String> env = new HashMap<>(userEnv);
     env.put(vmOptionEnvName(), vmOptionsPath.toString());
@@ -417,27 +416,9 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
    * this value.
    */
   public void setGlobalSdk(AndroidSdk sdk) throws IOException {
-    Path filetypePaths = configDir.resolve("options/other.xml");
-
-    if (filetypePaths.toFile().exists()) {
-      throw new IllegalStateException(
-        String.format("%s already exists, which means this method should be changed to merge with it rather than overwriting it.",
-                      filetypePaths));
-    }
-
-    Files.createDirectories(filetypePaths.getParent());
-
     // Make sure backslashes don't show up in the path on Windows since the blob below must be valid JSON
     String sdkPath = sdk.getSourceDir().toString().replaceAll("\\\\", "/");
-    String filetypeContents = String.format(
-      "<application>%n" +
-      "  <component name=\"PropertyService\"><![CDATA[{%n" +
-      "  \"keyToString\": {%n" +
-      "    \"android.sdk.path\": \"%s\"%n" +
-      "  }%n" +
-      "}]]></component>%n" +
-      "</application>", sdkPath);
-    Files.writeString(filetypePaths, filetypeContents, StandardCharsets.UTF_8);
+    setProperty("android.sdk.path", sdkPath);
   }
 
   public void enableBleak() throws IOException {
@@ -459,6 +440,7 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
         writer.append(String.format("-Didea.disposer.debug=on%n"));
         // BLeak requires more memory since it's keeping track of various live objects
         writer.append(String.format("-Xmx4G%n"));
+        writer.append(String.format("--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED%n"));
       }
       catch (IOException ignored) {
         throw new IllegalStateException("BLeak JVMTI agent not found");
@@ -541,18 +523,53 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
    * Accept the legal notice about showing decompiler .class files in editor.
    */
   public void acceptLegalDecompilerNotice() throws IOException {
-    Path filetypePaths = configDir.resolve("options/other.xml");
-    Files.createDirectories(filetypePaths.getParent());
-    String filetypeContents =
-      """
-        <application>
-          <component name="PropertyService"><![CDATA[{
-          "keyToString": {
-            "decompiler.legal.notice.accepted": "true"
-          }
-          }]]></component>
-        </application>""";
-    Files.writeString(filetypePaths, filetypeContents, StandardCharsets.UTF_8);
+    setProperty("decompiler.legal.notice.accepted", "true");
+  }
+
+  /**
+   * Set the property such that the modal login prompt doesn't show on startup
+   */
+  public void setStartupLoginProperty() throws IOException {
+    setProperty("com.google.gct.login2.ui.StartupSignInDialog.shownVersion", "9999999.9999999");
+  }
+
+  /**
+   * Sets a persisted property in other.xml.
+   * TODO: ensure that it preserves any existing content (other than in PropertyService) in that file
+   */
+  private void setProperty(String key, String value) throws IOException {
+    Path otherXmlPath = configDir.resolve("options/other.xml");
+    Files.createDirectories(otherXmlPath.getParent());
+
+    Map<String, String> properties = new HashMap<>();
+    if (Files.exists(otherXmlPath)) {
+      String content = Files.readString(otherXmlPath, StandardCharsets.UTF_8);
+      java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("\"([^\"]+)\"\\s*:\\s*\"([^\"]+)\"");
+      java.util.regex.Matcher matcher = pattern.matcher(content);
+      while (matcher.find()) {
+        properties.put(matcher.group(1), matcher.group(2));
+      }
+    }
+    properties.put(key, value);
+
+    StringBuilder sb = new StringBuilder();
+    sb.append("<application>\n");
+    sb.append("  <component name=\"PropertyService\"><![CDATA[{\n");
+    sb.append("    \"keyToString\": {\n");
+    List<Map.Entry<String, String>> entries = new ArrayList<>(properties.entrySet());
+    for (int i = 0; i < entries.size(); i++) {
+      Map.Entry<String, String> entry = entries.get(i);
+      sb.append("      \"").append(entry.getKey()).append("\": \"").append(entry.getValue()).append("\"");
+      if (i < entries.size() - 1) {
+        sb.append(",");
+      }
+      sb.append("\n");
+    }
+    sb.append("    }\n");
+    sb.append("  }]]></component>\n");
+    sb.append("</application>");
+
+    Files.writeString(otherXmlPath, sb.toString(), StandardCharsets.UTF_8);
   }
 
   public void verify() throws IOException {
@@ -609,7 +626,6 @@ public abstract class IdeInstallation<T extends Ide> implements AutoCloseable{
   public Path bundledJdkPath() {
     return TestUtils.getEmbeddedJdkPath();
   }
-
 
   abstract public T attach() throws IOException, InterruptedException;
 

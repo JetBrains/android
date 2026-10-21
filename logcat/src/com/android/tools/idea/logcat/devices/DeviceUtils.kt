@@ -18,14 +18,15 @@ package com.android.tools.idea.logcat.devices
 import com.android.adblib.serialNumber
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
+import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
 import kotlin.io.path.pathString
 
 /** Convert a [DeviceState] to a [Device] */
-internal fun DeviceState.toDevice(): Device? {
-  val serialNumber = connectedDevice?.serialNumber ?: return null
-  val properties = this.properties
+internal fun DeviceHandle.toDevice(): Device? {
+  val serialNumber = state.connectedDevice?.serialNumber ?: return null
+  val properties = state.properties
 
   val release = properties.androidRelease ?: "Unknown"
   val manufacturer = properties.manufacturer ?: "Unknown"
@@ -34,6 +35,7 @@ internal fun DeviceState.toDevice(): Device? {
   return when (properties) {
     is LocalEmulatorProperties -> {
       Device.createEmulator(
+        id,
         serialNumber,
         true,
         release,
@@ -43,6 +45,6 @@ internal fun DeviceState.toDevice(): Device? {
         properties.deviceType,
       )
     }
-    else -> Device.createPhysical(serialNumber, true, release, androidVersion, manufacturer, model, properties.deviceType)
+    else -> Device.createPhysical(id, serialNumber, true, release, androidVersion, manufacturer, model, properties.deviceType)
   }
 }

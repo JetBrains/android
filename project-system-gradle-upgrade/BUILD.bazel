@@ -90,7 +90,6 @@ jvm_library(
         # do not sort,
         ":projectSystem-gradle-upgrade",
         "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
         "//libraries/fastutil:fastutil_test_lib",
         "//libraries/gradle:gradle_test_lib",
         "//libraries/guava:guava_test_lib",

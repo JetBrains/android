@@ -33,6 +33,7 @@ import com.google.idea.blaze.base.model.primitives.WorkspaceType;
 import com.google.idea.blaze.base.projectview.ProjectViewSet;
 import com.google.idea.blaze.base.projectview.section.Glob;
 import com.google.idea.blaze.base.projectview.section.sections.AutomaticallyDeriveTargetsSection;
+import com.google.idea.blaze.base.projectview.section.sections.MiscSection;
 import com.google.idea.blaze.base.projectview.section.sections.TargetSection;
 import com.google.idea.blaze.base.projectview.section.sections.TestSourceSection;
 import com.google.idea.blaze.base.projectview.section.sections.WorkspaceTypeSection;
@@ -60,6 +61,7 @@ import com.google.idea.blaze.qsync.deps.ArtifactDirectories;
 import com.google.idea.blaze.qsync.deps.ArtifactTracker;
 import com.google.idea.blaze.qsync.deps.NewArtifactTracker;
 import com.google.idea.blaze.qsync.deps.TargetBuildInfo;
+import com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars;
 import com.google.idea.blaze.qsync.java.AddProjectKotlinCompilerFlags;
 import com.google.idea.blaze.qsync.java.JavaArtifactMetadata;
 import com.google.idea.blaze.qsync.java.PackageReader;
@@ -133,7 +135,8 @@ public class ProjectLoaderImpl implements ProjectLoader {
       ProjectStructureReader projectStructureReader,
       PackageReader packageReader,
       PackageReader.ParallelReader parallelPackageReader,
-      boolean readProjectStructureFromDirectory) {}
+      Optional<BlazeVcsHandler> vcsHandler,
+      BazelVersionHandler bazelVersionProvider) {}
 
   public ProjectLoaderImpl(Project project) {
     this(
@@ -188,7 +191,8 @@ public class ProjectLoaderImpl implements ProjectLoader {
             result.projectStructureReader(),
             result.packageReader(),
             result.parallelPackageReader(),
-            result.readProjectStructureFromDirectory());
+            result.vcsHandler().orElse(null),
+            result.bazelVersionProvider());
 
     return querySyncProject;
   }
@@ -278,7 +282,10 @@ public class ProjectLoaderImpl implements ProjectLoader {
             latestProjectDef,
             projectPathResolver,
             buildSystem.getEmptyJarDigests(),
-            QuerySync.ATTACH_DEP_SRCJARS::getValue));
+            QuerySync.ATTACH_DEP_SRCJARS::getValue,
+            () ->
+                MiscSection.isExperimentEnabled(
+                    project, AddDependencyGenSrcsJars.ENABLED_NAVIGATION_POLICY)));
     projectTransformRegistry.add(new AddProjectKotlinCompilerFlags());
     NewArtifactTracker<BlazeContext> tracker =
         new NewArtifactTracker<>(
@@ -301,25 +308,20 @@ public class ProjectLoaderImpl implements ProjectLoader {
     DependencyTracker dependencyTracker =
         new DependencyTrackerImpl(
             snapshotHolder, dependencyBuilder, artifactTracker, querySyncUserPreferences);
+    VcsStateDiffer vcsDiffer =
+        vcsHandler.map(it -> (VcsStateDiffer) it::diffVcsState).orElse(VcsStateDiffer.NONE);
     ProjectRefresher projectRefresher =
         new ProjectRefresher(
-            vcsHandler.map(it -> (VcsStateDiffer) it::diffVcsState).orElse(VcsStateDiffer.NONE),
+            vcsDiffer,
             workspaceRoot.path(),
             enableExperimentalQuery.getValue(),
             snapshotHolder::getCurrent);
     ProjectStructureReader projectStructureReader =
         ProjectStructureReader.Companion.create(new FileExtensions(), createPackageReader());
-    boolean readProjectStructureFromDirectory =
-        querySyncUserPreferences.getLoadProjectStructureFromDirectoryTraversal();
 
     ProjectBuilder snapshotBuilder = new ProjectBuilder(workspaceRoot.path());
     QueryRunner queryRunner = createQueryRunner(buildSystem);
-    ProjectQuerier projectQuerier =
-        createProjectQuerier(
-            projectRefresher,
-            queryRunner,
-            vcsHandler,
-            new BazelVersionHandler(buildSystem, buildSystem.getBuildInvoker(project)));
+    ProjectQuerier projectQuerier = createProjectQuerier(projectRefresher, queryRunner);
     QuerySyncSourceToTargetMap sourceToTargetMap =
         new QuerySyncSourceToTargetMap(snapshotHolder, workspaceRoot.path());
     return new QuerySyncProjectDeps(
@@ -347,7 +349,8 @@ public class ProjectLoaderImpl implements ProjectLoader {
         projectStructureReader,
         new WorkspaceResolvingPackageReader(workspaceRoot.path(), createPackageReader()),
         createParallelPackageReader(),
-        readProjectStructureFromDirectory);
+        vcsHandler,
+        new BazelVersionHandler(buildSystem, buildSystem.getBuildInvoker(project)));
   }
 
   private static Map<BuildArtifact, ? extends Collection<? extends ArtifactMetadata.Extractor<?>>>
@@ -372,11 +375,8 @@ public class ProjectLoaderImpl implements ProjectLoader {
   }
 
   private ProjectQuerierImpl createProjectQuerier(
-      ProjectRefresher projectRefresher,
-      QueryRunner queryRunner,
-      Optional<BlazeVcsHandler> vcsHandler,
-      BazelVersionHandler bazelVersionProvider) {
-    return new ProjectQuerierImpl(queryRunner, projectRefresher, vcsHandler, bazelVersionProvider);
+      ProjectRefresher projectRefresher, QueryRunner queryRunner) {
+    return new ProjectQuerierImpl(queryRunner, projectRefresher);
   }
 
   protected QueryRunner createQueryRunner(BuildSystem buildSystem) {

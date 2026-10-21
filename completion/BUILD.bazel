@@ -45,7 +45,6 @@ jvm_library(
         # do not sort,
         ":completion",
         "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
         "//platform/code-style-api:codeStyle_test_lib",
         "//platform/core-api:core_test_lib",
         "//platform/editor-ui-api:editor-ui_test_lib",

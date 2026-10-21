@@ -24,7 +24,7 @@ dependencies {
 android {
     compileSdkVersion 22
 
-    testBuildType "debug"
+    testBuildType = "debug"
 
     signingConfigs {
         myConfig {
@@ -42,7 +42,7 @@ android {
         targetSdkVersion 22
 
         testInstrumentationRunner "android.test.InstrumentationTestRunner"
-        testHandleProfiling false
+        testHandleProfiling = false
 
         buildConfigField "boolean", "DEFAULT", "true"
         buildConfigField "String", "FOO", "\"foo\""
@@ -56,10 +56,10 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix ".debug"
-            signingConfig signingConfigs.myConfig
+            applicationIdSuffix = ".debug"
+            signingConfig = signingConfigs.myConfig
 
-            testCoverageEnabled true
+            testCoverageEnabled = true
 
             buildConfigField "String", "FOO", "\"bar1\""
             buildConfigField "String", "FOO", "\"bar\""
@@ -70,50 +70,11 @@ android {
 
     aaptOptions {
         noCompress 'txt'
-        ignoreAssetsPattern "!.svn:!.git:!.ds_store:!*.scc:.*:<dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"
-    }
-
-    lintOptions {
-        // set to true to turn off analysis progress reporting by lint
-        quiet true
-        // if true, stop the gradle build if errors are found
-        abortOnError false
-        // if true, only report errors
-        ignoreWarnings true
-        // if true, emit full/absolute paths to files with errors (true by default)
-        //absolutePaths true
-        // if true, check all issues, including those that are off by default
-        checkAllWarnings true
-        // if true, treat all warnings as errors
-        warningsAsErrors true
-        // turn off checking the given issue id's
-        disable 'TypographyFractions','TypographyQuotes'
-        // turn on the given issue id's
-        enable 'RtlHardcoded','RtlCompat', 'RtlEnabled'
-        // check *only* the given issue id's
-        check 'NewApi', 'InlinedApi'
-        // if true, don't include source code lines in the error output
-        noLines true
-        // if true, show all locations for an error, do not truncate lists, etc.
-        showAll true
-        // Fallback lint configuration (default severities, etc.)
-        lintConfig file("default-lint.xml")
-        // if true, generate a text report of issues (false by default)
-        textReport true
-        // location to write the output; can be a file or 'stdout'
-        textOutput 'stdout'
-        // if true, generate an XML report for use by for example Jenkins
-        xmlReport false
-        // file to write report to (if not specified, defaults to lint-results.xml)
-        xmlOutput file("lint-report.xml")
-        // if true, generate an HTML report (with issue explanations, sourcecode, etc)
-        htmlReport true
-        // optional path to report (default will be lint-results.html in the builddir)
-        htmlOutput file("lint-report.html")
+        ignoreAssetsPattern = "!.svn:!.git:!.ds_store:!*.scc:.*:<dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"
     }
 
     buildFeatures {
-        buildConfig true
+        buildConfig = true
         resValues = true
     }
 

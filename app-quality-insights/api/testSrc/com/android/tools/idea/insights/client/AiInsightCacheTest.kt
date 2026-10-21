@@ -19,9 +19,6 @@ import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.TestConnection
 import com.android.tools.idea.insights.ai.AiInsight
-import com.android.tools.idea.insights.ai.codecontext.CodeContext
-import com.android.tools.idea.insights.ai.codecontext.CodeContextData
-import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.issue.IssueId
 import com.github.benmanes.caffeine.cache.Cache
@@ -34,24 +31,20 @@ class AiInsightCacheTest {
   fun `get and put AI insights`() {
     val connection = TestConnection("blah", "1234", "project12", "12")
     val cache = AiInsightCache()
-    val context = CodeContextData(listOf(CodeContext("/path", "abc")), contextSharingState = ContextSharingState.ALLOWED)
 
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, ContextSharingState.DISABLED)).isNull()
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, null)).isNull()
 
     cache.putAiInsight(connection, ISSUE1.id, null, DEFAULT_AI_INSIGHT)
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, ContextSharingState.DISABLED))
-      .isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, null)).isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
 
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, "variant1", ContextSharingState.DISABLED)).isNull()
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, ContextSharingState.ALLOWED)).isNull()
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, "variant1")).isNull()
 
-    val newInsight = AiInsight("blah", ISSUE1.sampleEvent, codeContextData = context)
+    val newInsight = AiInsight("blah", ISSUE1.sampleEvent)
     cache.putAiInsight(connection, ISSUE1.id, null, newInsight)
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, null, ContextSharingState.ALLOWED)).isEqualTo(newInsight.copy(isCached = true))
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, null)).isEqualTo(newInsight.copy(isCached = true))
 
     cache.putAiInsight(connection, ISSUE1.id, "variant1", DEFAULT_AI_INSIGHT)
-    assertThat(cache.getAiInsight(connection, ISSUE1.id, "variant1", ContextSharingState.DISABLED))
-      .isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
+    assertThat(cache.getAiInsight(connection, ISSUE1.id, "variant1")).isEqualTo(DEFAULT_AI_INSIGHT.copy(isCached = true))
   }
 
   @Test
@@ -63,8 +56,7 @@ class AiInsightCacheTest {
 
     cache.putAiInsight(connection, ISSUE1.id, null, insight)
 
-    val insightFromUnderlyingCache =
-      underlyingCache.getIfPresent(connection)?.getIfPresent(ISSUE1.id)?.getIfPresent(AiInsightKey(null, ContextSharingState.DISABLED))
+    val insightFromUnderlyingCache = underlyingCache.getIfPresent(connection)?.getIfPresent(ISSUE1.id)?.getIfPresent(AiInsightKey(null))
 
     assertThat(insightFromUnderlyingCache?.isCached).isTrue()
   }

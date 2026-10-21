@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
+import static com.intellij.openapi.util.text.StringUtil.escapeXmlEntities;
+
 import com.android.tools.apk.analyzer.dex.DexDisassembler;
 import com.android.tools.apk.analyzer.dex.DexFiles;
 import com.android.tools.apk.analyzer.dex.tree.DexClassNode;
@@ -130,7 +132,7 @@ public class ShowDisassemblyAction extends AnAction implements DumbAware {
         try {
           byteCode = getByteCode(dexBackedDexFile, node, myProguardMapSupplier.get());
         } catch (Exception ex) {
-          Messages.showErrorDialog(project, "Unable to get byte code: " + ex.getMessage(), "View Dex Bytecode");
+          Messages.showErrorDialog(project, "Unable to get byte code: " + escapeXmlEntities(ex.getMessage()), "View Dex Bytecode");
           return;
         }
 
@@ -139,7 +141,7 @@ public class ShowDisassemblyAction extends AnAction implements DumbAware {
 
       @Override
       public void onFailure(@NotNull Throwable t) {
-        Messages.showErrorDialog("Error constructing dex file: " + t, "View Dex Bytecode");
+        Messages.showErrorDialog("Error constructing dex file: " + escapeXmlEntities(String.valueOf(t)), "View Dex Bytecode");
       }
     }, EdtExecutorService.getInstance());
 

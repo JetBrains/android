@@ -32,6 +32,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.UserDataHolder
 import javax.swing.Icon
 
 /**
@@ -60,10 +61,9 @@ abstract class UpdateReferenceImagesBaseAction(text: String, description: String
     val updateRunconfigSettings =
       RunManagerImpl.getInstanceImpl(project)
         .createConfiguration(validateRunconfigSettings.configuration, validateRunconfigSettings.factory)
-    (updateRunconfigSettings.configuration as? com.intellij.openapi.util.UserDataHolder)?.putUserData(
-      IS_SCREENSHOT_UPDATE_CONFIGURATION,
-      true,
-    )
+    val runConfiguration = updateRunconfigSettings.configuration
+    (runConfiguration as? UserDataHolder)?.putUserData(IS_SCREENSHOT_UPDATE_CONFIGURATION, true)
+
     updateRunconfigSettings.isTemporary = true
     updateRunconfigSettings.isActivateToolWindowBeforeRun = false
 

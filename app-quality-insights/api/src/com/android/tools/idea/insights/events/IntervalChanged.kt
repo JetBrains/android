@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.events
 
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.TimeIntervalFilter
@@ -27,7 +27,7 @@ import com.android.tools.idea.insights.events.actions.Action
 /** Time Interval changed. */
 data class IntervalChanged(val interval: TimeIntervalFilter) : ChangeEvent {
   override fun transition(
-    state: AppInsightsState,
+    state: AppInsightsCrashState,
     tracker: AppInsightsTracker,
     provider: InsightsProvider,
     cache: AppInsightsCache,

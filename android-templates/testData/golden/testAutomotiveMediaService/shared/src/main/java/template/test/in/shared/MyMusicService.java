@@ -68,22 +68,20 @@ import java.util.List;
  */
 public class MyMusicService extends MediaBrowserServiceCompat {
 
-    private MediaSessionCompat mSession;
+    private MediaSessionCompat session;
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        mSession = new MediaSessionCompat(this, "MyMusicService");
-        setSessionToken(mSession.getSessionToken());
-        mSession.setCallback(new MediaSessionCallback());
-        mSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
-                MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+        session = new MediaSessionCompat(this, "MyMusicService");
+        setSessionToken(session.getSessionToken());
+        session.setCallback(new MediaSessionCallback());
     }
 
     @Override
     public void onDestroy() {
-        mSession.release();
+        session.release();
     }
 
     @Override

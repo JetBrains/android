@@ -104,7 +104,7 @@ internal class RecompositionUiPanel(
   init {
     isVisible = false
     isFocusable = false
-    scope.launch {
+    scope.launch(Dispatchers.EDT) {
       model.show.collect { show ->
         isVisible = show
         innerPanel =
@@ -145,7 +145,7 @@ private class InnerStateInspectionPanel(
   private val editor = createStateReadEditor(project, this)
   private val listener = EditorHyperlinkListener { logUsageEvent(it) }
   private val hyperlinkDetector = hyperLinkDetectorFactory.create(editor, scope, listener)
-  private val foldingDetector = RecompositionFoldingDetector(editor, scope)
+  private val foldingDetector = RecompositionFoldingDetector(editor)
   private val prev = ActionButton(model.prevAction, null, UNKNOWN, DEFAULT_MINIMUM_BUTTON_SIZE)
   private val next = ActionButton(model.nextAction, null, UNKNOWN, DEFAULT_MINIMUM_BUTTON_SIZE)
   private val minimize = ActionButton(model.minimizeAction, null, UNKNOWN, DEFAULT_MINIMUM_BUTTON_SIZE)
@@ -187,8 +187,8 @@ private class InnerStateInspectionPanel(
     add(contentPanel, BorderLayout.CENTER)
     border = JBUI.Borders.empty()
 
-    parentScope.launch { model.content.collect { update(it) } }
-    parentScope.launch { model.recompositions.collect { updateButtons(next) } }
+    scope.launch(Dispatchers.EDT) { model.content.collect { update(it) } }
+    scope.launch(Dispatchers.EDT) { model.recompositions.collect { updateButtons(next) } }
   }
 
   override fun dispose() {

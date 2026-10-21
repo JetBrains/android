@@ -24,6 +24,7 @@ import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.sdklib.deviceprovisioner.EmulatorType
 import com.android.sdklib.deviceprovisioner.ReservationState
 import com.android.sdklib.deviceprovisioner.mapStateNotNull
 import com.android.sdklib.internal.avd.AvdInfo
@@ -1122,7 +1123,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
   private fun getOrCreateDeviceClient(serialNumber: String, deviceHandle: DeviceHandle, config: DeviceConfiguration): DeviceClient {
     return adoptDeviceClient(serialNumber, deviceHandle) {
         deviceClientRegistry.getOrCreateDeviceClient(serialNumber, this@StreamingToolWindowManager) {
-          DeviceClient(serialNumber, config, config.deviceProperties.primaryAbi.toString()).apply {
+          DeviceClient(deviceHandle.id, serialNumber, config, config.deviceProperties.primaryAbi.toString()).apply {
             establishAgentConnectionWithoutVideoStreamAsync(project)
           }
         }
@@ -1219,7 +1220,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(private val too
     return avds.filter {
       it.dataFolderPath !in runningAvdFolders &&
         findContentByAvdFolder(it.dataFolderPath) == null &&
-        (StudioFlags.EMBEDDED_EMULATOR_ALLOW_AI_GLASSES_AVD.get() || !it.isAiGlassesDevice)
+        (StudioFlags.AI_GLASSES_DEVICE_SUPPORT_ENABLED.get() || !it.isAiGlassesDevice)
     }
   }
 
@@ -1583,8 +1584,8 @@ private suspend fun DeviceState.Connected.isMirrorable(): Boolean {
   }
 
   val deviceSerialNumber = serialNumber
-  when {
-    isLocalEmulator(deviceSerialNumber) -> { // Local virtual device.
+  if (properties.emulatorType == EmulatorType.GOLDFISH) {
+    if (isLocalEmulator(deviceSerialNumber)) { // Local virtual device.
       if (!StudioFlags.DEVICE_MIRRORING_STANDALONE_EMULATORS.get()) {
         return false
       }
@@ -1593,8 +1594,7 @@ private suspend fun DeviceState.Connected.isMirrorable(): Boolean {
       if (emulator == null || emulator.emulatorId.isEmbedded) {
         return false
       }
-    }
-    properties.isVirtual == true -> { // Remote virtual device.
+    } else { // Remote virtual device.
       if (!StudioFlags.DEVICE_MIRRORING_REMOTE_EMULATORS.get()) {
         return false
       }

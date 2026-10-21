@@ -32,9 +32,10 @@ import com.example.external.withoutjvmname.gensrcjar.ExternalKtSourceInGenSrcjar
 class Class2 {
   val string: String
     get() {
-      val s: ExternalJavaSource = ExternalJavaSource()
-      return (s.copy(ExternalJavaSource.STRING)
-              + s.copy(ExternalKtSource.STRING)
+      val externalJavaSource = ExternalJavaSource()
+      val externalJavaInSrcJar = ExternalJavaInSrcJar()
+      return (externalJavaSource.copy(ExternalJavaSource.STRING)
+              + externalJavaInSrcJar.copy(ExternalKtSource.STRING)
               + ExternalKtSource1.STRING
               + ExternalKtSource2.STRING
               + com.example.external.withjvmname.STRING1

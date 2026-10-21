@@ -27,6 +27,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.tools.idea.projectsystem.actions.GenerateApkAction;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;

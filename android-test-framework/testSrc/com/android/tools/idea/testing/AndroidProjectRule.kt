@@ -63,10 +63,10 @@ import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.workspaceModel.ide.impl.WorkspaceModelCacheImpl
 import java.io.File
 import java.time.Clock
 import java.util.concurrent.TimeoutException
+import kotlin.io.path.absolutePathString
 import org.jetbrains.android.AndroidTempDirTestFixture
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
@@ -471,8 +471,7 @@ class TestEnvironmentRuleImpl(val withAndroidSdk: Boolean) : NamedExternalResour
     } catch (_: Throwable) {}
     initTestApplication()
     // TODO(b/418973297): Consolidate all init logic in the different test frameworks
-    // Enable workspace model cache and phased sync
-    WorkspaceModelCacheImpl.forceEnableCaching(testEnvironmentDisposable)
+    // Enable phased sync
     GradleSpecificInitializer.initializePhasedSync()
   }
 
@@ -632,17 +631,23 @@ private fun createJavaCodeInsightTestFixture(
  */
 internal class AndroidProjectRuleTempDirectoryFixture(name: String) : AndroidTempDirTestFixture(name) {
   private val tempRoot: String =
-    FileUtil.createTempDirectory("${UsefulTestCase.TEMP_DIR_MARKER}${Clock.systemUTC().millis()}", null, false).path
+    if (shouldKeepTestDirectory()) {
+      TestUtils.getTestOutputDir().resolve("project_${Clock.systemUTC().millis()}").absolutePathString()
+    } else {
+      FileUtil.createTempDirectory("${UsefulTestCase.TEMP_DIR_MARKER}${Clock.systemUTC().millis()}", null, false).path
+    }
 
   override fun getRootTempDirectory(): String = tempRoot
 
   override fun tearDown() {
-    super.tearDown() // Deletes the project directory.
-    try {
-      // Delete the temp directory where the project directory was created.
-      runWriteAction { VfsUtil.createDirectories(tempRoot).delete(this) }
-    } catch (e: Throwable) {
-      addSuppressedException(e)
+    super.tearDown() // Deletes root/name
+    if (deleteOnTearDown()) { // Deletes root
+      try {
+        // Delete the temp directory where the project directory was created.
+        runWriteAction { VfsUtil.createDirectories(tempRoot).delete(this) }
+      } catch (e: Throwable) {
+        addSuppressedException(e)
+      }
     }
   }
 }

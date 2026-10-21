@@ -19,12 +19,19 @@ import com.android.SdkConstants
 import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.resources.Density
 import com.android.testutils.delayUntilCondition
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler
+import com.android.tools.idea.common.surface.SceneViewPanel
+import com.android.tools.idea.common.surface.ZoomConstants
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
+import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.TestProjectSystemBuildManager
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider.NlRenderIssueWrapper
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider.Companion.DEFAULT_SCREEN_MODE
@@ -33,11 +40,14 @@ import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider.Companion.l
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider.Companion.savePreferredMode
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder.Companion.build
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder.Companion.builder
+import com.android.tools.idea.uibuilder.util.MockCopyPasteManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.PlatformTestUtil
 import java.awt.Point
+import java.util.concurrent.TimeUnit
 import java.util.stream.Collectors
 import kotlinx.coroutines.test.runTest
 
@@ -47,8 +57,15 @@ class NlDesignSurfaceTest : LayoutTestCase() {
   @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
+    val projectSystem =
+      object : GradleProjectSystem(project) {
+        private val buildManager = TestProjectSystemBuildManager(ensureClockAdvancesWhileBuilding = true)
 
-    designSurface = build(getProject(), getTestRootDisposable())
+        override fun getBuildManager(): ProjectSystemBuildManager = buildManager
+      }
+    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(projectSystem)
+
+    designSurface = build(project, getTestRootDisposable())
     designSurface.setSize(1000, 1000)
   }
 
@@ -86,9 +103,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     val model: NlModel =
       model("absolute.xml", component(SdkConstants.ABSOLUTE_LAYOUT).withBounds(0, 0, 1000, 1000).matchParentWidth().matchParentHeight())
         .build()
-    // Avoid rendering any other components (nav bar and similar) so we do not have dependencies
-    // on
-    // the Material theme
+    // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
     model.configuration.setTheme("android:Theme.NoTitleBar.Fullscreen")
     designSurface.setModel(model)
 
@@ -103,7 +118,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     )
   }
 
-  fun ignore_testRenderWhileBuilding() {
+  fun testRenderWhileBuilding() = runTest {
     val modelBuilder =
       model(
         "absolute.xml",
@@ -116,33 +131,37 @@ class NlDesignSurfaceTest : LayoutTestCase() {
 
     var model: NlModel = modelBuilder.build()
     // Simulate that we are in the middle of a build
-    //    BuildSettings.getInstance(getProject()).setBuildMode(BuildMode.SOURCE_GEN);
-    // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on
-    // the Material theme
+    val buildManager = TestProjectSystemBuildManager.get(project)
+    buildManager.buildStarted(ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE)
+    // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
     model.configuration.setTheme("android:Theme.NoTitleBar.Fullscreen")
     designSurface.setModel(model)
 
     refreshSurface()
+    delayUntilCondition(100) {
+      designSurface.issueModel.issues.stream().anyMatch { issue: Issue? -> issue!!.summary.startsWith("The project is still building") }
+    }
 
     // Now finish the build, and try to build again. The "project is still building" should be gone.
-    //    BuildSettings.getInstance(getProject()).setBuildMode(null);
+    buildManager.buildCompleted(ProjectSystemBuildManager.BuildStatus.SUCCESS)
     model = modelBuilder.build()
     model.configuration.setTheme("android:Theme.NoTitleBar.Fullscreen")
     designSurface.setModel(model)
 
     refreshSurface()
-    // Because there is a missing view, some other extra errors will be generated about missing
-    // styles. This is caused by
-    // MockView (which is based on TextView) that depends on some Material styles.
-    // We only care about the missing class error.
-    assertTrue(designSurface.issueModel.issues.stream().anyMatch { issue: Issue? -> issue!!.summary.startsWith("Missing classes") })
+    delayUntilCondition(100) {
+      // Because there is a missing view, some other extra errors will be generated about missing
+      // styles. This is caused by MockView (which is based on TextView) that depends on some Material styles.
+      // We only care about the missing class error.
+      designSurface.issueModel.issues.stream().anyMatch { issue: Issue? -> issue!!.summary.startsWith("Missing classes") }
+    }
     assertFalse(
       designSurface.issueModel.issues.stream().anyMatch { issue: Issue? -> issue!!.summary.startsWith("The project is still building") }
     )
   }
 
-  /** Copy a component and check that the id of the new component has the same base and an incremented number */
-  fun ignore_testCopyPasteWithId() {
+  /** Copy a component and check that the id of the new component has the same base and an incremented number. */
+  fun testCopyPasteWithId() {
     val model: NlModel =
       model(
           "my_linear.xml",
@@ -156,23 +175,26 @@ class NlDesignSurfaceTest : LayoutTestCase() {
         )
         .build()
     designSurface.setModel(model)
-    val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface!!)
+    waitForSurfaceToBeReady(model)
+    val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface, MockCopyPasteManager())
     val dataContext = DataContext.EMPTY_CONTEXT
-    val button = model.treeReader.find("cuteLittleButton")
-    designSurface.selectionModel.setSelection(listOfNotNull(button))
+    val button = checkNotNull(model.treeReader.find("cuteLittleButton"))
+    designSurface.selectionModel.setSelection(listOf(button))
     handler.performCopy(dataContext)
     handler.performPaste(dataContext)
+    waitAndDispatchEvents { model.treeReader.find("cuteLittleButton2") != null }
     val button2 = model.treeReader.find("cuteLittleButton2")
-    assertNotNull(button2)
-    designSurface.selectionModel.setSelection(listOfNotNull(button2))
+    checkNotNull(button2)
+    designSurface.selectionModel.setSelection(listOf(button2))
     handler.performCopy(dataContext)
     handler.performPaste(dataContext)
+    waitAndDispatchEvents { model.treeReader.find("cuteLittleButton3") != null }
     val button3 = model.treeReader.find("cuteLittleButton3")
-    assertNotNull(button3)
+    checkNotNull(button3)
   }
 
   /** Cut a component and check that the id of the new component has been conserved */
-  fun ignore_testCutPasteWithId() {
+  fun testCutPasteWithId() {
     val model: NlModel =
       model(
           "my_linear.xml",
@@ -186,12 +208,14 @@ class NlDesignSurfaceTest : LayoutTestCase() {
         )
         .build()
     designSurface.setModel(model)
-    val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface!!)
+    waitForSurfaceToBeReady(model)
+    val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface, MockCopyPasteManager())
     val dataContext = DataContext.EMPTY_CONTEXT
-    val button = model.treeReader.find("cuteLittleButton")
-    designSurface.selectionModel.setSelection(listOfNotNull(button))
+    val button = checkNotNull(model.treeReader.find("cuteLittleButton"))
+    designSurface.selectionModel.setSelection(listOf(button))
     handler.performCut(dataContext)
     handler.performPaste(dataContext)
+    waitAndDispatchEvents { model.treeReader.find("cuteLittleButton") != null }
     assertComponentWithId(model, "cuteLittleButton")
   }
 
@@ -226,7 +250,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
   }
 
   /** Cut a component and check that the id of the new component has been conserved */
-  fun ignore_testMultipleCopyPasteWithId() {
+  fun testMultipleCopyPasteWithId() {
     val model: NlModel =
       model(
           "my_linear.xml",
@@ -242,7 +266,8 @@ class NlDesignSurfaceTest : LayoutTestCase() {
         )
         .build()
     designSurface.setModel(model)
-    val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface)
+    waitForSurfaceToBeReady(model)
+    val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface, MockCopyPasteManager())
     val dataContext = DataContext.EMPTY_CONTEXT
     val button = model.treeReader.find("cuteLittleButton") ?: throw NullPointerException("Button should not be null")
     val button2 = model.treeReader.find("cuteLittleButton2") ?: throw NullPointerException("Button2 should not be null")
@@ -251,12 +276,13 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     handler.performCopy(dataContext)
     designSurface.selectionModel.clear()
     handler.performPaste(dataContext)
+    waitAndDispatchEvents { model.treeReader.find("cuteLittleButton4") != null }
     assertComponentWithId(model, "cuteLittleButton4")
     assertComponentWithId(model, "cuteLittleButton5")
     assertComponentWithId(model, "cuteLittleButton6")
   }
 
-  fun ignore_testCutThenCopyWithId() {
+  fun testCutThenCopyWithId() {
     val model: NlModel =
       model(
           "my_linear.xml",
@@ -270,23 +296,26 @@ class NlDesignSurfaceTest : LayoutTestCase() {
         )
         .build()
     designSurface.setModel(model)
-    val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface)
+    waitForSurfaceToBeReady(model)
+    val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface, MockCopyPasteManager())
     val dataContext = DataContext.EMPTY_CONTEXT
     val button = model.treeReader.find("cuteLittleButton") ?: throw NullPointerException("Button should not be null")
     designSurface.selectionModel.setSelection(listOf(button))
     handler.performCut(dataContext)
     handler.performPaste(dataContext)
+    waitAndDispatchEvents { model.treeReader.find("cuteLittleButton") != null }
     val button2 = model.treeReader.find("cuteLittleButton") ?: throw NullPointerException("Button should not be null")
     assertNotNull("Component should have been pasted with the id cuteLittleButton", button2)
 
     designSurface.selectionModel.setSelection(listOf(button2))
     handler.performCopy(dataContext)
     handler.performPaste(dataContext)
+    waitAndDispatchEvents { model.treeReader.find("cuteLittleButton2") != null }
     assertComponentWithId(model, "cuteLittleButton2")
   }
 
   /** Cut component1, paste it, copy it, cut the copy and paste it. The copy should keep the same id as the first time. */
-  fun ignore_testCutPasteCut() {
+  fun testCutPasteCut() {
     val model: NlModel =
       model(
           "my_linear.xml",
@@ -300,25 +329,30 @@ class NlDesignSurfaceTest : LayoutTestCase() {
         )
         .build()
     designSurface.setModel(model)
-    val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface!!)
+    waitForSurfaceToBeReady(model)
+    val handler: DesignSurfaceActionHandler<*> = NlDesignSurfaceActionHandler(designSurface, MockCopyPasteManager())
     val dataContext = DataContext.EMPTY_CONTEXT
     val button = model.treeReader.find("cuteLittleButton") ?: throw NullPointerException("Button should not be null")
     designSurface.selectionModel.setSelection(listOf(button))
     handler.performCut(dataContext)
     handler.performPaste(dataContext)
+    waitAndDispatchEvents { model.treeReader.find("cuteLittleButton") != null }
     val buttonCut = model.treeReader.find("cuteLittleButton") ?: throw NullPointerException("Button should not be null")
     assertNotNull("Component should have been pasted with the id cuteLittleButton", buttonCut)
 
     designSurface.selectionModel.setSelection(listOf(buttonCut))
     handler.performCopy(dataContext)
     handler.performPaste(dataContext)
+    waitAndDispatchEvents { model.treeReader.find("cuteLittleButton2") != null }
     assertComponentWithId(model, "cuteLittleButton2")
 
     val buttonCopied = model.treeReader.find("cuteLittleButton2") ?: throw NullPointerException("Button should not be null")
     designSurface.selectionModel.setSelection(listOf(buttonCopied))
     handler.performCut(dataContext)
     handler.performPaste(dataContext)
+    waitAndDispatchEvents { model.treeReader.find("cuteLittleButton2") != null }
     handler.performPaste(dataContext)
+    waitAndDispatchEvents { model.treeReader.find("cuteLittleButton3") != null }
     assertNull(model.treeReader.find("cuteLittleButton4"))
     assertComponentWithId(model, "cuteLittleButton2")
   }
@@ -374,12 +408,15 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     assertEquals(designSurface.zoomController.scale, designSurface.zoomController.minScale)
 
     // Zoom to fit will move again to original scale
+    // We call zoom(ZoomType.FIT) directly instead of zoomToFit to keep this test simple, since we don't need to call helper methods such as
+    // notifyLayoutCreatedForTest or notifyComponentResizedForTest, which deal with ZoomMaskConstants. This logic is already covered by
+    // DesignSurfaceTest.
     designSurface.zoomController.zoom(ZoomType.FIT)
     assertEquals(designSurface.zoomController.scale, origScale)
 
-    // Zoom to actual will have a scale of 1.0 (100% of scale)
+    // Zoom to actual will have a scale of 1.0 / screenScalingFactor
     designSurface.zoomController.zoom(ZoomType.ACTUAL, 0, 0)
-    assertEquals(1.0, designSurface.zoomController.scale)
+    assertEquals(1.0 / designSurface.zoomController.screenScalingFactor, designSurface.zoomController.scale)
 
     assertEquals(0.01, designSurface.zoomController.minScale)
 
@@ -389,7 +426,7 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     assertTrue(designSurface.zoomController.scale > scale)
   }
 
-  fun ignore_testZoomHiDPIScreen() {
+  fun testZoomHiDPIScreen() {
     val model =
       model(
           "my_linear.xml",
@@ -404,36 +441,47 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     config.getFullConfig().setDensityQualifier(DensityQualifier(Density.XHIGH))
     model.configuration = config
     designSurface.setModel(model)
+    waitForSurfaceToBeReady(model)
     assertEquals(2f, designSurface.getSceneManager(model)!!.sceneScalingFactor)
     designSurface.setScrollViewSizeAndValidateForTest(1000, 1000)
-    designSurface.zoomController.zoomToFit()
+    // We call zoom(ZoomType.FIT) directly instead of zoomToFit to keep this test simple, since we don't need to call helper methods such as
+    // notifyLayoutCreatedForTest or notifyComponentResizedForTest, which deal with ZoomMaskConstants. This logic is already covered by
+    // DesignSurfaceTest.
+    designSurface.zoomController.zoom(ZoomType.FIT)
     val origScale = designSurface.zoomController.scale
-    assertEquals(origScale, designSurface.zoomController.minScale)
 
     val view = designSurface.focusedSceneView
-    assertEquals(Point(-122, -122), Coordinates.getAndroidCoordinate(view!!, designSurface.pannable.scrollPosition))
+    assertEquals(Point(0, 0), Coordinates.getAndroidCoordinate(view!!, designSurface.pannable.scrollPosition))
 
     designSurface.zoomController.zoom(ZoomType.IN)
     var scale = designSurface.zoomController.scale
     assertTrue(scale > origScale)
-    assertEquals(Point(-44, -44), Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition))
+    assertEquals(Point(0, 0), Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition))
 
     designSurface.zoomController.zoom(ZoomType.IN, 100, 100)
     assertTrue(designSurface.zoomController.scale > scale)
-    assertEquals(Point(-29, -29), Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition))
+    assertEquals(Point(0, 0), Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition))
 
     designSurface.zoomController.zoom(ZoomType.OUT, 100, 100)
-    assertEquals(Point(-43, -43), Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition))
+    assertEquals(Point(0, 0), Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition))
     designSurface.zoomController.zoom(ZoomType.OUT)
-    assertEquals(Point(-122, -122), Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition))
+    assertEquals(Point(0, 0), Coordinates.getAndroidCoordinate(view, designSurface.pannable.scrollPosition))
     designSurface.zoomController.zoom(ZoomType.OUT)
 
-    assertEquals(designSurface.zoomController.scale, origScale)
-    designSurface.zoomController.zoom(ZoomType.OUT)
-    assertEquals(designSurface.zoomController.scale, origScale)
+    // Zooming out more should keep going down to minScale
+    while (designSurface.zoomController.scale > designSurface.zoomController.minScale) {
+      val lastScale = designSurface.zoomController.scale
+      designSurface.zoomController.zoom(ZoomType.OUT)
+      val currentScale = designSurface.zoomController.scale
+      if (currentScale >= lastScale) {
+        break // Escape loop if no zoom out change to avoid infinite loops
+      }
+      assertTrue(currentScale < lastScale)
+    }
+    assertEquals(designSurface.zoomController.scale, designSurface.zoomController.minScale)
 
     designSurface.setScrollViewSizeAndValidateForTest(2000, 2000)
-    assertEquals(1.0, designSurface.zoomController.minScale)
+    assertEquals(0.01, designSurface.zoomController.minScale)
 
     designSurface.zoomController.setScale(1.099, 0, 0)
     scale = designSurface.zoomController.scale
@@ -441,14 +489,14 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     assertTrue(designSurface.zoomController.scale > scale)
   }
 
-  fun ignore_testCanZoomToFit() {
+  fun testCanZoomToFit() {
     val model: NlModel =
       model("absolute.xml", component(SdkConstants.ABSOLUTE_LAYOUT).withBounds(0, 0, 1000, 1000).matchParentWidth().matchParentHeight())
         .build()
-    // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on
-    // the Material theme
+    // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
     model.configuration.setTheme("android:Theme.NoTitleBar.Fullscreen")
     designSurface.setModel(model)
+    waitForSurfaceToBeReady(model)
     designSurface.setSize(1000, 1000)
     designSurface.doLayout()
 
@@ -458,75 +506,108 @@ class NlDesignSurfaceTest : LayoutTestCase() {
     designSurface.zoomController.setScale(designSurface.zoomController.minScale, -1, -1)
     assertTrue(designSurface.zoomController.canZoomIn())
     assertFalse(designSurface.zoomController.canZoomOut())
-    designSurface.zoomController.zoomToFit()
+    assertTrue(designSurface.zoomController.canZoomToFit())
+    // We call zoom(ZoomType.FIT) directly instead of zoomToFit to keep this test simple, since we don't need to call helper methods such as
+    // notifyLayoutCreatedForTest or notifyComponentResizedForTest, which deal with ZoomMaskConstants. This logic is already covered by
+    // DesignSurfaceTest.
+    designSurface.zoomController.zoom(ZoomType.FIT)
+    // After zoom-to-fit, you can no longer zoom-to-fit
     assertFalse(designSurface.zoomController.canZoomToFit())
     assertTrue(designSurface.zoomController.canZoomIn())
-    assertFalse(designSurface.zoomController.canZoomOut())
+    assertTrue(designSurface.zoomController.canZoomOut())
   }
 
-  fun ignore_testCannotZoomToFit() {
-    val model: NlModel =
-      model("absolute.xml", component(SdkConstants.ABSOLUTE_LAYOUT).withBounds(0, 0, 1000, 1000).matchParentWidth().matchParentHeight())
-        .build()
+  fun testCannotZoomToFit() {
+    val createModel = {
+      val model =
+        model("absolute.xml", component(SdkConstants.ABSOLUTE_LAYOUT).withBounds(0, 0, 1000, 1000).matchParentWidth().matchParentHeight())
+          .build()
+      // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
+      model.configuration.setTheme("android:Theme.NoTitleBar.Fullscreen")
+      model
+    }
 
     val surfaceWidth = 500
     val surfaceHeight = 500
 
     // First use an empty surface to measure the zoom-to-fit scale.
     var surface = builder(project, getTestRootDisposable()).build()
-    // TODO(b/370994254): it may be necessary to render after adding the model here
-    surface.addModelsWithoutRender(listOf(model))
+    var model = createModel()
     surface.setSize(surfaceWidth, surfaceHeight)
+    surface.setModel(model)
+    waitForSurfaceToBeReady(model, surface)
     surface.doLayout()
-    surface.zoomController.zoomToFit()
+    // We call zoom(ZoomType.FIT) directly instead of zoomToFit to keep this test simple, since we don't need to call helper methods such as
+    // notifyLayoutCreatedForTest or notifyComponentResizedForTest, which deal with ZoomMaskConstants. This logic is already covered by
+    // DesignSurfaceTest.
+    surface.zoomController.zoom(ZoomType.FIT)
     val fitScale = surface.zoomController.scale
     surface.removeModels(listOf(model))
 
-    // Create another surface which the minimum scale is larger than fitScale.
+    // Create another surface which the minimum scale is greater than fitScale.
     surface = builder(project, getTestRootDisposable()).build()
-    // TODO(b/370994254): it may be necessary to render after adding the model here
-    surface.addModelsWithoutRender(listOf(model))
+    (surface.zoomController as NlDesignSurfaceZoomController).overrideMinScaleForTests(fitScale * 2)
+    model = createModel()
     surface.setSize(surfaceWidth, surfaceHeight)
+    surface.setModel(model)
+    waitForSurfaceToBeReady(model, surface)
     surface.doLayout()
     // Cannot zoom lower than min scale.
-    surface.zoomController.zoomToFit()
+    surface.zoomController.zoom(ZoomType.FIT)
     assertEquals(fitScale * 2, surface.zoomController.scale, 0.01)
     assertFalse(surface.zoomController.canZoomToFit())
     surface.removeModels(listOf(model))
 
     // Create another surface which the maximum scale is lower than fitScale.
     surface = builder(project, getTestRootDisposable()).build()
-    // TODO(b/370994254): it may be necessary to render after adding the model here
-    surface.addModelsWithoutRender(listOf(model))
+    (surface.zoomController as NlDesignSurfaceZoomController).overrideMaxScaleForTests(fitScale / 2)
+    model = createModel()
     surface.setSize(surfaceWidth, surfaceHeight)
+    surface.setModel(model)
+    waitForSurfaceToBeReady(model, surface)
     surface.doLayout()
     // Cannot zoom larger than max scale.
-    surface.zoomController.zoomToFit()
+    // We call zoom(ZoomType.FIT) directly instead of zoomToFit to keep this test simple, since we don't need to call helper methods such as
+    // notifyLayoutCreatedForTest or notifyComponentResizedForTest, which deal with ZoomMaskConstants. This logic is already covered by
+    // DesignSurfaceTest.
+    surface.zoomController.zoom(ZoomType.FIT)
     assertEquals(fitScale / 2, surface.zoomController.scale, 0.01)
     assertFalse(surface.zoomController.canZoomToFit())
     surface.removeModels(listOf(model))
   }
 
-  /** Test that we don't have any negative scale in case the windows size becomes too small */
-  fun ignore_testsMinScale() {
+  /** Test that we don't go below the minimum scale in case the window size becomes too small */
+  fun testMinScale() {
     val model: NlModel =
       model("absolute.xml", component(SdkConstants.ABSOLUTE_LAYOUT).withBounds(0, 0, 1000, 1000).matchParentWidth().matchParentHeight())
         .build()
-    val surface = designSurface
-    surface.setModel(model)
-    surface.setBounds(0, 0, 1000, 1000)
-    surface.validate()
-    surface.getLayout().layoutContainer(surface)
-    surface.validateScrollArea()
-    surface.zoomController.zoomToFit()
-    assertEquals(0.5, surface.zoomController.scale, 0.1)
+    // Avoid rendering any other components (nav bar and similar) so we do not have dependencies on the Material theme
+    model.configuration.setTheme("android:Theme.NoTitleBar.Fullscreen")
 
-    surface.setBounds(0, 0, 1, 1)
-    surface.revalidateScrollArea()
-    surface.validate()
-    surface.layout.layoutContainer(surface)
-    surface.zoomController.zoomToFit()
-    assertEquals(0.01, surface.zoomController.scale)
+    val surface = builder(project, getTestRootDisposable()).build()
+    surface.setScrollViewSizeAndValidateForTest(1000, 1000)
+    surface.setModel(model)
+    waitForSurfaceToBeReady(model, surface)
+    val sceneViewPanel = surface.interactionPane as SceneViewPanel
+    sceneViewPanel.doLayout()
+    // Now wait for the asynchronous launchLayoutUpdate flow collection to finish adding components to the panel
+    waitAndDispatchEvents { sceneViewPanel.positionableContent.isNotEmpty() }
+
+    // We call zoom(ZoomType.FIT) directly instead of zoomToFit to keep this test simple, since we don't need to call helper methods such as
+    // notifyLayoutCreatedForTest or notifyComponentResizedForTest, which deal with ZoomMaskConstants. This logic is already covered by
+    // DesignSurfaceTest.
+    surface.zoomController.zoom(ZoomType.FIT)
+    val fitScale = surface.zoomController.scale
+    // Zoom to fit should work and the scale should be within valid bounds (greater than minScale)
+    assertTrue(fitScale > ZoomConstants.DEFAULT_MIN_SCALE)
+
+    // Now resize the viewport to be extremely small (1x1)
+    surface.setScrollViewSizeAndValidateForTest(1, 1)
+    surface.doLayout()
+
+    // Zoom to fit shouldn't go below the minimum scale
+    surface.zoomController.zoom(ZoomType.FIT)
+    assertEquals(ZoomConstants.DEFAULT_MIN_SCALE, surface.zoomController.scale, 0.001)
   }
 
   fun testNlSupportedActions() {
@@ -554,5 +635,20 @@ class NlDesignSurfaceTest : LayoutTestCase() {
         model.treeReader.flattenComponents().map<String?> { obj: NlComponent? -> obj!!.getId() }.collect(Collectors.joining(", ")),
       component,
     )
+  }
+
+  private fun waitForSurfaceToBeReady(model: NlModel) {
+    waitForSurfaceToBeReady(model, designSurface)
+  }
+
+  private fun waitForSurfaceToBeReady(model: NlModel, surface: NlDesignSurface) {
+    waitAndDispatchEvents { surface.getSceneManager(model)?.renderResult != null && surface.focusedSceneView != null }
+  }
+
+  private fun waitAndDispatchEvents(condition: () -> Boolean) {
+    waitForCondition(10, TimeUnit.SECONDS) {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      condition()
+    }
   }
 }

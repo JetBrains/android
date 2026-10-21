@@ -24,6 +24,7 @@ import com.android.tools.idea.preview.find.NodeInfo
 import com.android.tools.idea.preview.find.UAnnotationSubtreeInfo
 import com.android.tools.idea.preview.find.UastAnnotatedMethod
 import com.android.tools.idea.preview.find.UastAnnotationAttributesProvider
+import com.android.tools.idea.preview.find.anyAnnotationInGraphSync
 import com.android.tools.idea.preview.find.findAllAnnotationsInGraph
 import com.android.tools.idea.preview.find.findPreviewDefaultValues
 import com.android.tools.idea.preview.find.toSmartPsiPointer
@@ -35,7 +36,6 @@ import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
@@ -157,13 +157,13 @@ internal class WearTilePreviewElementFinder(
  * Returns true if a [UMethod] or [UAnnotation] is not null is annotated with a Tile Preview annotation, either directly or through a
  * Multi-Preview annotation.
  */
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
 @RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
 fun UElement?.hasTilePreviewAnnotation(): Boolean {
   assert(this is UMethod? || this is UAnnotation?) { "The UElement should be either a UMethod or a UAnnotation" }
   val project = this?.sourcePsi?.project ?: return false
   if (DumbService.isDumb(project)) return false
-  // TODO(b/381827960): avoid using runBlockingCancellable
-  return runBlockingCancellable { this@hasTilePreviewAnnotation?.findAllTilePreviewAnnotations()?.firstOrNull() != null }
+  return this?.anyAnnotationInGraphSync { it.isTilePreviewAnnotation() } == true
 }
 
 /**

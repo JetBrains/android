@@ -52,7 +52,6 @@ jvm_library(
         # do not sort,
         ":gradle-dsl-declarative",
         "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
         "//platform/core-impl:core-impl_test_lib",
         "//platform/analysis-api:analysis_test_lib",
         "//platform/lang-api:lang_test_lib",

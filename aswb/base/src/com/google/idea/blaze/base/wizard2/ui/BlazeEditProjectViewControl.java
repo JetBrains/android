@@ -413,9 +413,7 @@ public final class BlazeEditProjectViewControl {
   }
 
   private static File getDefaultProjectsDirectory() {
-    final String userHome = SystemProperties.getUserHome();
-    String productName = ApplicationNamesInfo.getInstance().getLowercaseProductName();
-    return new File(userHome, productName.replace(" ", "") + "Projects");
+    return new File(SystemProperties.getUserHome(), ApplicationNamesInfo.getInstance().getDefaultProjectDirectoryName());
   }
 
   /** Returns a unique file path by appending numbers until a non-collision is found. */

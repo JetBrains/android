@@ -40,7 +40,7 @@ import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 
-@OldAgpTest(gradleVersions = ["7.0.2"], agpVersions = ["7.0.0"])
+@OldAgpTest(gradleVersions = ["7.2"], agpVersions = ["7.1.0"])
 @RunsInEdt
 class ResValuesDefaultRefactoringProcessorSyncedTest {
 
@@ -48,12 +48,12 @@ class ResValuesDefaultRefactoringProcessorSyncedTest {
 
   @Test
   fun testProjectWithNoResValues() {
-    projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_70).open {
+    projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_71).open {
       project ->
       val buildGradleVfsFile = project.findAppBuildGradle()
       val appBuildGradleText = VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) })
       VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
-      val processor = ResValuesDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("9.0.0"))
+      val processor = ResValuesDefaultRefactoringProcessor(project, AgpVersion.parse("7.1.0"), AgpVersion.parse("9.0.0"))
       Assert.assertFalse(processor.isBlocked)
       val usages = processor.findUsages()
       UsefulTestCase.assertSize(1, usages)
@@ -73,14 +73,14 @@ class ResValuesDefaultRefactoringProcessorSyncedTest {
       "false",
       ThrowableRunnable {
         projectRule
-          .prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_70)
+          .prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_71)
           .addResValuesFlagInGradleProperties(false)
           .open { project ->
             project.findGradleProperties().also { it.refresh(false, false) }
             val buildGradleVfsFile = project.findAppBuildGradle()
             val appBuildGradleText = VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) })
             VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
-            val processor = ResValuesDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("9.0.0"))
+            val processor = ResValuesDefaultRefactoringProcessor(project, AgpVersion.parse("7.1.0"), AgpVersion.parse("9.0.0"))
             Assert.assertFalse(processor.isBlocked)
             val usages = processor.findUsages()
             UsefulTestCase.assertSize(0, usages)
@@ -102,14 +102,14 @@ class ResValuesDefaultRefactoringProcessorSyncedTest {
       "false",
       ThrowableRunnable {
         projectRule
-          .prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_70)
+          .prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_71)
           .addResValuesFlagInGradleProperties(true)
           .open { project ->
             project.findGradleProperties().also { it.refresh(false, false) }
             val buildGradleVfsFile = project.findAppBuildGradle()
             val appBuildGradleText = VfsUtilCore.loadText(buildGradleVfsFile.also { it.refresh(false, false) })
             VfsUtilCore.loadText(project.findGradleProperties().also { it.refresh(false, false) })
-            val processor = ResValuesDefaultRefactoringProcessor(project, AgpVersion.parse("7.0.0"), AgpVersion.parse("9.0.0"))
+            val processor = ResValuesDefaultRefactoringProcessor(project, AgpVersion.parse("7.1.0"), AgpVersion.parse("9.0.0"))
             Assert.assertFalse(processor.isBlocked)
             val usages = processor.findUsages()
             UsefulTestCase.assertSize(0, usages)

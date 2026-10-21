@@ -53,6 +53,11 @@ public class LegacyAllocationCaptureObjectTest {
   @Rule
   public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("LegacyAllocationCaptureObjectTest", myTransportService);
 
+  @org.junit.Before
+  public void setUp() {
+    myIdeProfilerServices.setJavaKotlinAllocationsLegacyTraceInEditorEnabled(false);
+  }
+
   @Test
   public void testFailedAllocationsInfo() {
     AllocationsInfo testInfo = AllocationsInfo.newBuilder().setSuccess(false).build();
@@ -60,7 +65,7 @@ public class LegacyAllocationCaptureObjectTest {
       new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getChannel()),
                                         ProfilersTestData.SESSION_DATA,
                                         testInfo,
-                                        myIdeProfilerServices.getFeatureTracker());
+                                        myIdeProfilerServices.getFeatureTracker(), null);
 
     capture.load(null, null);
     assertTrue(capture.isDoneLoading());
@@ -78,25 +83,6 @@ public class LegacyAllocationCaptureObjectTest {
     long endTimeNs = TimeUnit.MILLISECONDS.toNanos(8);
 
     AllocationsInfo testInfo = AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).setSuccess(true).build();
-    LegacyAllocationCaptureObject capture =
-      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getChannel()),
-                                        ProfilersTestData.SESSION_DATA,
-                                        testInfo,
-                                        myIdeProfilerServices.getFeatureTracker());
-
-    // Verify values associated with the AllocationsInfo object.
-    assertEquals(startTimeNs, capture.getStartTimeNs());
-    assertEquals(endTimeNs, capture.getEndTimeNs());
-
-    final CountDownLatch loadLatch = new CountDownLatch(1);
-    final CountDownLatch doneLatch = new CountDownLatch(1);
-    new Thread(() -> {
-      loadLatch.countDown();
-      capture.load(null, null);
-      doneLatch.countDown();
-    }).start();
-
-    loadLatch.await();
 
     ByteBuffer buffer = AllocationsParserTest.putAllocationInfo(new String[]{"test.klass0", "test.klass1"}, // class names
                                                                 new String[]{"testMethod0", "testMethod1"}, // method names
@@ -115,7 +101,18 @@ public class LegacyAllocationCaptureObjectTest {
                                                                 });
     File tempFile = TransportServiceUtils.createTempFile("allocations", ".alloc", ByteString.copyFrom(buffer));
     myTransportService.addFile(Long.toString(startTimeNs), tempFile.getAbsolutePath());
-    doneLatch.await();
+
+    LegacyAllocationCaptureObject capture =
+      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getChannel()),
+                                        ProfilersTestData.SESSION_DATA,
+                                        testInfo,
+                                        myIdeProfilerServices.getFeatureTracker(), () -> tempFile);
+
+    // Verify values associated with the AllocationsInfo object.
+    assertEquals(startTimeNs, capture.getStartTimeNs());
+    assertEquals(endTimeNs, capture.getEndTimeNs());
+
+    capture.load(null, null);
 
     assertTrue(capture.isDoneLoading());
     assertFalse(capture.isError());

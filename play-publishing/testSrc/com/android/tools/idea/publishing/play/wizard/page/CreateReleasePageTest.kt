@@ -188,6 +188,10 @@ class CreateReleasePageTest {
 
     composeTestRule.waitForIdle()
     composeTestRule.onNodeWithText("Publish app").assertIsEnabled()
+    composeTestRule.onNodeWithText("Enter release notes for each language within the tags.").assertIsDisplayed()
+    composeTestRule
+      .onNodeWithText("Invalid format. Release notes must be enclosed in language tags, e.g., <en-US>Release notes</en-US>")
+      .assertDoesNotExist()
 
     // Replace text with invalid XML tags
     composeTestRule
@@ -196,7 +200,115 @@ class CreateReleasePageTest {
 
     composeTestRule.waitForIdle()
 
+    // Click on the Release name text field (which has placeholder "First Release") to clear focus from the Release notes text area
+    composeTestRule.onNodeWithText("First Release").performClick()
+    composeTestRule.waitForIdle()
+
     composeTestRule.onNodeWithText("Publish app").assertIsNotEnabled()
+    composeTestRule
+      .onNodeWithText("Invalid format. Release notes must be enclosed in language tags, e.g., <en-US>Release notes</en-US>")
+      .assertIsDisplayed()
+    composeTestRule.onNodeWithText("Enter release notes for each language within the tags.").assertDoesNotExist()
+  }
+
+  @Test
+  fun testUnsupportedLanguageTagsDisablesNext() {
+    fakeClient.config = FakePlayPublishingClient.Config(listEditTracksCall = { _, _ -> listOf(Track("internal")) })
+    val state = PlayPublishingWizardState(packageName = "com.example.app")
+    state.releaseNotes = "<en-US> valid </en-US>"
+    createWizard(state)
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText("Publish app").assertIsEnabled()
+
+    // Replace text with unsupported language tag (e.g. <unsupported>)
+    composeTestRule
+      .onNode(hasText("<en-US> valid </en-US>", substring = true))
+      .performTextReplacement("<unsupported> invalid </unsupported>")
+
+    composeTestRule.waitForIdle()
+
+    // Click on the Release name text field (which has placeholder "First Release") to clear focus from the Release notes text area
+    composeTestRule.onNodeWithText("First Release").performClick()
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithText("Publish app").assertIsNotEnabled()
+    composeTestRule.onNodeWithText("Unsupported language tag(s): unsupported").assertIsDisplayed()
+    composeTestRule.onNodeWithText("Enter release notes for each language within the tags.").assertDoesNotExist()
+  }
+
+  @Test
+  fun testDuplicateReleaseNotesTagsDisablesNext() {
+    fakeClient.config = FakePlayPublishingClient.Config(listEditTracksCall = { _, _ -> listOf(Track("internal")) })
+    val state = PlayPublishingWizardState(packageName = "com.example.app")
+    state.releaseNotes = "<en-US> valid </en-US>"
+    createWizard(state)
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText("Publish app").assertIsEnabled()
+
+    // Replace text with duplicate tags
+    composeTestRule
+      .onNode(hasText("<en-US> valid </en-US>", substring = true))
+      .performTextReplacement("<en-US> first </en-US> <en-US> second </en-US>")
+
+    composeTestRule.waitForIdle()
+
+    // Click on the Release name text field (which has placeholder "First Release") to clear focus from the Release notes text area
+    composeTestRule.onNodeWithText("First Release").performClick()
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithText("Publish app").assertIsNotEnabled()
+    composeTestRule.onNodeWithText("Duplicate language tag(s): en-US").assertIsDisplayed()
+  }
+
+  @Test
+  fun testDuplicateReleaseNotesTagsWithDifferentCasingDisablesNext() {
+    fakeClient.config = FakePlayPublishingClient.Config(listEditTracksCall = { _, _ -> listOf(Track("internal")) })
+    val state = PlayPublishingWizardState(packageName = "com.example.app")
+    state.releaseNotes = "<en-US> valid </en-US>"
+    createWizard(state)
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText("Publish app").assertIsEnabled()
+
+    // Replace text with duplicate tags with different casing
+    composeTestRule
+      .onNode(hasText("<en-US> valid </en-US>", substring = true))
+      .performTextReplacement("<en-US> first </en-US> <en-us> second </en-us>")
+
+    composeTestRule.waitForIdle()
+
+    // Click on the Release name text field (which has placeholder "First Release") to clear focus from the Release notes text area
+    composeTestRule.onNodeWithText("First Release").performClick()
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithText("Publish app").assertIsNotEnabled()
+    composeTestRule.onNodeWithText("Duplicate language tag(s): en-us").assertIsDisplayed()
+  }
+
+  @Test
+  fun testCaseInsensitiveLanguageTags() {
+    fakeClient.config = FakePlayPublishingClient.Config(listEditTracksCall = { _, _ -> listOf(Track("internal")) })
+    val state = PlayPublishingWizardState(packageName = "com.example.app")
+    // 'en-us' and 'EN-US' are different from 'en-US' in casing but should be accepted.
+    state.releaseNotes = "<en-us> valid </en-us>"
+    createWizard(state)
+
+    composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithText("Publish app").assertIsEnabled()
+
+    // Replace text with EN-us tag
+    composeTestRule.onNode(hasText("<en-us> valid </en-us>", substring = true)).performTextReplacement("<EN-us> valid </EN-us>")
+
+    composeTestRule.waitForIdle()
+
+    // Click on the Release name text field (which has placeholder "First Release") to clear focus from the Release notes text area
+    composeTestRule.onNodeWithText("First Release").performClick()
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithText("Publish app").assertIsEnabled()
+    composeTestRule.onNodeWithText("Unsupported language tag").assertDoesNotExist()
   }
 
   @Test
@@ -374,7 +486,7 @@ class CreateReleasePageTest {
   private fun createWizard(state: PlayPublishingWizardState = PlayPublishingWizardState()): TestComposeWizard {
     val wizard = TestComposeWizard {
       getOrCreateState { state }
-      CreateReleasePage()
+      CreateReleasePage(releaseNotesDebounceMillis = 0L)
     }
     composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
     return wizard

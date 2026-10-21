@@ -16,9 +16,10 @@
 package com.android.tools.idea.vitals.ui
 
 import com.android.tools.adtui.util.ActionToolbarUtil
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.concurrency.mapState
-import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.insights.AppInsightsCrashController
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.model.connection.ConnectionMode
@@ -63,13 +64,13 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class VitalsTab(
-  private val projectController: AppInsightsProjectLevelController,
+  private val projectController: AppInsightsCrashController,
   private val project: Project,
   clock: Clock,
   tracker: AppInsightsTracker,
   vitalsTabVisibility: Flow<Boolean>,
 ) : JPanel(BorderLayout()), Disposable {
-  private val scope = AndroidCoroutineScope(this)
+  private val scope = createCoroutineScope()
 
   private val connections =
     projectController.state.map { it.connections }.stateIn(scope, SharingStarted.Eagerly, Selection.emptySelection())
@@ -100,8 +101,12 @@ class VitalsTab(
 
   private fun addActionsToGroup(group: DefaultActionGroup, toolbar: ActionToolbar) {
     group.apply {
-      @Suppress("UNCHECKED_CAST")
-      add(VitalsConnectionSelectorAction(connections as StateFlow<Selection<VitalsConnection>>, scope, projectController::selectConnection))
+      if (!StudioFlags.APP_INSIGHTS_GLOBAL_SELECTOR.get()) {
+        @Suppress("UNCHECKED_CAST")
+        add(
+          VitalsConnectionSelectorAction(connections as StateFlow<Selection<VitalsConnection>>, scope, projectController::selectConnection)
+        )
+      }
       addSeparator()
       add(
         AppInsightsToggleAction("Crash", null, StudioIcons.AppQualityInsights.FATAL, crashToggle, scope) {

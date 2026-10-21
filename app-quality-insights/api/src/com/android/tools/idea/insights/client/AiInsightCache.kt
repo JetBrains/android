@@ -16,7 +16,6 @@
 package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.insights.ai.AiInsight
-import com.android.tools.idea.insights.ai.codecontext.ContextSharingState
 import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.issue.IssueId
 import com.github.benmanes.caffeine.cache.Cache
@@ -30,12 +29,12 @@ class AiInsightCache(
   private val cache: Cache<Connection, Cache<IssueId, Cache<AiInsightKey, AiInsight>>> = createNew(CONNECTION_CACHE_MAX_SIZE)
 ) {
 
-  fun getAiInsight(connection: Connection, issueId: IssueId, variantId: String?, contextSharingState: ContextSharingState) =
-    cache.getIfPresent(connection)?.getIfPresent(issueId)?.getIfPresent(AiInsightKey(variantId, contextSharingState))
+  fun getAiInsight(connection: Connection, issueId: IssueId, variantId: String?) =
+    cache.getIfPresent(connection)?.getIfPresent(issueId)?.getIfPresent(AiInsightKey(variantId))
 
   fun putAiInsight(connection: Connection, issueId: IssueId, variantId: String?, aiInsight: AiInsight) {
     val issuesCache = cache.get(connection) { createNew(ISSUE_CACHE_MAX_SIZE) }
     val aiInsightCache = issuesCache.get(issueId) { createNew(VARIANT_CACHE_MAX_SIZE) }
-    aiInsightCache.put(AiInsightKey(variantId, aiInsight.codeContextData.contextSharingState), aiInsight.copy(isCached = true))
+    aiInsightCache.put(AiInsightKey(variantId), aiInsight.copy(isCached = true))
   }
 }

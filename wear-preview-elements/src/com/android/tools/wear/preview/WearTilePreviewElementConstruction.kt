@@ -24,6 +24,7 @@ import com.android.tools.preview.config.PARAMETER_FONT_SCALE
 import com.android.tools.preview.config.PARAMETER_GROUP
 import com.android.tools.preview.config.PARAMETER_LOCALE
 import com.android.tools.preview.config.PARAMETER_NAME
+import com.android.tools.preview.neuterHtml
 
 /** Converts the given preview annotation represented by the [attributesProvider] to a [WearTilePreviewElement]. */
 fun <T : Any> previewAnnotationToWearTilePreviewElement(
@@ -33,8 +34,9 @@ fun <T : Any> previewAnnotationToWearTilePreviewElement(
   buildPreviewName: (nameParameter: String?) -> String,
   buildParameterName: (nameParameter: String?) -> String? = { it },
 ): WearTilePreviewElement<T> {
-  val name = attributesProvider.getDeclaredAttributeValue<String?>(PARAMETER_NAME)
-  val group = attributesProvider.getDeclaredAttributeValue<String?>(PARAMETER_GROUP)
+  // Strip <html> to prevent HTML injection
+  val name = attributesProvider.getDeclaredAttributeValue<String?>(PARAMETER_NAME).neuterHtml()
+  val group = attributesProvider.getDeclaredAttributeValue<String?>(PARAMETER_GROUP).neuterHtml()
 
   val methodName = annotatedMethod.name
   val displaySettings =

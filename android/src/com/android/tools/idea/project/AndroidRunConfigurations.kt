@@ -35,6 +35,7 @@ import com.android.tools.idea.run.configuration.AndroidDeclarativeWatchFaceConfi
 import com.android.tools.idea.run.configuration.AndroidTileRunConfigurationProducer
 import com.android.tools.idea.run.configuration.AndroidWatchFaceRunConfigurationProducer
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration
+import com.android.tools.idea.run.configuration.AndroidWearWidgetRunConfigurationProducer
 import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.JavaExecutionUtil
@@ -55,8 +56,13 @@ import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 
-private val wearConfigurationProducers =
-  listOf(AndroidTileRunConfigurationProducer(), AndroidComplicationRunConfigurationProducer(), AndroidWatchFaceRunConfigurationProducer())
+internal val wearConfigurationProducers =
+  listOf(
+    AndroidTileRunConfigurationProducer(),
+    AndroidWearWidgetRunConfigurationProducer(),
+    AndroidComplicationRunConfigurationProducer(),
+    AndroidWatchFaceRunConfigurationProducer(),
+  )
 
 private val LOG: Logger by lazy { Logger.getInstance(AndroidRunConfigurations::class.java) }
 
@@ -164,6 +170,12 @@ class AndroidRunConfigurations {
     runReadAction {
       if (!project.isDisposed) {
         runManager.addConfiguration(settings)
+      }
+    }
+    // Selecting the run configuration fires an event to UI listeners (e.g. Device Selector)
+    // which assert that they are called on the EDT. Thus we must dispatch this to the EDT.
+    ApplicationManager.getApplication().invokeLater {
+      if (!project.isDisposed) {
         runManager.selectedConfiguration = settings
       }
     }
@@ -253,6 +265,12 @@ class AndroidRunConfigurations {
     runReadAction {
       if (!project.isDisposed) {
         runManager.addConfiguration(settings)
+      }
+    }
+    // Selecting the run configuration fires an event to UI listeners (e.g. Device Selector)
+    // which assert that they are called on the EDT. Thus we must dispatch this to the EDT.
+    ApplicationManager.getApplication().invokeLater {
+      if (!project.isDisposed) {
         runManager.selectedConfiguration = settings
       } else {
         LOG.debug { "addAndroidRunConfiguration: Add run configuration $settings - project s already disposed." }

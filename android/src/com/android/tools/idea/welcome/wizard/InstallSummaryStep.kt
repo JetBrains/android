@@ -64,7 +64,7 @@ class InstallSummaryStep(
           sortedPackagesList.forEach {
             beginTableRow()
             addTableRow(
-              it.displayName,
+              StringUtil.escapeXmlEntities(it.displayName),
               "&nbsp;&nbsp;", // Adds some whitespace between name and size columns
               getSizeLabel(it.archive!!.complete.size),
             )

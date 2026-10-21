@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.ui.insight
 
-import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.AppInsightsCrashController
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.testFramework.ApplicationRule
@@ -32,7 +32,7 @@ class InsightRefreshActionTest {
 
   @Test
   fun `test refresh action forces new insight`() = runBlocking {
-    val mockController = mock<AppInsightsProjectLevelController>()
+    val mockController = mock<AppInsightsCrashController>()
     val action = InsightRefreshAction(mockController)
 
     val testEvent = TestActionEvent.createTestEvent()

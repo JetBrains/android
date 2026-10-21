@@ -95,10 +95,7 @@ internal class PreviewSurfaceActionManager(
         .hideIfRenderErrors()
         .visibleOnlyInStaticPreview() +
       StudioFlags.COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK.ifEnabled {
-          listOfNotNull(
-            BackNavigationAction().visibleOnlyInInteractive(),
-            PredictiveBackNavigationControlsAction().visibleOnlyInInteractive(),
-          )
+          listOfNotNull(PredictiveBackNavigationControlsAction().visibleOnlyInInteractive())
         }
         .orEmpty() +
       StudioFlags.COMPOSE_PREVIEW_LOOKAHEAD_VISUALIZATION.ifEnabled {

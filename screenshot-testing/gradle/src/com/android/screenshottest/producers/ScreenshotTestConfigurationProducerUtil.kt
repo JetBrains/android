@@ -15,13 +15,17 @@
  */
 package com.android.screenshottest.producers
 
+import com.android.tools.idea.gradle.model.IdeTestSuite
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.model.gradleModuleModel
 import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.containsFile
+import com.android.tools.idea.testartifacts.testsuite.runconfiguration.TestSuiteUtils
 import com.intellij.execution.Location
 import com.intellij.execution.actions.ConfigurationContext
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
@@ -29,15 +33,26 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.util.PsiUtilCore
+import java.util.Locale
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.plugins.gradle.util.GradleUtil
 import org.jetbrains.plugins.gradle.util.gradleIdentityPath
 
+const val SCREENSHOT_TEST_ENGINE_ID = "preview-screenshot-test-engine"
+const val DEFAULT_VERIFICATION_TARGET_NAME = "Default"
+
 private const val PREVIEW_TEST_ANNOTATION = "com.android.tools.screenshot.PreviewTest"
 
 val IS_SCREENSHOT_TEST_CONFIGURATION = Key.create<Boolean>("com.android.tools.idea.testartifacts.screenshot.isScreenshotTest")
 val IS_SCREENSHOT_UPDATE_CONFIGURATION = Key.create<Boolean>("com.android.tools.idea.testartifacts.screenshot.isScreenshotUpdate")
+
+/** Returns true if this [IdeTestSuite] uses the screenshot validation test engine. */
+fun IdeTestSuite.isScreenshotTestSuite(): Boolean {
+  return junitEngineInfo.includedEngines.contains(SCREENSHOT_TEST_ENGINE_ID)
+}
+
+private fun String.capitalize(): String = replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.US) else it.toString() }
 
 /**
  * Checks if the given location belongs to screenshot test source set. It verifies if the virtual file associated with the location either
@@ -64,21 +79,68 @@ fun isScreenshotTestSourceSet(location: Location<PsiElement>, facet: AndroidFace
   return false
 }
 
+/** Checks if the module has the legacy standalone screenshot plugin applied. */
+fun isLegacyScreenshotPluginApplied(module: Module): Boolean {
+  val gradleModuleModel = module.gradleModuleModel ?: return false
+  return gradleModuleModel.hasComposeScreenshotPlugin
+}
+
 /**
- * Retrieves the name of the Gradle task for screenshot validation . It uses the Gradle Android model and module data to construct the task
- * names.
+ * Retrieves the Gradle task name(s) for screenshot validation.
+ *
+ * For legacy screenshot plugin consumers, this resolves to the standard `:validate<Variant>ScreenshotTest` task. For AGP native screenshot
+ * test suites, this maps the clicked file to its containing test suite and constructs the Gradle 9 test suite execution task for the
+ * default verification target (e.g. `:test<SuiteName>Default<VariantName>TestSuite`).
+ *
+ * Note: Target resolution is currently hardcoded to the default verification target to prevent accidentally executing companion
+ * recording/update tasks from IDE run configurations.
  *
  * @param context The configuration context.
- * @return A list of String containing the screenshot test task name, or {@code null} if any required information is missing.
+ * @return A list of Strings containing the screenshot test task name(s), or `null` if required information is missing.
  */
 fun getScreenshotTestTaskNames(context: ConfigurationContext): List<String>? {
   val myModule = AndroidUtils.getAndroidModule(context) ?: return null
   val facet = AndroidFacet.getInstance(myModule) ?: return null
   val androidModel = GradleAndroidModel.get(facet) ?: return null
   val moduleData = GradleUtil.findGradleModuleData(myModule)?.data ?: return null
-  return listOf(
-    moduleData.gradleIdentityPath.trimEnd(':') + ":" + androidModel.getGradleScreenshotTestTaskNameForSelectedVariant("validate")
-  )
+  val modulePath = moduleData.gradleIdentityPath.trimEnd(':')
+
+  if (isLegacyScreenshotPluginApplied(myModule)) {
+    val taskName = androidModel.getGradleScreenshotTestTaskNameForSelectedVariant("validate")
+    return listOf("$modulePath:$taskName")
+  } else {
+    val variantName = androidModel.selectedVariantName.capitalize()
+    val screenshotSuites = androidModel.testSuites.filter { it.isScreenshotTestSuite() }
+
+    val virtualFile = context.location?.psiElement?.let { PsiUtilCore.getVirtualFile(it) }
+
+    val matchingSuite =
+      if (virtualFile != null) {
+        TestSuiteUtils.getTestSuiteAtRoot(screenshotSuites, virtualFile)
+          ?: TestSuiteUtils.getTestSuiteContainingFile(screenshotSuites, virtualFile)
+      } else {
+        null
+      }
+
+    val suiteNames =
+      if (matchingSuite != null) {
+        listOf(matchingSuite.name)
+      } else if (screenshotSuites.isNotEmpty()) {
+        screenshotSuites.map { it.name }
+      } else {
+        listOf("screenshotTest")
+      }
+
+    // TODO(b/530362351): The target name is currently hardcoded to "Default" to ensure we only execute
+    // verification tasks and never accidentally trigger companion recording/update targets (e.g. "defaultUpdate",
+    // which overwrites reference screenshots). Once the AGP test suite model exposes whether a target is a
+    // recording vs. verification target, dynamically resolve the target name from IdeTestSuiteVariantTarget
+    // while filtering out recording targets.
+    return suiteNames.map { suiteName ->
+      val capitalizedSuiteName = suiteName.capitalize()
+      "$modulePath:test$capitalizedSuiteName$DEFAULT_VERIFICATION_TARGET_NAME${variantName}TestSuite"
+    }
+  }
 }
 
 /**

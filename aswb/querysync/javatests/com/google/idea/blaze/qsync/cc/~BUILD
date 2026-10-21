@@ -13,6 +13,7 @@ aswb_test(
         "//tools/adt/idea/aswb/plugin_api",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts",
+        "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/artifacts:build_artifact_java_proto",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/cc",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/cc:cc_compilation_info_java_proto",
         "//tools/adt/idea/aswb/querysync/java/com/google/idea/blaze/qsync/deps",

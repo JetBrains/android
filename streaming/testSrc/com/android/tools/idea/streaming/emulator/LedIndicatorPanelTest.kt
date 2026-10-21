@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator
 
+import com.android.emulator.control.LedIndicator
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState.CONNECTED
@@ -70,24 +71,24 @@ class LedIndicatorPanelTest {
     val defaultBackground = Color(ui.render(ledPanel).getRGB(0, 0), true)
 
     // Both LEDs should be OFF initially.
-    assertThat(getTooltipText(4)).isEqualTo("Inside LED")
-    assertThat(getTooltipText(24)).isEqualTo("Outside LED")
+    assertThat(getTooltipText(4)).isEqualTo("Outside LED")
+    assertThat(getTooltipText(24)).isEqualTo("Inside LED")
     assertThat(getLedColors()).containsExactly(defaultBackground, defaultBackground).inOrder()
 
     // Turn LED 0 on.
-    glasses.setLedState(0, Color.RED)
-    waitForCondition(2.seconds) { getLedColors()[0] == Color.RED }
-    assertThat(getLedColors()).containsExactly(Color.RED, defaultBackground).inOrder()
+    glasses.setLedState(LedIndicator.Facing.INSIDE, Color.RED)
+    waitForCondition(2.seconds) { getLedColors()[1] == Color.RED }
+    assertThat(getLedColors()).containsExactly(defaultBackground, Color.RED).inOrder()
 
     // Turn LED 1 on
-    glasses.setLedState(1, Color.GREEN)
-    waitForCondition(2.seconds) { getLedColors()[1] == Color.GREEN }
-    assertThat(getLedColors()).containsExactly(Color.RED, Color.GREEN).inOrder()
+    glasses.setLedState(LedIndicator.Facing.OUTSIDE, Color.GREEN)
+    waitForCondition(2.seconds) { getLedColors()[0] == Color.GREEN }
+    assertThat(getLedColors()).containsExactly(Color.GREEN, Color.RED).inOrder()
 
     // Turn LED 0 off
-    glasses.setLedState(0, null)
-    waitForCondition(2.seconds) { getLedColors()[0] == defaultBackground }
-    assertThat(getLedColors()).containsExactly(defaultBackground, Color.GREEN).inOrder()
+    glasses.setLedState(LedIndicator.Facing.INSIDE, null)
+    waitForCondition(2.seconds) { getLedColors()[1] == defaultBackground }
+    assertThat(getLedColors()).containsExactly(Color.GREEN, defaultBackground).inOrder()
   }
 
   private fun getTooltipText(y: Int): String? {

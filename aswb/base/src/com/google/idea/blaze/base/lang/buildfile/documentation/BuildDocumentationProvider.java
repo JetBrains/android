@@ -29,6 +29,7 @@ import com.google.idea.blaze.base.settings.Blaze;
 import com.intellij.codeInsight.documentation.DocumentationManagerProtocol;
 import com.intellij.lang.documentation.AbstractDocumentationProvider;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -86,10 +87,10 @@ public class BuildDocumentationProvider extends AbstractDocumentationProvider {
           .append(DocumentationManagerProtocol.PSI_ELEMENT_PROTOCOL)
           .append(LINK_TYPE_FILE)
           .append("\">")
-          .append(name)
+          .append(StringUtil.escapeXmlEntities(name))
           .append("</a>");
     } else {
-      builder.append(String.format("<b>%s</b>", name));
+      builder.append(String.format("<b>%s</b>", StringUtil.escapeXmlEntities(name)));
     }
     builder.append("<br><br>");
   }
@@ -117,9 +118,9 @@ public class BuildDocumentationProvider extends AbstractDocumentationProvider {
     builder
         .append("def ")
         .append("<b>")
-        .append(function.getName())
+        .append(StringUtil.escapeXmlEntities(StringUtil.notNullize(function.getName(), "<unnamed>")))
         .append("</b>")
-        .append(paramList.getNode().getChars())
+        .append(StringUtil.escapeXmlEntities(paramList.getNode().getChars().toString()))
         .append("<br><br>");
   }
 

@@ -48,6 +48,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Ordering
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.util.IconLoader
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
@@ -233,7 +234,7 @@ class SessionsView(val profilers: StudioProfilers, val ideProfilerComponents: Id
               val processAction =
                 fun(postFix: (Common.Process) -> String) =
                   fun(process: Common.Process) =
-                    commonAction("${process.name} (${process.pid})${postFix(process)}").apply {
+                    commonAction("${StringUtil.escapeXmlEntities(process.name)} (${process.pid})${postFix(process)}").apply {
                       setAction {
                         // First warn and stop the currently profiling session if there is one.
                         if (SessionsManager.isSessionAlive(profilers.sessionsManager.profilingSession)) {
@@ -356,7 +357,7 @@ class SessionsView(val profilers: StudioProfilers, val ideProfilerComponents: Id
 
     fun getImportAction(ideProfilerComponents: IdeProfilerComponents, profilers: StudioProfilers, component: JComponent?): Runnable {
       return Runnable {
-        val supportedExtensions = listOf("trace", "pftrace", "perfetto-trace", "perfetto", "alloc", "hprof", "heapprofd", "asdb")
+        val supportedExtensions = listOf("trace", "pftrace", "perfetto-trace", "perfetto", "alloc", "hprof", "prof", "heapprofd", "asdb")
         ideProfilerComponents.createImportDialog().open({ "Open" }, supportedExtensions) { file ->
           if (!profilers.sessionsManager.importSessionFromFile(File(file.path))) {
             ideProfilerComponents

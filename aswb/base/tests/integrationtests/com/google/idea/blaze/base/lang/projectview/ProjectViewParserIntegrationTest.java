@@ -69,7 +69,7 @@ public class ProjectViewParserIntegrationTest extends ProjectViewIntegrationTest
             parse(
                 "import java/com/google/work/.blazeproject",
                 "",
-                "workspace_type: intellij_plugin",
+                "workspace_type: java",
                 "",
                 "import_target_output:",
                 "  //java/com/google/work:target",
@@ -88,7 +88,7 @@ public class ProjectViewParserIntegrationTest extends ProjectViewIntegrationTest
 
   @Test
   public void testUnrecognizedKeyword() {
-    parse("impart java/com/google/work/.blazeproject", "", "workspace_trype: intellij_plugin");
+    parse("impart java/com/google/work/.blazeproject", "", "workspace_trype: java");
 
     assertContainsErrors("Unrecognized keyword: impart", "Unrecognized keyword: workspace_trype");
   }

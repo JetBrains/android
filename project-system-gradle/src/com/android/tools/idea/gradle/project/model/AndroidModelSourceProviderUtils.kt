@@ -19,7 +19,7 @@ package com.android.tools.idea.gradle.project.model
 
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.IAndroidTarget
-import com.android.sdklib.SdkVersionInfo
+import com.android.sdklib.SdkVersionUtil
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_ANDROID_TEST
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_MAIN
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_SCREENSHOT_TEST
@@ -142,7 +142,7 @@ private fun GradleAndroidModelData.collectAllProvidersFor(artifactSelector: Arti
 fun convertVersion(api: IdeApiVersion, targets: Array<IAndroidTarget>?): AndroidVersion {
   val codename = api.codename
   if (codename != null) {
-    val version = SdkVersionInfo.getVersion(codename, targets)
+    val version = SdkVersionUtil.getVersion(codename, targets)
     return version ?: AndroidVersion(api.apiLevel, codename)
   }
   return AndroidVersion(api.apiLevel, null)

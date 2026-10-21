@@ -28,7 +28,7 @@ import com.google.idea.blaze.qsync.project.ProjectPath.WorkspaceRelativeProjectP
 /** Serializes [NewArtifactTracker] state to a proto. */
 class ArtifactTrackerStateSerializer {
   companion object {
-    const val VERSION: Int = 7
+    const val VERSION: Int = 9
   }
 
   private val proto = ArtifactTrackerProto.ArtifactTrackerState.newBuilder().setVersion(VERSION)
@@ -79,11 +79,14 @@ class ArtifactTrackerStateSerializer {
       .addAllGenAndroidRes(toProtos(javaInfo.genAndroidRes))
       .addAllProtoSrcjars(toProtos(javaInfo.protoSrcjars))
       .addAllJars(toProtos(javaInfo.jars))
+      .addAllOutputJars(toProtos(javaInfo.outputJars))
       .addAllSources(javaInfo.sources.map { projectPathToProto(it) })
       .addAllSrcJars(javaInfo.srcJars.map { projectPathToProto(it) })
       .setAndroidResourcesPackage(javaInfo.androidResourcesPackage)
       .addAllKotlinCompilerFlags(javaInfo.kotlinCompilerFlags)
       .setIsKotlinToolchain(javaInfo.isKotlinToolchain)
+      .setIsExternalDependency(javaInfo.isExternalDependency)
+      .addAllDependencies(javaInfo.dependencies.map { it.toString() })
   }
 
   private fun toProtos(artifacts: Collection<BuildArtifact>): List<ArtifactTrackerProto.Artifact> {

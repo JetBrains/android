@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.scene
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.ide.common.rendering.api.ILayoutLog
+import com.android.ide.common.rendering.api.RecyclableImage
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.analytics.CommonUsageTracker
@@ -139,7 +140,7 @@ class LayoutlibSceneRenderer(
         }
       }
       try {
-        oldTask?.dispose()
+        oldTask?.disposeAsync()
       } catch (t: Throwable) {
         log.warn(t)
       }
@@ -170,24 +171,35 @@ class LayoutlibSceneRenderer(
     get() = renderResultLock.withLock { field }
     set(newResult) {
       val oldResult: RenderResult?
+      var resultToDispose: RenderResult? = null
       renderResultLock.withLock {
         if (field === newResult) return
         // If renderer is inactive or disposed, any new result should be immediately disposed
-        if (isDisposedOrDeactivated() && newResult != null) oldResult = newResult
-        else {
+        if (isDisposedOrDeactivated() && newResult != null) {
+          oldResult = newResult
+        } else {
           oldResult = field
-          field =
-            if (sceneRenderConfiguration.cacheSuccessfulRenderImage && newResult.isErrorResult() && oldResult.containsValidImage()) {
-              // newResult can not be null if isErrorResult is true
-              // oldResult can not be null if containsValidImage is true
-              newResult!!.copyWithNewImageAndRootViewDimensions(
-                StudioRenderService.getInstance(newResult.project).sharedImagePool.copyOf(oldResult!!.getRenderedImage().copy),
+          if (
+            sceneRenderConfiguration.cacheSuccessfulRenderImage &&
+              newResult != null &&
+              newResult.isErrorResult() &&
+              oldResult != null &&
+              oldResult.containsValidImage()
+          ) {
+            field =
+              newResult.copyWithNewImageAndRootViewDimensions(
+                RecyclableImage.copyOf(oldResult.getRenderedImage()),
                 oldResult.rootViewDimensions,
               )
-            } else newResult
+            resultToDispose = newResult
+          } else {
+            field = newResult
+          }
         }
       }
+      // Result disposal is performed outside the lock to avoid blocking the lock unnecessarily long
       oldResult?.dispose()
+      resultToDispose?.dispose()
     }
 
   /**
@@ -325,12 +337,16 @@ class LayoutlibSceneRenderer(
         }
       }
     } catch (throwable: Throwable) {
+      val oldResult = result
       if (!model.isDisposed) {
         val renderService = StudioRenderService.getInstance(model.project)
         val logger =
           if (sceneRenderConfiguration.logRenderErrors) renderService.createHtmlLogger(model.project) else renderService.nopLogger
 
         result = createRenderTaskErrorResult(file, throwable = (throwable as? CompletionException)?.cause ?: throwable, logger = logger)
+      }
+      if (oldResult !== result) {
+        oldResult?.dispose()
       }
       throw throwable
     } finally {
@@ -412,7 +428,7 @@ class LayoutlibSceneRenderer(
         }
       } else {
         // If the result is not successful or the renderer is disposed, then we discard the task.
-        newTask?.dispose()
+        newTask?.disposeAsync()
         renderTask = null
       }
     }
@@ -427,8 +443,9 @@ class LayoutlibSceneRenderer(
   @RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
   private suspend fun doInflate(newTask: RenderTask, logger: RenderLogger): RenderResult {
     newTask.defaultForegroundColor = '#'.toString() + ColorUtil.toHex(UIUtil.getLabelForeground())
+    var result: RenderResult? = null
     try {
-      val result = newTask.inflate().await() // await is the suspendable version of join
+      result = newTask.inflate().await() // await is the suspendable version of join
       when {
         result == null -> throw IllegalStateException("Inflate returned null RenderResult")
         result.renderResult.exception != null -> throw result.renderResult.exception
@@ -437,6 +454,7 @@ class LayoutlibSceneRenderer(
       }
       return result
     } catch (throwable: Throwable) {
+      result?.dispose()
       // Do not ignore ClassNotFoundException on inflate
       if (throwable is ClassNotFoundException) {
         logger.addMessage(

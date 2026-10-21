@@ -30,6 +30,7 @@ import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
 import com.android.sdklib.AndroidApiLevel
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.testutils.TestResources
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.testing.TestAdbLibService
@@ -93,8 +94,10 @@ class LogcatServiceImplTest {
   private val disposable
     get() = disposableRule.disposable
 
-  private val device30 = Device.createPhysical("device", true, "10", AndroidVersion(30, 0), "Google", "Pixel")
-  private val device23 = Device.createPhysical("device", true, "7", AndroidVersion(23, 0), "Google", "Pixel")
+  private val device30 =
+    Device.createPhysical(DeviceId("Fake", false, "device"), "device", true, "10", AndroidVersion(30, 0), "Google", "Pixel")
+  private val device23 =
+    Device.createPhysical(DeviceId("Fake", false, "device"), "device", true, "7", AndroidVersion(23, 0), "Google", "Pixel")
 
   private val fakeProcessNameMonitor = FakeProcessNameMonitor()
 

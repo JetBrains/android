@@ -87,14 +87,16 @@ class ModuleClassLoaderOverlays private constructor(module: Module, private val 
       }
     }
 
-  private val overlayPaths = ArrayDeque<Path>(10)
+  data class Overlay(val path: Path, val isPersistent: Boolean)
+
+  private val overlays = ArrayDeque<Overlay>(10)
 
   constructor(module: Module) : this(module, 10)
 
   @Synchronized
   fun invalidateOverlayPaths() {
     logger.debug("invalidateOverlayPaths")
-    overlayPaths.clear()
+    overlays.clear()
     overlayClassLoader = null
     _modificationTracker.incModificationCount()
     moduleReference.get()?.project?.let { project -> NotificationManager.getInstance(project).fireModification() }
@@ -102,45 +104,65 @@ class ModuleClassLoaderOverlays private constructor(module: Module, private val 
   }
 
   @Synchronized
-  private fun reloadClassLoader() {
-    overlayClassLoader = ClassLoaderLoader(buildClassLoaderForOverlayPath(overlayPaths))
-    _modificationTracker.incModificationCount()
-    moduleReference.get()?.project?.let { project -> NotificationManager.getInstance(project).fireModification() }
-      ?: logger.warn("Module was disposed but ModuleClassLoaderOverlay is still referenced")
+  private fun reloadClassLoader(fireNotification: Boolean = true) {
+    overlayClassLoader = ClassLoaderLoader(buildClassLoaderForOverlayPath(overlays.map { it.path }))
+    if (fireNotification) {
+      _modificationTracker.incModificationCount()
+      moduleReference.get()?.project?.let { project -> NotificationManager.getInstance(project).fireModification() }
+        ?: logger.warn("Module was disposed but ModuleClassLoaderOverlay is still referenced")
+    }
+  }
+
+  @Synchronized
+  private fun pushOverlayPath(path: Path, isPersistent: Boolean) {
+    val currentTypeCount = overlays.count { it.isPersistent == isPersistent }
+    if (currentTypeCount == maxNumOverlays) {
+      val toRemove = overlays.lastOrNull { it.isPersistent == isPersistent }
+      if (toRemove != null) {
+        overlays.remove(toRemove)
+        logger.debug("Removing overlay ${toRemove.path} (persistent: $isPersistent)")
+        AppExecutorUtil.getAppExecutorService().submit {
+          logger.debug("Deleting overlay from disk ${toRemove.path}")
+          toRemove.path.delete(true)
+        }
+      }
+    }
+
+    logger.debug("Added new overlay $path (persistent: $isPersistent)")
+    overlays.addFirst(Overlay(path, isPersistent))
+
+    if (isPersistent) {
+      reloadClassLoader(fireNotification = true)
+    } else {
+      reloadClassLoader(fireNotification = false)
+    }
   }
 
   @Synchronized
   fun pushOverlayPath(path: Path) {
-    if (path in overlayPaths) {
+    if (overlays.any { it.path == path }) {
       logger.debug("Overlay $path is already registered")
       return
     }
-    if (overlayPaths.size == maxNumOverlays) {
-      val removedPath = overlayPaths.removeLast()
-      logger.debug("Removing overlay $removedPath")
-      AppExecutorUtil.getAppExecutorService().submit {
-        logger.debug("Deleting overlay from disk $removedPath")
-        removedPath.delete(true)
-      }
-    }
+    pushOverlayPath(path, isPersistent = true)
+  }
 
-    logger.debug("Added new overlay $path")
-    overlayPaths.addFirst(path)
-
-    reloadClassLoader()
+  @Synchronized
+  fun pushNonPersistentOverlayPath(path: Path) {
+    pushOverlayPath(path, isPersistent = false)
   }
 
   override val modificationStamp: Long
     get() = _modificationTracker.modificationCount
 
-  override fun getState(): State = State(paths = synchronized(this) { overlayPaths.map { it.toString() } })
+  override fun getState(): State = State(paths = synchronized(this) { overlays.filter { it.isPersistent }.map { it.path.toString() } })
 
   override fun loadState(state: State) {
     logger.debug("loadState (${state.paths.size} paths)")
     try {
       synchronized(this) {
-        overlayPaths.clear()
-        overlayPaths.addAll(state.paths.map { Paths.get(it) })
+        overlays.clear()
+        overlays.addAll(state.paths.map { Overlay(Paths.get(it), isPersistent = true) })
 
         reloadClassLoader()
       }
@@ -151,7 +173,7 @@ class ModuleClassLoaderOverlays private constructor(module: Module, private val 
 
   /** Returns if the given [fqcn] exists in any of the existing overlays. */
   internal fun containsClass(fqcn: String): Boolean =
-    synchronized(this) { overlayPaths.any { it.resolve(fqcn.replace('.', '/') + SdkConstants.DOT_CLASS).toFile().exists() } }
+    synchronized(this) { overlays.any { it.path.resolve(fqcn.replace('.', '/') + SdkConstants.DOT_CLASS).toFile().exists() } }
 
   companion object {
     private val logger = Logger.getInstance(ModuleClassLoaderOverlays::class.java)

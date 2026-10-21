@@ -27,6 +27,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.xml.XmlAttributeValue;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -84,4 +86,69 @@ public class AndroidXmlDocumentationProviderTest {
         "             is set to fill.</body></html>");
     });
   }
+
+  @Test
+  public void localAttributeDocumentationWithHtml() {
+    myFixture.addFileToProject("res/values/attrs.xml",
+                              "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                              "<resources>\n" +
+                              "  <declare-styleable name=\"MyView\">\n" +
+                              "    <!-- Test description with <b>bold</b> and <script>alert(1)</script> tags -->\n" +
+                              "    <attr name=\"myAttr\" format=\"string\"/>\n" +
+                              "  </declare-styleable>\n" +
+                              "</resources>");
+
+    final VirtualFile f = myFixture.addFileToProject("res/layout/test.xml",
+                                                   "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                                   "<FrameLayout\n" +
+                                                   "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                                   "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                                                   "    android:layout_width=\"match_parent\"\n" +
+                                                   "    android:layout_height=\"wrap_content\"\n" +
+                                                   "    app:myAt<caret>tr=\"value\">\n" +
+                                                   "</FrameLayout>").getVirtualFile();
+    myFixture.configureFromExistingVirtualFile(f);
+
+    ApplicationManager.getApplication().runReadAction(() -> {
+      final PsiReference ref = myFixture.getFile().findReferenceAt(myFixture.getEditor().getCaretModel().getOffset());
+      assertThat(ref).isNotNull();
+      PsiElement docTargetElement = DocumentationManager.getInstance(myFixture.getProject()).findTargetElement(
+        myFixture.getEditor(), myFixture.getFile(), ref.getElement());
+      DocumentationProvider documentationProvider = DocumentationManager.getProviderFromElement(docTargetElement);
+      String doc = documentationProvider.generateDoc(docTargetElement, ref.getElement());
+      assertThat(doc).isEqualTo(
+        "<html><body>Formats: string<br><br>Test description with &lt;b&gt;bold&lt;/b&gt; and &lt;script&gt;alert(1)&lt;/script&gt; tags</body></html>");
+    });
+  }
+
+  @Test
+  public void localAttributeDocumentationInStyleWithHtml() {
+    myFixture.addFileToProject("res/values/attrs.xml",
+                              "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                              "<resources>\n" +
+                              "  <declare-styleable name=\"MyView\">\n" +
+                              "    <!-- Test description with <b>bold</b> and <script>alert(1)</script> tags -->\n" +
+                              "    <attr name=\"myAttr\" format=\"string\"/>\n" +
+                              "  </declare-styleable>\n" +
+                              "</resources>");
+
+    final VirtualFile f = myFixture.addFileToProject("res/values/styles.xml",
+                                                   "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                                   "<resources>\n" +
+                                                   "  <style name=\"MyStyle\">\n" +
+                                                   "    <item name=\"myAt<caret>tr\">value</item>\n" +
+                                                   "  </style>\n" +
+                                                   "</resources>").getVirtualFile();
+    myFixture.configureFromExistingVirtualFile(f);
+
+    ApplicationManager.getApplication().runReadAction(() -> {
+      PsiElement element = myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset());
+      XmlAttributeValue attributeValue = PsiTreeUtil.getParentOfType(element, XmlAttributeValue.class);
+      assertThat(attributeValue).isNotNull();
+      DocumentationProvider documentationProvider = new AndroidXmlDocumentationProvider();
+      String doc = documentationProvider.generateDoc(attributeValue, null);
+      assertThat(doc).isEqualTo("Test description with &lt;b&gt;bold&lt;/b&gt; and &lt;script&gt;alert(1)&lt;/script&gt; tags");
+    });
+  }
 }
+

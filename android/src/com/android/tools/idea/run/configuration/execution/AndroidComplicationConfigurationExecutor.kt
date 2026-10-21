@@ -18,6 +18,7 @@ package com.android.tools.idea.run.configuration.execution
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.common.DeployerException
+import com.android.tools.deployer.common.DeviceHolder
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.Complication
@@ -119,7 +120,7 @@ class AndroidComplicationConfigurationExecutor(
           "$watchFaceInfo ${slot.id} ${slot.type}",
           mode,
           receiver,
-          device,
+          DeviceHolder(device, null),
         )
     } catch (ex: DeployerException) {
       throw ExecutionException("Error while launching complication, message: ${receiver.getOutput().ifEmpty { ex.details }}", ex)

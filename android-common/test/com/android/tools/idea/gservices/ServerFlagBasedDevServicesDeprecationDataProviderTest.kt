@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.gservices
 
-import com.android.flags.junit.FlagRule
 import com.android.testutils.delayUntilCondition
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.serverflags.DynamicServerFlagService
 import com.android.tools.idea.serverflags.FakeDynamicServerFlagService
-import com.android.tools.idea.serverflags.FakeServerFlagService
-import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.serverflags.protos.Date
 import com.android.tools.idea.serverflags.protos.DevServicesDeprecationMetadata
 import com.google.common.truth.Truth.assertThat
@@ -36,7 +33,6 @@ import java.util.concurrent.TimeoutException
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -44,46 +40,19 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCase() {
 
-  @get:Rule val flagRule = FlagRule(StudioFlags.USE_POLICY_WITH_DEPRECATE, true)
-  private val fakeServerFlagService = FakeServerFlagService()
   private val fakeDynamicServerFlagService = FakeDynamicServerFlagService { emptyMap() }
   private lateinit var provider: ServerFlagBasedDevServicesDeprecationDataProvider
 
   @Before
   fun setup() {
     provider = ServerFlagBasedDevServicesDeprecationDataProvider(testRootDisposable.createCoroutineScope())
-    application.replaceService(ServerFlagService::class.java, fakeServerFlagService, testRootDisposable)
     application.replaceService(DynamicServerFlagService::class.java, fakeDynamicServerFlagService, testRootDisposable)
   }
 
   @Test
-  fun `proto missing in ServerFlag returns SUPPORTED`() {
-    assertThat(ServerFlagService.instance.getProtoOrNull("service", DevServicesDeprecationMetadata.getDefaultInstance())).isNull()
-
+  fun `proto missing returns SUPPORTED`() {
     val deprecationData = provider.getCurrentDeprecationData("service", "")
     assertThat(deprecationData.status).isEqualTo(DevServicesDeprecationStatus.SUPPORTED)
-  }
-
-  @Test
-  fun `proto available in ServerFlag returns DEPRECATED`() {
-    StudioFlags.USE_POLICY_WITH_DEPRECATE.override(false)
-    registerServiceProto(DevServicesDeprecationMetadata.newBuilder().apply { header = "header" }.build())
-    assertThat(ServerFlagService.instance.getProtoOrNull("dev_services/service", DevServicesDeprecationMetadata.getDefaultInstance()))
-      .isNotNull()
-
-    val deprecationData = provider.getCurrentDeprecationData("service", "")
-    assertThat(deprecationData.status).isEqualTo(DevServicesDeprecationStatus.UNSUPPORTED)
-  }
-
-  @Test
-  fun `proto with missing values returns DEPRECATED`() {
-    StudioFlags.USE_POLICY_WITH_DEPRECATE.override(false)
-    assertThat(ServerFlagService.instance.getProto("dev_services/service", DevServicesDeprecationMetadata.getDefaultInstance())).isNotNull()
-
-    registerServiceProto(DevServicesDeprecationMetadata.newBuilder().apply { header = "header" }.build())
-
-    val deprecationData = provider.getCurrentDeprecationData("service", "")
-    assertThat(deprecationData.status).isEqualTo(DevServicesDeprecationStatus.UNSUPPORTED)
   }
 
   @Test
@@ -268,7 +237,6 @@ class ServerFlagBasedDevServicesDeprecationDataProviderTest : BasePlatformTestCa
 
   private fun registerFlag(name: String, flag: Any) {
     fakeDynamicServerFlagService.registerFlag(name, flag)
-    fakeServerFlagService.registerFlag(name, flag)
   }
 
   @Suppress("UnstableApiUsage")

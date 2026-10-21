@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.compose.preview.interactive
 
-import androidx.compose.foundation.border
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -35,6 +34,8 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,15 +47,21 @@ import com.android.tools.idea.compose.preview.BackNavigationEdge
 import com.android.tools.idea.compose.preview.InteractivePreviewNavigationController
 import com.android.tools.idea.compose.preview.message
 import icons.StudioIconsCompose
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.launch
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.ui.Orientation
+import org.jetbrains.jewel.ui.component.Divider
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.OutlinedButton
 import org.jetbrains.jewel.ui.component.Slider
 import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.Tooltip
 
 private val DEFAULT_SPACING = 8.dp
 
@@ -63,9 +70,11 @@ private val DEFAULT_SPACING = 8.dp
 fun NavigationControlsContent(
   interactivePreviewNavigationController: InteractivePreviewNavigationController,
   fpsUpdater: SharedFlow<Unit>,
+  isEdgeNavigationImplemented: suspend () -> Boolean,
 ) {
   Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
     NavigationControlsPanel(
+      isEdgeNavigationImplemented = isEdgeNavigationImplemented,
       canBackPress = { interactivePreviewNavigationController.canBackPress() },
       onBackPress = {
         interactivePreviewNavigationController.backPressCompleted()
@@ -74,7 +83,10 @@ fun NavigationControlsContent(
       onBackPressStart = { interactivePreviewNavigationController.backPressStart(it) },
       onBackPressProgress = { progress, edge -> interactivePreviewNavigationController.backPressProgress(progress, edge) },
       onBackPressTrackProgress = { interactivePreviewNavigationController.trackNavigationProgressPress() },
-      onEdgeDropdownPress = { interactivePreviewNavigationController.trackEdgeDropdownPress() },
+      onEdgeDropdownPress = {
+        interactivePreviewNavigationController.trackEdgeDropdownPress()
+        interactivePreviewNavigationController.backPressCancelled()
+      },
       fpsUpdater = fpsUpdater,
       backPressCompletedFlow = interactivePreviewNavigationController.backPressCompletedFlow,
     )
@@ -90,6 +102,7 @@ fun NavigationControlsContent(
  * - A slider to simulate predictive back progress.
  *
  * @param modifier The modifier to be applied to this Composable.
+ * @param isEdgeNavigationImplemented A callback returning whether the back navigation edge represents an implemented capability.
  * @param canBackPress A callback that returns whether back navigation is currently available.
  * @param onBackPress A callback invoked when the back button is clicked.
  * @param onBackPressStart A callback invoked when a predictive back gesture starts.
@@ -99,9 +112,11 @@ fun NavigationControlsContent(
  * @param fpsUpdater A [SharedFlow] used to refresh the state of the panel (e.g., re-evaluating [canBackPress]).
  * @param backPressCompletedFlow A [SharedFlow] to listen for back navigation completion events.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NavigationControlsPanel(
   modifier: Modifier = Modifier,
+  isEdgeNavigationImplemented: suspend () -> Boolean,
   canBackPress: () -> Boolean,
   onBackPress: () -> Unit,
   onBackPressStart: (BackNavigationEdge) -> Unit,
@@ -111,9 +126,11 @@ fun NavigationControlsPanel(
   fpsUpdater: SharedFlow<Unit>,
   backPressCompletedFlow: SharedFlow<Unit> = remember { MutableSharedFlow() },
 ) {
-  var sliderPosition by remember { mutableFloatStateOf(0f) }
+  var sliderPosition by rememberSaveable { mutableFloatStateOf(0f) }
   var backStarted by remember { mutableStateOf(false) }
-  val selectedEdge = remember { mutableStateOf(BackNavigationEdge.LEFT_EDGE) }
+  val coroutineScope = rememberCoroutineScope()
+  val showEdgeNavigation by produceState(false, isEdgeNavigationImplemented) { value = isEdgeNavigationImplemented() }
+  val selectedEdge = rememberSaveable { mutableStateOf(BackNavigationEdge.EDGE_NONE) }
   val backNavigationAvailable by produceState(canBackPress(), fpsUpdater) { fpsUpdater.collect { value = canBackPress() } }
 
   LaunchedEffect(backPressCompletedFlow) {
@@ -123,38 +140,63 @@ fun NavigationControlsPanel(
     }
   }
 
-  Column(modifier.padding(16.dp).fillMaxWidth().testTag(NavigationControlsPanelTestTags.panel)) {
+  Column(modifier.padding(horizontal = 16.dp, vertical = 8.dp).fillMaxWidth().testTag(NavigationControlsPanelTestTags.panel)) {
     FlowRow(
       modifier = Modifier.padding(vertical = DEFAULT_SPACING).fillMaxWidth(),
       horizontalArrangement = Arrangement.SpaceBetween,
       verticalArrangement = Arrangement.spacedBy(DEFAULT_SPACING, Alignment.CenterVertically),
     ) {
-      OutlinedButton(
-        modifier = Modifier.testTag(NavigationControlsPanelTestTags.backButton).widthIn(min = 135.dp),
-        enabled = backNavigationAvailable,
-        onClick = onBackPress,
-      ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-          Icon(
-            key = StudioIconsCompose.Emulator.Toolbar.Back,
-            // The contentDescription is not needed as this icon is decorative to a text label which describes already what the button does.
-            contentDescription = null,
-            tint = Color(IntUiPaletteDefaults.Dark.Green7),
-          )
-          Text(text = message("action.navigate.back.button.text"), maxLines = 1, softWrap = false)
+      Tooltip(tooltip = { Text(message("action.navigate.back.button.disabled.tooltip")) }, enabled = !backNavigationAvailable) {
+        OutlinedButton(
+          modifier = Modifier.testTag(NavigationControlsPanelTestTags.backButton).widthIn(min = 135.dp),
+          enabled = backNavigationAvailable,
+          onClick = {
+            coroutineScope.launch {
+              if (!backStarted) {
+                backStarted = true
+                val selectedEdge = selectedEdge.value
+                // TODO(b/539916536): This is a temporary solution for predictive back navigation.
+                // Currently, the limitation is about the predictive back gesture transition continuing to the end,
+                // but we expect it to hand off to a separate transition spec after the swipe passes the committed threshold.
+                // This should be properly fixed when new APIs for predictive back are released.
+                onBackPressStart(selectedEdge)
+                // Introduce a minor delay to allow the initial back navigation gesture animation frame
+                // to initialize properly before triggering the back press completion event.
+                delay(100.milliseconds)
+              }
+              onBackPress()
+            }
+          },
+        ) {
+          Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+              key = StudioIconsCompose.Emulator.Toolbar.Back,
+              // The contentDescription is not needed as this icon is decorative to a text label which describes already what the button
+              // does.
+              contentDescription = null,
+              tint = Color(IntUiPaletteDefaults.Dark.Green7),
+            )
+            Text(text = message("action.navigate.back.button.text"), maxLines = 1, softWrap = false)
+          }
         }
       }
-      DropDownAction(message("action.navigate.back.navigation.edge.label"), selectedEdge, onEdgeDropdownPress)
+      DropDownAction(
+        label = message("action.navigate.back.navigation.edge.label"),
+        selectedEdge = selectedEdge,
+        enabled = showEdgeNavigation,
+        onEdgeDropdownPress = onEdgeDropdownPress,
+      )
     }
     Row(
-      modifier =
-        Modifier.padding(vertical = DEFAULT_SPACING)
-          .fillMaxWidth()
-          .border(width = 1.dp, color = JewelTheme.globalColors.borders.normal, shape = RoundedCornerShape(4.dp)),
+      modifier = Modifier.padding(vertical = DEFAULT_SPACING).widthIn(min = 16.dp, max = 800.dp).align(Alignment.CenterHorizontally),
       horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
       verticalAlignment = Alignment.CenterVertically,
     ) {
       Column {
+        Divider(
+          orientation = Orientation.Horizontal,
+          modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp).testTag(NavigationControlsPanelTestTags.divider),
+        )
         Text(modifier = Modifier.padding(DEFAULT_SPACING), text = message("action.navigate.back.predictive.back.progress", sliderPosition))
         Slider(
           modifier = Modifier.padding(DEFAULT_SPACING).testTag(NavigationControlsPanelTestTags.progressSlider),
@@ -186,32 +228,41 @@ fun NavigationControlsPanel(
  * @param label The text to show in the Label located on the right of the Dropdown.
  * @param selectedEdge The edge to be selected among the [BackNavigationEdge] enum.
  */
-@OptIn(ExperimentalJewelApi::class)
+@OptIn(ExperimentalJewelApi::class, ExperimentalFoundationApi::class)
 @Composable
-private fun DropDownAction(label: String, selectedEdge: MutableState<BackNavigationEdge>, onEdgeDropdownPress: () -> Unit) =
+private fun DropDownAction(
+  label: String,
+  selectedEdge: MutableState<BackNavigationEdge>,
+  enabled: Boolean,
+  onEdgeDropdownPress: () -> Unit,
+) =
   FlowRow(
     modifier = Modifier.widthIn(min = 220.dp),
     verticalArrangement = Arrangement.spacedBy(DEFAULT_SPACING, Alignment.CenterVertically),
     horizontalArrangement = Arrangement.spacedBy(DEFAULT_SPACING),
   ) {
-    Text(text = label, modifier = Modifier.padding(vertical = DEFAULT_SPACING), maxLines = 1, softWrap = false)
-    Dropdown(
-      modifier = Modifier.testTag(NavigationControlsPanelTestTags.edgeDropdown).widthIn(min = 100.dp),
-      menuContent = {
-        for (edge in BackNavigationEdge.entries) {
-          selectableItem(
-            selected = selectedEdge.value == edge,
-            onClick = {
-              selectedEdge.value = edge
-              onEdgeDropdownPress()
-            },
-          ) {
-            Text(text = edge.visibleName, maxLines = 1, softWrap = false)
+    val labelColor = if (enabled) JewelTheme.globalColors.text.normal else JewelTheme.globalColors.text.disabled
+    Text(text = label, modifier = Modifier.padding(vertical = DEFAULT_SPACING), color = labelColor, maxLines = 1, softWrap = false)
+    Tooltip(tooltip = { Text(message("action.navigate.back.navigation.edge.disabled.tooltip")) }, enabled = !enabled) {
+      Dropdown(
+        modifier = Modifier.testTag(NavigationControlsPanelTestTags.edgeDropdown).widthIn(min = 100.dp),
+        enabled = enabled,
+        menuContent = {
+          for (edge in BackNavigationEdge.entries) {
+            selectableItem(
+              selected = selectedEdge.value == edge,
+              onClick = {
+                selectedEdge.value = edge
+                onEdgeDropdownPress()
+              },
+            ) {
+              Text(text = edge.visibleName, maxLines = 1, softWrap = false)
+            }
           }
-        }
-      },
-    ) {
-      Text(selectedEdge.value.visibleName, maxLines = 1, softWrap = false)
+        },
+      ) {
+        Text(selectedEdge.value.visibleName, maxLines = 1, softWrap = false)
+      }
     }
   }
 
@@ -230,4 +281,7 @@ object NavigationControlsPanelTestTags {
 
   /** Tag for the navigation edge selection dropdown. */
   const val edgeDropdown = "$base.edgeDropdown"
+
+  /** Tag for the horizontal divider. */
+  const val divider = "$base.divider"
 }

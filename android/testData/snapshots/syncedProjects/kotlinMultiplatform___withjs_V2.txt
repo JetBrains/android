@@ -121,7 +121,7 @@ PROJECT                       : kotlinMultiPlatform
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:app:main]
@@ -289,7 +289,7 @@ PROJECT                       : kotlinMultiPlatform
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/app/build/generated/ap_generated_sources/debug/out [-]
@@ -414,7 +414,7 @@ PROJECT                       : kotlinMultiPlatform
             MergedCompilerArguments
                 apiVersion                    : <KOTLIN-MAJOR-MINOR-VERSION>
                 languageVersion               : <KOTLIN-MAJOR-MINOR-VERSION>
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
             AdditionalVisibleModuleNames  : [:app:main]
@@ -599,7 +599,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      :  [-]
+            HomePath                      :
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-js:<KOTLIN_VERSION> [=]
@@ -657,7 +657,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      :  [-]
+            HomePath                      :
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION> [=]
             Scope                         : Test
@@ -695,7 +695,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xir-module-name=kotlinMultiPlatform:jsModule -Xir-per-module-output-name=kotlinMultiPlatform-jsModule -Xir-produce-klib-dir -main call
+                additionalArguments           : -Xir-module-name=kotlinMultiPlatform:jsModule -Xir-per-module-output-name=kotlinMultiPlatform-jsModule -main call
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :jsModule
@@ -723,7 +723,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      :  [-]
+            HomePath                      :
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-js:<KOTLIN_VERSION> [=]
@@ -757,7 +757,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             CompilerSettings
-                additionalArguments           : -Xir-module-name=kotlinMultiPlatform:jsModule_test -Xir-per-module-output-name=kotlinMultiPlatform-jsModule-test -Xir-produce-klib-dir -main call
+                additionalArguments           : -Xir-module-name=kotlinMultiPlatform:jsModule_test -Xir-per-module-output-name=kotlinMultiPlatform-jsModule-test -main call
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :jsModule
@@ -786,7 +786,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      :  [-]
+            HomePath                      :
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION> [=]
             Scope                         : Test
@@ -853,7 +853,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      :  [-]
+            HomePath                      :
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-js:<KOTLIN_VERSION> [=]
@@ -912,7 +912,7 @@ PROJECT                       : kotlinMultiPlatform
         JDK                           : <NAME_CUT> KotlinSDK
         *isInherited                  : false
             SdkType                       : KotlinSDK
-            HomePath                      :  [-]
+            HomePath                      :
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION> [=]
             Scope                         : Test
@@ -1040,7 +1040,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/module2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -1166,7 +1166,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/module2/build/generated/ap_generated_sources/debug/out [-]
@@ -1284,7 +1284,7 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (21)
+            Platform                      : JVM (25)
             UseProjectSettings            : false
             Version                       : 5
         CONTENT_ENTRY                 : file://<PROJECT>/module2/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -1458,9 +1458,11 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3
             *CLASSES                      : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-dom-api-compat:<KOTLIN_VERSION>
+            *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-dom-api-compat/<KOTLIN_VERSION>/kotlin-dom-api-compat-<KOTLIN_VERSION>.klib!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
             *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-js:<KOTLIN_VERSION>
+            *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-js/<KOTLIN_VERSION>/kotlin-stdlib-js-<KOTLIN_VERSION>.klib!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
             *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0

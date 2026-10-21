@@ -165,7 +165,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     myModule = moduleFixtureBuilder.getFixture().getModule();
 
     // TODO(b/418973297): Consolidate all init logic in the different test frameworks
-    WorkspaceModelCacheImpl.forceEnableCaching(getTestRootDisposable());
     GradleSpecificInitializer.initializePhasedSync();
 
     // Must be done before addAndroidFacet, and must always be done, even if a test provides
@@ -317,6 +316,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       ApplicationManager.getApplication(),
       // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
       "Layoutlib",
+      // Layoutlib creates a cleaner thread to recycle image buffers
+      "Cleaner-",
       // ddmlib might sometimes leak the DCM thread. adblib will address this when fully replaces ddmlib
       "Device Client Monitor",
       "Device List Monitor",

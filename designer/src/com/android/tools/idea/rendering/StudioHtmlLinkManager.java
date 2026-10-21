@@ -106,8 +106,8 @@ import com.intellij.psi.PsiReferenceList;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.SyntaxTraverser;
 import com.intellij.psi.util.ClassUtil;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -334,6 +334,8 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     if (delimiterPos != -1) {
       String wrongTag = url.substring(start, delimiterPos);
       String rightTag = url.substring(delimiterPos + 1);
+      wrongTag = URLDecoder.decode(wrongTag, StandardCharsets.UTF_8);
+      rightTag = URLDecoder.decode(rightTag, StandardCharsets.UTF_8);
       new ReplaceTagFix((XmlFile)file, wrongTag, rightTag).run();
     }
   }
@@ -364,6 +366,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
   private static void handleOpenClassUrl(@NotNull String url, @NotNull Module module) {
     assert url.startsWith(URL_OPEN_CLASS) : url;
     String className = url.substring(URL_OPEN_CLASS.length());
+    className = URLDecoder.decode(className, StandardCharsets.UTF_8);
     Project project = module.getProject();
     PsiClass clz = JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project));
     if (clz != null) {
@@ -381,17 +384,15 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
 
   private static void handleShowTagUrl(@NotNull String url, @NotNull Module module, @NotNull final PsiFile file) {
     assert url.startsWith(URL_SHOW_TAG) : url;
-    final String tagName = url.substring(URL_SHOW_TAG.length());
+    String decodedTag = url.substring(URL_SHOW_TAG.length());
+    decodedTag = URLDecoder.decode(decodedTag, StandardCharsets.UTF_8);
+    final String tagName = decodedTag;
 
     XmlTag first = ApplicationManager.getApplication().runReadAction((Computable<XmlTag>)() -> {
-      Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
-      for (XmlTag tag : xmlTags) {
-        if (tagName.equals(tag.getName())) {
-          return tag;
-        }
-      }
-
-      return null;
+      return SyntaxTraverser.psiTraverser(file)
+          .filter(XmlTag.class)
+          .filter(tag -> tagName.equals(tag.getName()))
+          .first();
     });
 
     if (first != null) {
@@ -406,6 +407,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
   private static void handleNewClassUrl(@NotNull String url, @NotNull Module module) {
     assert url.startsWith(URL_CREATE_CLASS) : url;
     String s = url.substring(URL_CREATE_CLASS.length());
+    s = URLDecoder.decode(s, StandardCharsets.UTF_8);
 
     final Project project = module.getProject();
     String title = "Create Custom View";
@@ -551,6 +553,14 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
       className = className.substring(0, hash);
     }
 
+    className = URLDecoder.decode(className, StandardCharsets.UTF_8);
+    if (fileName != null) {
+      fileName = URLDecoder.decode(fileName, StandardCharsets.UTF_8);
+    }
+    if (method != null) {
+      method = URLDecoder.decode(method, StandardCharsets.UTF_8);
+    }
+
     GlobalSearchScope searchScope = GlobalSearchScope.allScope(project);
 
     // First, try to find a source file corresponding to the class, because other search mechanisms below might return the .class files.
@@ -692,17 +702,23 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     final String fragmentClass = getFragmentClass(module, className);
 
     int start = URL_ASSIGN_FRAGMENT_URL.length();
+    String decodedId = null;
+    if (start != url.length()) {
+      decodedId = url.substring(start);
+      decodedId = URLDecoder.decode(decodedId, StandardCharsets.UTF_8);
+    }
+    
     final String id;
-    if (start == url.length()) {
+    if (decodedId == null) {
       // No specific fragment identified; use the first one
       id = null;
     }
     else {
-      id = Lint.stripIdPrefix(url.substring(start));
+      id = Lint.stripIdPrefix(decodedId);
     }
 
     WriteCommandAction.writeCommandAction(module.getProject(), file).withName("Assign Fragment").run(()-> {
-        Collection<XmlTag> tags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
+        Iterable<XmlTag> tags = SyntaxTraverser.psiTraverser(file).filter(XmlTag.class);
         for (XmlTag tag : tags) {
           if (!isFragmentTag(tag.getName())) {
             continue;
@@ -743,12 +759,15 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     if (layoutStart == -1) {
       // Only specified activity; pick it
       String activityName = url.substring(start);
+      activityName = URLDecoder.decode(activityName, StandardCharsets.UTF_8);
       pickLayout(module, xmlFile, activityName);
     }
     else {
       // Set directory to specified layoutName
-      final String activityName = url.substring(start, layoutStart);
-      final String layoutName = url.substring(layoutStart + 1);
+      String activityName = url.substring(start, layoutStart);
+      String layoutName = url.substring(layoutStart + 1);
+      activityName = URLDecoder.decode(activityName, StandardCharsets.UTF_8);
+      layoutName = URLDecoder.decode(layoutName, StandardCharsets.UTF_8);
       final String layout = LAYOUT_RESOURCE_PREFIX + layoutName;
       assignLayout(project, xmlFile, activityName, layout);
     }
@@ -790,7 +809,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
 
     WriteCommandAction.writeCommandAction(project, file).withName("Assign Preview Layout").run(() -> {
       IdeResourcesUtil.ensureNamespaceImported(file, TOOLS_URI, null);
-      Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
+      Iterable<XmlTag> xmlTags = SyntaxTraverser.psiTraverser(file).filter(XmlTag.class);
       for (XmlTag tag : xmlTags) {
         if (isFragmentTag(tag.getName())) {
           String name = tag.getAttributeValue(ATTR_CLASS);
@@ -822,14 +841,10 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     final String value = URLDecoder.decode(valueEncoded, StandardCharsets.UTF_8);
 
     XmlAttribute first = ApplicationManager.getApplication().runReadAction((Computable<XmlAttribute>)() -> {
-      Collection<XmlAttribute> attributes = PsiTreeUtil.findChildrenOfType(file, XmlAttribute.class);
-      for (XmlAttribute attribute : attributes) {
-        if (attributeName.equals(attribute.getLocalName()) && value.equals(attribute.getValue())) {
-          return attribute;
-        }
-      }
-
-      return null;
+      return SyntaxTraverser.psiTraverser(file)
+          .filter(XmlAttribute.class)
+          .filter(attribute -> attributeName.equals(attribute.getLocalName()) && value.equals(attribute.getValue()))
+          .first();
     });
 
     if (first != null) {
@@ -855,7 +870,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
     final String newValue = URLDecoder.decode(newValueEncoded, StandardCharsets.UTF_8);
 
     WriteCommandAction.writeCommandAction(module.getProject(), file).withName("Set Attribute Value").run(() -> {
-      Collection<XmlAttribute> attributes = PsiTreeUtil.findChildrenOfType(file, XmlAttribute.class);
+      Iterable<XmlAttribute> attributes = SyntaxTraverser.psiTraverser(file).filter(XmlAttribute.class);
       int oldValueLen = oldValue.length();
       for (XmlAttribute attribute : attributes) {
         if (attributeName.equals(attribute.getLocalName())) {

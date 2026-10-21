@@ -45,6 +45,10 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
@@ -395,12 +399,17 @@ public class AndroidAnnotatorUtil {
           if (file == null) return;
           AndroidFacet facet = AndroidFacet.getInstance(file);
           if (facet == null) return;
-
-          Configuration configuration = AndroidAnnotatorUtil.pickConfiguration(file, facet);
           Editor editor = e.getData(CommonDataKeys.EDITOR);
-          if (editor != null && configuration != null) {
-            openColorPicker(getCurrentColor(), configuration);
-          }
+          if (editor == null) return;
+
+          ApplicationManager.getApplication().executeOnPooledThread(() -> {
+            Configuration configuration = ApplicationManager.getApplication().runReadAction(
+              (Computable<Configuration>)() -> AndroidAnnotatorUtil.pickConfiguration(file, facet)
+            );
+            if (configuration != null) {
+              ApplicationManager.getApplication().invokeLater(() -> openColorPicker(getCurrentColor(), configuration), ModalityState.any());
+            }
+          });
         }
       };
     }

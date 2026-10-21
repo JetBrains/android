@@ -18,7 +18,7 @@
 package com.android.tools.idea.model
 
 import com.android.sdklib.AndroidVersion
-import com.android.sdklib.SdkVersionInfo
+import com.android.sdklib.SdkVersionUtil
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.AndroidManifestIndex.Companion.getDataForManifestFile
 import com.android.tools.idea.model.AndroidManifestIndex.Companion.getDataForMergedManifestContributors
@@ -128,8 +128,8 @@ fun AndroidFacet.queryMinSdkAndTargetSdkFromManifestIndex() = queryManifestIndex
     if (minSdkLevel != null && targetSdkLevel != null) return@forEach
   }
 
-  val minSdk = SdkVersionInfo.getVersion(minSdkLevel, null) ?: AndroidVersion.DEFAULT
-  val targetSdk = SdkVersionInfo.getVersion(targetSdkLevel, null) ?: minSdk
+  val minSdk = SdkVersionUtil.getVersion(minSdkLevel, null) ?: AndroidVersion.DEFAULT
+  val targetSdk = SdkVersionUtil.getVersion(targetSdkLevel, null) ?: minSdk
 
   MinSdkAndTargetSdk(minSdk, targetSdk)
 }

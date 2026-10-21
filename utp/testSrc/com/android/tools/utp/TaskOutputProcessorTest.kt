@@ -15,9 +15,9 @@
  */
 package com.android.tools.utp
 
+import com.android.tools.androidtest.listener.proto.TestResultEventProto as GradleAndroidTestResultListenerProto
 import com.android.tools.idea.protobuf.Any
 import com.android.tools.idea.protobuf.GeneratedMessageV3
-import com.android.tools.utp.plugins.result.listener.gradle.proto.GradleAndroidTestResultListenerProto
 import com.google.common.truth.Truth.assertThat
 import com.google.testing.platform.proto.api.core.TestCaseProto
 import com.google.testing.platform.proto.api.core.TestResultProto

@@ -16,8 +16,8 @@
 package com.android.tools.idea.streaming.device
 
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
-import com.android.adblib.DevicePropertyNames
 import com.android.mockito.kotlin.whenever
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.GoldenImageRule
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.testutils.waitForCondition
@@ -33,15 +33,15 @@ import com.android.tools.analytics.crash.CrashReport
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.core.ANDROID_SCROLL_ADJUSTMENT_FACTOR
 import com.android.tools.idea.streaming.core.AbstractDisplayView
+import com.android.tools.idea.streaming.core.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.core.ZoomType
+import com.android.tools.idea.streaming.core.extractText
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
-import com.android.tools.idea.streaming.extractText
 import com.android.tools.idea.streaming.xr.TRANSLATION_STEP_SIZE
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.CrashReporterRule
@@ -402,7 +402,7 @@ internal class DeviceViewTest {
         Dimension(384, 384),
         roundDisplay = true,
         abi = "armeabi-v7a",
-        additionalDeviceProperties = mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,watch"),
+        deviceType = DeviceType.WEAR,
       )
 
     createDeviceView(100, 150, retinaMode = true)
@@ -1145,16 +1145,16 @@ internal class DeviceViewTest {
     // Enable hardware input
     executeAction("android.streaming.hardware.input", view, agentRule.project)
 
-    // Check if multitouch indicator is hidden.
-    fakeUi.layoutAndDispatchEvents()
-    assertAppearance("MultiTouch4")
-
     // Pressing mouse should generate mouse events instead of touch.
     fakeUi.mouse.press(mousePosition)
     assertThat(getNextControlMessageAndWaitForFrame())
       .isEqualTo(MotionEventMessage(listOf(MotionEventMessage.Pointer(663, 707, 0)), MotionEventMessage.ACTION_HOVER_EXIT, 0, 0, 0, true))
     assertThat(getNextControlMessageAndWaitForFrame())
       .isEqualTo(MotionEventMessage(listOf(MotionEventMessage.Pointer(663, 707, 0)), MotionEventMessage.ACTION_DOWN, 1, 1, 0, true))
+
+    // Check if multitouch indicator is hidden.
+    fakeUi.layoutAndDispatchEvents()
+    assertAppearance("MultiTouch4")
 
     // Disable hardware input.
     executeAction("android.streaming.hardware.input", view, agentRule.project, modifiers = CTRL_DOWN_MASK)
@@ -1206,13 +1206,7 @@ internal class DeviceViewTest {
 
   @Test
   fun testXrMouseInput() {
-    device =
-      agentRule.connectDevice(
-        "XR Headset",
-        34,
-        Dimension(2560, 2558),
-        additionalDeviceProperties = mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,xr"),
-      )
+    device = agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558), deviceType = DeviceType.XR_HEADSET)
     createDeviceView(200, 300, retinaMode = true)
     waitForFrame()
 
@@ -1239,13 +1233,7 @@ internal class DeviceViewTest {
 
   @Test
   fun testXrZoom() {
-    device =
-      agentRule.connectDevice(
-        "XR Headset",
-        34,
-        Dimension(2560, 2558),
-        additionalDeviceProperties = mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,xr"),
-      )
+    device = agentRule.connectDevice("XR Headset", 34, Dimension(2560, 2558), deviceType = DeviceType.XR_HEADSET)
     createDeviceView(200, 300)
     waitForFrame()
 
@@ -1276,7 +1264,7 @@ internal class DeviceViewTest {
   }
 
   private fun createDeviceViewWithoutWaitingForAgent(width: Int, height: Int) {
-    val deviceClient = DeviceClient(device.serialNumber, device.configuration, device.deviceState.cpuAbi)
+    val deviceClient = DeviceClient(device.handle.id, device.serialNumber, device.configuration, device.deviceState.cpuAbi)
     Disposer.register(testRootDisposable, deviceClient)
     // DeviceView has to be disposed before DeviceClient.
     val disposable = Disposer.newDisposable()
@@ -1284,7 +1272,7 @@ internal class DeviceViewTest {
     val displayPanel = DeviceDisplayPanel(disposable, deviceClient, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION, project, false)
     displayPanel.size = Dimension(width, height)
     view = displayPanel.displayView
-    fakeUi = FakeUi(displayPanel, createFakeWindow = true)
+    fakeUi = FakeUi(displayPanel, createFakeWindow = true, parentDisposable = testRootDisposable)
   }
 
   private fun assertAppearance(goldenImageName: String) {

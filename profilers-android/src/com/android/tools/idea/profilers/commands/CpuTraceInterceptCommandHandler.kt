@@ -35,6 +35,7 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profiler.proto.TransportServiceGrpc
+import com.android.tools.profilers.cpu.TraceMerger
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.google.common.annotations.VisibleForTesting
 import com.google.gson.stream.JsonReader
@@ -42,6 +43,8 @@ import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.PerfettoSdkHandshakeMetadata
 import com.google.wireless.android.sdk.stats.PerfettoSdkHandshakeMetadata.HandshakeResult
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.io.FileUtilRt
 import java.io.File
@@ -49,7 +52,6 @@ import java.io.IOException
 import java.io.StringReader
 import java.net.URL
 import java.nio.file.Path
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 // Helper class to format artifact to maven url.
@@ -100,12 +102,76 @@ class CpuTraceInterceptCommandHandler(val device: IDevice, private val transport
   }
 
   private fun setUpComposeTracing(command: Commands.Command) {
-    var handshakeResult = HandshakeResult.UNKNOWN_RESULT
     val appName = command.startTrace.configuration.appName
+    if (appName == null) {
+      log.warn("Skipping Perfetto-SDK handshake: appName is null")
+      return
+    }
+
     if (!SAFE_PACKAGE.matches(appName)) {
       log.warn("Skipping Perfetto-SDK handshake: appName is not a valid package name")
       return
     }
+
+    var handshakeResult = HandshakeResult.UNKNOWN_RESULT
+
+    /*
+     * --- TRACING 2.0 START BROADCAST ---
+     * Try to initiate Tracing 2.0 by sending the START broadcast to the target app.
+     * If this succeeds (resultCode == 1), the app will initialize its internal buffers and start recording
+     * Compose traces directly to its local memory, completely bypassing the OS-level Perfetto daemon.
+     * In this case, we set an active session flag so CpuTraceStopCommandHandler knows to pull the traces later,
+     * and we immediately return to skip the legacy Tracing 1.0 handshake.
+     * If unhandled (resultCode == 0), the app does NOT have the androidx.tracing.profiler library linked,
+     * so we gracefully fall back to the legacy Tracing 1.0 setup.
+     * If failed (resultCode < 0), we still set the active flag to attempt to pull partial data if possible,
+     * and we show an explicit UI warning balloon to the developer.
+     */
+    try {
+      val startBroadcastCommand =
+        "am broadcast -a androidx.tracing.profiler.action.START -n $appName/androidx.tracing.profiler.ConnectedProfilerTracingReceiver"
+      val receiver = CollectingOutputReceiver()
+      device.executeShellCommand(startBroadcastCommand, receiver, 5, TimeUnit.SECONDS)
+
+      val output = receiver.output
+      val resultRegex = Regex("result=(-?\\d+)")
+      val match = resultRegex.find(output)
+      val resultCodeStr = match?.groupValues?.get(1)
+      val resultCode = resultCodeStr?.toIntOrNull()
+
+      if (resultCode != null) {
+        when (resultCode) {
+          1 -> {
+            log.info("Tracing 2.0 START successful for $appName.")
+            TraceMerger.markAsTracingV2(command.pid.toLong(), appName)
+            return
+          }
+          0 -> {
+            log.info("Tracing 2.0 START unhandled (result 0) for $appName. Falling back to Tracing 1.0.")
+          }
+          else -> {
+            log.warn("Tracing 2.0 START returned error code $resultCode for $appName. Still setting active flag to pull partial data.")
+            NotificationGroupManager.getInstance()
+              .getNotificationGroup("Android Notification Group")
+              ?.createNotification(
+                "Compose Tracing Error",
+                "Tracing initialization returned $resultCode. Final merged trace might contain partial or no Compose data.",
+                NotificationType.WARNING,
+              )
+              ?.notify(null)
+            TraceMerger.markAsTracingV2(command.pid.toLong(), appName)
+            return
+          }
+        }
+      } else {
+        log.warn("Tracing 2.0 START returned unparsable output: $output. Skipping Compose Tracing setup.")
+        return
+      }
+    } catch (e: Exception) {
+      log.warn("Exception during Tracing 2.0 START broadcast. Skipping Compose Tracing setup.", e)
+      return
+    }
+    // --- END TRACING 2.0 START BROADCAST ---
 
     try {
       val handshake =
@@ -126,10 +192,8 @@ class CpuTraceInterceptCommandHandler(val device: IDevice, private val transport
           // The library doesn't have details about communicating with a device.
           // This callback is used to issue commands to the device and capture the output.
           executeShellCommand = {
-            val latch = CountDownLatch(1)
-            val receiver = CollectingOutputReceiver(latch)
-            device.executeShellCommand(it, receiver)
-            latch.await(5, TimeUnit.SECONDS)
+            val receiver = CollectingOutputReceiver()
+            device.executeShellCommand(it, receiver, 5, TimeUnit.SECONDS)
             receiver.output
           },
         )

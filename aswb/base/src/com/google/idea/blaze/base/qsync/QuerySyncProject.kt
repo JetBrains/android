@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import com.google.common.io.ByteSource
 import com.google.common.io.MoreFiles
+import com.google.common.util.concurrent.Uninterruptibles
+import com.google.idea.blaze.base.async.executor.BlazeExecutor
 import com.google.idea.blaze.base.bazel.BuildSystem
 import com.google.idea.blaze.base.logging.utils.querysync.BuildDepsStatsScope
 import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
@@ -28,6 +30,7 @@ import com.google.idea.blaze.base.scope.BlazeContext
 import com.google.idea.blaze.base.sync.projectview.WorkspaceLanguageSettings
 import com.google.idea.blaze.base.sync.workspace.WorkspacePathResolver
 import com.google.idea.blaze.base.util.SaveUtil
+import com.google.idea.blaze.base.vcs.BlazeVcsHandlerProvider.BlazeVcsHandler
 import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.Label
 import com.google.idea.blaze.common.PrintOutput
@@ -37,8 +40,8 @@ import com.google.idea.blaze.exception.BuildException
 import com.google.idea.blaze.qsync.BlazeQueryParser
 import com.google.idea.blaze.qsync.ProjectBuilder
 import com.google.idea.blaze.qsync.ProjectStructureReader
+import com.google.idea.blaze.qsync.RefreshParameters
 import com.google.idea.blaze.qsync.deps.ArtifactTracker
-import com.google.idea.blaze.qsync.fromGraph
 import com.google.idea.blaze.qsync.java.PackageReader
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.PostQuerySyncData
@@ -46,14 +49,12 @@ import com.google.idea.blaze.qsync.project.ProjectDefinition
 import com.google.idea.blaze.qsync.project.ProjectPath
 import com.google.idea.blaze.qsync.project.ProjectProto
 import com.google.idea.blaze.qsync.project.ProjectStructureData
-import com.google.idea.blaze.qsync.project.TargetsToBuild
-import com.google.idea.blaze.qsync.project.pathToLabel
 import com.google.idea.blaze.qsync.project.update.ProjectProtoUpdateOperation
 import com.intellij.openapi.project.Project
 import java.io.IOException
 import java.nio.file.Path
 import java.util.Optional
-import java.util.function.Supplier
+import java.util.concurrent.ExecutionException
 import kotlin.jvm.optionals.getOrNull
 
 /**
@@ -110,7 +111,8 @@ class QuerySyncProject(
   private val projectStructureReader: ProjectStructureReader,
   val packageReader: PackageReader,
   val parallelPackageReader: PackageReader.ParallelReader,
-  private val readProjectStructureFromDirectory: Boolean,
+  val vcsHandler: BlazeVcsHandler?,
+  val bazelVersionProvider: BazelVersionHandler,
 ) : ReadonlyQuerySyncProject {
   override val projectData: QuerySyncProjectData
     get() {
@@ -130,70 +132,54 @@ class QuerySyncProject(
     return QueryCoreSyncResult(postQuerySyncData, graph)
   }
 
-  fun runQueryAndComputePostQuerySyncData(context: BlazeContext, lastQuery: PostQuerySyncData?): PostQuerySyncData {
-    val postQuerySyncData =
-      if (lastQuery == null) projectQuerier.fullQuery(projectDefinition, context)
-      else projectQuerier.update(projectDefinition, lastQuery, context)
+  fun getBazelVersion(context: BlazeContext): String? {
+    return try {
+      bazelVersionProvider.getBazelVersion(context).orElse(null)
+    } catch (e: BuildException) {
+      context.handleExceptionAsWarning("Could not get bazel version", e)
+      null
+    }
+  }
+
+  fun getVcsState(context: BlazeContext): VcsState? {
+    val stateFuture = vcsHandler?.getVcsState(context, BlazeExecutor.getInstance().executor) ?: return null
+    if (stateFuture.isEmpty()) {
+      return null
+    }
+    return try {
+      Uninterruptibles.getUninterruptibly(stateFuture.get())
+    } catch (e: ExecutionException) {
+      context.handleExceptionAsWarning("WARNING: Could not get VCS state, future updates may be suboptimal", e.cause)
+      null
+    }
+  }
+
+  fun runQueryAndComputePostQuerySyncData(
+    context: BlazeContext,
+    lastQuery: PostQuerySyncData?,
+    vcsState: VcsState?,
+    bazelVersion: String?,
+  ): PostQuerySyncData {
+    val refreshParameters =
+      RefreshParameters(
+        lastQuery ?: PostQuerySyncData.EMPTY,
+        snapshotHolder.current.getOrNull()?.projectDefinition ?: projectDefinition,
+        Optional.ofNullable(snapshotHolder.current.getOrNull()?.vcsState),
+        Optional.ofNullable(vcsState),
+        Optional.ofNullable(snapshotHolder.current.getOrNull()?.bazelVersion),
+        Optional.ofNullable(bazelVersion),
+        projectDefinition,
+      )
+    val postQuerySyncData = projectQuerier.update(refreshParameters, context)
     return postQuerySyncData
   }
 
-  fun computeProjectStructureData(
-    context: BlazeContext,
-    lastProjectStructureData: ProjectStructureData?,
-    graph: BuildGraphData, // This is a temporary parameter while we cannot switch over to the new nway completely.
-  ): ProjectStructureData {
-    return lastProjectStructureData
-      ?: (if (readProjectStructureFromDirectory) {
-        readProjectStructureFromDirectory(context)
-      } else null)
-      ?: ProjectStructureData.fromGraph(
-        context,
-        graph,
-        projectDefinition.projectIncludes,
-        workspaceRoot.path(),
-        packageReader,
-        parallelPackageReader,
-      )
+  fun computeProjectStructureData(context: BlazeContext, lastProjectStructureData: ProjectStructureData?): ProjectStructureData {
+    return lastProjectStructureData ?: readProjectStructureFromDirectory(context)
   }
 
-  fun readProjectStructureFromDirectory(context: Context<*>): ProjectStructureData? =
+  fun readProjectStructureFromDirectory(context: Context<*>): ProjectStructureData =
     projectStructureReader.read(context, workspaceRoot.path(), projectDefinition)
-
-  /**
-   * Returns the list of project targets related to the given workspace file.
-   *
-   * @param context Context
-   * @param workspaceRelativePaths Workspace relative file paths to find targets for. A path may be a path to a source file, directory or
-   *   BUILD file.
-   * @return Corresponding project targets. For a source file, this is the targets that build that file. For a BUILD file, it's the set or
-   *   targets defined in that file. For a directory, it's the set of all targets defined in all build packages within the directory
-   *   (recursively).
-   */
-  fun getProjectTargets(workspaceRelativePaths: Collection<Path>): Set<TargetsToBuild> {
-    val snapshot = snapshotHolder.current.getOrNull() ?: return emptySet()
-    return workspaceRelativePaths
-      .map { path ->
-        if (path.endsWith("BUILD") || path.endsWith("BUILD.bazel")) {
-          val packagePath = path.parent ?: Path.of("")
-          val packageLabel = Label.fromWorkspacePackageAndName("", packagePath, Label.PACKAGE_TARGET_NAME)
-          snapshot.staleGraph.getProjectTargetsForBuildPackage(packageLabel)
-        } else {
-          val packageLabel = Label.fromWorkspacePackageAndName("", path, Label.PACKAGE_TARGET_NAME)
-          val subpackagesTargets = snapshot.staleGraph.getProjectTargetsForBuildPackageWithSubpackages(packageLabel)
-          if (!subpackagesTargets.isEmpty()) {
-            subpackagesTargets
-          } else {
-            val sourceFileLabel = snapshot.projectStructureData.pathToLabel(path)
-            if (sourceFileLabel != null) {
-              snapshot.staleGraph.getProjectTargetsForSourceFile(sourceFileLabel)
-            } else {
-              TargetsToBuild.forUnknownSourceFile(path)
-            }
-          }
-        }
-      }
-      .toSet()
-  }
 
   /** Returns the set of targets with direct dependencies on `targets`. */
   fun getTargetsDependingOn(targets: Set<Label>): Set<Label> {
@@ -206,13 +192,13 @@ class QuerySyncProject(
   override fun getWorkingSet(context: BlazeContext): Set<Path> {
     SaveUtil.saveAllFiles()
     val vcsState: VcsState
-    val computed = projectQuerier.getVcsState(context)
-    if (computed.isPresent) {
-      vcsState = computed.get()
+    val computed = getVcsState(context)
+    if (computed != null) {
+      vcsState = computed
     } else {
       context.output(PrintOutput("Failed to compute working set. Falling back on sync data"))
       val snapshot = snapshotHolder.current.orElseThrow()
-      vcsState = snapshot.queryData.vcsState().orElseThrow(Supplier { BuildException("No VCS state, cannot calculate affected targets") })
+      vcsState = snapshot.vcsState ?: throw BuildException("No VCS state, cannot calculate affected targets")
     }
     return vcsState.modifiedFiles()
   }
@@ -249,10 +235,6 @@ class QuerySyncProject(
       context.push(BuildDepsStatsScope())
       return appInspectorTracker.buildAppInspector(context, inspector)
     }
-  }
-
-  fun canEnableAnalysisFor(workspacePath: Path): Boolean {
-    return getProjectTargets(listOf(workspacePath)).isNotEmpty()
   }
 
   fun isReadyForAnalysis(path: Path): Boolean {
@@ -332,7 +314,7 @@ class QuerySyncProject(
       return Optional.of<Boolean>(false)
     }
 
-    val snapshotPath = snapshotHolder.current.flatMap { it.queryData.vcsState() }.flatMap { it.workspaceSnapshotPath }
+    val snapshotPath = snapshotHolder.current.map { it.vcsState }.flatMap { it?.workspaceSnapshotPath }
 
     return snapshotPath.map { !it.resolve(workspaceRelative).toFile().exists() }
   }

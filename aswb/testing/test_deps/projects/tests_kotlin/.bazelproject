@@ -1,0 +1,4 @@
+directories:
+  tests_kotlin/project
+
+workspace_type: java

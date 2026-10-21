@@ -32,10 +32,12 @@ import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 import static org.jetbrains.android.AndroidTestBase.getTestDataPath;
 import static org.junit.Assert.assertNotEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.isNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ResourceValueImpl;
@@ -48,6 +50,7 @@ import com.android.tools.analytics.crash.CrashReporter;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.configurations.Wallpaper;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.android.tools.rendering.HtmlLinkManager;
 import com.android.tools.rendering.RenderExecutor;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderResult;
@@ -159,22 +162,30 @@ public class RenderTaskTest {
     VirtualFile layoutFile = myFixture.addFileToProject("res/layout/foo.xml", "").getVirtualFile();
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, layoutFile);
     RenderLogger logger = mock(RenderLogger.class);
+    HtmlLinkManager linkManager = mock(HtmlLinkManager.class);
+    when(logger.getLinkManager()).thenReturn(linkManager);
+    when(linkManager.createActionLink(any())).thenReturn("");
     CrashReporter mockCrashReporter = mock(CrashReporter.class);
+
+    RenderTask.TestEventListener eventListener = new RenderTask.TestEventListener() {
+      @Override
+      public void onAfterInflate() {
+        throw new NullPointerException();
+      }
+    };
 
     RenderTestUtil.withRenderTask(myFacet, layoutFile, configuration, logger, task -> {
       task.setCrashReporter(mockCrashReporter);
       // Make sure we throw an exception during the inflate call
       try {
-        task.render((w, h) -> {
-          throw new NullPointerException();
-        }).get();
+        task.render().get();
       }
       catch (Exception ex) {
         throw new RuntimeException(ex);
       }
 
       verify(mockCrashReporter, times(1)).submit((CrashReport)isNotNull());
-    });
+    }, false, eventListener);
   }
 
   @Test
@@ -486,7 +497,7 @@ public class RenderTaskTest {
           return null;
         });
 
-        Future<?> disposeFuture = task.dispose();
+        Future<?> disposeFuture = task.disposeAsync();
         semaphore.release();
 
         Throwable exception = null;
@@ -1066,10 +1077,10 @@ public class RenderTaskTest {
       return null;
     });
     try {
-      task1.dispose().get(5, TimeUnit.SECONDS);
+      task1.disposeAsync().get(5, TimeUnit.SECONDS);
       latch.countDown();
-      task2.dispose().get(5, TimeUnit.SECONDS);
-      task3.dispose().get(5, TimeUnit.SECONDS);
+      task2.disposeAsync().get(5, TimeUnit.SECONDS);
+      task3.disposeAsync().get(5, TimeUnit.SECONDS);
     }
     catch (Exception e) {
       fail("RenderTask dispose not happening before low priority render tasks.");

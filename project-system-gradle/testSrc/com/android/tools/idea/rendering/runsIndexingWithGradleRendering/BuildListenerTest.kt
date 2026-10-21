@@ -41,11 +41,18 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.writeText
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.workspaceModel.ide.impl.WorkspaceModelCacheImpl
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 class BuildListenerTest {
   @get:Rule val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
+
+  @Before
+  fun setUp() {
+    WorkspaceModelCacheImpl.forceEnableCaching(projectRule.testRootDisposable)
+  }
 
   private val collector = StringBuilder()
   private val listener = TestListener(collector)

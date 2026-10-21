@@ -22,6 +22,7 @@ import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.FakeForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ROOT
@@ -54,6 +55,7 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Dimension
@@ -71,9 +73,11 @@ import org.mockito.kotlin.mock
 
 class ActiveTabStateTest {
 
-  @get:Rule val edtRule = EdtRule()
+  private val edtRule = EdtRule()
 
-  @get:Rule val displayViewRule = EmulatorViewRule()
+  private val displayViewRule = EmulatorViewRule()
+
+  @get:Rule val rule = RuleChain(TestScopeRule(), displayViewRule, edtRule)
 
   private lateinit var layoutInspector: LayoutInspector
   private lateinit var displayListeners: MutableList<DeviceDisplayListener>

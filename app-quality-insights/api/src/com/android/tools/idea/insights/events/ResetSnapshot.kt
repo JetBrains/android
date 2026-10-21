@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.insights.events
 
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.events.actions.Action
 
 /** Reset snapshot change event */
-data class ResetSnapshot(val snapshot: AppInsightsState) : ChangeEvent {
+data class ResetSnapshot(val snapshot: AppInsightsCrashState) : ChangeEvent {
   override fun transition(
-    state: AppInsightsState,
+    state: AppInsightsCrashState,
     tracker: AppInsightsTracker,
     provider: InsightsProvider,
     cache: AppInsightsCache,

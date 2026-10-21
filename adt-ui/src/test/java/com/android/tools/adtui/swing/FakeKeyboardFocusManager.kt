@@ -76,6 +76,9 @@ class FakeKeyboardFocusManager(parentDisposable: Disposable) : DefaultKeyboardFo
 /** Replaces the keyboard focus manager with [focusManager]. The original focus manager is restored when [parentDisposable] is disposed. */
 fun replaceKeyboardFocusManager(focusManager: KeyboardFocusManager, parentDisposable: Disposable) {
   val originalFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
-  Disposer.register(parentDisposable) { KeyboardFocusManager.setCurrentKeyboardFocusManager(originalFocusManager) }
+  Disposer.register(parentDisposable) {
+    originalFocusManager.setGlobalCurrentFocusCycleRoot(null)
+    KeyboardFocusManager.setCurrentKeyboardFocusManager(originalFocusManager)
+  }
   KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
 }

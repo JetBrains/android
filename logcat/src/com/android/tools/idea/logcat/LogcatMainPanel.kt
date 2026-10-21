@@ -54,6 +54,7 @@ import com.android.tools.idea.logcat.actions.SetProguardMappingAction
 import com.android.tools.idea.logcat.actions.TerminateAppActions
 import com.android.tools.idea.logcat.actions.ToggleFilterAction
 import com.android.tools.idea.logcat.devices.Device
+import com.android.tools.idea.logcat.devices.Device.EmulatorDevice
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.DeviceItem
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.FileItem
@@ -154,6 +155,7 @@ import com.intellij.openapi.editor.impl.ContextMenuPopupHandler
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogBuilder
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.text.StringUtil.escapeXmlEntities
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.JBColor
 import com.intellij.ui.dsl.builder.panel
@@ -169,7 +171,6 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
 import java.awt.event.MouseWheelEvent
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.time.ZoneId
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
@@ -883,7 +884,12 @@ constructor(
 
     sink[ScreenRecordingParameters.DATA_KEY] =
       device?.let {
-        ScreenRecordingParameters(it.serialNumber, it.name, it.featureLevel, this, if (it.isEmulator) Paths.get(it.deviceId) else null)
+        val avdFolder =
+          when (it is EmulatorDevice) {
+            true -> Path.of(it.avdPath)
+            false -> null
+          }
+        ScreenRecordingParameters(it.serialNumber, it.name, it.featureLevel, this, avdFolder)
       }
     sink[CONNECTED_DEVICE] = device
     // Using CommonDataKeys.EDITOR causes the IJ framework to interfere with some components in
@@ -1023,7 +1029,7 @@ constructor(
               return
             }
           }
-          contentComponent.toolTipText = if (filterHint?.isElided() == true) filterHint.text else null
+          contentComponent.toolTipText = if (filterHint?.isElided() == true) escapeXmlEntities(filterHint.text) else null
 
           contentComponent.cursor = textCursor
         }

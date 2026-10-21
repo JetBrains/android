@@ -34,7 +34,7 @@ internal class StreamingXrInputModePopupGroup : DefaultActionGroup(), Toggleable
   override fun update(event: AnActionEvent) {
     val presentation = event.presentation
     val controller = getXrInputController(event)
-    if (controller?.isXrInputAvailable != true || !isHandOrEyeTrackingEnabled(event)) {
+    if (controller?.isXrInputAvailable != true || !isHandAndEyeTrackingEnabled(event)) {
       presentation.isEnabledAndVisible = false
       return
     }

@@ -46,7 +46,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
 import com.android.tools.rendering.RenderResult
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.runReadActionBlocking
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.EdtExecutorService
@@ -147,22 +147,22 @@ open class LayoutlibSceneManager(
   private fun createSceneViewsForMenu(): SceneView {
     // TODO See if there's a better way to trigger the NavigationViewSceneView. Perhaps examine the
     // view objects?
+    val useNavigationView = runReadActionBlocking {
+      model.file.rootTag?.getAttributeValue(SdkConstants.ATTR_SHOW_IN, SdkConstants.TOOLS_URI) ==
+        NavigationViewSceneView.SHOW_IN_ATTRIBUTE_VALUE
+    }
     val newSceneView: SceneView =
-      model.file.rootTag
-        ?.takeIf {
-          runReadAction {
-            it.getAttributeValue(SdkConstants.ATTR_SHOW_IN, SdkConstants.TOOLS_URI) == NavigationViewSceneView.SHOW_IN_ATTRIBUTE_VALUE
+      if (useNavigationView) {
+        ScreenView.newBuilder(designSurface, this)
+          .withLayersProvider { sv: ScreenView? ->
+            ImmutableList.of(ScreenViewLayer(sv!!, designSurface, designSurface::rotateSurfaceDegree))
           }
-        }
-        ?.let {
-          ScreenView.newBuilder(designSurface, this)
-            .withLayersProvider { sv: ScreenView? ->
-              ImmutableList.of(ScreenViewLayer(sv!!, designSurface, designSurface::rotateSurfaceDegree))
-            }
-            .withContentSizePolicy(NavigationViewSceneView.CONTENT_SIZE_POLICY)
-            .withShapePolicy(SQUARE_SHAPE_POLICY)
-            .build()
-        } ?: ScreenView.newBuilder(designSurface, this).build()
+          .withContentSizePolicy(NavigationViewSceneView.CONTENT_SIZE_POLICY)
+          .withShapePolicy(SQUARE_SHAPE_POLICY)
+          .build()
+      } else {
+        ScreenView.newBuilder(designSurface, this).build()
+      }
     designSurface.updateErrorDisplay()
     return newSceneView
   }

@@ -160,6 +160,9 @@ interface RenderAsyncActionExecutor {
     // Topic indicating this render has been triggered through the render tool in the agent.
     // Important, but yields to the main editor
     AI_GENERATED_PREVIEW("AI Agent Preview", 50),
+
+    // Topic indicating this render has been triggered through the dynamic rendering tool in the chat.
+    DYNAMIC_CHAT_RENDER("Dynamic Chat Render", 50),
     VISUAL_LINT("Visual lint", 1),
   }
 

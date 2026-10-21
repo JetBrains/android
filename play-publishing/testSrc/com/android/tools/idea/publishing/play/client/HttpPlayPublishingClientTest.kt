@@ -157,20 +157,18 @@ class HttpPlayPublishingClientTest {
 
   @Test
   fun testListDevelopersSuccess() = runBlocking {
-    val client = createClient(content = ListDevelopersResponse(developers = listOf(Developer(developerId = 123L, businessName = "Google"))))
+    var filterParameter: String? = null
+    val client =
+      createClient(
+        content = ListDevelopersResponse(developers = listOf(Developer(developerId = 123L, businessName = "Google"))),
+        onRequest = { request -> filterParameter = request.url.parameters["filter"] },
+      )
 
     val developers = client.listDevelopers()
     assertThat(developers).hasSize(1)
     assertThat(developers[0].developerId).isEqualTo(123L)
     assertThat(developers[0].businessName).isEqualTo("Google")
-  }
-
-  @Test
-  fun testListDevelopersNoContent() = runBlocking {
-    val client = createClient(statusCode = HttpStatusCode.NoContent)
-
-    val developers = client.listDevelopers()
-    assertThat(developers).isEmpty()
+    assertThat(filterParameter).isEqualTo("has_capability(CAN_CREATE_APPS)")
   }
 
   @Test

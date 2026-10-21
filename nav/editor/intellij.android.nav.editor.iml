@@ -7,7 +7,6 @@
       <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
     </content>
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
-    <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="module-library">
       <library name="eclipse-layout-kernel" type="repository">
         <properties maven-id="org.eclipse.elk:org.eclipse.elk.alg.layered:0.3.0">
@@ -55,9 +54,6 @@
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.common" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.analysis.api" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.symbol.light.classes" />
-    <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="intellij.libraries.mockito" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.libraries.kotlinTest" scope="TEST" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
@@ -100,13 +96,6 @@
     <orderEntry type="module" module-name="intellij.xml.psi" />
     <orderEntry type="module" module-name="intellij.kotlin.base.projectStructure" />
     <orderEntry type="module" module-name="intellij.kotlin.base.util" />
-    <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.testutils" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.designer.tests" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.xml.dom.impl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.guiForms.rt" />
   </component>
 </module>

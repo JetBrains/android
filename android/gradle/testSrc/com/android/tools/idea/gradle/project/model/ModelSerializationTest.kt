@@ -107,6 +107,7 @@ class ModelSerializationTest {
         safeArgsKotlin = false,
         hasFtlPlugin = false,
         hasLegacyKaptPlugin = false,
+        hasComposeScreenshotPlugin = false,
       )
     }
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.device.actions
 
+import com.android.tools.idea.streaming.core.htmlEscaped
 import com.android.tools.idea.streaming.device.DeviceState.Property.PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP
 import com.android.tools.idea.streaming.device.FoldingState
 import com.android.tools.idea.streaming.device.RequestDeviceStateMessage
@@ -25,7 +26,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 internal data class DeviceFoldingAction(val foldingState: FoldingState) : AbstractDeviceAction() {
 
   init {
-    templatePresentation.text = foldingState.name
+    templatePresentation.setText(foldingState.name.htmlEscaped(), false)
     templatePresentation.icon = foldingState.icon
   }
 

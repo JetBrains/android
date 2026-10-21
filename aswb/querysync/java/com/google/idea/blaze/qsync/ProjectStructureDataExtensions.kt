@@ -19,7 +19,7 @@ import com.google.idea.blaze.common.Context
 import com.google.idea.blaze.common.PrintOutput
 import com.google.idea.blaze.common.RuleKinds
 import com.google.idea.blaze.qsync.java.PackageReader
-import com.google.idea.blaze.qsync.java.choosePackageCandidate
+import com.google.idea.blaze.qsync.java.choosePackageCandidates
 import com.google.idea.blaze.qsync.project.BuildGraphData
 import com.google.idea.blaze.qsync.project.BuildPackage
 import com.google.idea.blaze.qsync.project.FileExtensions
@@ -64,14 +64,14 @@ fun ProjectStructureData.Companion.fromGraph(
   }
 
   val filesByDir = javaSourceFiles.groupBy { it.parent ?: Path.of("") }
-  val candidateFiles = filesByDir.values.mapNotNull { files -> choosePackageCandidate(files, fileExtensions, fileExists) }
+  val candidateFiles = filesByDir.values.map { files -> choosePackageCandidates(files, fileExtensions, exists = fileExists) }
 
   val candidateFileToPackageMap = parallelPackageReader.readPackages(context, packageReader, candidateFiles)
+  val dirToPackageMap = candidateFileToPackageMap.mapKeys { it.key.parent ?: Path.of("") }
 
   val fileToPackageMap = mutableMapOf<Path, String>()
-  for (files in filesByDir.values) {
-    val candidate = choosePackageCandidate(files, fileExtensions, fileExists)
-    val javaPackage = candidate?.let { candidateFileToPackageMap[it] } ?: ""
+  for ((dir, files) in filesByDir) {
+    val javaPackage = dirToPackageMap[dir] ?: ""
     for (file in files) {
       fileToPackageMap[file] = javaPackage
     }

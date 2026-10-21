@@ -88,11 +88,10 @@ public class VcsState {
   }
 
   /**
-   * Returns workspace-relative paths of modified files (excluding deletions), according to the VCS
+   * Returns workspace-relative paths of all modified files (including deletions) according to VCS.
    */
   public ImmutableSet<Path> modifiedFiles() {
     return workingSet.stream()
-        .filter(c -> c.operation != Operation.DELETE)
         .map(c -> c.workspaceRelativePath)
         .collect(toImmutableSet());
   }

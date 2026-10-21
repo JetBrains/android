@@ -77,7 +77,12 @@ private fun wrapInFakeWindow(mockWindow: Window, root: JComponent, parentDisposa
   ComponentAccessor.setParent(root, mockWindow)
   root.addNotify()
   if (parentDisposable != null) {
-    Disposer.register(parentDisposable) { runInEdtAndWait { root.removeNotify() } }
+    Disposer.register(parentDisposable) {
+      runInEdtAndWait {
+        ComponentAccessor.setParent(root, null)
+        root.removeNotify()
+      }
+    }
   }
 }
 

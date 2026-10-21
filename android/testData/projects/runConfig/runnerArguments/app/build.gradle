@@ -4,7 +4,7 @@ android {
   compileSdkVersion 23
   buildToolsVersion "23.0.2"
   useLibrary 'org.apache.http.legacy'
-  namespace "com.android.runnerarguments"
+  namespace = "com.android.runnerarguments"
 
   defaultConfig {
     applicationId "com.android.runnerarguments"
@@ -22,12 +22,12 @@ android {
       minifyEnabled false
     }
   }
-  lintOptions {
-    abortOnError false
+  lint {
+    abortOnError = false
   }
 
   buildFeatures {
-    buildConfig true
+    buildConfig = true
   }
 }
 

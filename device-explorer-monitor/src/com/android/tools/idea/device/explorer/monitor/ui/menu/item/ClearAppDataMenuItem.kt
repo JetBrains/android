@@ -23,12 +23,10 @@ import icons.StudioIcons
 class ClearAppDataMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext) : TreeMenuItem(listener) {
   override fun getText(numOfNodes: Int): String {
     val appStr = if (numOfNodes > 1) "apps" else "app"
-    return if (context == Toolbar) {
-      "<html><b>Clear $appStr data</b><br>Clears application data</html>"
-    } else {
-      "Clear $appStr data"
-    }
+    return "Clear $appStr data"
   }
+
+  override val description = "Clears application data"
 
   override val icon = StudioIcons.Common.CLEAR
 

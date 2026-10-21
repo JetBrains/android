@@ -17,8 +17,6 @@
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.insights.vcs.vcsForAppInsights"
                     interface="com.android.tools.idea.insights.vcs.VcsForAppInsights"/>
-    <extensionPoint qualifiedName="com.android.tools.idea.insights.ai.fixSuggester"
-                    interface="com.android.tools.idea.insights.ai.FixSuggester"/>
     <extensionPoint qualifiedName="com.android.tools.idea.insights.ai.agentActionContributor"
                     interface="com.android.tools.idea.insights.ai.AgentActionContributor"/>
     <extensionPoint qualifiedName="com.android.tools.idea.insights.ai.aiInsightContributor"

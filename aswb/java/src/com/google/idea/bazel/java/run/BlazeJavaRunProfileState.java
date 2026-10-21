@@ -61,6 +61,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import kotlin.Unit;
 
@@ -76,6 +77,29 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
   private static final String TEST_TIMEOUT_ENV = "TEST_TIMEOUT=";
   private static final String TEST_DIAGNOSTICS_OUTPUT_DIR = "/tmp/test.test_diagnostics";
   @Nullable private String kotlinxCoroutinesJavaAgent;
+
+  @VisibleForTesting
+  enum IpVersion {
+    V4,
+    V6,
+    SYSTEM
+  }
+
+  @VisibleForTesting
+  static Supplier<IpVersion> ipVersionDetector =
+      () -> {
+        if (Boolean.getBoolean("java.net.preferIPv4Stack")) {
+          return IpVersion.V4;
+        }
+        String preferIPv6 = System.getProperty("java.net.preferIPv6Addresses");
+        if ("true".equalsIgnoreCase(preferIPv6)) {
+          return IpVersion.V6;
+        }
+        if ("system".equalsIgnoreCase(preferIPv6)) {
+          return IpVersion.SYSTEM;
+        }
+        return IpVersion.V4;
+      };
 
   BlazeJavaRunProfileState(ExecutionEnvironment environment) {
     super(environment);
@@ -298,7 +322,20 @@ public final class BlazeJavaRunProfileState extends BlazeJavaDebuggableRunProfil
   }
 
   private static String debugPortFlag(boolean isTest, int port) {
-    String flag = "--wrapper_script_flag=--debug=127.0.0.1:" + port;
+    String address;
+    switch (ipVersionDetector.get()) {
+      case V4:
+        address = "127.0.0.1:" + port;
+        break;
+      case V6:
+        address = "[::1]:" + port;
+        break;
+      case SYSTEM:
+      default:
+        address = Integer.toString(port);
+        break;
+    }
+    String flag = "--wrapper_script_flag=--debug=" + address;
     return isTest ? testArg(flag) : flag;
   }
 

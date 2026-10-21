@@ -143,23 +143,22 @@
         <keyboard-shortcut first-keystroke="meta shift B" keymap="Mac OS X 10.5+"/>
       </action>
       <group id="android.emulator.environments" class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentActionGroup"
-             icon="icons.StudioIcons.Emulator.XR.ENVIRONMENT" text="Environment" description="Select environment for Intelligent Eyewear"
+             icon="icons.StudioIcons.Emulator.XR.ENVIRONMENT"
+             text="Select Environment" description="Select environment for the Intelligent Eyewear device"
              popup="true">
-        <action id="android.emulator.environment.indoor.study.dark"
-                class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$IndoorStudyDarkImage"
-                text="Indoor Study Dark" description="Select indoor study dark environment"/>
-        <action id="android.emulator.environment.outdoor.city.bright"
-                class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$OutdoorCityBrightImage"
-                text="Outdoor City Bright" description="Select outdoor city bright environment"/>
-        <action id="android.emulator.environment.outdoor.nature.bright"
-                class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$OutdoorNatureBrightImage"
-                text="Outdoor Nature Bright" description="Select outdoor nature bright environment"/>
-        <action id="android.emulator.environment.empty"
-                class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$None"
-                text="No Environment" description="Select no environment"/>
+        <group id="android.emulator.environments.builtin" class="com.android.tools.idea.streaming.emulator.actions.EmulatorBuiltInEnvironmentsActionGroup"/>
         <action id="android.emulator.environment.custom"
                 class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$Custom"
                 text="Custom Environment..." description="Select a custom environment"/>
+        <group id="android.emulator.environment.recent" class="com.android.tools.idea.streaming.emulator.actions.EmulatorRecentEnvironmentsActionGroup"
+               text="Recent Custom Environments" popup="true"/>
+        <separator/>
+        <group id="android.emulator.environment.camera" class="com.android.tools.idea.streaming.emulator.actions.EmulatorCameraActionGroup"
+               text="Camera" popup="true"/>
+        <separator/>
+        <action id="android.emulator.environment.darkness"
+                class="com.android.tools.idea.streaming.emulator.actions.EmulatorEnvironmentAction$Darkness"
+                text="No Environment (Black Background)" description="Select a completely dark environment"/>
       </group>
       <action id="android.device.home.button" class="com.android.tools.idea.streaming.actions.StreamingHomeButtonAction"
               icon="StudioIcons.Emulator.Toolbar.HOME" text="Home" description="Press the Home button of the device">

@@ -28,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.tools.idea.projectsystem.actions.GenerateBundleAction;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
@@ -47,7 +48,7 @@ import java.io.File;
 import org.mockito.Mock;
 
 /**
- * Tests for {@link GenerateApkAction}.
+ * Tests for {@link GenerateBundleAction}.
  */
 public class BuildBundleActionTest extends HeavyPlatformTestCase {
   @Mock private GradleBuildInvoker myBuildInvoker;

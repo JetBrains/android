@@ -27,7 +27,9 @@ import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.WizardParameterData
 import com.android.utils.FileUtils
 import com.intellij.openapi.command.WriteCommandAction
-import groovy.json.StringEscapeUtils
+import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.util.text.StringUtil
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
@@ -84,6 +86,7 @@ class FolderTemplatesTest {
 
     // Applying changes is necessary to write the Gradle model to disk
     WriteCommandAction.writeCommandAction(projectRule.project).run<IOException> { moduleRecipeExecutor.applyChanges() }
+    FileDocumentManager.getInstance().saveAllDocuments()
 
     // Check the folder exists and that relevant content is in build.gradle file
     assertTrue(moduleRoot.resolve(expectedFolderLocation).toFile().isDirectory)
@@ -99,15 +102,16 @@ class FolderTemplatesTest {
   private fun writeBuildGradleKtsFile(moduleRoot: Path) {
     FileUtils.mkdirs(moduleRoot.toFile())
     FileUtils.writeToFile(moduleRoot.resolve("build.gradle.kts").toFile(), "android {}")
+    LocalFileSystem.getInstance().refreshIoFiles(listOf(moduleRoot.resolve("build.gradle.kts").toFile()))
   }
 
   @Test
   fun testAIDLFolder() {
     val expectedLine =
       "                srcDirs(\"" +
-        StringEscapeUtils.escapeJava("src${File.separator}main${File.separator}aidl") +
+        StringUtil.escapeStringCharacters("src${File.separator}main${File.separator}aidl") +
         "\", \"" +
-        StringEscapeUtils.escapeJava("my${File.separator}aidl${File.separator}folder") +
+        StringUtil.escapeStringCharacters("my${File.separator}aidl${File.separator}folder") +
         "\")"
 
     checkResourcesTemplate("AIDL Folder", true, "my/aidl/folder", expectedLine)
@@ -117,9 +121,9 @@ class FolderTemplatesTest {
   fun testAssetsFolder() {
     val expectedLine =
       "                srcDirs(\"" +
-        StringEscapeUtils.escapeJava("src${File.separator}main${File.separator}assets") +
+        StringUtil.escapeStringCharacters("src${File.separator}main${File.separator}assets") +
         "\", \"" +
-        StringEscapeUtils.escapeJava("my${File.separator}assets${File.separator}folder") +
+        StringUtil.escapeStringCharacters("my${File.separator}assets${File.separator}folder") +
         "\")"
 
     checkResourcesTemplate("Assets Folder", true, "my/assets/folder", expectedLine)
@@ -136,9 +140,9 @@ class FolderTemplatesTest {
   fun testJavaFolder() {
     val expectedLine =
       "                srcDirs(\"" +
-        StringEscapeUtils.escapeJava("src${File.separator}main${File.separator}java") +
+        StringUtil.escapeStringCharacters("src${File.separator}main${File.separator}java") +
         "\", \"" +
-        StringEscapeUtils.escapeJava("my${File.separator}JavaNotKotlin${File.separator}folder") +
+        StringUtil.escapeStringCharacters("my${File.separator}JavaNotKotlin${File.separator}folder") +
         "\")"
 
     checkResourcesTemplate("Java Folder", true, "my/JavaNotKotlin/folder", expectedLine)
@@ -148,9 +152,9 @@ class FolderTemplatesTest {
   fun testJNIFolder() {
     val expectedLine =
       "                srcDirs(\"" +
-        StringEscapeUtils.escapeJava("src${File.separator}main${File.separator}jni") +
+        StringUtil.escapeStringCharacters("src${File.separator}main${File.separator}jni") +
         "\", \"" +
-        StringEscapeUtils.escapeJava("my${File.separator}jni${File.separator}folder") +
+        StringUtil.escapeStringCharacters("my${File.separator}jni${File.separator}folder") +
         "\")"
 
     checkResourcesTemplate("JNI Folder", true, "my/jni/folder", expectedLine)
@@ -167,9 +171,9 @@ class FolderTemplatesTest {
   fun testResFolder() {
     val expectedLine =
       "                srcDirs(\"" +
-        StringEscapeUtils.escapeJava("src${File.separator}main${File.separator}res") +
+        StringUtil.escapeStringCharacters("src${File.separator}main${File.separator}res") +
         "\", \"" +
-        StringEscapeUtils.escapeJava("my${File.separator}res${File.separator}folder") +
+        StringUtil.escapeStringCharacters("my${File.separator}res${File.separator}folder") +
         "\")"
 
     checkResourcesTemplate("Res Folder", true, "my/res/folder", expectedLine)
@@ -188,9 +192,9 @@ class FolderTemplatesTest {
   fun testJavaResourcesFolder() {
     val expectedLine =
       "                srcDirs(\"" +
-        StringEscapeUtils.escapeJava("src${File.separator}main${File.separator}resources") +
+        StringUtil.escapeStringCharacters("src${File.separator}main${File.separator}resources") +
         "\", \"" +
-        StringEscapeUtils.escapeJava("my${File.separator}resources${File.separator}folder") +
+        StringUtil.escapeStringCharacters("my${File.separator}resources${File.separator}folder") +
         "\")"
 
     checkResourcesTemplate("Java Resources Folder", true, "my/resources/folder", expectedLine)
@@ -235,6 +239,7 @@ class FolderTemplatesTest {
     template.render(context, moduleRecipeExecutor)
 
     WriteCommandAction.writeCommandAction(projectRule.project).run<IOException> { moduleRecipeExecutor.applyChanges() }
+    FileDocumentManager.getInstance().saveAllDocuments()
 
     assertTrue(moduleRoot.resolve("src/main/aidl").toFile().isDirectory)
   }

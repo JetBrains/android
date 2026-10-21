@@ -30,13 +30,20 @@
  */
 package com.android.tools.idea.run
 
+import com.android.adblib.DeviceSelector
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.DeviceId
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.concurrency.getDoneOrNull
+import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.EmulatorDeviceInfo
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
 import com.intellij.util.messages.Topic
 import java.nio.file.Path
 import kotlin.io.path.pathString
+import kotlinx.coroutines.launch
 import org.jetbrains.android.util.AndroidBundle
 
 /** Listener of events requesting that Logcat panels for a specific device be shown. */
@@ -45,43 +52,49 @@ interface ShowLogcatListener {
 
   fun showLogcatFile(path: Path, displayName: String? = null)
 
-  fun showLogcat(device: IDevice, applicationId: String?) {
-    showLogcat(device.toDeviceInfo(), applicationId)
+  fun showLogcat(project: Project, device: IDevice, applicationId: String?) {
+    project.coroutineScope.launch { showLogcat(device.toDeviceInfo(project), applicationId) }
   }
 
-  sealed class DeviceInfo(val id: String, val serialNumber: String) {
+  sealed class DeviceInfo(val id: DeviceId, val serialNumber: String) {
     class PhysicalDeviceInfo(
+      id: DeviceId,
       serialNumber: String,
       val release: String,
       val androidVersion: AndroidVersion,
       val manufacturer: String,
       val model: String,
-    ) : DeviceInfo(serialNumber, serialNumber)
+    ) : DeviceInfo(id, serialNumber)
 
     class EmulatorDeviceInfo(
+      id: DeviceId,
       serialNumber: String,
       val release: String,
       val androidVersion: AndroidVersion,
       val avdName: String,
       val avdPath: String,
-    ) : DeviceInfo(avdPath, serialNumber)
+    ) : DeviceInfo(id, serialNumber)
   }
 
   companion object {
     @JvmField val TOPIC = Topic("Command to show logcat panel", ShowLogcatListener::class.java)
 
-    private fun IDevice.toDeviceInfo(): DeviceInfo {
+    private suspend fun IDevice.toDeviceInfo(project: Project): DeviceInfo {
       val release = getProperty(IDevice.PROP_BUILD_VERSION) ?: AndroidBundle.message("android.launch.task.show.logcat.unknown.version")
+      val deviceProvisioner = project.service<DeviceProvisionerService>().deviceProvisioner
+      val handle =
+        deviceProvisioner.findConnectedDeviceHandle(DeviceSelector.fromSerialNumber(serialNumber))
+          ?: throw IllegalStateException("Can't find connected device for $serialNumber")
       return if (serialNumber.startsWith("emulator-")) {
         val avdData = avdData.getDoneOrNull()
         val avdName = avdData?.name ?: AndroidBundle.message("android.launch.task.show.logcat.unknown.avd")
         val avdPath = avdData?.avdFolder?.pathString ?: avdName
-        EmulatorDeviceInfo(serialNumber, release, version, avdName, avdPath)
+        EmulatorDeviceInfo(handle.id, serialNumber, release, version, avdName, avdPath)
       } else {
         val manufacturer =
           getProperty(IDevice.PROP_DEVICE_MANUFACTURER) ?: AndroidBundle.message("android.launch.task.show.logcat.unknown.manufacturer")
         val model = getProperty(IDevice.PROP_DEVICE_MODEL) ?: AndroidBundle.message("android.launch.task.show.logcat.unknown.model")
-        DeviceInfo.PhysicalDeviceInfo(serialNumber, release, version, manufacturer, model)
+        DeviceInfo.PhysicalDeviceInfo(handle.id, serialNumber, release, version, manufacturer, model)
       }
     }
 

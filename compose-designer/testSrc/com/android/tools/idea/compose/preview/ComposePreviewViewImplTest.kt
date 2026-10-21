@@ -56,7 +56,6 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
@@ -289,9 +288,6 @@ class ComposePreviewViewImplTest {
           mainSurfaceBuilder,
           fixture.testRootDisposable,
         )
-
-      // Create VisualLintService early to avoid it being created at the time of project disposal
-      VisualLintService.getInstance(project)
 
       previewView = composePreviewViewImpl
       fakeUi =

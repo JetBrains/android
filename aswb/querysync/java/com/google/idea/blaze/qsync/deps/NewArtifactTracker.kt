@@ -136,7 +136,11 @@ class NewArtifactTracker<C : Context<C>>(
     externalRepositoryFinder: ExternalRepositoryFinder,
   ): Collection<TargetBuildInfo> {
     return outputInfo.javaArtifactInfo.values.map { javaTarget ->
-      forJavaTarget(create(javaTarget, digestMap, externalRepositoryFinder), outputInfo.buildContext)
+      val target = Label.of(javaTarget.target)
+      forJavaTarget(
+        create(javaTarget, digestMap, externalRepositoryFinder, outputInfo.getDependencies(target).toSet()),
+        outputInfo.buildContext,
+      )
     }
   }
 
@@ -154,7 +158,12 @@ class NewArtifactTracker<C : Context<C>>(
         visitedTargets.add(target)
         val javaTargetArtifacts = outputInfo.javaArtifactInfo[target]
         if (javaTargetArtifacts != null) {
-          add(forJavaTarget(create(javaTargetArtifacts, digestMap, externalRepositoryFinder), outputInfo.buildContext))
+          add(
+            forJavaTarget(
+              create(javaTargetArtifacts, digestMap, externalRepositoryFinder, outputInfo.getDependencies(target).toSet()),
+              outputInfo.buildContext,
+            )
+          )
         }
         val deps = outputInfo.getCompileDeps(target)
         if (deps is DepsAvailable) {
@@ -175,13 +184,13 @@ class NewArtifactTracker<C : Context<C>>(
         if (javaTargetArtifacts.getIsExternalDependency()) {
           continue
         }
-        // for a in-project target javaTargetArtifacts.getJarsList() returns all generated class jars collected
-        // via java_outputs and AIDL base jar needed for resolving base classes for aidl generated
-        // stubs.
-        // They are necessary for symbol resolving. More details can be found in b/448400351.
-        if (javaTargetArtifacts.getGenSrcsCount() > 0 || javaTargetArtifacts.getJarsCount() > 0) {
-          add(forJavaTarget(create(javaTargetArtifacts, digestMap, externalRepositoryFinder), outputInfo.buildContext))
-        }
+        val javaTargetLabel = Label.of(javaTargetArtifacts.target)
+        add(
+          forJavaTarget(
+            create(javaTargetArtifacts, digestMap, externalRepositoryFinder, outputInfo.getDependencies(javaTargetLabel).toSet()),
+            outputInfo.buildContext,
+          )
+        )
       }
     }
   }
@@ -323,21 +332,7 @@ class NewArtifactTracker<C : Context<C>>(
           logger.warning("Target $label was not built. If the target is an alias, this is expected")
           builtDeps[label] =
             forJavaTarget(
-              JavaArtifactInfo(
-                label = label,
-                isExternalDependency = false,
-                isKotlinToolchain = false,
-                jars = setOf(),
-                outputJars = setOf(),
-                ideAar = null,
-                genSrcs = setOf(),
-                genAndroidRes = setOf(),
-                protoSrcjars = setOf(),
-                sources = setOf(),
-                srcJars = setOf(),
-                androidResourcesPackage = "",
-                kotlinCompilerFlags = listOf(),
-              ),
+              JavaArtifactInfo.empty(label).copy(dependencies = outputInfo.getDependencies(label).toSet()),
               outputInfo.buildContext,
             )
         }
@@ -466,6 +461,7 @@ class NewArtifactTracker<C : Context<C>>(
                   srcJars = firstJava.srcJars,
                   androidResourcesPackage = firstJava.androidResourcesPackage,
                   kotlinCompilerFlags = firstJava.kotlinCompilerFlags,
+                  dependencies = firstJava.dependencies,
                 )
               forJavaTarget(combinedJava, first.buildContext)
             }

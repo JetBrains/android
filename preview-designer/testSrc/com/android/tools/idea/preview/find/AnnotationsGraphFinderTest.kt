@@ -29,6 +29,8 @@ import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.evaluateString
 import org.jetbrains.uast.tryResolve
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -37,6 +39,9 @@ class AnnotationsGraphFinderTest {
 
   private val fixture
     get() = projectRule.fixture
+
+  private val project
+    get() = projectRule.project
 
   @Test
   fun testTraverse_backEdge() =
@@ -441,6 +446,237 @@ class AnnotationsGraphFinderTest {
         traversedNodeNames,
       )
     }
+
+  @Test
+  fun testAnyAnnotationInGraphSync_bfsOrder() {
+    @Language("kotlin")
+    val fileContent =
+      """
+      @node3
+      annotation class node1
+
+      @node3
+      annotation class node2
+
+      annotation class node3
+
+      @node1
+      @node2
+      fun rootMethod(){}
+      """
+        .trimIndent()
+
+    val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
+    val rootMethod = psiFile.getMethodAnnotatedBy("node1")
+
+    val checkedOrder = mutableListOf<String?>()
+    runReadAction {
+      rootMethod.anyAnnotationInGraphSync(
+        shouldTraverse = { true },
+        isLeaf = {
+          checkedOrder.add(it.qualifiedName)
+          it.qualifiedName == "node3"
+        },
+      )
+    }
+    // BFS checks depth-1 annotations (node1, node2) before checking depth-2 annotations (node3)
+    assertThat(checkedOrder).containsExactly("node1", "node2", "node3").inOrder()
+  }
+
+  @Test
+  fun testAnyAnnotationInGraphSync_shortCircuiting() {
+    @Language("kotlin")
+    val fileContent =
+      """
+      // Graph illustration:
+      // rootMethod --> 0 --> 1 --> 2 --> 3
+      @node2
+      annotation class node1
+
+      @node3
+      annotation class node2
+
+      annotation class node3
+
+      @node1
+      annotation class node0
+
+      @node0
+      fun rootMethod(){}
+      """
+        .trimIndent()
+
+    val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
+    val rootMethod = psiFile.getMethodAnnotatedBy("node0")
+
+    runReadAction {
+      assertTrue(rootMethod.anyAnnotationInGraphSync(shouldTraverse = { true }, isLeaf = { it.qualifiedName == "node3" }))
+      assertFalse(rootMethod.anyAnnotationInGraphSync(shouldTraverse = { true }, isLeaf = { it.qualifiedName == "nonExistent" }))
+    }
+  }
+
+  @Test
+  fun testFindAllAnnotationsInGraphSync() {
+    @Language("kotlin")
+    val fileContent =
+      """
+      @node2
+      @node3
+      annotation class node1
+
+      @node3
+      annotation class node2
+
+      annotation class node3
+
+      @node1
+      annotation class node0
+
+      @node0
+      fun rootMethod(){}
+      """
+        .trimIndent()
+
+    val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
+    val rootMethod = psiFile.getMethodAnnotatedBy("node0")
+
+    runReadAction {
+      val annotations = rootMethod.findAllAnnotationsInGraphSync(shouldTraverse = { true }) { it.qualifiedName == "node3" }
+      assertThat(annotations.map { it.qualifiedName }).containsExactly("node3", "node3")
+    }
+  }
+
+  @Test
+  fun testCouldBeMultiPreviewAnnotationSync() {
+    fixture.addFileToProjectAndInvalidate(
+      "src/ValidAndroidxPreview.kt",
+      // language=kotlin
+      """
+      package androidx.preview.valid.somepackage
+      annotation class ValidAndroidxPreview
+      """
+        .trimIndent(),
+    )
+    fixture.addFileToProjectAndInvalidate(
+      "src/InvalidAndroidx.kt",
+      // language=kotlin
+      """
+      package androidx.invalid.somepackage
+      annotation class InvalidAndroidx
+      """
+        .trimIndent(),
+    )
+    fixture.addFileToProjectAndInvalidate(
+      "src/ValidCustom.kt",
+      // language=kotlin
+      """
+      package com.example.custom
+      annotation class ValidCustom
+      """
+        .trimIndent(),
+    )
+    fixture.addFileToProjectAndInvalidate(
+      "src/InvalidAndroid.kt",
+      // language=kotlin
+      """
+      package android.view
+      annotation class InvalidAndroid
+      """
+        .trimIndent(),
+    )
+
+    val psiFile =
+      fixture.addFileToProjectAndInvalidate(
+        "src/TestCouldBeMultiPreviewSync.kt",
+        // language=kotlin
+        """
+        package com.example.test
+        import androidx.preview.valid.somepackage.ValidAndroidxPreview
+        import androidx.invalid.somepackage.InvalidAndroidx
+        import com.example.custom.ValidCustom
+        import android.view.InvalidAndroid
+
+        @ValidAndroidxPreview
+        @InvalidAndroidx
+        @ValidCustom
+        @InvalidAndroid
+        fun TestMethod() {}
+        """
+          .trimIndent(),
+      )
+
+    runReadAction {
+      val validAndroidx = findAnnotations(project, psiFile.virtualFile, "ValidAndroidxPreview").first()
+      val invalidAndroidx = findAnnotations(project, psiFile.virtualFile, "InvalidAndroidx").first()
+      val validCustom = findAnnotations(project, psiFile.virtualFile, "ValidCustom").first()
+      val invalidAndroid = findAnnotations(project, psiFile.virtualFile, "InvalidAndroid").first()
+
+      assertTrue(validAndroidx.couldBeMultiPreviewAnnotationSync())
+      assertFalse(invalidAndroidx.couldBeMultiPreviewAnnotationSync())
+      assertTrue(validCustom.couldBeMultiPreviewAnnotationSync())
+      assertFalse(invalidAndroid.couldBeMultiPreviewAnnotationSync())
+    }
+  }
+
+  @Test
+  fun testAnyAnnotationInGraphSync_uAnnotationRoot() {
+    @Language("kotlin")
+    val fileContent =
+      """
+      @node2
+      annotation class node1
+
+      @node3
+      annotation class node2
+
+      annotation class node3
+
+      @node1
+      fun rootMethod(){}
+      """
+        .trimIndent()
+
+    val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
+    runReadAction {
+      val node1Annotation = findAnnotations(project, psiFile.virtualFile, "node1").first()
+      val node3Annotation = findAnnotations(project, psiFile.virtualFile, "node3").first()
+
+      assertTrue(node3Annotation.anyAnnotationInGraphSync(shouldTraverse = { true }, isLeaf = { it.qualifiedName == "node3" }))
+      assertTrue(node1Annotation.anyAnnotationInGraphSync(shouldTraverse = { true }, isLeaf = { it.qualifiedName == "node3" }))
+      assertFalse(node1Annotation.anyAnnotationInGraphSync(shouldTraverse = { true }, isLeaf = { it.qualifiedName == "nonExistent" }))
+    }
+  }
+
+  @Test
+  fun testFindAllAnnotationsInGraphSync_uAnnotationRoot() {
+    @Language("kotlin")
+    val fileContent =
+      """
+      @node2
+      annotation class node1
+
+      @node3
+      annotation class node2
+
+      annotation class node3
+
+      @node1
+      fun rootMethod(){}
+      """
+        .trimIndent()
+
+    val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
+    runReadAction {
+      val node1Annotation = findAnnotations(project, psiFile.virtualFile, "node1").first()
+      val node3Annotation = findAnnotations(project, psiFile.virtualFile, "node3").first()
+
+      val fromLeaf = node3Annotation.findAllAnnotationsInGraphSync(shouldTraverse = { true }) { it.qualifiedName == "node3" }
+      assertThat(fromLeaf.map { it.qualifiedName }).containsExactly("node3")
+
+      val fromNonLeaf = node1Annotation.findAllAnnotationsInGraphSync(shouldTraverse = { true }) { it.qualifiedName == "node3" }
+      assertThat(fromNonLeaf.map { it.qualifiedName }).containsExactly("node3")
+    }
+  }
 
   private fun PsiFile.getMethodAnnotatedBy(annotationShortName: String) = runReadAction {
     findAnnotations(project, virtualFile, annotationShortName).firstNotNullOf {

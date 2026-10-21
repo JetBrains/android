@@ -56,7 +56,9 @@ import org.jetbrains.org.objectweb.asm.ClassVisitor;
 import org.jetbrains.org.objectweb.asm.ClassWriter;
 import org.jetbrains.org.objectweb.asm.FieldVisitor;
 import org.jetbrains.org.objectweb.asm.MethodVisitor;
+import org.jetbrains.org.objectweb.asm.tree.AbstractInsnNode;
 import org.jetbrains.org.objectweb.asm.tree.ClassNode;
+import org.jetbrains.org.objectweb.asm.tree.MethodNode;
 
 public class ClassConverterTest extends TestCase {
   public void testJdkToClassVersion() {
@@ -253,6 +255,61 @@ public class ClassConverterTest extends TestCase {
     assertTrue(methods.contains("onMeasure_Original(II)V"));
     assertTrue(methods.contains("onFinishInflate()V"));
     assertTrue(methods.contains("onFinishInflate_Original()V"));
+  }
+
+  public void testFinalizeStripping() {
+    ClassWriter cw = new ClassWriter(0);
+    cw.visit(V1_7, ACC_SUPER, "TestWithFinalize", null, "android/view/View", null);
+
+    {
+      MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+      mv.visitCode();
+      mv.visitVarInsn(ALOAD, 0);
+      mv.visitMethodInsn(INVOKESPECIAL, "android/view/View", "<init>", "()V", false);
+      mv.visitInsn(RETURN);
+      mv.visitMaxs(1, 1);
+      mv.visitEnd();
+    }
+
+    {
+      MethodVisitor mv = cw.visitMethod(ACC_PROTECTED, "finalize", "()V", null, null);
+      mv.visitCode();
+      mv.visitVarInsn(ALOAD, 0);
+      mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "finalize", "()V", false);
+      mv.visitInsn(RETURN);
+      mv.visitMaxs(1, 1);
+      mv.visitEnd();
+    }
+    cw.visitEnd();
+    byte[] data = cw.toByteArray();
+
+    assertTrue(isValidClassFile(data));
+    byte[] modified = rewriteClass(data, UtilKt.toClassTransform(ViewMethodWrapperTransform::new), NopClassLocator.INSTANCE);
+    assertTrue(isValidClassFile(modified));
+
+    ClassNode classNode = new ClassNode();
+    ClassReader classReader = new ClassReader(modified);
+    classReader.accept(classNode, 0);
+
+    MethodNode finalizeMethod = null;
+    for (MethodNode methodObj : classNode.methods) {
+      if ("finalize".equals(methodObj.name) && "()V".equals(methodObj.desc)) {
+        finalizeMethod = methodObj;
+        break;
+      }
+    }
+
+    assertNotNull(finalizeMethod);
+    boolean hasReturn = false;
+    for (int i = 0; i < finalizeMethod.instructions.size(); i++) {
+      AbstractInsnNode insn = finalizeMethod.instructions.get(i);
+      if (insn.getOpcode() == RETURN) {
+        hasReturn = true;
+      } else if (insn.getOpcode() >= 0) {
+        fail("Unexpected instruction in stripped finalize method: " + insn.getOpcode());
+      }
+    }
+    assertTrue(hasReturn);
   }
 
   public void testMethodWrapping2() throws Exception {

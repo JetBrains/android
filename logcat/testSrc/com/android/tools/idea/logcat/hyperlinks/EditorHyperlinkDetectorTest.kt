@@ -39,8 +39,13 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerExtension
+import org.jetbrains.plugins.gradle.execution.GradleConsoleFilter
 import org.junit.Rule
 import org.junit.Test
+
+// Intentionally split from HyperlinkDetector.IGNORE_FILTERS to make it harder to accidentally remove something from IGNORE_FILTERS
+private val UNSAFE_FILTERS =
+  listOf(GradleConsoleFilter::class.java.name, "com.intellij.debugger.impl.attach.JavaDebuggerAttachFilter", UrlFilter::class.java.name)
 
 /** Tests for [editorHyperlinkDetector] */
 @RunsInEdt
@@ -67,7 +72,7 @@ class EditorHyperlinkDetectorTest {
 
     val hyperlinkDetector = editorHyperlinkDetector(editor)
 
-    val expected = expectedFilters.map { it::class }
+    val expected = expectedFilters.filterNot { it::class.java.name in UNSAFE_FILTERS }.map { it::class }
     waitForCondition { hyperlinkDetector.filter.compositeFilter.filters.map { it::class }.containsAll(expected) }
   }
 
@@ -91,12 +96,19 @@ class EditorHyperlinkDetectorTest {
   @Test
   fun usesCorrectFilters_containsSimpleFileLinkFilter() {
     val consoleFilters = ConsoleViewUtil.computeConsoleFilters(project, /* consoleView= */ null, GlobalSearchScope.allScope(project))
-    val expected = consoleFilters.map { it::class } + SimpleFileLinkFilter::class
+    val expected = consoleFilters.filterNot { it::class.java.name in UNSAFE_FILTERS }.map { it::class } + SimpleFileLinkFilter::class
 
     val hyperlinkDetector = editorHyperlinkDetector(editor)
 
     waitForCondition { hyperlinkDetector.filter.compositeFilter.filters.map { it::class }.containsAll(expected) }
     assertThat(hyperlinkDetector.filter.compositeFilter.filters.map { it::class }).containsAllIn(expected).inOrder()
+  }
+
+  @Test
+  fun usesCorrectFilters_containsSafeUrlFilter() {
+    val hyperlinkDetector = editorHyperlinkDetector(editor)
+
+    waitForCondition { hyperlinkDetector.filter.compositeFilter.filters.map { it::class }.contains(SafeUrlFilter::class) }
   }
 
   /** Tests that we are always using the DeobfuscatedFilter filter. */

@@ -17,7 +17,7 @@ package com.android.tools.idea.insights.client
 
 import com.android.tools.idea.insights.model.connection.Connection
 import com.android.tools.idea.insights.model.event.Event
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.model.issue.IssueId
 import com.android.tools.idea.insights.model.note.Note
 import com.android.tools.idea.insights.model.note.NoteId
@@ -40,13 +40,13 @@ interface AppInsightsCache {
   fun populateConnections(connections: List<Connection>)
 
   /** Returns the top reported [Issue]s stored in the cache. Returns null if no issues are cached for this [FirebaseConnection]. */
-  fun getTopIssues(request: IssueRequest): List<AppInsightsIssue>?
+  fun getTopIssues(request: IssueRequest): List<AppInsightsCrash>?
 
   /** Returns the issues specified by [issueIds]. */
-  fun getIssues(connection: Connection, issueIds: List<IssueId>): List<AppInsightsIssue>
+  fun getIssues(connection: Connection, issueIds: List<IssueId>): List<AppInsightsCrash>
 
   /** Populates the cache with recently fetched [Issue]s. */
-  fun populateIssues(connection: Connection, issues: List<AppInsightsIssue>)
+  fun populateIssues(connection: Connection, issues: List<AppInsightsCrash>)
 
   /** Returns an event that belongs to [issueId] and matches the filtering criteria. Null if such an event does not exist. */
   fun getEvent(issueRequest: IssueRequest, issueId: IssueId): Event?
@@ -72,11 +72,11 @@ class StubAppInsightsCache : AppInsightsCache {
 
   override fun populateConnections(connections: List<Connection>) = Unit
 
-  override fun getTopIssues(request: IssueRequest): List<AppInsightsIssue>? = null
+  override fun getTopIssues(request: IssueRequest): List<AppInsightsCrash>? = null
 
-  override fun getIssues(connection: Connection, issueIds: List<IssueId>): List<AppInsightsIssue> = emptyList()
+  override fun getIssues(connection: Connection, issueIds: List<IssueId>): List<AppInsightsCrash> = emptyList()
 
-  override fun populateIssues(connection: Connection, issues: List<AppInsightsIssue>) = Unit
+  override fun populateIssues(connection: Connection, issues: List<AppInsightsCrash>) = Unit
 
   override fun getEvent(issueRequest: IssueRequest, issueId: IssueId): Event? = null
 

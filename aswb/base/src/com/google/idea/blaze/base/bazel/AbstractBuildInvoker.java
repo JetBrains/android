@@ -26,6 +26,7 @@ import com.google.idea.blaze.base.command.info.BlazeInfoRunner;
 import com.google.idea.blaze.base.scope.BlazeContext;
 import com.google.idea.blaze.base.scope.scopes.TimingScope;
 import com.google.idea.blaze.base.sync.SyncScope.SyncFailedException;
+import com.intellij.ide.trustedProjects.TrustedProjects;
 import com.intellij.openapi.project.Project;
 import java.util.List;
 import java.util.function.Supplier;
@@ -43,6 +44,9 @@ public abstract class AbstractBuildInvoker implements BuildInvoker {
 
   public AbstractBuildInvoker(
       Project project, BuildSystem buildSystem, Supplier<List<String>> invokeCommand) {
+    if (!TrustedProjects.isProjectTrusted(project))
+      throw new IllegalStateException(
+          "Build invokers are not expected to be used with untrusted projects");
     this.project = project;
     this.buildSystem = buildSystem;
     this.invokeCommand = invokeCommand;
@@ -63,29 +67,27 @@ public abstract class AbstractBuildInvoker implements BuildInvoker {
   }
 
   public abstract boolean isAvailable();
+
   private BlazeInfo getBlazeInfoResult(BlazeContext blazeContext) throws SyncFailedException {
     ListenableFuture<BlazeInfo> future = runBlazeInfo(blazeContext);
     FutureUtil.FutureResult<BlazeInfo> result =
-      FutureUtil.waitForFuture(blazeContext, future)
-        .timed(buildSystem.getName() + "Info", TimingScope.EventType.BlazeInvocation)
-        .withProgressMessage(String.format("Running %s info...", buildSystem.getName()))
-        .onError(String.format("Could not run %s info", buildSystem.getName()))
-        .run();
+        FutureUtil.waitForFuture(blazeContext, future)
+            .timed(buildSystem.getName() + "Info", TimingScope.EventType.BlazeInvocation)
+            .withProgressMessage(String.format("Running %s info...", buildSystem.getName()))
+            .onError(String.format("Could not run %s info", buildSystem.getName()))
+            .run();
     if (result.success()) {
       return result.result();
     }
     throw new SyncFailedException(
-      String.format("Failed to run `%s info`", getInvokeCommand()), result.exception());
+        String.format("Failed to run `%s info`", getInvokeCommand()), result.exception());
   }
 
   private ListenableFuture<BlazeInfo> runBlazeInfo(BlazeContext blazeContext) {
     List<String> syncFlags =
-      BlazeFlags.blazeFlags(
-        project,
-        BlazeCommandName.INFO,
-          BlazeInvocationContext.SYNC_CONTEXT);
+        BlazeFlags.blazeFlags(project, BlazeCommandName.INFO, BlazeInvocationContext.SYNC_CONTEXT);
     return BlazeInfoRunner.getInstance()
-      .runBlazeInfo(project, this, blazeContext, buildSystem.getName(), syncFlags);
+        .runBlazeInfo(project, this, blazeContext, buildSystem.getName(), syncFlags);
   }
 
   @Override

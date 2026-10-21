@@ -27,11 +27,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.pom.Navigatable
 import java.io.File
-import java.lang.reflect.InvocationTargetException
+import java.util.Collections
+import java.util.IdentityHashMap
 import java.util.concurrent.CompletableFuture
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 
 class DataBindingIssueChecker : GradleIssueChecker {
   private val SEPARATOR = "=".repeat(50)
@@ -40,23 +40,17 @@ class DataBindingIssueChecker : GradleIssueChecker {
   private val gson = Gson()
 
   /**
-   * Example structure of the exception chain returned from Gradle.
+   * Example structure of the exception chain returned from Gradle:
    *
    * BuildException "Could not execute build..." cause - LocationAwareException "Execution failed for task ..." cause -
    * ContextualPlaceholderException "Execution failed for task ..." cause - WorkExecutionException "A failure occurred while executing
    * org.jetbrains.kotlin.gradle.internal.KaptExecution" cause - InvocationTargetException null cause - null target - KaptBaseError
    * "Exception while annotation processing" cause - LoggedErrorException "Found data binding error(s):\n\n[databinding] <JSON>"
+   *
+   * We traverse the cause chain to find any exception containing data binding error messages prefixed with [ERROR_LOG_PREFIX].
    */
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
-    // getRootCauseAndLocation only takes us down to WorkExecutionException as the InvocationTargetException has a null message.
-    if (rootCause.cause !is InvocationTargetException) return null
-    val baseError = (rootCause.cause as? InvocationTargetException)?.targetException
-    if (baseError?.cause == null) return null
-
-    val possibleLoggedErrorException = baseError.cause
-    val errors =
-      possibleLoggedErrorException?.message?.lineSequence()?.filter { line -> line.startsWith(ERROR_LOG_PREFIX) }?.toList() ?: return null
+    val errors = findDataBindingErrors(issueData.error) ?: return null
 
     val buildIssues =
       errors.mapIndexedNotNull { index, errorJson ->
@@ -78,6 +72,22 @@ class DataBindingIssueChecker : GradleIssueChecker {
         override fun getNavigatable(project: Project): Navigatable? = null
       }
     }
+  }
+
+  private fun findDataBindingErrors(throwable: Throwable?): List<String>? {
+    val visited = Collections.newSetFromMap(IdentityHashMap<Throwable, Boolean>())
+    var current = throwable
+    while (current != null && visited.add(current)) {
+      val message = current.message
+      if (message != null && message.contains(ERROR_LOG_PREFIX)) {
+        val errors = message.lineSequence().filter { line -> line.startsWith(ERROR_LOG_PREFIX) }.toList()
+        if (errors.isNotEmpty()) {
+          return errors
+        }
+      }
+      current = current.cause
+    }
+    return null
   }
 
   private fun convertToBuildIssue(index: Int, errorJson: String, projectPath: String): BuildIssue? {

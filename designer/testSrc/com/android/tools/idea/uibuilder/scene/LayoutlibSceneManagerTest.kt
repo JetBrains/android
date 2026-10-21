@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.scene
 
+import com.android.SdkConstants.FD_RES_MENU
 import com.android.SdkConstants.FD_RES_XML
 import com.android.SdkConstants.PreferenceTags.PREFERENCE_SCREEN
+import com.android.SdkConstants.TAG_MENU
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
+import com.android.tools.idea.uibuilder.type.MenuFileType
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType
 import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.utils.editor.saveToDisk
 import kotlinx.coroutines.runBlocking
@@ -37,6 +41,7 @@ class LayoutlibSceneManagerTest : SceneTest() {
     // we register it manually here in the tests context, but in production it should be handled by
     // NlEditorProvider
     DesignerTypeRegistrar.register(PreferenceScreenFileType)
+    DesignerTypeRegistrar.register(MenuFileType)
     super.setUp()
     myLayoutlibSceneManager = (myScene.designSurface as NlDesignSurface).sceneManagers.first()
   }
@@ -161,5 +166,20 @@ class LayoutlibSceneManagerTest : SceneTest() {
       "preference.xml",
       component(PREFERENCE_SCREEN).withBounds(0, 0, 1000, 1000).matchParentWidth().matchParentHeight(),
     )
+  }
+
+  fun testUpdateSceneViewsForMenu() {
+    val menuModel =
+      model(FD_RES_MENU, "menu.xml", component(TAG_MENU).withBounds(0, 0, 1000, 1000).matchParentWidth().matchParentHeight()).build()
+    try {
+      val sceneManager = menuModel.surface.getSceneManager(menuModel) as LayoutlibSceneManager
+
+      // This should not throw ThreadingAssertions.createThreadAccessException
+      sceneManager.updateSceneViews()
+
+      assertEquals(1, sceneManager.sceneViews.size)
+    } finally {
+      Disposer.dispose(menuModel)
+    }
   }
 }

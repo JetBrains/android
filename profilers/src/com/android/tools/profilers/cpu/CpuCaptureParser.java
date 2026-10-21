@@ -24,7 +24,6 @@ import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profilers.IdeProfilerServices;
-import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
 import com.android.tools.profilers.cpu.compose.ComposeTracingConstants;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
@@ -112,8 +111,8 @@ public class CpuCaptureParser {
 
   private static final Logger LOGGER = Logger.getInstance(CpuCaptureParser.class);
 
-  public CpuCaptureParser(@NotNull StudioProfilers profilers) {
-    myServices = profilers.getIdeServices();
+  public CpuCaptureParser(@NotNull IdeProfilerServices ideProfilerServices) {
+    myServices = ideProfilerServices;
     myCaptures = new HashMap<>();
   }
 
@@ -225,16 +224,17 @@ public class CpuCaptureParser {
       return myCaptures.get(traceId);
     }
 
+
     // If we don't have a hint for the process id, we assume it was an imported trace as we have no extra information.
     boolean isImportedTrace = (processIdHint == 0);
 
     CompletableFuture<CpuCapture> cpuCapture =
       CompletableFuture.runAsync(new TraceFileValidationAction(traceFile), myServices.getPoolExecutor())
-        .thenRunAsync(new ParsingStartAction(traceFile), myServices.getMainExecutor())
-        .thenApplyAsync(
-          new ProcessTraceAction(traceFile, traceId, preferredProfilerType, processIdHint, processNameHint, myServices),
-          myServices.getPoolExecutor())
-        .whenCompleteAsync(new TraceResultHandler(traceFile, traceId, isImportedTrace, taskTracker), myServices.getMainExecutor());
+      .thenRunAsync(new ParsingStartAction(traceFile), myServices.getMainExecutor())
+      .thenApplyAsync(
+        new ProcessTraceAction(traceFile, traceId, preferredProfilerType, processIdHint, processNameHint, myServices),
+        myServices.getPoolExecutor())
+      .whenCompleteAsync(new TraceResultHandler(traceFile, traceId, isImportedTrace, taskTracker), myServices.getMainExecutor());
     myCaptures.put(traceId, cpuCapture);
     return cpuCapture;
   }

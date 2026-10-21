@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 
 /** Represents an object that has an expiration time. */
 interface Perishable {

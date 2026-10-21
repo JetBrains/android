@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.ide.common.gradle.Component
 import com.android.tools.idea.gradle.model.IdeAndroidLibraryImpl
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
+import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidLibraryDependency
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
@@ -33,6 +34,7 @@ import com.android.tools.idea.testing.saveAndDump
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.android.tools.idea.testing.updateTestProjectFromAndroidModel
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.impl.NonBlockingReadActionImpl
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import java.io.File
@@ -169,6 +171,9 @@ class LightSyncForAndroidTestCaseTest : AndroidTestCase(), SnapshotComparisonTes
       libModuleBuilderWithLib(tempRoot.resolve(".gradle")),
     )
     assertThat(syncModificationTracker.modificationCount).isGreaterThan(syncStamp)
+    // JetBrains: run configurations are created asynchronously, so the .after dump has to wait for them
+    NonBlockingReadActionImpl.waitForAsyncTaskCompletion()
+    AndroidGradleTests.waitForCreateRunConfigurations(project)
     val dumpAfter = project.saveAndDump(additionalRoots = mapOf("TEMP" to tempRoot), ignoreModuleFileAndType = true)
 
     assertAreEqualToSnapshots(dump to ".before", dumpAfter to ".after")

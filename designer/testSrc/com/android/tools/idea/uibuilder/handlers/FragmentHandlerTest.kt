@@ -33,8 +33,8 @@ import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito.eq
 
 class FragmentHandlerTest : LayoutTestCase() {
-  // http://b/242129835
-  fun ignore_testActivateNavFragment() {
+
+  fun testActivateNavFragment() {
     myFixture.addFileToProject("res/navigation/nav.xml", "<navigation/>")
     val model =
       model(
@@ -54,7 +54,7 @@ class FragmentHandlerTest : LayoutTestCase() {
     val editorManager = FileEditorManager.getInstance(project)
 
     surface.notifyComponentActivate(model.treeReader.find("regular")!!, 10, 60)
-    AndroidTestCase.assertEmpty(editorManager.openFiles)
+    assertEmpty(editorManager.openFiles)
 
     surface.notifyComponentActivate(model.treeReader.find("navhost")!!, 10, 10)
     AndroidTestCase.assertEquals("nav.xml", editorManager.openFiles[0].name)

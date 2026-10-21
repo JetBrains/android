@@ -17,7 +17,7 @@ package com.android.tools.idea.insights
 
 import com.android.tools.idea.insights.analysis.Cause
 import com.android.tools.idea.insights.analysis.CrashFrame
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.model.stacktrace.Frame
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.ImmutableSetMultimap
@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 /**
  * A project level service used to update, store, and retrieve crash frames on a per-file basis. It's kept up to date by the
- * [AppInsightsProjectLevelController] and its entries are used by external annotator.
+ * [AppInsightsCrashController] and its entries are used by external annotator.
  */
 @Service(Service.Level.PROJECT)
 class IssuesPerFileIndex(private val project: Project) {
@@ -37,7 +37,7 @@ class IssuesPerFileIndex(private val project: Project) {
   private val issueFileMapPerProviderKey = ConcurrentHashMap<String, SetMultimap<String, IssueInFrame>>()
 
   /**
-   * A view of [AppInsightsIssue]s grouped by the filename and Insight provider name they are associated to.
+   * A view of [AppInsightsCrash]s grouped by the filename and Insight provider name they are associated to.
    *
    * Issues are wrapped in [IssueInFrame] objects that provide context of the stacktrace frame where they occur. These objects are group by
    * and map to their corresponding files by filename.
@@ -45,7 +45,7 @@ class IssuesPerFileIndex(private val project: Project) {
   fun getIssuesPerFilename(providerName: String): SetMultimap<String, IssueInFrame> =
     issueFileMapPerProviderKey.getOrDefault(providerName, ImmutableSetMultimap.of())
 
-  private fun computeIssuesPerFilename(issues: LoadingState<Selection<AppInsightsIssue>>): SetMultimap<String, IssueInFrame> =
+  private fun computeIssuesPerFilename(issues: LoadingState<Selection<AppInsightsCrash>>): SetMultimap<String, IssueInFrame> =
     when (issues) {
       is LoadingState.Ready -> {
         val fileCache = HashMultimap.create<String, IssueInFrame>()
@@ -71,7 +71,7 @@ class IssuesPerFileIndex(private val project: Project) {
       else -> ImmutableSetMultimap.of()
     }
 
-  fun updateIssueIndex(issues: LoadingState<Selection<AppInsightsIssue>>, providerName: String) {
+  fun updateIssueIndex(issues: LoadingState<Selection<AppInsightsCrash>>, providerName: String) {
     val newIndex = computeIssuesPerFilename(issues)
     val oldIndex = issueFileMapPerProviderKey.put(providerName, newIndex) ?: ImmutableSetMultimap.of()
     if (oldIndex != newIndex) {
@@ -80,4 +80,4 @@ class IssuesPerFileIndex(private val project: Project) {
   }
 }
 
-data class IssueInFrame(val crashFrame: CrashFrame, val issue: AppInsightsIssue)
+data class IssueInFrame(val crashFrame: CrashFrame, val issue: AppInsightsCrash)

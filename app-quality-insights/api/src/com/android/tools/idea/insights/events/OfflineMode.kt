@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.events
 
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.InsightsProvider
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
@@ -27,7 +27,7 @@ import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 
 object EnterOfflineMode : ChangeEvent {
   override fun transition(
-    state: AppInsightsState,
+    state: AppInsightsCrashState,
     tracker: AppInsightsTracker,
     provider: InsightsProvider,
     cache: AppInsightsCache,
@@ -56,7 +56,7 @@ object EnterOfflineMode : ChangeEvent {
 
 object EnterOnlineMode : ChangeEvent {
   override fun transition(
-    state: AppInsightsState,
+    state: AppInsightsCrashState,
     tracker: AppInsightsTracker,
     provider: InsightsProvider,
     cache: AppInsightsCache,

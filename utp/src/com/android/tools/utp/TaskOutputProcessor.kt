@@ -15,7 +15,7 @@
  */
 package com.android.tools.utp
 
-import com.android.tools.utp.plugins.result.listener.gradle.proto.GradleAndroidTestResultListenerProto.TestResultEvent
+import com.android.tools.androidtest.listener.proto.TestResultEventProto.TestResultEvent
 import com.google.testing.platform.proto.api.core.TestCaseProto
 import com.google.testing.platform.proto.api.core.TestResultProto
 import com.google.testing.platform.proto.api.core.TestSuiteResultProto

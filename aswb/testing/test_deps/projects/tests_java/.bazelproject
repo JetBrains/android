@@ -1,0 +1,4 @@
+directories:
+  tests_java/project
+
+workspace_type: java

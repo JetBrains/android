@@ -11,6 +11,7 @@ import com.android.adblib.waitUntilOnline
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.DeviceState.HostConnectionType.USB
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.testing.TestAdbLibService
 import com.android.tools.idea.logcat.LogcatPresenter.Companion.CONNECTED_DEVICE
@@ -70,9 +71,11 @@ class TerminateAppActionsTest {
   private val adbSession
     get() = fakeAdbRule.adbSession
 
-  private val device30 = Device.createPhysical("device", true, "10", AndroidVersion(30, 0), "Google", "Pixel")
+  private val device30 =
+    Device.createPhysical(DeviceId("Fake", false, "device"), "device", true, "10", AndroidVersion(30, 0), "Google", "Pixel")
 
-  private val device25 = Device.createPhysical("device", true, "10", AndroidVersion(25, 0), "Google", "Pixel")
+  private val device25 =
+    Device.createPhysical(DeviceId("Fake", false, "device"), "device", true, "10", AndroidVersion(25, 0), "Google", "Pixel")
 
   @Test
   fun forceStopAppAction_processExists_isEnabled(): Unit =

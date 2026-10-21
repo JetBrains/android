@@ -24,6 +24,7 @@ import com.android.tools.idea.run.RunConfigSection
 import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.util.absoluteInProject
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.ide.trustedProjects.TrustedProjects.isProjectTrusted
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.observable.properties.ObservableMutableProperty
 import com.intellij.openapi.observable.properties.PropertyGraph
@@ -81,6 +82,9 @@ class RestoreRunConfigSection(private val project: Project) : RunConfigSection {
   }
 
   override fun validate(runConfiguration: RunConfiguration): List<ValidationError> {
+    if (!isProjectTrusted(project)) {
+      return emptyList()
+    }
     val config = runConfiguration as? AndroidRunConfiguration ?: return emptyList()
     if (!config.RESTORE_ENABLED || config.DEPLOY_AS_INSTANT) {
       return emptyList()

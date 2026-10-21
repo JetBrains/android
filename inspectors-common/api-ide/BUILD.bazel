@@ -16,7 +16,6 @@ jvm_library(
     visibility = ["//visibility:public"],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
         "//libraries/guava",
         "//libraries/jetbrains/annotations",
         "@lib//:kotlin-stdlib",
@@ -51,7 +50,6 @@ jvm_library(
     runtime_deps = [
         # do not sort,
         ":api-ide",
-        "@lib//:studio-platform-provided",
         "//libraries/guava:guava_test_lib",
         "//libraries/jetbrains/annotations:annotations_test_lib",
         "//libraries/protobuf:protobuf_test_lib",

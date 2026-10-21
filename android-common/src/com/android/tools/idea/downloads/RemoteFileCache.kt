@@ -34,6 +34,8 @@ import kotlin.time.Duration
 import kotlin.time.Instant
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
+import kotlin.time.toJavaInstant
+import kotlin.time.toKotlinInstant
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart

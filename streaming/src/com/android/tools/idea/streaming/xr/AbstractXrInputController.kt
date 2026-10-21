@@ -16,8 +16,9 @@
 package com.android.tools.idea.streaming.xr
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.EmulatorSettings
+import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
+import com.android.tools.idea.streaming.core.StreamingDeviceId
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.util.containers.DisposableWrapperList
@@ -47,7 +48,11 @@ import kotlin.math.PI
 internal const val TRANSLATION_STEP_SIZE: Float = 0.5F
 
 /** Orchestrates mouse and keyboard input for XR devices. Keeps track of XR environment and passthrough. Thread safe. */
-internal abstract class AbstractXrInputController : Disposable {
+internal abstract class AbstractXrInputController(
+  val isHandAndEyeInputSupported: Boolean,
+  private val hardwareInputStateStorage: HardwareInputStateStorage,
+  private val deviceId: StreamingDeviceId,
+) : Disposable {
 
   @Volatile
   var isXrInputAvailable: Boolean = true
@@ -103,7 +108,7 @@ internal abstract class AbstractXrInputController : Disposable {
     get() = floatArrayOf()
 
   @Volatile
-  var inputMode: XrInputMode = if (StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.get()) XrInputMode.HAND else XrInputMode.MOUSE
+  var inputMode: XrInputMode = if (isHandAndEyeInputSupported) XrInputMode.HAND else XrInputMode.MOUSE
     @UiThread
     set(value) {
       if (field != value) {
@@ -116,7 +121,7 @@ internal abstract class AbstractXrInputController : Disposable {
         if (!value.isNavigation) {
           lastAppInteractionMode = value
         }
-        firePropertyChange(INPUT_MODE_PROPERTY, oldValue, value)
+        hardwareInputStateStorage.setHardwareInputEnabled(deviceId, value == XrInputMode.MOUSE)
       }
     }
 

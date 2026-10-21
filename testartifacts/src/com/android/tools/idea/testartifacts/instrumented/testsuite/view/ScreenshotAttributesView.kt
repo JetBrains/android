@@ -61,13 +61,13 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.util.Screensh
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils.loadImageMetadata
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.accessibility.AccessibilityUtils
+import com.intellij.ide.actions.RevealFileAction
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.util.ColorProgressBar
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.ui.JBColor
-import java.awt.Desktop
 import java.io.File
 import javax.accessibility.AccessibleRole
 import javax.swing.JComponent
@@ -248,12 +248,12 @@ class ScreenshotAttributesView : Disposable {
             }
           }
           KeyValueRow("Preview") {
-            BlueText(
+            LightText(
               text = currentState.methodName,
               modifier = Modifier.clickable { scope.launch { bringIntoViewRequester.bringIntoView() } },
             )
           }
-          KeyValueRow("Related Composables") { BlueText(currentState.className) }
+          KeyValueRow("Related Composables") { LightText(currentState.className) }
         }
 
         Section("Preview configuration") { LightText("@Preview(${currentState.methodName})") }
@@ -407,9 +407,20 @@ private fun ClickableFileLink(path: String, modifier: Modifier = Modifier) {
       BlueText(
         text = path,
         modifier =
-          modifier.clickable(enabled = File(path).exists(), interactionSource = interactionSource, indication = null) {
+          // Do NOT hand untrusted paths to the OS shell. Reveal in the platform file manager instead,
+          // which highlights the file without invoking its association handler.
+          modifier.clickable(
+            enabled =
+              try {
+                java.nio.file.Files.isRegularFile(java.nio.file.Paths.get(path))
+              } catch (e: java.nio.file.InvalidPathException) {
+                false
+              },
+            interactionSource = interactionSource,
+            indication = null,
+          ) {
             try {
-              Desktop.getDesktop().open(File(path))
+              RevealFileAction.openFile(java.nio.file.Paths.get(path))
             } catch (e: Exception) {
               LOG.warn("Failed to open file: $path", e)
             }

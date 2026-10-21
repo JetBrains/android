@@ -580,42 +580,25 @@ MODULE                        : project
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
-        LintConfig                    : <ROOT>/default-lint.xml [-]
         IsCheckTestSources            : false
         IsCheckDependencies           : false
-        IsAbortOnError                : false
+        IsAbortOnError                : true
         IsAbsolutePaths               : true
-        IsNoLines                     : true
-        IsQuiet                       : true
-        IsCheckAllWarnings            : true
-        IsIgnoreWarnings              : true
-        IsWarningsAsErrors            : true
+        IsNoLines                     : false
+        IsQuiet                       : false
+        IsCheckAllWarnings            : false
+        IsIgnoreWarnings              : false
+        IsWarningsAsErrors            : false
         IsIgnoreTestSources           : false
         IsIgnoreTestFixturesSources   : false
         IsCheckGeneratedSources       : false
         IsCheckReleaseBuilds          : true
         IsExplainIssues               : true
-        IsShowAll                     : true
-        TextReport                    : true
-        TextOutput                    : stdout [-]
+        IsShowAll                     : false
+        TextReport                    : false
         HtmlReport                    : true
-        HtmlOutput                    : <ROOT>/lint-report.html [-]
         XmlReport                     : true
-        XmlOutput                     : <ROOT>/lint-report.xml [-]
         SarifReport                   : false
-        - Disable                     : TypographyFractions
-        - Disable                     : TypographyQuotes
-        - Enable                      : RtlHardcoded
-        - Enable                      : RtlCompat
-        - Enable                      : RtlEnabled
-        - Check                       : NewApi
-        - Check                       : InlinedApi
-        SeverityOverrides
-            TypographyFractions           : 5
-            TypographyQuotes              : 5
-            RtlHardcoded                  : 6
-            RtlCompat                     : 6
-            RtlEnabled                    : 6
     JavaCompileOptions
         Encoding                      : UTF-8
         SourceCompatibility           : 11

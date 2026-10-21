@@ -51,6 +51,7 @@ import com.android.utils.HtmlBuilder
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.text.StringUtil.escapeXmlEntities
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
@@ -119,11 +120,11 @@ class WarningsViewDetailPagesFactory(
       val tableRows =
         tasksWithWarnings.map { (task, _) ->
           // TODO add warning count for the task to the table
-          "<td>${task.taskPath}</td><td style=\"text-align:right;padding-left:10px\">${task.executionTime.durationStringHtml()}</td>"
+          "<td>${escapeXmlEntities(task.taskPath)}</td><td style=\"text-align:right;padding-left:10px\">${task.executionTime.durationStringHtml()}</td>"
         }
       val content =
         """
-      <b>${pluginName}</b><br/>
+      <b>${escapeXmlEntities(pluginName)}</b><br/>
       Duration: ${durationStringHtml(timeContribution)} <br/>
       <br/>
       <b>${warningsCountString(tasksWithWarnings.size)}</b>
@@ -141,7 +142,7 @@ class WarningsViewDetailPagesFactory(
       val timeContribution = warnings.sumOf { it.task.executionTime.timeMs }
       val tableRows =
         warnings.map {
-          "<td>${it.task.taskPath}</td><td style=\"text-align:right;padding-left:10px\">${it.task.executionTime.durationStringHtml()}</td>"
+          "<td>${escapeXmlEntities(it.task.taskPath)}</td><td style=\"text-align:right;padding-left:10px\">${it.task.executionTime.durationStringHtml()}</td>"
         }
       val content =
         """

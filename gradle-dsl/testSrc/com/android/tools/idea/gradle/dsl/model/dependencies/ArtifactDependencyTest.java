@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import static com.android.tools.idea.gradle.dsl.android.api.dependencies.AndroidCommonConfigurationNames.ANDROID_TEST_COMPILE;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.API;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
@@ -331,6 +332,38 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testParsingWithPositionalNotation() throws IOException {
+    isIrrelevantForGroovy("Positional arguments form a list of dependencies in Groovy");
+    isIrrelevantForDeclarative("Declarative does not have positional notation");
+    writeToBuildFile(TestFile.PARSING_WITH_POSITIONAL_NOTATION);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(6);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(RUNTIME, "service", "org.gradle.test.classifiers", "1.0");
+    expected.assertMatches(dependencies.get(0));
+
+    expected = new ExpectedArtifactDependency(COMPILE, "guice", "com.google.code.guice", "1.0");
+    expected.assertMatches(dependencies.get(1));
+
+    expected = new ExpectedArtifactDependency(TEST_COMPILE, "unversioned", "org.gradle.test", null);
+    expected.assertMatches(dependencies.get(2));
+
+    expected = new ExpectedArtifactDependency(IMPLEMENTATION, "h2", "com.h2database", "1.4.199");
+    expected.assertMatches(dependencies.get(3));
+
+    expected = new ExpectedArtifactDependency(API, "qualified", "org.gradle.test", "Versions.qualified");
+    expected.assertMatches(dependencies.get(4));
+
+    // `add(configuration, notation)` is a DependencyHandler method, not a positional notation with group "implementation".
+    expected = new ExpectedArtifactDependency("add", "guava", "com.google.guava", "18.0");
+    expected.assertMatches(dependencies.get(5));
+  }
+
+  @Test
   public void testAddDependency() throws IOException {
     writeToBuildFile(TestFile.ADD_DEPENDENCY);
 
@@ -462,6 +495,40 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertThat(dependencies).hasSize(1);
 
     ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "guice", "com.google.code.guice", "1.2.3");
+    expected.assertMatches(dependencies.get(0));
+  }
+
+  @Test
+  public void testSetVersionOnDependencyWithPositionalNotation() throws IOException {
+    isIrrelevantForGroovy("Positional arguments form a list of dependencies in Groovy");
+    isIrrelevantForDeclarative("Declarative does not have positional notation");
+    writeToBuildFile(TestFile.SET_VERSION_ON_DEPENDENCY_WITH_POSITIONAL_NOTATION);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+
+    ArtifactDependencyModel guice = dependencies.get(0);
+    guice.version().setValue("1.2.3");
+
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.SET_VERSION_ON_DEPENDENCY_WITH_POSITIONAL_NOTATION_EXPECTED);
+    dependenciesModel = buildModel.dependencies(); // reread dependencies
+    dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(1);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "guice", "com.google.code.guice", "1.2.3");
+    expected.assertMatches(dependencies.get(0));
+
+    dependencies.get(0).version().delete();
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.DELETE_VERSION_ON_DEPENDENCY_WITH_POSITIONAL_NOTATION_EXPECTED);
+    dependencies = buildModel.dependencies().artifacts();
+    assertThat(dependencies).hasSize(1);
+
+    expected = new ExpectedArtifactDependency(COMPILE, "guice", "com.google.code.guice", null);
     expected.assertMatches(dependencies.get(0));
   }
 
@@ -1147,6 +1214,49 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     expected = new ExpectedArtifactDependency(COMPILE, "guava", "com.google.guava", "+");
     expected.assertMatches(buildModel.dependencies().artifacts().get(0));
+  }
+
+  @Test
+  public void testReplaceAndRemoveDependencyWithPositionalNotation() throws IOException {
+    isIrrelevantForGroovy("Positional arguments form a list of dependencies in Groovy");
+    isIrrelevantForDeclarative("Declarative does not have positional notation");
+    writeToBuildFile(TestFile.REPLACE_DEPENDENCY_WITH_POSITIONAL_NOTATION);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(5);
+
+    ArtifactDependencySpec withClassifier = ArtifactDependencySpec.create("com.google.guava:guava:18.0:class@aar");
+    assertTrue(dependenciesModel.replaceArtifactByPsiElement(dependencies.get(0).getPsiElement(), withClassifier));
+    ArtifactDependencySpec withoutVersion = ArtifactDependencySpec.create("org.gradle.test.classifiers:service");
+    assertTrue(dependenciesModel.replaceArtifactByPsiElement(dependencies.get(1).getPsiElement(), withoutVersion));
+    dependenciesModel.remove(dependencies.get(2));
+    // A deleted positional group would shift the later arguments: the writer names them instead.
+    ArtifactDependencySpec withoutGroup = ArtifactDependencySpec.create("guava:18.0");
+    assertTrue(dependenciesModel.replaceArtifactByPsiElement(dependencies.get(3).getPsiElement(), withoutGroup));
+    dependencies.get(4).group().delete();
+
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.REPLACE_DEPENDENCY_WITH_POSITIONAL_NOTATION_EXPECTED);
+    dependencies = buildModel.dependencies().artifacts();
+    assertThat(dependencies).hasSize(4);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "guava", "com.google.guava", "18.0");
+    expected.setClassifier("class");
+    expected.setExtension("aar");
+    expected.assertMatches(dependencies.get(0));
+
+    expected = new ExpectedArtifactDependency(RUNTIME, "service", "org.gradle.test.classifiers", null);
+    expected.assertMatches(dependencies.get(1));
+
+    expected = new ExpectedArtifactDependency(COMPILE, "guava", null, "18.0");
+    expected.assertMatches(dependencies.get(2));
+
+    expected = new ExpectedArtifactDependency(API, "grouped", null, "1.0");
+    expected.assertMatches(dependencies.get(3));
   }
 
   @Test
@@ -2660,6 +2770,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     GET_ONLY_ARTIFACTS("getOnlyArtifacts"),
     PARSING_WITH_COMPACT_NOTATION("parsingWithCompactNotation"),
     PARSING_WITH_MAP_NOTATION("parsingWithMapNotation"),
+    PARSING_WITH_POSITIONAL_NOTATION("parsingWithPositionalNotation"),
     ADD_DEPENDENCY("addDependency"),
     ADD_DEPENDENCY_EXPECTED("addDependencyExpected"),
     ADD_DEPENDENCY_WITH_CONFIGURATION_CLOSURE("addDependencyWithConfigurationClosure"),
@@ -2676,6 +2787,9 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     SET_DEPENDENCY_WITH_COMPACT_NOTATION("setDependencyWithCompactNotation"),
     SET_DEPENDENCY_WITH_COMPACT_NOTATION_EXPECTED("setDependencyWithCompactNotationExpected"),
     SET_VERSION_ON_DEPENDENCY_WITH_MAP_NOTATION_EXPECTED("setVersionOnDependencyWithMapNotationExpected"),
+    SET_VERSION_ON_DEPENDENCY_WITH_POSITIONAL_NOTATION("setVersionOnDependencyWithPositionalNotation"),
+    SET_VERSION_ON_DEPENDENCY_WITH_POSITIONAL_NOTATION_EXPECTED("setVersionOnDependencyWithPositionalNotationExpected"),
+    DELETE_VERSION_ON_DEPENDENCY_WITH_POSITIONAL_NOTATION_EXPECTED("deleteVersionOnDependencyWithPositionalNotationExpected"),
     PARSE_DEPENDENCIES_WITH_COMPACT_NOTATION_IN_SINGLE_LINE("parseDependenciesWithCompactNotationInSingleLine"),
     PARSE_DEPENDENCIES_WITH_COMPACT_NOTATION_IN_SINGLE_LINE_WITH_COMMENTS("parseDependenciesWithCompactNotationInSingleLineWithComments"),
     PARSE_DEPENDENCIES_WITH_MAP_NOTATION_USING_SINGLE_CONFIGURATION_NAME("parseDependenciesWithMapNotationUsingSingleConfigurationName"),
@@ -2706,6 +2820,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     REPLACE_DEPENDENCY_USING_MAP_NOTATION_ADDING_FIELDS_EXPECTED("replaceDependencyUsingMapNotationAddingFieldsExpected"),
     REPLACE_DEPENDENCY_USING_MAP_NOTATION_DELETE_FIELDS("replaceDependencyUsingMapNotationDeleteFields"),
     REPLACE_DEPENDENCY_USING_MAP_NOTATION_DELETE_FIELDS_EXPECTED("replaceDependencyUsingMapNotationDeleteFieldsExpected"),
+    REPLACE_DEPENDENCY_WITH_POSITIONAL_NOTATION("replaceDependencyWithPositionalNotation"),
+    REPLACE_DEPENDENCY_WITH_POSITIONAL_NOTATION_EXPECTED("replaceDependencyWithPositionalNotationExpected"),
     REPLACE_DEPENDENCY_IN_ARGUMENT_LIST("replaceDependencyInArgumentList"),
     REPLACE_METHOD_DEPENDENCY_WITH_CLOSURE("replaceMethodDependencyWithClosure"),
     REPLACE_METHOD_DEPENDENCY_WITH_CLOSURE_EXPECTED("replaceMethodDependencyWithClosureExpected"),

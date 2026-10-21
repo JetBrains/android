@@ -49,13 +49,13 @@ import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
-import com.android.tools.profilers.taskbased.home.TaskHomeTabModel.TaskRecordingType;
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel;
 import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.RunManager;
+import kotlinx.coroutines.flow.Flow;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.impl.EditConfigurationsDialog;
 import com.intellij.ide.BrowserUtil;
@@ -97,6 +97,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import com.android.ide.common.gradle.Dependency;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
@@ -392,7 +393,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   }
 
   @Override
-  public void enableStartupTask(@NotNull ProfilerTaskType taskType, @NotNull TaskRecordingType recordingType) {
+  public void enableStartupTask(@NotNull ProfilerTaskType taskType) {
     // This method should only be called by tasks that can be run on startup.
     assert (isTaskSupportedOnStartup(taskType));
 
@@ -412,7 +413,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
         else {
           profilerState.STARTUP_CPU_PROFILING_ENABLED = true;
           profilerState.STARTUP_CPU_PROFILING_CONFIGURATION_NAME =
-            CpuProfilerConfigConverter.fromTaskTypeToConfigName(taskType, recordingType);
+            CpuProfilerConfigConverter.fromTaskTypeToConfigName(taskType);
         }
       }
     }
@@ -612,12 +613,16 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
                   if (versionString != null) {
                     // Update both the UI string AND the backend injected ID to ensure they match (Addressing code review feedback)
                     final String resolvedCoordinate = artifact.getMavenGroupId() + ":" + artifact.getMavenArtifactId() + ":" + versionString;
-                    finalResolvedId = new RegisteredDependencyId() {
-                      @Override
-                      public String toString() {
-                        return resolvedCoordinate;
-                      }
-                    };
+                    try {
+                      Dependency dependencyObj = Dependency.parse(resolvedCoordinate);
+
+                      java.lang.reflect.Constructor<?> constructor = unresolvedId.getClass().getDeclaredConstructor(Dependency.class);
+                      constructor.setAccessible(true);
+                      finalResolvedId = (RegisteredDependencyId) constructor.newInstance(dependencyObj);
+                    } catch (Exception innerE) {
+                      getLogger().warn("Failed to reflectively create exact version for LeakCanary. Falling back to dynamic version.", innerE);
+                      finalResolvedId = unresolvedId;
+                    }
                   }
                 } catch (Exception ignored) {
                   // If reflection fails (e.g., method signature changes), silently swallow the exception and fall back to the '+' version.
@@ -787,6 +792,43 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     LeakCanaryAiHandler.getInstance(myProject).analyzeLeakWithStudioBot(rawTrace, leak);
   }
 
+  @Override
+  public boolean isPccApp(@NotNull String packageName) {
+    return ApplicationManager.getApplication().runReadAction((Computable<Boolean>) () -> {
+      for (com.intellij.openapi.module.Module module : com.intellij.openapi.module.ModuleManager.getInstance(myProject).getModules()) {
+        try {
+          com.android.tools.idea.model.MergedManifestSnapshot manifest =
+            com.android.tools.idea.model.MergedManifestManager.getSnapshot(module);
+          if (manifest == null) continue;
+          if (!packageName.equals(manifest.getPackage())) continue;
+
+          org.w3c.dom.Document document = manifest.getDocument();
+          if (document == null) continue;
+          org.w3c.dom.NodeList elements = document.getElementsByTagName("*");
+          for (int i = 0; i < elements.getLength(); i++) {
+            org.w3c.dom.Node child = elements.item(i);
+            if (child instanceof org.w3c.dom.Element) {
+              org.w3c.dom.Element component = (org.w3c.dom.Element) child;
+              String pcc = component.getAttributeNS("http://schemas.android.com/apk/res/android", "privateComputeCore");
+              String isPccProcess = component.getAttributeNS("http://schemas.android.com/apk/res/android", "isPrivateComputeCoreProcess");
+              if ("true".equals(pcc) || "true".equals(isPccProcess)) {
+                return true;
+              }
+            }
+          }
+        } catch (Exception e) {
+          getLogger().warn("Failed to check manifest for PCC components in module: " + module.getName(), e);
+        }
+      }
+      return false;
+    });
+  }
+
+  @NotNull
+  @Override
+  public Flow<String> fetchLeakInsight(@NotNull String rawTrace) {
+    return LeakCanaryAiHandler.fetchLeakInsight(myProject, rawTrace);
+  }
   /**
    * Implementation of {@link FeatureConfig} with values used in production.
    */
@@ -800,6 +842,26 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     @Override
     public boolean isPerformanceMonitoringEnabled() {
       return StudioFlags.PROFILER_PERFORMANCE_MONITORING.get();
+    }
+
+    @Override
+    public boolean isCallstackSampleTraceInEditorEnabled() {
+      return StudioFlags.PROFILER_CALLSTACK_SAMPLE_TRACE_IN_EDITOR.get();
+    }
+
+    @Override
+    public boolean isHeapDumpTraceInEditorEnabled() {
+      return StudioFlags.PROFILER_HEAP_DUMP_TRACE_IN_EDITOR.get();
+    }
+
+    @Override
+    public boolean isNativeAllocationsTraceInEditorEnabled() {
+      return StudioFlags.PROFILER_NATIVE_ALLOCATIONS_TRACE_IN_EDITOR.get();
+    }
+
+    @Override
+    public boolean isJavaKotlinAllocationsLegacyTraceInEditorEnabled() {
+      return StudioFlags.PROFILER_JAVA_KOTLIN_ALLOCATIONS_LEGACY_TRACE_IN_EDITOR.get();
     }
 
     @Override

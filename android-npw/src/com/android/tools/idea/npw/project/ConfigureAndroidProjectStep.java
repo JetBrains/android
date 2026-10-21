@@ -35,7 +35,6 @@ import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gemini.GeminiPluginApi;
 import com.android.tools.idea.gradle.plugin.AgpVersions;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.npw.model.AgpVersionSelector;
@@ -48,6 +47,7 @@ import com.android.tools.idea.npw.template.components.LanguageComboProvider;
 import com.android.tools.idea.npw.validator.ProjectNameValidator;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObjectProperty;
@@ -88,7 +88,6 @@ import com.intellij.ui.ContextHelpLabel;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ModalityUiUtil;
@@ -96,11 +95,11 @@ import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import icons.StudioIcons;
-import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -108,14 +107,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
-import kotlin.Unit;
+import kotlin.Pair;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -142,8 +141,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JPanel myPanel;
   private TextFieldWithBrowseButton myProjectLocation;
   private JTextField myAppName;
-  private JPanel appNamePanel;
-  private JBLoadingPanel generateAppNamePanel;
 
   private JTextField myPackageName;
   private JComboBox<Language> myProjectLanguage;
@@ -266,11 +263,26 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       myBindings.bind(myProjectModel.getTemplateRendererStrategy(), new SelectedItemProperty<>(myBuildConfigurationLanguageCombo).transform(
         selection -> {
           if (selection.isPresent() && selection.get() instanceof TemplateRendererStrategy) {
-            return Optional.of((TemplateRendererStrategy) selection.get());
+            //noinspection unchecked: Generic use
+            return Optional.of((TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>) selection.get());
           }
-          return Optional.<TemplateRendererStrategy>empty();
+          return Optional.empty();
         }
       ));
+      myProjectModel.getTemplateRenderStrategyAdditionalUserSettings().forEach((renderStrategy, settings) -> {
+        ObservableValue<Boolean> display =
+          new SelectedItemProperty<>(myBuildConfigurationLanguageCombo)
+            .transform(selection -> selection.isPresent() && selection.get() == renderStrategy);
+        for (Pair<@NotNull JBLabel, @NotNull JComponent> labeledComponent : settings.getLabeledComponents()) {
+          myBindings.bind(new VisibleProperty(labeledComponent.getFirst()), display);
+          myBindings.bind(new VisibleProperty(labeledComponent.getSecond()), display);
+        }
+
+      });
+
+    TemplateRenderStrategyInitializer initializer = new TemplateRenderStrategyInitializer();
+    myBuildConfigurationLanguageCombo.addActionListener(initializer);
+    initializer.ensureInitialInitialized();;
 
     if ((StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX.get() && !ApplicationManager.getApplication().isUnitTestMode()) ||
         (StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX_EXPERIMENTAL_SETTING.get() &&
@@ -386,8 +398,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     if (isWatchFace) {
       myProjectModel.getApplicationName().set("My Watch Face");
     }
-
-    generateAppNamePanel.setVisible(StudioFlags.GEMINI_NEW_PROJECT_AGENT.get() && newTemplate.getFlags().contains(TemplateFlag.NewProjectAgent) && GeminiPluginApi.Companion.getInstance().isAvailable());
   }
 
   @Override
@@ -450,7 +460,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       .addVerticalGap(10)
       .addComponent(createDocumentationLinkPanel())
       .addVerticalGap(10)
-      .addLabeledComponent("&Name",  appNamePanel)
+      .addLabeledComponent("&Name",  myAppName)
       .addLabeledComponent("&Package name", myPackageName)
       .addLabeledComponent("&Save location", myProjectLocation)
       .addLabeledComponent(myProjectLanguageLabel, myProjectLanguage)
@@ -460,7 +470,16 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       .addComponentToRightColumn(myTvCheck)
       .addLabeledComponent(myCarPlatformComboLabel, myCarPlatformCombo)
       .addLabeledComponent(myBuildConfigurationLanguageLabel, myBuildConfigurationLanguageCombo)
-      .addLabeledComponent(myAndroidGradlePluginLabel, myAndroidGradlePluginCombo)
+      .addLabeledComponent(myAndroidGradlePluginLabel, myAndroidGradlePluginCombo);
+
+    for (TemplateRendererStrategy.AdditionalUserSettings additionalSettings : myProjectModel.getTemplateRenderStrategyAdditionalUserSettings()
+      .values()) {
+      for (Pair<JBLabel, JComponent> component : additionalSettings.getLabeledComponents()) {
+        builder.addLabeledComponent(component.getFirst(), component.getSecond());
+      }
+    }
+
+    builder
       .addComponent(myLaunchFirebasePanel)
       .addComponentFillVertically(new Spacer(), 0);
 
@@ -542,28 +561,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myAppName = new JTextField();
     myAppName.setToolTipText("The name that will be shown in the Android launcher for this application");
 
-    JButton generateAppName = new JButton(StudioIcons.StudioBot.GENERIC_AI_ACTION);
-    generateAppName.setToolTipText(message("android.wizard.project.new.create.with.ai.tooltip"));
-    generateAppName.addActionListener(e -> myProjectModel.generateAppName(() -> {
-      generateAppName.setEnabled(false);
-      myAppName.requestFocus();
-      generateAppNamePanel.startLoading();
-      return Unit.INSTANCE;
-    }, () -> {
-      generateAppName.setEnabled(true);
-      generateAppNamePanel.stopLoading();
-      return Unit.INSTANCE;
-    }));
-
-    generateAppNamePanel = new JBLoadingPanel(new BorderLayout(), this);
-    generateAppNamePanel.setVisible(false);
-    generateAppNamePanel.add(generateAppName, BorderLayout.CENTER);
-
-    // Create a panel to hold the text field and the button
-    appNamePanel = new JPanel(new BorderLayout(5, 0)); // 5px horizontal gap
-    appNamePanel.add(myAppName, BorderLayout.CENTER);
-    appNamePanel.add(generateAppNamePanel, BorderLayout.LINE_END);
-
     myPackageName = new JTextField();
     myProjectLocation = new TextFieldWithBrowseButton();
     myProjectLanguage = new LanguageComboProvider().createComponent();
@@ -639,5 +636,35 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     int iconSize = JBUI.getInt("CheckBox.iconSize", 18);
     int textIconGap = JBUI.getInt("CheckBox.textIconGap", 5);
     return iconSize + textIconGap;
+  }
+
+  /**
+   * Listener to defer TemplateRendererStrategy.AdditionalUserSettings initialization,
+   * while ensuring that those initializations only happen once.
+   */
+  private class TemplateRenderStrategyInitializer implements ActionListener {
+    private final Set<TemplateRendererStrategy<?>> alreadyTriggeredInitialize = new HashSet<>();
+
+    @Override
+    public void actionPerformed(ActionEvent event) {
+      Object newValue = myBuildConfigurationLanguageCombo.getSelectedItem();
+      if (newValue instanceof TemplateRendererStrategy<?> ) {
+        ensureInitialized((TemplateRendererStrategy<?>)newValue);
+      }
+    }
+
+    public void ensureInitialInitialized() {
+      TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings> initialStrategy =
+        myProjectModel.getTemplateRendererStrategy().getValueOrNull();
+      if (initialStrategy == null) return;
+      ensureInitialized(initialStrategy);
+    }
+
+    private void ensureInitialized(TemplateRendererStrategy<?> strategy) {
+      if (!alreadyTriggeredInitialize.add(strategy)) return;
+      BackgroundTaskUtil.executeOnPooledThread(ConfigureAndroidProjectStep.this, () -> {
+        myProjectModel.getTemplateRenderStrategyAdditionalUserSettings().get(strategy).backgroundInitialize();
+      });
+    }
   }
 }

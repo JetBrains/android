@@ -69,6 +69,8 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.OnePixelSplitter;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import java.awt.Container;
+import com.intellij.openapi.ui.Splitter;
 import java.awt.BorderLayout;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -443,7 +445,8 @@ public class DesignerEditorPanel extends JPanel implements Disposable, UiDataPro
       @Override
       public void moduleRemoved(@NotNull Project project, @NotNull Module module) {
         if (module.equals(modelModule)) {
-          FileEditorManager.getInstance(project).closeFile(myFile);
+          // closeFile must be called in the EDT thread.
+          ApplicationManager.getApplication().invokeLater(() -> FileEditorManager.getInstance(project).closeFile(myFile));
         }
       }
     });
@@ -517,6 +520,12 @@ public class DesignerEditorPanel extends JPanel implements Disposable, UiDataPro
   public void dispose() {
     mySurface.removeListener(mySurfaceListener);
     mySurface.getModels().forEach((model) -> model.removeListener(myModelListener));
+
+    // b/384536352: Break the reference from the parent Splitter to this disposed panel
+    Container parent = getParent();
+    if (parent instanceof Splitter && ((Splitter) parent).getSecondComponent() == this) {
+      ((Splitter) parent).setSecondComponent(null);
+    }
   }
 
   @NotNull

@@ -210,7 +210,7 @@ public class RenderTestUtil {
     } finally {
       try {
         if (!task.isDisposed()) {
-          task.dispose().get(5, TimeUnit.SECONDS);
+          task.disposeAsync().get(5, TimeUnit.SECONDS);
         }
       } catch (Exception ex) {
         throw new RuntimeException(ex);

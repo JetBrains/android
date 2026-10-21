@@ -40,6 +40,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.text.StringUtil.escapeXmlEntities
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.ui.content.Content
@@ -94,7 +95,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
 
   private fun showLogcat(toolWindow: ToolWindowEx, deviceInfo: DeviceInfo, applicationId: String?) {
     toolWindow.disposable.createCoroutineScope().launch {
-      val name = if (applicationId == null) deviceInfo.id else "$applicationId (${deviceInfo.id})"
+      val name = if (applicationId == null) deviceInfo.serialNumber else "$applicationId (${deviceInfo.serialNumber})"
       val device = toolWindow.project.service<DeviceFinder>().findDevice(deviceInfo.serialNumber) ?: deviceInfo.toOfflineDevice()
       withContext(Dispatchers.EDT) {
         insideShowLogcatListener = true
@@ -147,7 +148,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
             proguardFile = null,
           )
 
-        createNewTab(toolWindow, displayName ?: path.fileName.name, LogcatPanelConfig.toJson(config))
+        createNewTab(toolWindow, escapeXmlEntities(displayName ?: path.fileName.name), LogcatPanelConfig.toJson(config))
         toolWindow.activate(null)
       } finally {
         insideShowLogcatListener = false
@@ -190,7 +191,7 @@ private fun getDefaultFormattingConfig(): LogcatPanelConfig.FormattingConfig {
 
 private fun DeviceInfo.toOfflineDevice(): Device {
   return when (this) {
-    is PhysicalDeviceInfo -> Device.createPhysical(serialNumber, false, release, androidVersion, manufacturer, model)
-    is EmulatorDeviceInfo -> Device.createEmulator(serialNumber, false, release, androidVersion, avdName, avdPath)
+    is PhysicalDeviceInfo -> Device.createPhysical(id, serialNumber, false, release, androidVersion, manufacturer, model)
+    is EmulatorDeviceInfo -> Device.createEmulator(id, serialNumber, false, release, androidVersion, avdName, avdPath)
   }
 }

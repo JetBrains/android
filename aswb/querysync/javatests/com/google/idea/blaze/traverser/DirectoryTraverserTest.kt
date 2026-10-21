@@ -26,6 +26,10 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class DirectoryTraverserTest {
 
+  private suspend fun traverseIncludedDirectories(includeAbsolute: List<Path>, directoryProcessor: DirectoryProcessor) {
+    traverseIncludedDirectories(initialTasks = includeAbsolute.map { ScanTask(it, it) }, directoryProcessor = directoryProcessor)
+  }
+
   @Test
   fun testTraverseIncludedDirectories() {
     runBlocking {

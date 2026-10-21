@@ -15,7 +15,6 @@ jvm_library(
     kotlinc_opts = "@community//:k8",
     module_name = "intellij.android.memory-usage",
     visibility = ["//visibility:public"],
-    deps = ["@lib//:studio-platform-provided"],
 )
 
 jvm_library(
@@ -28,11 +27,7 @@ jvm_library(
     kotlinc_opts = "@community//:k8",
     module_name = "intellij.android.memory-usage",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":memory-usage",
-        "@lib//:studio-platform-provided",
-    ],
+    runtime_deps = [":memory-usage"],
 )
 ### auto-generated section `build intellij.android.memory-usage` end
 

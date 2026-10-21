@@ -17,7 +17,7 @@ package com.google.idea.blaze.base.help;
 
 import com.intellij.ide.BrowserUtil;
 
-class BlazeHelpHandlerImpl implements BlazeHelpHandler {
+public class BlazeHelpHandlerImpl implements BlazeHelpHandler {
   private static final String URL_BASE = "https://ij.bazel.build/";
 
   @Override

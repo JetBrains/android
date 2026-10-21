@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.SdkConstants.PRIMARY_DISPLAY_ID
 import com.android.emulator.control.DisplayConfiguration
+import com.android.emulator.control.LedIndicator
 import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.ThemingStyle
 import com.android.mockito.kotlin.whenever
@@ -41,10 +42,10 @@ import com.android.tools.idea.avdmanager.EmulatorLogListener
 import com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationGroup
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
-import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.actions.FloatingXrToolbarState
 import com.android.tools.idea.streaming.actions.ToggleFloatingXrToolbarAction
 import com.android.tools.idea.streaming.actions.ZoomAction
+import com.android.tools.idea.streaming.core.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.core.SplitPanel
 import com.android.tools.idea.streaming.core.ZoomType
 import com.android.tools.idea.streaming.core.expandFloatingToolbar
@@ -185,9 +186,7 @@ class EmulatorToolWindowPanelTest {
 
   @Before
   fun setUp() {
-    StudioFlags.EMBEDDED_EMULATOR_ALLOW_AI_GLASSES_AVD.overrideForTest(true, testRootDisposable)
-    StudioFlags.EMBEDDED_EMULATOR_XR_HAND_TRACKING.overrideForTest(true, testRootDisposable)
-    StudioFlags.EMBEDDED_EMULATOR_XR_EYE_TRACKING.overrideForTest(true, testRootDisposable)
+    StudioFlags.EMBEDDED_EMULATOR_XR_HAND_AND_EYE_INPUT.overrideForTest(true, testRootDisposable)
     val mockScreenRecordingCache = mock<ScreenRecordingSupportedCache>()
     whenever(mockScreenRecordingCache.isScreenRecordingSupported(any())).thenReturn(true)
     projectRule.project.registerServiceInstance(ScreenRecordingSupportedCache::class.java, mockScreenRecordingCache, testRootDisposable)
@@ -651,8 +650,8 @@ class EmulatorToolWindowPanelTest {
     assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_GLASS)
 
     // Check appearance.
-    emulator.setLedState(0, Color.RED)
-    emulator.setLedState(1, Color.GREEN)
+    emulator.setLedState(LedIndicator.Facing.INSIDE, Color.GREEN)
+    emulator.setLedState(LedIndicator.Facing.OUTSIDE, Color.RED)
     var frameNumber = emulatorView.frameNumber
     assertThat(frameNumber).isEqualTo(0u)
     panel.size = Dimension(430, 450)
@@ -709,6 +708,7 @@ class EmulatorToolWindowPanelTest {
 
     panel.createContent(true)
     val emulatorView = panel.primaryDisplayView ?: fail()
+
     assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_GLASS)
 
     // Check appearance.
@@ -1352,11 +1352,12 @@ class EmulatorToolWindowPanelTest {
     fakeUi.layoutAndDispatchEvents()
 
     val container = HeadlessRootPaneContainer(panel)
+    fakeUi = FakeUi(container.rootPane, createFakeWindow = true, parentDisposable = testRootDisposable)
     val glassPane = container.glassPane
 
     val initialMousePosition = Point(glassPane.x + glassPane.width / 2, glassPane.y + glassPane.height / 2)
     val pointerInfo = mock<PointerInfo>()
-    whenever(pointerInfo.location).thenReturn(initialMousePosition)
+    whenever(pointerInfo.location).thenAnswer { Point(initialMousePosition) }
     val mouseInfoMock = mockStatic<MouseInfo>(testRootDisposable)
     mouseInfoMock.whenever<Any?> { MouseInfo.getPointerInfo() }.thenReturn(pointerInfo)
 
@@ -1418,7 +1419,7 @@ class EmulatorToolWindowPanelTest {
     glassPane.dispatch(event)
     var call = emulator.getNextGrpcCall(2.seconds, callFilter)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/rotateVirtualSceneCamera")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 2.3561945 y: 1.5707964")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: -0.07853982 y: -0.03926991")
 
     val rotationExpectations =
       mapOf(

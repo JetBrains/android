@@ -7,7 +7,6 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
-    <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.gradle" />
     <orderEntry type="module" module-name="intellij.libraries.guava" />
     <orderEntry type="module" module-name="intellij.libraries.gson" />
@@ -17,7 +16,6 @@
     <orderEntry type="module" module-name="intellij.platform.ide.observable" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.collections.immutable" />
     <orderEntry type="module" module-name="intellij.libraries.protobuf" />
-    <orderEntry type="module" module-name="intellij.libraries.kotlinc.lombok.compiler.plugin" scope="PROVIDED" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />

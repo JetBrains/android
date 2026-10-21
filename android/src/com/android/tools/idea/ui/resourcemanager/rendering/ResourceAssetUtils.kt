@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.configuration.ResourceQualifier
 import com.android.resources.base.BasicFileResourceItem
+import com.intellij.openapi.util.text.StringUtil
 
 private const val DEFAULT_CONFIGURATION = "default"
 private const val NO_VALUE = "No value"
@@ -41,19 +42,24 @@ fun ResourceItem.getReadableConfigurations(): String =
  */
 fun ResourceValue.getReadableValue(): String {
   // Some types of resource values require special handling.
-  return when (this) {
-    // Eg: "one: %s coin, many: %s coins"
-    is PluralsResourceValue -> {
-      val plurals = arrayOfNulls<String>(this.pluralsCount)
-      for (index in plurals.indices) {
-        plurals[index] = (this.getQuantity(index) + ": " + this.getValue(index))
+  val raw =
+    when (this) {
+      // Eg: "one: %s coin, many: %s coins"
+      is PluralsResourceValue -> {
+        val plurals = arrayOfNulls<String>(this.pluralsCount)
+        for (index in plurals.indices) {
+          plurals[index] = (this.getQuantity(index) + ": " + this.getValue(index))
+        }
+        plurals.joinToString(", ")
       }
-      plurals.joinToString(", ").takeIf { it.isNotBlank() } ?: NO_VALUE
+      // Eg: "Monday, Tuesday, Wednesday"
+      is ArrayResourceValue -> this.joinToString(", ")
+      // Eg: "activity_main.xml"
+      is BasicFileResourceItem -> this.source.fileName
+      else -> this.value
     }
-    // Eg: "Monday, Tuesday, Wednesday"
-    is ArrayResourceValue -> this.joinToString(", ").takeIf { it.isNotBlank() } ?: NO_VALUE
-    // Eg: "activity_main.xml"
-    is BasicFileResourceItem -> this.source.fileName
-    else -> this.value?.takeIf { it.isNotBlank() } ?: NO_VALUE
+  if (raw.isNullOrBlank()) {
+    return NO_VALUE
   }
+  return StringUtil.removeHtmlTags(raw, true).takeIf { it.isNotBlank() } ?: NO_VALUE
 }

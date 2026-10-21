@@ -27,7 +27,7 @@ import com.intellij.openapi.application.WriteAction
 import com.intellij.testFramework.ProjectRule
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.android.facet.AndroidFacet
@@ -82,10 +82,15 @@ class DeviceCableMonitorTest {
     }
 
     monitor = DeviceCableMonitor()
-    CoroutineScope(Dispatchers.IO).launch { monitor.execute(projectRule.project) }
+    val monitorJob = launch(Dispatchers.IO) { monitor.execute(projectRule.project) }
 
-    if (!latch.await(5, TimeUnit.SECONDS)) {
-      Assert.fail("Bad cable notification not detected")
+    try {
+      if (!latch.await(5, TimeUnit.SECONDS)) {
+        Assert.fail("Bad cable notification not detected")
+      }
+    }
+    finally {
+      monitorJob.cancelAndJoin()
     }
   }
 }

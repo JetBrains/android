@@ -28,6 +28,7 @@ import com.android.build.attribution.ui.warnIconHtml
 import com.android.build.attribution.ui.withPluralization
 import com.android.tools.idea.flags.StudioFlags
 import com.android.utils.HtmlBuilder
+import com.intellij.openapi.util.text.StringUtil.escapeXmlEntities
 import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -48,7 +49,7 @@ private const val NO_PLUGIN_INFO_HELP_TEXT =
 private fun pluginNameHtml(taskData: TaskUiData) =
   when {
     taskData.pluginUnknownBecauseOfCC -> "N/A ${helpIcon(NO_PLUGIN_INFO_HELP_TEXT)}"
-    else -> taskData.pluginName
+    else -> escapeXmlEntities(taskData.pluginName)
   }
 
 fun taskDetailsPanelHtml(taskData: TaskUiData, actionHandlers: ViewActionHandlers, linksHandler: HtmlLinksHandler): String {
@@ -122,6 +123,6 @@ private fun HtmlBuilder.createReasonsSection(reasons: List<String>) {
   if (reasons.isEmpty()) {
     add("No info")
   } else {
-    reasons.forEach { addHtml(it.replace("\n", "<BR/>")).newline() }
+    reasons.forEach { addHtml(escapeXmlEntities(it).replace("\n", "<BR/>")).newline() }
   }
 }

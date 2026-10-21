@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 23
-  namespace "google.simpleapplicationb"
+  namespace = "google.simpleapplicationb"
 
     defaultConfig {
         minSdkVersion 15

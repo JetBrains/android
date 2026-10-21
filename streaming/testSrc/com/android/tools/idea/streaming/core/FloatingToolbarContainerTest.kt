@@ -128,7 +128,7 @@ class FloatingToolbarContainerTest {
   fun testToolbarWithOnlyCollapserButton() {
     val toolbar =
       FloatingToolbarContainer(horizontal = false, inactiveAlpha = 0.8, initiallyActive = true).apply {
-        addToolbar("FloatingToolbar", DefaultActionGroup(FloatingToolbarContainer.CollapserAction()))
+        addToolbar("FloatingToolbar", DefaultActionGroup(FloatingToolbarContainer.CollapserAction(horizontal = false)))
       }
     panel.add(toolbar, BorderLayout.EAST)
     fakeUi.updateToolbarsIfNecessary()

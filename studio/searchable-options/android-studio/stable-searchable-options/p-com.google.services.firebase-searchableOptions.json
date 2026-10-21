@@ -1,1 +1,14 @@
-{"id":"preferences.keymap","name":"Keymap","entries":[{"hit":"Add Firebase to your app","path":"ActionManager"},{"hit":"Firebase","path":"ActionManager"}]}
+{
+  "id": "preferences.keymap",
+  "name": "Keymap",
+  "entries": [
+    {
+      "hit": "Add Firebase to your app",
+      "path": "ActionManager"
+    },
+    {
+      "hit": "Firebase",
+      "path": "ActionManager"
+    }
+  ]
+}

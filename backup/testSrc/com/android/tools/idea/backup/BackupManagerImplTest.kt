@@ -193,7 +193,7 @@ internal class BackupManagerImplTest {
         DialogData(
           "Backup Failed",
           """
-          Failed to backup 'app1`:
+          Failed to backup 'app1':
           Backup was cancelled by either the user or backup service lifecycle.
           Backup failed for package: com.example.empty
           Backup operation failed.
@@ -354,7 +354,7 @@ internal class BackupManagerImplTest {
     assertThat(error.throwable.message)
       .isEqualTo(
         """
-        Failed to restore 'com.app`:
+        Failed to restore 'com.app':
         Signature of the app for which restore is called doesn't match the signature of the app corresponding to the backup.
         Restore operation failed
         """

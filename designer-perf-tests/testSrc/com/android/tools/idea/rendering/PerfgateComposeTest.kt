@@ -89,7 +89,7 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
         // Measures the number of classes loaded.
         ClassLoadCountMeasurement(Metric("default_class_load_count")),
         // Measures the class avg loading time.
-        ClassAverageLoadTimeMeasurement(Metric("default_class_avg_load_time")),
+        ClassAverageLoadTimeUsMeasurement(Metric("default_class_avg_load_time_us")),
       ),
       printSamples = true,
       samplesCount = NUMBER_OF_SAMPLES,
@@ -124,7 +124,7 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
         // Measures the number of classes loaded.
         ClassLoadCountMeasurement(Metric("complex_template_class_load_count")),
         // Measures the class avg loading time.
-        ClassAverageLoadTimeMeasurement(Metric("complex_template_class_avg_load_time")),
+        ClassAverageLoadTimeUsMeasurement(Metric("complex_template_class_avg_load_time_us")),
       ),
       printSamples = true,
       samplesCount = NUMBER_OF_SAMPLES,
@@ -155,7 +155,7 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
         // Measures the number of classes loaded.
         ClassLoadCountMeasurement(Metric("complex_with_bounds_template_class_load_count")),
         // Measures the class avg loading time.
-        ClassAverageLoadTimeMeasurement(Metric("complex_with_bounds_template_class_avg_load_time")),
+        ClassAverageLoadTimeUsMeasurement(Metric("complex_with_bounds_template_class_avg_load_time_us")),
       ),
       printSamples = true,
       samplesCount = NUMBER_OF_SAMPLES,

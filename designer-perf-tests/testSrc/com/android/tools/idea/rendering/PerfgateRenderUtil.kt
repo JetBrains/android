@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.ide.common.rendering.api.RecyclableImage
 import com.android.tools.idea.diagnostics.heap.HeapSnapshotStatistics
 import com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverseService
 import com.android.tools.idea.validator.ValidatorHierarchy
@@ -24,7 +25,6 @@ import com.android.tools.perflogger.Metric
 import com.android.tools.perflogger.Metric.MetricSample
 import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.RenderTask
-import com.android.tools.rendering.imagepool.ImagePool
 import com.google.common.collect.LinkedListMultimap
 import com.google.common.math.Quantiles
 import com.google.common.util.concurrent.Futures
@@ -193,13 +193,13 @@ internal class ClassLoadCountMeasurement(metric: Metric) : MetricMeasurementAdap
     else null // No render time available
 }
 
-/** A [MetricMeasurement] that measures the render time of a render. */
-internal class ClassAverageLoadTimeMeasurement(metric: Metric) : MetricMeasurementAdapter<RenderResult>(metric) {
+/** A [MetricMeasurement] that measures the average class load time of a render in microseconds. */
+internal class ClassAverageLoadTimeUsMeasurement(metric: Metric) : MetricMeasurementAdapter<RenderResult>(metric) {
   override fun before() {}
 
   override fun after(result: RenderResult) =
     if (result.stats.totalClassLoadDurationMs != -1L && result.stats.classesFound > 0)
-      MetricSample(Instant.now().toEpochMilli(), result.stats.totalClassLoadDurationMs / result.stats.classesFound)
+      MetricSample(Instant.now().toEpochMilli(), (result.stats.totalClassLoadDurationMs * 1000) / result.stats.classesFound)
     else null // No render time available
 }
 
@@ -380,7 +380,7 @@ fun verifyValidatorResult(result: RenderResult) {
   TestCase.assertTrue(validatorResult is ValidatorHierarchy)
 }
 
-fun ImagePool.Image.getPixel(x: Int, y: Int) = this.getCopy(x, y, 1, 1)!!.getRGB(0, 0)
+fun RecyclableImage.getPixel(x: Int, y: Int) = this.getCopy(x, y, 1, 1)!!.getRGB(0, 0)
 
 /**
  * When [System.gc] is called, a "best effort" garbage collection is triggered, but there is no guarantees on its result. Adding some

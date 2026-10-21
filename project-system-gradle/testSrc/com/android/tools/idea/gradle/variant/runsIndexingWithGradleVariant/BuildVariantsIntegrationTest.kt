@@ -51,10 +51,12 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.workspaceModel.ide.impl.WorkspaceModelCacheImpl
 import java.io.File
 import java.nio.file.Files
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.plugins.gradle.util.GradleConstants
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -65,6 +67,11 @@ private const val NOT_SET = "n/a"
 @RunWith(JUnit4::class)
 class BuildVariantsIntegrationTest {
   @get:Rule val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+
+  @Before
+  fun setUp() {
+    WorkspaceModelCacheImpl.forceEnableCaching(projectRule.testRootDisposable)
+  }
 
   @get:Rule val expect = Expect.createAndEnableStackTrace()!!
 

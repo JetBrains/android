@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.project.upgrade.ui
 import com.android.SdkConstants
 import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.ignore.IgnoreTestRule
+import com.android.testutils.ignore.IgnoreWithCondition
+import com.android.testutils.ignore.OnWindows
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
@@ -90,7 +92,7 @@ import org.mockito.kotlin.whenever
 
 @RunsInEdt
 class UpgradeAssistantContentManagerTest {
-  val deprecatedAgpVersion = AgpVersion.parse("7.1.0")
+  val deprecatedAgpVersion = AgpVersion.parse("7.2.0")
   val supportedAgpVersion = AgpVersion.parse("7.4.0")
   val latestAgpVersion = AgpVersion.parse("8.12.0")
 
@@ -1009,6 +1011,7 @@ class UpgradeAssistantContentManagerTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/532569155", condition = OnWindows::class)
   fun testRevertAfterRunProcessor() {
     val psiFile = addMinimalBuildGradleToProject()
     var changingCurrentAgpVersion = supportedAgpVersion

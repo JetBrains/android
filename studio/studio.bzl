@@ -10,7 +10,7 @@ load("//tools/base/bazel:expand_template.bzl", "expand_template_ex")
 load("//tools/base/bazel:functions.bzl", "create_option_file")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 load("//tools/base/bazel:merge_archives.bzl", "run_singlejar")
-load("//tools/base/bazel:utils.bzl", "dir_archive", "is_release")
+load("//tools/base/bazel:utils.bzl", "dir_archive", "endswith_glob", "is_release")
 
 PluginInfo = provider(
     doc = "Info for IntelliJ plugins, including those built by the studio_plugin rule",
@@ -97,13 +97,8 @@ def _zipper(ctx, desc, map, out, deps = []):
         mnemonic = "zipper",
     )
 
-def _lnzipper(ctx, desc, filemap, out, keep_symlink = True, attrs = {}, deps = []):
-    """Creates a ZIP out while preserving symlinks.
-
-    Note: This action needs to run outside the sandbox to capture an accurate
-    representation of the workspace filesystem. Otherwise, files inside the
-    sandbox are created as symbolic links, and the output ZIP would only
-    contain entries which are sandbox symlinks."""
+def _lnzipper(ctx, desc, filemap, out, attrs = {}, deps = []):
+    """Creates a ZIP out while preserving symlinks."""
     files = []
     fileargs = []
     for zip_path, f in filemap:
@@ -111,9 +106,7 @@ def _lnzipper(ctx, desc, filemap, out, keep_symlink = True, attrs = {}, deps = [
         attr = ("[" + attrs[zip_path] + "]") if zip_path in attrs else ""
         fileargs.append("%s%s=%s\n" % (zip_path, attr, f.path if f else ""))
 
-    lnzipper_options = "-ca"
-    if keep_symlink:
-        lnzipper_options += "s"
+    lnzipper_options = "-c"
     if ctx.attr.compress:
         lnzipper_options += "C"
 
@@ -124,7 +117,6 @@ def _lnzipper(ctx, desc, filemap, out, keep_symlink = True, attrs = {}, deps = [
         inputs = files + [argfile] + deps,
         outputs = [out],
         executable = ctx.executable._lnzipper,
-        execution_requirements = {"no-sandbox": "true", "no-remote": "true", "cpu:16": ""},
         resource_set = _lnzipper_resources,
         arguments = args,
         progress_message = "lnzipping %s" % desc,
@@ -522,6 +514,39 @@ def studio_data(name, files = [], files_linux = [], files_mac = [], files_mac_ar
         **kwargs
     )
 
+def _studio_data_files_impl(ctx):
+    host_platform = platform_by_name[ctx.attr.host_platform_name]
+    data = ctx.attr.data[StudioDataInfo]
+    return [DefaultInfo(files = host_platform.get(data))]
+
+_studio_data_files = rule(
+    attrs = {
+        "data": attr.label(mandatory = True, providers = [StudioDataInfo]),
+        "host_platform_name": attr.string(mandatory = True),
+    },
+    executable = False,
+    implementation = _studio_data_files_impl,
+)
+
+# Converts a studio_data target into a filegroup for consumption by rules such as pkg_files.
+# It uses the current platform to return the correct set of files for pkg_files.
+# Args:
+#     name: The name of the filegroup
+#     data: The studio_data target
+def studio_data_files(
+        name,
+        data):
+    _studio_data_files(
+        name = name,
+        host_platform_name = select({
+            "@platforms//os:linux": LINUX.name,
+            "//tools/base/bazel/platforms:macos-x86_64": MAC.name,
+            "//tools/base/bazel/platforms:macos-arm64": MAC_ARM.name,
+            "@platforms//os:windows": WIN.name,
+        }),
+        data = data,
+    )
+
 def _split_version(version):
     """Splits a version string into its constituent parts."""
     index_of_period = version.find(".")
@@ -788,22 +813,59 @@ def _stamp_plugin(ctx, platform, platform_files, files, overwrite_plugin_version
 
 def _get_external_attributes(all_files):
     attrs = {}
-    for zip_path, file in all_files.items():
-        # Source files are checked in with the right permissions.
-        # For generated files we default to -rw-r--r--
-        if not file.is_source:
-            attrs[zip_path] = "644"
-        if zip_path.endswith(".app/Contents/Info.plist"):
+    # Source files permissions are lost in RBE. We must define exactly what permissions we want
+    # LnZipper uses default permision unless changed here.
+    # Default permission is -rw-r--r--
+
+    executables = [
+        "jbr/bin/*",
+        "jbr/lib/jexec",
+        "jbr/lib/jspawnhelper",
+        "Contents/jbr/Contents/Home/bin/*",
+        "Contents/jbr/Contents/Home/lib/jspawnhelper",
+        "plugins/Kotlin/kotlinc/bin/*",
+        "bin/clangd",
+        "plugins/android-ndk/resources/lldb/bin/*",
+        "plugins/android-ndk/resources/lldb/android/*/lldb-server",
+        "plugins/android/resources/simpleperf/*/simpleperf",
+        "plugins/android/resources/simpleperf/*/libsimpleperf_report.so",
+        "plugins/android/resources/simpleperf/*/libsimpleperf_report.dylib",
+        "plugins/android/resources/perfetto/*/perfetto",
+        "plugins/android/resources/perfetto/*/traced",
+        "plugins/android/resources/perfetto/*/traced_probes",
+        "plugins/android/resources/perfetto/*/libperfetto.so",
+        "plugins/android/resources/trace_processor_daemon/trace_processor_daemon",
+        "plugins/android/resources/trace_processor_server/trace-processor",
+        "plugins/gemini/resources/llamacpp/llama-server",
+        "plugins/gemini/resources/llamacpp/libggml*",
+        "plugins/gemini/resources/llamacpp/libllama*",
+        "plugins/gemini/resources/llamacpp/libmtmd*",
+        "plugins/android/resources/native/libimage_converter.dylib",
+        "bin/format.sh",
+        "bin/fsnotifier",
+        "bin/game-tools.sh",
+        "bin/inspect.sh",
+        "bin/ltedit.sh",
+        "bin/profiler.sh",
+        "bin/restarter",
+        "bin/studio",
+        "bin/studio.sh",
+        "Contents/MacOS/studio",
+        "Contents/bin/printenv",
+        "lib/pty4j/darwin/pty4j-unix-spawn-helper",
+    ]
+    for zip_path in all_files:
+        if zip_path.endswith("Info.plist"):
             attrs[zip_path] = "664"
-        if (zip_path.endswith("/bin/studio.sh") or
-            zip_path.endswith("/bin/game-tools.sh") or
-            zip_path.endswith("/bin/studio64.exe") or
-            zip_path.endswith("/bin/studio.bat") or
-            zip_path.endswith("/bin/game-tools.bat")):
-            attrs[zip_path] = "775"
+        else:
+            for exc in executables:
+                if endswith_glob(zip_path, exc):
+                    attrs[zip_path] = "755"
+                    break
+
     return attrs
 
-def _android_studio_os(ctx, platform, added_plugins, out):
+def _android_studio_os(ctx, platform, added_plugins, out, lst_out):
     files = []
     all_files = {}
 
@@ -811,7 +873,7 @@ def _android_studio_os(ctx, platform, added_plugins, out):
     platform_prefix = config.mac_app_name + ".app/" if platform in [MAC, MAC_ARM] else "android-studio/"
 
     platform_files = platform.get(ctx.attr.platform[IntellijInfo].base)
-    platform_files = replace_app_icon(ctx, platform.name, platform_files, config.application_icon[AppIconInfo])
+    platform_files = replace_app_icon(ctx, platform.name, platform_files, config.application_icon[AppIconInfo], branding = "android-studio")
     plugin_files = platform.get(ctx.attr.platform[IntellijInfo].plugins)
 
     if ctx.attr.jre:
@@ -875,8 +937,13 @@ def _android_studio_os(ctx, platform, added_plugins, out):
     if platform == LINUX:
         _produce_manifest(ctx, LINUX, platform_files)
 
+    args = ctx.actions.args()
+    args.add_all(all_files.keys())
+    args.set_param_file_format("multiline")
+    ctx.actions.write(output = lst_out, content = args)
+
     attrs = _get_external_attributes(all_files)
-    _lnzipper(ctx, out.basename, all_files.items(), out, attrs = attrs, keep_symlink = platform == MAC_ARM)
+    _lnzipper(ctx, out.basename, all_files.items(), out, attrs = attrs)
     return all_files
 
 def _studio_runner(ctx, name, target_to_file, out):
@@ -928,9 +995,15 @@ def _android_studio_impl(ctx):
         MAC_ARM: ctx.outputs.mac_arm,
         WIN: ctx.outputs.win,
     }
+    lst_outputs = {
+        LINUX: ctx.outputs.linux_lst,
+        MAC: ctx.outputs.mac_lst,
+        MAC_ARM: ctx.outputs.mac_arm_lst,
+        WIN: ctx.outputs.win_lst,
+    }
     all_files = {}
     for (platform, output) in outputs.items():
-        all_files[platform] = _android_studio_os(ctx, platform, ctx.attr.plugins, output)
+        all_files[platform] = _android_studio_os(ctx, platform, ctx.attr.plugins, output, lst_outputs[platform])
 
     _produce_update_message_html(ctx)
 
@@ -1024,6 +1097,10 @@ _android_studio = rule(
         "mac": "%{name}.mac.zip",
         "mac_arm": "%{name}.mac_arm.zip",
         "win": "%{name}.win.zip",
+        "linux_lst": "%{name}.linux.lst",
+        "mac_lst": "%{name}.mac.lst",
+        "mac_arm_lst": "%{name}.mac_arm.lst",
+        "win_lst": "%{name}.win.lst",
         "plugins": "%{name}.plugin.lst",
         "manifest": "%{name}_build_manifest.textproto",
         "update_message": "%{name}_update_message.html",
@@ -1128,17 +1205,22 @@ def android_studio(
                 "--ide %s/%s.%s" % (native.package_name(), name, config_name),
             ] + (["--plugins %s" % " ".join([Label(plugin).name for plugin in searchable_options_plugin_lst])] if searchable_options_plugin_lst else []),
             data = [
-                ":%s.%s.linux.zip" % (name, config_name),
-                ":%s.%s.mac.zip" % (name, config_name),
-                ":%s.%s.mac_arm.zip" % (name, config_name),
                 ":%s.%s.plugin.lst" % (name, config_name),
-            ],
+            ] + select({
+                "@platforms//os:linux": [":%s.%s.linux.zip" % (name, config_name)],
+                "//tools/base/bazel/platforms:macos-x86_64": [":%s.%s.mac.zip" % (name, config_name)],
+                "//tools/base/bazel/platforms:macos-arm64": [":%s.%s.mac_arm.zip" % (name, config_name)],
+            }),
             imports = ["%s/tools/adt/idea/studio/searchable-options" % ("/".join([".."] * len(native.package_name().split("/"))) if native.package_name() else ".")],
             main = "searchable_options_test.py",
             tags = [
                 "block_network",
                 "noci:studio-win",
             ],
+            target_compatible_with = select({
+                "@platforms//os:windows": ["@platforms//:incompatible"],
+                "//conditions:default": [],
+            }),
         )
 
         py_test(
@@ -1154,10 +1236,10 @@ def android_studio(
                 "tests/expected_studio_files/%s/%s/expected_diff_mac_arm.txt" % (name, config_name),
                 "tests/expected_studio_files/%s/%s/expected_diff_win.txt" % (name, config_name),
             ]) + [
-                ":%s.%s.linux.zip" % (name, config_name),
-                ":%s.%s.mac.zip" % (name, config_name),
-                ":%s.%s.mac_arm.zip" % (name, config_name),
-                ":%s.%s.win.zip" % (name, config_name),
+                ":%s.%s.linux.lst" % (name, config_name),
+                ":%s.%s.mac.lst" % (name, config_name),
+                ":%s.%s.mac_arm.lst" % (name, config_name),
+                ":%s.%s.win.lst" % (name, config_name),
             ],
             env = {
                 "ide": "%s/%s" % (native.package_name(), name),
@@ -1179,20 +1261,22 @@ def android_studio(
             "--ide-configuration " + " ".join([Label(configuration).name for configuration in configurations]),
         ] + (["--plugins %s" % " ".join([Label(plugin).name for plugin in searchable_options_plugin_lst])] if searchable_options_plugin_lst else []),
         data = [
-            file % (name, Label(configuration).name)
-            for configuration in configurations
-            for file in (
-                ":%s.%s.linux.zip",
-                ":%s.%s.mac.zip",
-                ":%s.%s.mac_arm.zip",
-                ":%s.%s.plugin.lst",
-            )
-        ],
+            ":%s.%s.plugin.lst" % (name, Label(config).name)
+            for config in configurations
+        ] + select({
+            "@platforms//os:linux": [":%s.%s.linux.zip" % (name, Label(config).name) for config in configurations],
+            "//tools/base/bazel/platforms:macos-x86_64": [":%s.%s.mac.zip" % (name, Label(config).name) for config in configurations],
+            "//tools/base/bazel/platforms:macos-arm64": [":%s.%s.mac_arm.zip" % (name, Label(config).name) for config in configurations],
+        }),
         main = "update_searchable_options.py",
         tags = [
             "block_network",
             "noci:studio-win",
         ],
+        target_compatible_with = select({
+            "@platforms//os:windows": ["@platforms//:incompatible"],
+            "//conditions:default": [],
+        }),
     )
 
     py_binary(
@@ -1206,10 +1290,10 @@ def android_studio(
             file % (name, Label(configuration).name)
             for configuration in configurations
             for file in (
-                ":%s.%s.linux.zip",
-                ":%s.%s.mac.zip",
-                ":%s.%s.mac_arm.zip",
-                ":%s.%s.win.zip",
+                ":%s.%s.linux.lst",
+                ":%s.%s.mac.lst",
+                ":%s.%s.mac_arm.lst",
+                ":%s.%s.win.lst",
             )
         ],
         main = "update_expected_studio_files.py",
@@ -1261,7 +1345,6 @@ def android_studio_configuration(
     _vm_options = vm_options + [
         "-Dflags.configuration.level=" + flag_level,
         "-Dflags.debug.enabled=" + ("true" if enable_debug_flags else "false"),
-        "-Djava.security.manager=allow",  # TODO(b/505889877): Remove once we use JBR 25 in Android Studio
     ]
     _android_studio_configuration(
         name = name,
@@ -1578,6 +1661,7 @@ def intellij_platform(
             "//tools/base/bazel/platforms:macos-arm64": [sdk_dirs.darwin_aarch64 + "/Contents" + jar for jar in spec.jars + spec.jars_darwin_aarch64],
             "//conditions:default": [sdk_dirs.linux + jar for jar in spec.jars + spec.jars_linux],
         }),
+        srcjar = src + "/android-studio-sources.zip",
         add_exports = spec.add_exports,
         add_opens = spec.add_opens,
     )
@@ -1725,7 +1809,7 @@ def intellij_platform(
         is_v2_module = len(jars) == 1 and ("/modules/" in jars[0] or jars[0].startswith("lib/"))
         kind = "module" if is_v2_module else "plugin"
         jars_target_name = "%s-plugin-%s_jars" % (name, plugin)
-        _gen_plugin_jars_import_target(jars_target_name, spec, sdk_dirs, plugin, jars)
+        _gen_plugin_jars_import_target(jars_target_name, spec, sdk_dirs, plugin, jars, srcjar = src + "/android-studio-sources.zip")
         _intellij_plugin_import(
             name = name + "-plugin-%s" % plugin,
             id = plugin,
@@ -1749,10 +1833,11 @@ def intellij_platform(
             "//tools/base/bazel/platforms:macos-arm64": [sdk_dirs.darwin_aarch64 + "/Contents/lib/testFramework.jar"],
             "//conditions:default": [sdk_dirs.linux + "/lib/testFramework.jar"],
         }),
+        srcjar = src + "/android-studio-sources.zip",
         visibility = ["@intellij//:__subpackages__"],
     )
 
-def _gen_plugin_jars_import_target(name, spec, sdk_dirs, plugin, jars):
+def _gen_plugin_jars_import_target(name, spec, sdk_dirs, plugin, jars, srcjar):
     """Generates a jvm_import target for the specified plugin."""
     add_windows = spec.plugin_jars_windows[plugin] if plugin in spec.plugin_jars_windows else []
     jars_windows = [sdk_dirs.windows + "/" + jar for jar in jars + add_windows]
@@ -1771,6 +1856,7 @@ def _gen_plugin_jars_import_target(name, spec, sdk_dirs, plugin, jars):
             "//tools/base/bazel/platforms:macos-arm64": jars_darwin_aarch64,
             "//conditions:default": jars_linux,
         }),
+        srcjar = srcjar,
     )
 
 def _studio_project_model_generator_impl(ctx):

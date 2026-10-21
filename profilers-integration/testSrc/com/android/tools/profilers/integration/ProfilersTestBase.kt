@@ -202,7 +202,7 @@ open class ProfilersTestBase {
   }
 
   protected fun waitForProfilerDeviceConnection() {
-    verifyIdeaLog(".*TransportProxy\\s+successfully\\s+created\\s+for\\s+device\\:\\s+emulator\\-5554", 60)
+    verifyIdeaLog(".*TransportProxy\\s+successfully\\s+created\\s+for\\s+device\\:\\s+emulator\\-5554", 90)
   }
 
   protected fun waitForAppDeploymentStarted(packageName: String, timeout: Long) {
@@ -269,14 +269,6 @@ open class ProfilersTestBase {
 
   protected fun stopJavaKotlinAllocationsTask(studio: AndroidStudio) {
     studio.executeAction("Android.StopJavaKotlinAllocationsTask")
-  }
-
-  protected fun setRecordingTypeToSampling(studio: AndroidStudio) {
-    studio.executeAction("Android.SetRecordingTypeToSampling")
-  }
-
-  protected fun setRecordingTypeToTracing(studio: AndroidStudio) {
-    studio.executeAction("Android.SetRecordingTypeToTracing")
   }
 
   protected fun selectDevice(studio: AndroidStudio) {

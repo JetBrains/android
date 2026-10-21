@@ -300,6 +300,29 @@ class SessionsManagerTest {
   }
 
   @Test
+  fun testSetSessionWithStaleOngoingSession() {
+    ideProfilerServices.enableTaskBasedUx(false)
+    val device = Device.newBuilder().setDeviceId(1).setState(Device.State.ONLINE).build()
+    val process = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
+
+    // Start a session
+    beginSessionHelper(device, process)
+    val ongoingSession = myManager.selectedSession
+    assertThat(ongoingSession.endTimestamp).isEqualTo(Long.MAX_VALUE)
+
+    // Stop the session, updating the SessionsManager's stored session
+    endSessionHelper()
+    val finishedSession = myManager.selectedSession
+    assertThat(finishedSession.endTimestamp).isLessThan(Long.MAX_VALUE)
+
+    // Call setSession with the ongoingSession (which has endTimestamp = Long.MAX_VALUE, and is now stale)
+    myManager.setSession(ongoingSession)
+
+    // The selected session should be the up-to-date finished session, not the stale ongoing session.
+    assertThat(myManager.selectedSession).isEqualTo(finishedSession)
+  }
+
+  @Test
   fun testSetSession() {
     ideProfilerServices.enableTaskBasedUx(false)
 
@@ -710,53 +733,59 @@ class SessionsManagerTest {
 
   @Test
   fun testSessionsAspectOnlyTriggeredWithChanges() {
-    val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
-    val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
-    assertThat(myObserver.sessionsChangedCount).isEqualTo(0)
+    val isHeapDumpEditorEnabled = ideProfilerServices.featureConfig.isHeapDumpTraceInEditorEnabled
+    ideProfilerServices.setHeapDumpTraceInEditorEnabled(false)
+    try {
+      val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
+      val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
+      assertThat(myObserver.sessionsChangedCount).isEqualTo(0)
 
-    beginSessionHelper(device, process1)
-    assertThat(myObserver.sessionsChangedCount).isEqualTo(1)
+      beginSessionHelper(device, process1)
+      assertThat(myObserver.sessionsChangedCount).isEqualTo(1)
 
-    // Triggering update with the same data should not fire the aspect.
-    myManager.update()
-    assertThat(myObserver.sessionsChangedCount).isEqualTo(1)
+      // Triggering update with the same data should not fire the aspect.
+      myManager.update()
+      assertThat(myObserver.sessionsChangedCount).isEqualTo(1)
 
-    val heapDumpTimestamp = 10L
-    val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(heapDumpTimestamp).setEndTime(heapDumpTimestamp + 1).build()
-    myTransportService.addEventToStream(
-      device.deviceId,
-      ProfilersTestData.generateMemoryHeapDumpData(heapDumpInfo.startTime, heapDumpInfo.startTime, heapDumpInfo)
-        .setPid(process1.pid)
-        .build(),
-    )
-    myManager.update()
-    assertThat(myObserver.sessionsChangedCount).isEqualTo(2)
-    // Repeated update should not fire the aspect.
-    myManager.update()
-    assertThat(myObserver.sessionsChangedCount).isEqualTo(2)
+      val heapDumpTimestamp = 10L
+      val heapDumpInfo = HeapDumpInfo.newBuilder().setStartTime(heapDumpTimestamp).setEndTime(heapDumpTimestamp + 1).build()
+      myTransportService.addEventToStream(
+        device.deviceId,
+        ProfilersTestData.generateMemoryHeapDumpData(heapDumpInfo.startTime, heapDumpInfo.startTime, heapDumpInfo)
+          .setPid(process1.pid)
+          .build(),
+      )
+      myManager.update()
+      assertThat(myObserver.sessionsChangedCount).isEqualTo(2)
+      // Repeated update should not fire the aspect.
+      myManager.update()
+      assertThat(myObserver.sessionsChangedCount).isEqualTo(2)
 
-    val cpuTraceTimestamp = 20L
-    val cpuTraceInfo = Trace.TraceInfo.newBuilder().setFromTimestamp(cpuTraceTimestamp).setToTimestamp(cpuTraceTimestamp + 1).build()
+      val cpuTraceTimestamp = 20L
+      val cpuTraceInfo = Trace.TraceInfo.newBuilder().setFromTimestamp(cpuTraceTimestamp).setToTimestamp(cpuTraceTimestamp + 1).build()
 
-    myTransportService.addEventToStream(
-      device.deviceId,
-      Common.Event.newBuilder()
-        .setGroupId(cpuTraceTimestamp)
-        .setPid(process1.pid)
-        .setKind(Common.Event.Kind.CPU_TRACE)
-        .setTimestamp(myTimer.currentTimeNs)
-        .setIsEnded(true)
-        .setTraceData(
-          Trace.TraceData.newBuilder().setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build())
-        )
-        .build(),
-    )
+      myTransportService.addEventToStream(
+        device.deviceId,
+        Common.Event.newBuilder()
+          .setGroupId(cpuTraceTimestamp)
+          .setPid(process1.pid)
+          .setKind(Common.Event.Kind.CPU_TRACE)
+          .setTimestamp(myTimer.currentTimeNs)
+          .setIsEnded(true)
+          .setTraceData(
+            Trace.TraceData.newBuilder().setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(cpuTraceInfo).build())
+          )
+          .build(),
+      )
 
-    myManager.update()
-    assertThat(myObserver.sessionsChangedCount).isEqualTo(3)
-    // Repeated update should not fire the aspect.
-    myManager.update()
-    assertThat(myObserver.sessionsChangedCount).isEqualTo(3)
+      myManager.update()
+      assertThat(myObserver.sessionsChangedCount).isEqualTo(3)
+      // Repeated update should not fire the aspect.
+      myManager.update()
+      assertThat(myObserver.sessionsChangedCount).isEqualTo(3)
+    } finally {
+      ideProfilerServices.setHeapDumpTraceInEditorEnabled(isHeapDumpEditorEnabled)
+    }
   }
 
   @Test

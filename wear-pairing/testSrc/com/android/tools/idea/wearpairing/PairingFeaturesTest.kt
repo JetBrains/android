@@ -55,6 +55,62 @@ class PairingFeaturesTest : LightPlatform4TestCase() {
 
     runBlocking { assertThat(device.getCompanionAppIdForWatch()).isEqualTo(OEM_COMPANION_FALLBACK_APP_ID) }
   }
+
+  @Test
+  fun onGettingCompanionAppId_malformedSetting_returnsFallbackOrProperty() {
+    val device = createDeviceWithShellCommandResult("x; touch /sdcard/PWNED; echo versionName=")
+    whenever(device.getSystemProperty(any())).thenReturn(Futures.immediateFuture("null"))
+
+    runBlocking { assertThat(device.getCompanionAppIdForWatch()).isEqualTo(OEM_COMPANION_FALLBACK_APP_ID) }
+  }
+
+  @Test
+  fun onGettingCompanionAppId_malformedProperty_returnsFallback() {
+    val device = createDeviceWithShellCommandResult("null")
+    whenever(device.getSystemProperty(any())).thenReturn(Futures.immediateFuture("com.example;rm -rf /"))
+
+    runBlocking { assertThat(device.getCompanionAppIdForWatch()).isEqualTo(OEM_COMPANION_FALLBACK_APP_ID) }
+  }
+
+  @Test
+  fun onIsCompanionAppInstalled_malformedPackageName_returnsFalse() {
+    val device = createDeviceWithShellCommandResult("versionName=1.0")
+
+    runBlocking { assertThat(device.isCompanionAppInstalled("x; touch /sdcard/PWNED; echo versionName=")).isFalse() }
+  }
+
+  @Test
+  fun onLoadNodeID_validNodeIdFromPairingStatus_returnsNodeId() {
+    val device = createDeviceWithShellCommandResult { request ->
+      when {
+        request.contains("grep versionCode") -> "versionCode=${PairingFeature.GET_PAIRING_STATUS.minVersion}"
+        else -> "Local:[TestNodeId-123]"
+      }
+    }
+
+    runBlocking { assertThat(device.loadNodeID()).isEqualTo("TestNodeId-123") }
+  }
+
+  @Test
+  fun onLoadNodeID_malformedNodeIdFromPairingStatus_returnsEmptyString() {
+    val device = createDeviceWithShellCommandResult("Local:[x'; touch /sdcard/PWNED; echo ']")
+
+    runBlocking { assertThat(device.loadNodeID()).isEmpty() }
+  }
+
+  @Test
+  fun onLoadNodeID_validNodeIdFromDumpsys_returnsNodeId() {
+    val device = createDeviceWithShellCommandResult("local: TestNodeId-123")
+
+    runBlocking { assertThat(device.loadNodeID()).isEqualTo("TestNodeId-123") }
+  }
+
+  @Test
+  fun onLoadNodeID_malformedNodeIdFromDumpsys_returnsEmptyString() {
+    val device = createDeviceWithShellCommandResult("local: x'; touch /sdcard/PWNED; echo '")
+
+    runBlocking { assertThat(device.loadNodeID()).isEmpty() }
+  }
 }
 
 @RunWith(Parameterized::class)
@@ -69,24 +125,30 @@ class HasPairingFeatureTest(private val pairingFeature: PairingFeature) : LightP
 
   @Test
   fun onHasPairingFeature_lowerVersions_fail() {
-    val device = createDeviceWithShellCommandResult("    versionCode=1 minSdk=23 targetSdk=30")
+    val device = createDeviceWithShellCommandResult("    versionCode=1 minSdk=23 targetSdk=30 local: localNodeId")
 
     runBlocking { assertThat(device.hasPairingFeature(pairingFeature, OEM_COMPANION_FALLBACK_APP_ID)).isFalse() }
   }
 
   @Test
   fun onHasPairingFeature_higherVersions_succeed() {
-    val device = createDeviceWithShellCommandResult("    versionCode=${pairingFeature.minVersion} minSdk=23 targetSdk=30")
+    val device =
+      createDeviceWithShellCommandResult("    versionCode=${pairingFeature.minVersion} minSdk=23 targetSdk=30 local: localNodeId")
 
     runBlocking { assertThat(device.hasPairingFeature(pairingFeature, OEM_COMPANION_FALLBACK_APP_ID)).isTrue() }
   }
 }
 
 private fun createDeviceWithShellCommandResult(result: String): IDevice {
+  return createDeviceWithShellCommandResult { _ -> result }
+}
+
+private fun createDeviceWithShellCommandResult(resultProvider: (String) -> String): IDevice {
   val device = mock<IDevice>()
   doAnswer { invocation: InvocationOnMock ->
+      val request = invocation.getArgument<String>(0)
       val outputReceiver = invocation.getArgument<IShellOutputReceiver>(1)
-      val data = result.toByteArray()
+      val data = resultProvider(request).toByteArray()
       outputReceiver.addOutput(data, 0, data.size)
       null
     }

@@ -22,6 +22,7 @@ import com.android.tools.adtui.ImageUtils.scale
 import com.android.tools.adtui.util.rotatedByQuadrants
 import com.android.tools.adtui.util.scaled
 import com.android.tools.idea.concurrency.createCoroutineScope
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
 import com.android.tools.idea.streaming.core.AbstractDisplayView
@@ -146,7 +147,7 @@ internal class DeviceView(
   override val isConnected: Boolean
     get() = connectionState == ConnectionState.CONNECTED
 
-  override val deviceId: StreamingDeviceId = StreamingDeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber)
+  override val deviceId: StreamingDeviceId = deviceClient.deviceId
   override val deviceType: DeviceType = deviceConfig.deviceType
 
   /**
@@ -263,6 +264,10 @@ internal class DeviceView(
     addMouseWheelListener(mouseListener)
 
     addKeyListener(MyKeyListener())
+    if (StudioFlags.DEVICE_MIRRORING_UNICODE_TYPING.get()) {
+      enableInputMethods(true)
+    }
+
     project.messageBus.connect(this).subscribe(DeviceMirroringSettingsListener.TOPIC, this)
   }
 
@@ -938,6 +943,9 @@ internal class DeviceView(
       }
       if (!isInsideDisplay(event)) {
         return
+      }
+      if (event.modifiersEx and SHIFT_DOWN_MASK.inv() != 0) {
+        return // Modifiers other than Shift are not allowed.
       }
       terminateHovering(event)
       // AWT fakes shift being held down for horizontal scrolling.

@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.insights.ui.actions
 
-import com.android.tools.idea.insights.AppInsightsProjectLevelController
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashController
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.FakeInsightsProvider
 import com.android.tools.idea.insights.client.Permission
 import com.android.tools.idea.insights.model.connection.ConnectionMode
 import com.android.tools.idea.insights.model.event.Event
-import com.android.tools.idea.insights.model.issue.AppInsightsIssue
+import com.android.tools.idea.insights.model.issue.AppInsightsCrash
 import com.android.tools.idea.insights.model.issue.FailureType
 import com.android.tools.idea.insights.model.issue.IssueDetails
 import com.android.tools.idea.insights.model.issue.IssueId
@@ -45,12 +45,12 @@ class ToggleIssueActionTest {
   private var controllerPermission = Permission.FULL
   private var connectionMode = ConnectionMode.ONLINE
   private val mockAppInsightState =
-    mock<AppInsightsState>().apply {
+    mock<AppInsightsCrashState>().apply {
       whenever(permission).thenAnswer { controllerPermission }
       whenever(mode).thenAnswer { connectionMode }
     }
 
-  private val mockController = mock<AppInsightsProjectLevelController>()
+  private val mockController = mock<AppInsightsCrashController>()
 
   @Test
   fun `close issue`() {
@@ -135,12 +135,12 @@ class ToggleIssueActionTest {
     assertThat(event.presentation.isEnabled).isFalse()
   }
 
-  private fun createToggleIssueAction(issue: AppInsightsIssue) = ToggleIssueAction(mockController, mockAppInsightState, issue)
+  private fun createToggleIssueAction(issue: AppInsightsCrash) = ToggleIssueAction(mockController, mockAppInsightState, issue)
 
   private fun createAnActionEvent(action: AnAction) = createEvent(action, { _: String -> }, null, "", ActionUiKind.NONE, null)
 
   private fun createAppInsightIssue(state: IssueState) =
-    AppInsightsIssue(
+    AppInsightsCrash(
       IssueDetails(
         IssueId("1234"),
         "Issue1",

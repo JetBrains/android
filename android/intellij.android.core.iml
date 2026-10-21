@@ -23,7 +23,6 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
-    <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.jetbrains.annotations" />
     <orderEntry type="module-library">
       <library name="instantapps-api">
@@ -38,7 +37,6 @@
     <orderEntry type="module" module-name="intellij.libraries.gradle" />
     <orderEntry type="module" module-name="intellij.libraries.guava" />
     <orderEntry type="module" module-name="intellij.libraries.hdr.histogram" />
-    <orderEntry type="module" module-name="intellij.libraries.junit4" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.aalto.xml" />
     <orderEntry type="library" name="aapt-proto" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.asm.tools" />
@@ -59,14 +57,12 @@
     <orderEntry type="module" module-name="intellij.libraries.kotlin.reflect" />
     <orderEntry type="module" module-name="intellij.libraries.kxml2" />
     <orderEntry type="module" module-name="intellij.libraries.protobuf" />
-    <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.analysis.api" />
     <orderEntry type="module" module-name="intellij.kotlin.references" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.common" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.scripting.common" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.scripting.jvm" />
     <orderEntry type="module" module-name="kotlin.scripting" />
-    <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.ir" scope="PROVIDED" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-gradle-statistics" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.jps.common" scope="PROVIDED" />
     <orderEntry type="inheritedJdk" />
@@ -128,8 +124,6 @@
     <orderEntry type="module" module-name="intellij.java.indexing" />
     <orderEntry type="module" module-name="intellij.java.psi" />
     <orderEntry type="module" module-name="intellij.java.psi.impl" />
-    <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.java.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.ui" />
     <orderEntry type="module" module-name="intellij.java.ui.tests" />
     <orderEntry type="module" module-name="intellij.java.syntax" />
@@ -139,7 +133,6 @@
     <orderEntry type="module" module-name="intellij.jvm.analysis" />
     <orderEntry type="module" module-name="intellij.jvm.analysis.impl" />
     <orderEntry type="module" module-name="intellij.jvm.analysis.java.tests" />
-    <orderEntry type="module" module-name="intellij.maven.artifactResolver.m31" scope="PROVIDED" />
     <orderEntry type="module" module-name="intellij.maven.server.eventListener" />
     <orderEntry type="module" module-name="intellij.maven.server.indexer" />
     <orderEntry type="module" module-name="intellij.platform.analysis" />
@@ -192,7 +185,6 @@
     <orderEntry type="module" module-name="intellij.platform.statistics" />
     <orderEntry type="module" module-name="intellij.platform.statistics.uploader" />
     <orderEntry type="module" module-name="intellij.platform.structureView" />
-    <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.testRunner" />
     <orderEntry type="module" module-name="intellij.platform.tests" />
     <orderEntry type="module" module-name="intellij.platform.uast" />

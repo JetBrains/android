@@ -17,6 +17,7 @@ package com.google.idea.blaze.android.run.runner
 
 import com.android.ddmlib.IDevice
 import com.android.tools.deployer.common.ApkVerifierTracker
+import com.android.tools.deployer.common.DeviceHolder
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.AndroidSessionInfo
@@ -93,10 +94,10 @@ class BlazeAndroidConfigurationExecutor(
     devices.forEach { device ->
       processHandler.addTargetDevice(device)
       if (launchOptions.isOpenLogcatAutomatically) {
-        project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, applicationId)
+        project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(project, device, applicationId)
       } else {
         console.printHyperlink(getShowLogcatLinkText(device)) { project ->
-          project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, applicationId)
+          project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(project, device, applicationId)
         }
       }
     }
@@ -121,7 +122,7 @@ class BlazeAndroidConfigurationExecutor(
 
       if (launchOptions.isDeploy) {
         val userIdFlags = UserIdHelper.getFlagsFromUserId(userId)
-        val skipVerification = ApkVerifierTracker.getSkipVerificationInstallationFlag(device, packageName)
+        val skipVerification = ApkVerifierTracker.getSkipVerificationInstallationFlag(DeviceHolder(device, null), packageName)
         val pmInstallOption = if (skipVerification != null) "$userIdFlags $skipVerification" else userIdFlags
         val deployOptions =
           DeployOptions(
@@ -208,7 +209,7 @@ class BlazeAndroidConfigurationExecutor(
       }
     }
 
-  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
+  override fun debug(indicator: ProgressIndicator): RunContentDescriptor? = runBlockingCancellable {
     val applicationId = applicationContext.applicationId
     val devices = getDevices(env, deviceFutures, indicator)
 
@@ -242,7 +243,7 @@ class BlazeAndroidConfigurationExecutor(
       launchStrategy.startDebuggerSession(runContext, debugger, debuggerState, env, device, console, indicator)
         ?: throw ExecutionException("Failed to start debugger")
 
-    debugSession.runContentDescriptor
+    @Suppress("UnstableApiUsage") debugSession.runContentDescriptor
   }
 
   private suspend fun createConsole(processHandler: ProcessHandler): ConsoleView =

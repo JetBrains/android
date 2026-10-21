@@ -19,7 +19,6 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.updater.Updatable
 import com.android.tools.idea.codenavigation.CodeLocation
 import com.android.tools.idea.transport.poller.TransportEventListener
-import com.android.tools.inspectors.common.api.actions.NavigateToCodeAction
 import com.android.tools.leakcanarylib.data.Analysis
 import com.android.tools.leakcanarylib.data.AnalysisFailure
 import com.android.tools.leakcanarylib.data.AnalysisSuccess
@@ -50,17 +49,19 @@ import com.android.tools.profilers.tasks.analytics.LeakCanaryUiAction
 import com.android.tools.profilers.tasks.analytics.TaskFinishedState
 import com.android.tools.profilers.tasks.analytics.TaskProcessingFailedMetadata
 import com.android.tools.profilers.tasks.analytics.TaskStartFailedMetadata
+import com.android.tools.profilers.tasks.analytics.TaskTracker
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
-import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.ActionUiKind
-import com.intellij.openapi.actionSystem.AnActionEvent.createEvent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.text.StringUtil.escapeXmlEntities
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.jetbrains.annotations.NotNull
@@ -74,8 +75,11 @@ private const val ON_HOST_SHARK_VERSION = "2.14"
 private const val METADATA_KEY_LEAKCANARY_MODE = "leakcanary_mode"
 private const val METADATA_KEY_SHARK_VERSION = "shark_version"
 
-class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumper: LeakCanaryHeapDumper? = null) :
-  ModelStage(profilers), Updatable {
+class LeakCanaryModel(
+  @NotNull private val profilers: StudioProfilers,
+  heapDumper: LeakCanaryHeapDumper? = null,
+  coroutineContext: CoroutineContext = Dispatchers.Main,
+) : ModelStage(profilers), Updatable {
 
   private lateinit var statusListener: TransportEventListener
   private lateinit var objectCountListener: TransportEventListener
@@ -124,6 +128,8 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
   val isLeakCanaryPresent = _isLeakCanaryPresent.asStateFlow()
   private val _isStopping = MutableStateFlow(false)
   val isStopping = _isStopping.asStateFlow()
+  private val scope = CoroutineScope(coroutineContext + SupervisorJob())
+  val insightModel = LeakInsightModel(profilers.ideServices, scope, ::trackUiAction)
   private val _isForceDumpExecuting = MutableStateFlow(false)
   val isForceDumpExecuting = _isForceDumpExecuting.asStateFlow()
   private val isSharkVersionEmitted = AtomicBoolean(false)
@@ -212,6 +218,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
 
   override fun onExit() {
     profilers.sessionsManager.unsetTaskDb(sessionData)
+    scope.cancel()
   }
 
   fun startListening() {
@@ -357,6 +364,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
   fun clearLeaks() {
     logger.info("Cleared LeakCanary leaks.")
     _leaks.value = listOf()
+    insightModel.clearInsights()
     onLeakSelection(null)
   }
 
@@ -367,6 +375,7 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
       myTaskTracker.trackLeakCanaryUiAction(LeakCanaryUiAction.NEW_LEAK_SELECTED)
     }
     _selectedLeak.value = newLeak
+    insightModel.onLeakSelection(newLeak)
   }
 
   private fun checkPresenceAndFetchThreshold() {
@@ -795,11 +804,8 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
   fun goToDeclaration(node: Node) {
     logger.info("User clicked go to declaration for: ${node.className}")
     myTaskTracker.trackLeakCanaryUiAction(LeakCanaryUiAction.GO_TO_DECLARATION_CLICKED)
-    val codeLocationSupplier: () -> CodeLocation = { CodeLocation.Builder(node.className.removeSuffix("[]")).build() }
-    val navigator = this.studioProfilers.ideServices.codeNavigator
-    val action = NavigateToCodeAction(codeLocationSupplier, navigator)
-    val event = createEvent(action, DataContext.EMPTY_CONTEXT, null, ActionPlaces.CODE_INSPECTION, ActionUiKind.NONE, null)
-    action.actionPerformed(event)
+    val codeLocation = CodeLocation.Builder(node.className.removeSuffix("[]")).build()
+    this.studioProfilers.ideServices.codeNavigator.navigate(codeLocation)
   }
 
   fun isDeclarationAvailableAsync(node: Node): CompletableFuture<Boolean> {
@@ -933,42 +939,19 @@ class LeakCanaryModel(@NotNull private val profilers: StudioProfilers, heapDumpe
     }
 
     private const val KEY_LEAKCANARY_BANNER_DO_NOT_SHOW = "leakcanary.banner.donotshow"
-
-    /**
-     * Extracts the class name of the node that is actually leaking (LeakingStatus.YES).
-     *
-     * @param leak The Leak object.
-     * @return The fully qualified class name of the leaking object, or an empty string if not found.
-     */
-    @JvmStatic
-    fun getLeakingFullClassName(leak: Leak?): String {
-      if (leak?.displayedLeakTrace == null || leak.displayedLeakTrace.isEmpty()) {
-        return ""
-      }
-      val leakTrace = leak.displayedLeakTrace.first()
-      return leakTrace.nodes.find { it.leakingStatus == LeakingStatus.YES }?.className ?: ""
-    }
-
-    /**
-     * Extracts the class name of the "Anchor" node. This is the last node in the trace that is marked as NO (not leaking) before the chain
-     * of UNKNOWN or YES nodes begins. This node usually holds the reference that causes the leak.
-     *
-     * @param leak The Leak object.
-     * @return The fully qualified class name of the anchor object, or an empty string if not found.
-     */
-    @JvmStatic
-    fun getAnchorFullClassName(leak: Leak?): String {
-      if (leak?.displayedLeakTrace == null || leak.displayedLeakTrace.isEmpty()) {
-        return ""
-      }
-      val leakTrace = leak.displayedLeakTrace.first()
-      // Find the last index of a node that is explicitly NOT leaking.
-      val lastNoIndex = leakTrace.nodes.indexOfLast { it.leakingStatus == LeakingStatus.NO }
-      return if (lastNoIndex != -1) leakTrace.nodes[lastNoIndex].className else ""
-    }
   }
 
   override fun update(elapsedNs: Long) {
     _elapsedNs.value += elapsedNs
+  }
+
+  /** Tracks a user interaction within an active LeakCanary task (e.g. clicking "Force Dump"). */
+  private fun TaskTracker.trackLeakCanaryUiAction(uiAction: LeakCanaryUiAction) {
+    profilers.ideServices.featureTracker.trackLeakCanaryEvent(this.taskMetadata, uiAction)
+  }
+
+  /** Tracks the completion of a LeakCanary memory analysis, logging the specific leak metrics. */
+  private fun TaskTracker.trackLeakCanaryAnalysis(leakAnalysis: LeakCanaryLeakAnalysis) {
+    profilers.ideServices.featureTracker.trackLeakCanaryEvent(this.taskMetadata, leakAnalysis)
   }
 }

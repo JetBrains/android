@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.runningdevices.ui
 
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.tools.idea.layoutinspector.TestScopeRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
@@ -34,6 +35,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Dimension
@@ -53,9 +55,11 @@ import org.junit.Test
 @RunsInEdt
 class AiGlassesSupportTest {
 
-  @get:Rule val edtRule = EdtRule()
+  private val edtRule = EdtRule()
 
-  @get:Rule val displayViewRule = EmulatorViewRule()
+  private val displayViewRule = EmulatorViewRule()
+
+  @get:Rule val rule = RuleChain(TestScopeRule(), displayViewRule, edtRule)
 
   private lateinit var fakeToolWindow: ToolWindow
   private lateinit var inspectorModel: InspectorModel

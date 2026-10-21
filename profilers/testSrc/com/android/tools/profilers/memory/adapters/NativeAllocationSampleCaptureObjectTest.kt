@@ -24,13 +24,14 @@ import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
-import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.memory.FakeCaptureObjectLoader
-import com.android.tools.profilers.memory.MainMemoryProfilerStage
+import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService
 import com.google.common.truth.Truth.assertThat
-import org.junit.Before
+import java.io.File
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 class NativeAllocationSampleCaptureObjectTest {
 
@@ -40,12 +41,9 @@ class NativeAllocationSampleCaptureObjectTest {
 
   @Rule @JvmField var grpcChannel = FakeGrpcChannel("NativeAllocationSampleCaptureObjectTest", transportService)
 
-  private var stage: MainMemoryProfilerStage? = null
-
-  @Before
+  @org.junit.Before
   fun setUp() {
-    stage =
-      MainMemoryProfilerStage(StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer), FakeCaptureObjectLoader())
+    ideProfilerServices.setNativeAllocationsTraceInEditorEnabled(false)
   }
 
   @Test
@@ -54,7 +52,16 @@ class NativeAllocationSampleCaptureObjectTest {
     val startTimeNs: Long = 3
     val endTimeNs: Long = 8
     val info = Trace.TraceInfo.newBuilder().setFromTimestamp(startTimeNs).setToTimestamp(endTimeNs).build()
-    val capture = NativeAllocationSampleCaptureObject(ProfilerClient(grpcChannel.channel), ProfilersTestData.SESSION_DATA, info, stage!!)
+    val capture =
+      NativeAllocationSampleCaptureObject(
+        ProfilerClient(grpcChannel.channel),
+        ProfilersTestData.SESSION_DATA,
+        info,
+        ideProfilerServices,
+        "x86",
+      ) {
+        File("dummy")
+      }
     // Verify values associated with the TraceInfo object.
     assertThat(startTimeNs).isEqualTo(capture.startTimeNs)
     assertThat(endTimeNs).isEqualTo(capture.endTimeNs)
@@ -68,12 +75,25 @@ class NativeAllocationSampleCaptureObjectTest {
     val startTimeNs: Long = 3
     val endTimeNs: Long = 8
     val info = Trace.TraceInfo.newBuilder().setFromTimestamp(startTimeNs).setToTimestamp(endTimeNs).build()
-    val capture = NativeAllocationSampleCaptureObject(ProfilerClient(grpcChannel.channel), ProfilersTestData.SESSION_DATA, info, stage!!)
     val todoBytes = ByteString.copyFrom("TODO".toByteArray())
-    transportService.addFile(
-      startTimeNs.toString(),
-      TransportServiceUtils.createTempFile("native-alloc-sample", "trace", todoBytes).absolutePath,
-    )
+    val traceFile = TransportServiceUtils.createTempFile("native-alloc-sample", "trace", todoBytes)
+    traceFile.deleteOnExit()
+
+    val mockTraceProcessorService = mock<TraceProcessorService>()
+    whenever(mockTraceProcessorService.loadTrace(any(), any(), any())).thenReturn(true)
+    ideProfilerServices.setTraceProcessorService(mockTraceProcessorService)
+
+    val capture =
+      NativeAllocationSampleCaptureObject(
+        ProfilerClient(grpcChannel.channel),
+        ProfilersTestData.SESSION_DATA,
+        info,
+        ideProfilerServices,
+        "x86",
+      ) {
+        traceFile
+      }
+
     assertThat(capture.load(null, null)).isTrue()
     assertThat(capture.isDoneLoading).isTrue()
     assertThat(capture.isError).isFalse()
@@ -85,7 +105,16 @@ class NativeAllocationSampleCaptureObjectTest {
     val startTimeNs: Long = 3
     val endTimeNs: Long = 8
     val info = Trace.TraceInfo.newBuilder().setFromTimestamp(startTimeNs).setToTimestamp(endTimeNs).build()
-    val capture = NativeAllocationSampleCaptureObject(ProfilerClient(grpcChannel.channel), ProfilersTestData.SESSION_DATA, info, stage!!)
+    val capture =
+      NativeAllocationSampleCaptureObject(
+        ProfilerClient(grpcChannel.channel),
+        ProfilersTestData.SESSION_DATA,
+        info,
+        ideProfilerServices,
+        "x86",
+      ) {
+        File("dummy")
+      }
     assertThat(capture.load(null, null)).isFalse()
     assertThat(capture.isError).isTrue()
   }

@@ -11,7 +11,9 @@ package com.example.external;
 public class ExternalJavaInSrcJar {
 
   public static final String STRING = "ExternalJavaInSrcJar";
-
+  public String copy(String s) {
+    return s;
+  }
 }
 EOF
 

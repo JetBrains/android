@@ -47,7 +47,6 @@ jvm_library(
         # do not sort,
         ":gradle",
         "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
         "//libraries/kotlinx/coroutines/core:core_test_lib",
         "//android/app-inspection/ide:ide_test_lib",
         "//android/app-inspection/inspector/api:api_test_lib",

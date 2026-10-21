@@ -92,7 +92,7 @@ class CallChartDetailsViewTest {
 
   @Test
   fun callChartHasCpuTraceEventTooltipView() {
-    val parser = CpuCaptureParser(profilers)
+    val parser = CpuCaptureParser(profilers.ideServices)
 
     val traceFile = resolveWorkspacePath(CpuProfilerUITestUtils.ATRACE_PID1_PATH).toFile()
     val aTraceCapture =

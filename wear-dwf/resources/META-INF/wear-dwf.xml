@@ -83,8 +83,4 @@
 
     <lang.foldingBuilder language="XML" implementationClass="com.android.tools.idea.wear.dwf.dom.raw.expressions.TemplateParameterStringFoldingBuilder" />
   </extensions>
-  <actions>
-    <action id="ImportWatchFaceStudioFileAction"
-            class="com.android.tools.idea.wear.dwf.importer.wfs.ImportWatchFaceStudioFileAction" text="Import Watch Face Studio File..." />
-  </actions>
 </idea-plugin>

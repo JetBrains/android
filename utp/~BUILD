@@ -23,7 +23,7 @@ iml_module(
         "@intellij//:com.intellij.gradle",
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
-        "//tools/adt/idea/utp:libstudio.android-test-plugin-result-listener-gradle-proto",
+        "//tools/adt/idea/utp:libstudio.android-test-engine-result-listener-proto",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/.idea/libraries:test-result-proto",
     ],
@@ -37,7 +37,7 @@ exports_files(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "libstudio.android-test-plugin-result-listener-gradle-proto",
-    jars = ["//tools/base/utp/android-test-plugin-result-listener-gradle-proto:libstudio.android-test-plugin-result-listener-gradle-proto.jar"],
+    name = "libstudio.android-test-engine-result-listener-proto",
+    jars = ["//tools/base/android-test/android-test-engine-result-listener:libstudio.android-test-engine-result-listener-proto.jar"],
     visibility = ["//visibility:public"],
 )

@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.streaming.core
 
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.tools.idea.streaming.emulator.EmulatorId
+import org.jetbrains.annotations.TestOnly
 
 /** Identifying information for a running Emulator or a connected physical device. */
 sealed class StreamingDeviceId(val serialNumber: String) : Comparable<StreamingDeviceId> {
@@ -27,9 +29,10 @@ sealed class StreamingDeviceId(val serialNumber: String) : Comparable<StreamingD
     }
   }
 
-  class PhysicalDeviceId(serialNumber: String) : StreamingDeviceId(serialNumber) {
+  class PhysicalDeviceId(serialNumber: String, val deviceId: DeviceId) : StreamingDeviceId(serialNumber) {
 
-    override fun equals(other: Any?): Boolean = this === other || other is PhysicalDeviceId && other.serialNumber == serialNumber
+    override fun equals(other: Any?): Boolean =
+      this === other || other is PhysicalDeviceId && other.serialNumber == serialNumber && other.deviceId == deviceId
 
     override fun hashCode(): Int = serialNumber.hashCode()
 
@@ -50,6 +53,10 @@ sealed class StreamingDeviceId(val serialNumber: String) : Comparable<StreamingD
   companion object {
     fun ofEmulator(emulatorId: EmulatorId): StreamingDeviceId = EmulatorDeviceId(emulatorId)
 
-    fun ofPhysicalDevice(serialNumber: String): StreamingDeviceId = PhysicalDeviceId(serialNumber)
+    fun ofPhysicalDevice(serialNumber: String, deviceId: DeviceId): StreamingDeviceId = PhysicalDeviceId(serialNumber, deviceId)
+
+    @TestOnly
+    fun ofPhysicalDevice(serialNumber: String): StreamingDeviceId =
+      PhysicalDeviceId(serialNumber, DeviceId("PhysicalDevice", false, "serial=$serialNumber"))
   }
 }

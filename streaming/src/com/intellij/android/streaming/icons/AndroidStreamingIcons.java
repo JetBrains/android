@@ -14,5 +14,5 @@ public final class AndroidStreamingIcons {
   private static @NotNull Icon load(@NotNull String path, int cacheKey, int flags) {
     return IconManager.getInstance().loadRasterizedIcon(path, AndroidStreamingIcons.class.getClassLoader(), cacheKey, flags);
   }
-  /** 16x16 */ public static final @NotNull Icon FitView = load("icons/fit-view.svg", -842529787, 0);
+  /** 16x16 */ public static final @NotNull Icon ZoomFitView = load("icons/zoom-fit-view.svg", -70700135, 2);
 }

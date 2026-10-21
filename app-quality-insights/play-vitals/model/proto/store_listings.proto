@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package google.play.developer.reporting.v1beta1;
+
+import "metrics.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "StoreListingsProto";
+option java_package = "com.google.play.developer.reporting";
+
+message StoreListingMetricSet {
+  string name = 1;
+  FreshnessInfo freshness_info = 2;
+}
+message GetStoreListingMetricSetRequest {
+  string name = 1;
+}
+message QueryStoreListingMetricSetRequest {
+  string name = 1;
+  TimelineSpec timeline_spec = 2;
+  repeated string dimensions = 3;
+  repeated string metrics = 4;
+  string filter = 7;
+  int32 page_size = 5;
+  string page_token = 6;
+}
+message QueryStoreListingMetricSetResponse {
+  repeated MetricsRow rows = 1;
+  string next_page_token = 2;
+}

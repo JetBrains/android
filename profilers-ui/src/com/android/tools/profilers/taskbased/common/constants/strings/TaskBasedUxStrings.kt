@@ -134,8 +134,11 @@ object TaskBasedUxStrings {
   const val LEAKCANARY_COLLAPSE_ALL = "Collapse all nodes"
   const val LEAKCANARY_EXPAND_ALL_SHORTCUT = "Ctrl+NumPad+"
   const val LEAKCANARY_COLLAPSE_ALL_SHORTCUT = "Ctrl+NumPad-"
-  const val LEAKCANARY_FIX_WITH_AGENT = "Fix with Agent"
   const val LEAKCANARY_COPY_TO_CLIPBOARD = "Copy trace to clipboard"
+  const val LEAKCANARY_UPVOTE_INSIGHT = "Upvote Insight"
+  const val LEAKCANARY_DOWNVOTE_INSIGHT = "Downvote Insight"
+  const val LEAKCANARY_COPY_INSIGHT = "Copy Insight"
+  const val LEAKCANARY_REGENERATE_INSIGHT = "Regenerate Insight"
   const val LEAKCANARY_ANALYSIS = "Analyzing results:"
   const val LEAKCANARY_WAITING_HEAP_DUMP = "Waiting to dump heap until"
   const val LEAKCANARY_RETAINED_OBJECT = "retained object"
@@ -272,6 +275,8 @@ object TaskBasedUxStrings {
       StartTaskSelectionErrorCode.LEAKCANARY_REFLECTION_FAILED ->
         "Studio's LeakCanary integration library failed to attach. Required internal APIs are missing from the compiled app."
       StartTaskSelectionErrorCode.TASK_HAS_DEBUGGER_ATTACHED -> TASK_HAS_DEBUGGER_ATTACHED_MESSAGE
+      StartTaskSelectionErrorCode.LEAKCANARY_NOT_SUPPORTED_FOR_PCC ->
+        "LeakCanary profiling is not supported for apps containing Private Compute Core (PCC) components."
       StartTaskSelectionErrorCode.GENERAL_ERROR -> "This task cannot be run in this configuration"
     }
 

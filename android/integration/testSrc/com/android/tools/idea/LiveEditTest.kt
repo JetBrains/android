@@ -34,23 +34,17 @@ class LiveEditTest {
   @Throws(IOException::class)
   fun enableLiveEdit() {
     val filetypePaths = system.installation.configDir.resolve("options/other.xml")
-    check(!filetypePaths.toFile().exists()) {
-      String.format(
-        "%s already exists, which means this method should be changed to merge with it rather than overwriting it.",
-        filetypePaths,
-      )
-    }
-    Files.createDirectories(filetypePaths.parent)
-    val filetypeContents =
-      String.format(
-        "<application>%n" +
-          "  <component name=\"LiveEditConfiguration\">%n" +
-          "    <option name=\"leTriggerMode\" value=\"AUTOMATIC\" />%n" +
-          "    <option name=\"mode\" value=\"LIVE_EDIT\" />%n" +
-          "  </component>%n" +
-          "</application>"
-      )
-    Files.writeString(filetypePaths, filetypeContents, StandardCharsets.UTF_8)
+    val xmlContent = Files.readString(filetypePaths, StandardCharsets.UTF_8)
+    val component =
+      """
+      |  <component name="LiveEditConfiguration">
+      |    <option name="leTriggerMode" value="AUTOMATIC" />
+      |    <option name="mode" value="LIVE_EDIT" />
+      |  </component>
+      |"""
+        .trimMargin()
+    val newXmlContent = xmlContent.replace("</application>", component + "</application>")
+    Files.writeString(filetypePaths, newXmlContent, StandardCharsets.UTF_8)
   }
 
   @Test

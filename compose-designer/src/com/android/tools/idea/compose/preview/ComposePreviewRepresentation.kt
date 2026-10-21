@@ -26,6 +26,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.DesignSurfaceZoomController
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.android.tools.idea.compose.PsiComposePreviewElement
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
@@ -611,6 +612,17 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
     // Currently it will re-create classloader and will be slower than switch from static
     usageTrackerProvider().logStartupTime((System.currentTimeMillis() - startUpStart).toInt(), peerPreviews)
     interactiveManager.start()
+    withContext(Dispatchers.EDT) {
+      if (interactivePreviewNavigationController.canShowNavigationPanel()) {
+        // When interactive navigation controls can be shown, reset the zoom-to-fit settings
+        // and re-trigger zoomToFit so that the design surface adjusts its viewport and scale
+        // properly to accommodate the bottom navigation controls panel.
+        val zoomController = surface.zoomController as DesignSurfaceZoomController
+        zoomController.resetZoomToFitSettings()
+        interactivePreviewNavigationController.showNavigationControls(instance)
+        zoomController.zoomToFit()
+      }
+    }
     requestVisibilityAndNotificationsUpdate()
     ActivityTracker.getInstance().inc()
   }
@@ -776,13 +788,15 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
   private val fpsLimitFlow = essentialsModeFlow(project, this).fpsLimitFlow(this, COMPOSE_INTERACTIVE_FPS_LIMIT.get())
 
   @VisibleForTesting
-  val interactiveManager =
+  val interactiveManager: InteractivePreviewManager =
     InteractivePreviewManager(
-        composeWorkBench.mainSurface,
-        fpsLimitFlow.value,
-        { surface.sceneManagers },
-        usageTrackerProvider,
-        delegateInteractionHandler,
+        surface = composeWorkBench.mainSurface,
+        initialFpsLimit = fpsLimitFlow.value,
+        interactiveScenesProvider = { surface.sceneManagers },
+        usageTrackerProvider = usageTrackerProvider,
+        delegateInteractionHandler = delegateInteractionHandler,
+        isBackGestureInProgress = { interactivePreviewNavigationController.isBackGestureInProgress },
+        onInteractionStart = { interactivePreviewNavigationController.backPressCancelled() },
       )
       .also { Disposer.register(this@ComposePreviewRepresentation, it) }
 
@@ -1091,10 +1105,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile, composePreviewViewProvider:
       if (!hasRenderedAtLeastOnce.getAndSet(true)) {
         logComposePreviewLiteModeEvent(ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType.OPEN_AND_RENDER)
       }
-      // If this render was triggered by a mode change, check if we have stored scale, if we do we
-      // try to restore it.
-      // Otherwise, we notify to surface to apply zoom-to-fit.
-      if (isPreviewModeChanging.getAndSet(false)) {
+      // If this render was triggered by a mode change and succeeded without errors, it restores the stored scale or triggers a zoom-to-fit.
+      // Zoom-to-fit is skipped on render errors to avoid incorrect scale calculations due to invalid preview sizes.
+      val hasNoRenderErrors = surface.sceneManagers.none { it.renderResult.isErrorResult(COMPOSE_VIEW_ADAPTER_FQN) }
+      if (hasNoRenderErrors && isPreviewModeChanging.getAndSet(false)) {
         launch(Dispatchers.EDT) {
           if (!surface.restorePreviousScale()) {
             surface.zoomController.zoomToFit()

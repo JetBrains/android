@@ -22,16 +22,17 @@ import com.android.tools.idea.serverflags.protos.StudioVersionRecommendation
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.UpgradeAndroidStudioDialogStats
 import com.intellij.CommonBundle
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.BrowserLink
 import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.SwingHelper
-import java.awt.Desktop
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
 import javax.swing.Action
@@ -69,7 +70,7 @@ class AndroidSdkCompatibilityDialog(
           AndroidBundle.message(
             "project.upgrade.studio.notification.body.different.channel.recommendation",
             ApplicationInfo.getInstance().fullVersion,
-            potentialFallbackVersion.buildDisplayName,
+            StringUtil.escapeXmlEntities(potentialFallbackVersion.buildDisplayName),
           )
         } else {
           AndroidBundle.message("project.upgrade.studio.notification.body.no.recommendation", ApplicationInfo.getInstance().fullVersion)
@@ -78,7 +79,7 @@ class AndroidSdkCompatibilityDialog(
         AndroidBundle.message(
           "project.upgrade.studio.notification.body.same.channel.recommendation",
           ApplicationInfo.getInstance().fullVersion,
-          recommendedVersion.buildDisplayName,
+          StringUtil.escapeXmlEntities(recommendedVersion.buildDisplayName),
         )
       }
 
@@ -113,10 +114,11 @@ class AndroidSdkCompatibilityDialog(
       isEditable = false
       SwingHelper.setHtml(this, htmlBodyContent, null)
       caretPosition = 0
-      addHyperlinkListener { e ->
-        if (e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-          if (Desktop.isDesktopSupported()) {
-            Desktop.getDesktop().browse(e.url.toURI())
+      addHyperlinkListener { event ->
+        if (event.eventType == HyperlinkEvent.EventType.ACTIVATED) {
+          val url = event.url?.toExternalForm()
+          if (url != null) {
+            BrowserUtil.browse(url, project)
           }
         }
       }
@@ -146,7 +148,10 @@ class AndroidSdkCompatibilityDialog(
 
     val content = StringBuilder()
     content.append(
-      "Affected modules: " + modulesToShow.joinToString { "<br/>'${it.first}' (compileSdk=${it.second.apiStringWithoutExtension})" }
+      "Affected modules: " +
+        modulesToShow.joinToString {
+          "<br/>'${StringUtil.escapeXmlEntities(it.first)}' (compileSdk=${it.second.apiStringWithoutExtension})"
+        }
     )
 
     if (remainingModules.isNotEmpty()) {

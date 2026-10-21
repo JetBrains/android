@@ -1,0 +1,124 @@
+/*
+ * Copyright (C) 2023 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.insights.ui
+
+import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.gemini.GeminiPluginApi
+import com.android.tools.idea.insights.AppInsightsCrashController
+import com.android.tools.idea.insights.ai.AiInsightToolkit
+import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.model.event.Event
+import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.ThreeComponentsSplitter
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.wm.ToolWindowManager
+import java.awt.BorderLayout
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
+import java.awt.event.MouseListener
+import javax.swing.JPanel
+
+val REQUEST_SOURCE_KEY = DataKey.create<GeminiPluginApi.RequestSource>("RequestSource")
+val SELECTED_EVENT_KEY = DataKey.create<Event>("SelectedEvent")
+val AI_INSIGHT_TOOLKIT_KEY = DataKey.create<AiInsightToolkit>("AiInsightToolkit")
+val APP_INSIGHTS_TRACKER_KEY = DataKey.create<AppInsightsTracker>("AppInsightsTracker")
+val SELECTED_APP_ID_KEY = DataKey.create<String>("SelectedAppId")
+
+class AppInsightsCrashContentPanel(
+  projectController: AppInsightsCrashController,
+  project: Project,
+  parentDisposable: Disposable,
+  cellRenderer: AppInsightsTableCellRenderer,
+  name: String,
+  secondaryToolWindows: List<AppInsightsToolWindowDefinition>,
+  tableMouseListener: MouseListener? = null,
+  workBenchFactory: (Disposable) -> WorkBench<AppInsightsToolWindowContext> = { WorkBench(project, name, null, it) },
+  createCenterPanel: () -> PanelWithHeaderComponent,
+) : JPanel(BorderLayout()), Disposable {
+  private val issuesTableView: AppInsightsCrashesTableView
+  private val centerPanel: PanelWithHeaderComponent = createCenterPanel()
+
+  init {
+    Disposer.register(parentDisposable, this)
+    val issuesModel = AppInsightsCrashesTableModel(cellRenderer)
+    issuesTableView = AppInsightsCrashesTableView(issuesModel, projectController, cellRenderer, tableMouseListener)
+    Disposer.register(this, issuesTableView)
+    val mainContentPanel = JPanel(BorderLayout())
+    mainContentPanel.add(centerPanel)
+
+    val splitter =
+      ThreeComponentsSplitter(false, true).apply {
+        setHonorComponentsMinimumSize(true)
+        firstComponent = issuesTableView.component
+        lastComponent = mainContentPanel
+        ToolWindowManager.getInstance(project).getToolWindow(APP_INSIGHTS_ID)?.let { toolWindow ->
+          val minSize = toolWindow.component.width / 4
+          firstSize = minSize
+          lastSize = minSize
+        }
+      }
+
+    splitter.isFocusCycleRoot = false
+    val workBench = workBenchFactory(this)
+    val componentAdapter =
+      object : ComponentAdapter() {
+        override fun componentResized(e: ComponentEvent) {
+          invokeLater {
+            issuesTableView.setHeaderHeight(workBench.attachedToolWindowHeaderHeight)
+            centerPanel.setHeaderHeight(workBench.attachedToolWindowHeaderHeight)
+            splitter.revalidate()
+          }
+        }
+      }
+    splitter.addDividerResizeListener(componentAdapter)
+    splitter.addComponentListener(componentAdapter)
+
+    workBench.addWorkBenchToolWindowListener { visibleWindows ->
+      secondaryToolWindows.forEach { it.updateVisibility(it.name in visibleWindows) }
+    }
+    workBench.isFocusCycleRoot = false
+    workBench.init(splitter, AppInsightsToolWindowContext(), secondaryToolWindows, false)
+    // Set the Insight toolwindow as the default for the first time user launches with this feature.
+    maybeRestoreToolWindowOrder(name, workBench, secondaryToolWindows.firstOrNull()?.name ?: "")
+
+    add(workBench)
+  }
+
+  private fun maybeRestoreToolWindowOrder(name: String, workBench: WorkBench<AppInsightsToolWindowContext>, firstToolWindowName: String) {
+    if (name.contains("CRASHLYTICS")) {
+      restoreToolWindowOrder(name, workBench, firstToolWindowName)
+    } else if (name.contains("VITALS")) {
+      restoreToolWindowOrder(name, workBench, firstToolWindowName)
+    }
+  }
+
+  /** Restore the default layout in [WorkBench] and show the tool window with name matching [toolWindowName] */
+  private fun restoreToolWindowOrder(name: String, workBench: WorkBench<AppInsightsToolWindowContext>, toolWindowName: String) {
+    val propertiesComponent = PropertiesComponent.getInstance()
+    val key = "$name.workbench.toolwindow.order.updated"
+    if (!propertiesComponent.isValueSet(key)) {
+      workBench.restoreDefaultLayout()
+      workBench.showToolWindow(toolWindowName)
+      propertiesComponent.setValue(key, true)
+    }
+  }
+
+  override fun dispose() = Unit
+}

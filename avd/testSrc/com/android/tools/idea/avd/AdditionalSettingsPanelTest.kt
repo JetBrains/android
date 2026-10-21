@@ -26,7 +26,6 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.filterToOne
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasSetTextAction
-import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isPopup
 import androidx.compose.ui.test.onChild
@@ -35,11 +34,9 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
-import com.android.flags.junit.FlagRule
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.ISystemImage
-import com.android.sdklib.internal.avd.AiGlassesDisplayMode
 import com.android.sdklib.internal.avd.AvdNetworkSpeed
 import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.adtui.compose.LocalFileSystem
@@ -47,7 +44,6 @@ import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.cre
 import com.android.tools.adtui.compose.utils.lingerMouseHover
 import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
-import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import java.nio.file.Files
 import kotlin.math.max
@@ -63,7 +59,6 @@ import org.mockito.kotlin.whenever
 @RunWith(JUnit4::class)
 class AdditionalSettingsPanelTest {
   @get:Rule val rule = createStudioComposeTestRule()
-  @get:Rule val aiGlassesDisplaySettingFlagRule = FlagRule(StudioFlags.AI_GLASSES_DISPLAY_SETTING_ENABLED, true)
 
   @Test
   fun deviceSkinDropdownOnSelectedItemChange() {
@@ -178,7 +173,7 @@ class AdditionalSettingsPanelTest {
   }
 
   @Test
-  fun aiGlassesDisplayModeValidation() {
+  fun aiGlassesSkinDisabled() {
     val device = TestDevices.aiGlasses()
     val fileSystem = createInMemoryFileSystem()
 
@@ -188,13 +183,7 @@ class AdditionalSettingsPanelTest {
       provideCompositionLocals { CompositionLocalProvider(LocalFileSystem provides fileSystem) { AdditionalSettingsPanel(state) } }
     }
 
-    rule.onNode(hasText("Monocular Right") and hasTestTag("GlassesDisplayTypeDropdown")).assertIsDisplayed()
-
-    rule.onNodeWithTag("GlassesDisplayTypeDropdown").performClick()
-    rule.onNodeWithTag("GlassesDisplayTypeDropdownMenuItem_NONE", useUnmergedTree = true).performClick()
-    rule.waitForIdle()
-
-    assertThat(state.device.aiGlassesDisplayMode).isEqualTo(AiGlassesDisplayMode.NONE)
+    rule.onNodeWithTag("DeviceSkinDropdown").assertDoesNotExist()
   }
 
   @Test

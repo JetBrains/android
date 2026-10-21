@@ -20,7 +20,7 @@ import static com.android.tools.sdk.AndroidSdkData.getSdkData;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
-import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_21;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_25;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJre;
 import static com.intellij.openapi.projectRoots.JdkUtil.isModularRuntime;
@@ -118,7 +118,7 @@ import org.jetbrains.annotations.TestOnly;
  */
 public class IdeSdks {
   private static final JavaSdkVersion MIN_JDK_VERSION = JDK_1_8;
-  private static final JavaSdkVersion MAX_JDK_VERSION = JDK_21;
+  private static final JavaSdkVersion MAX_JDK_VERSION = JDK_25;
   @NonNls public static final String MAC_JDK_CONTENT_PATH = "Contents/Home";
   @NotNull public static final JavaSdkVersion DEFAULT_JDK_VERSION = MAX_JDK_VERSION;
   @NotNull public static final String JDK_LOCATION_ENV_VARIABLE_NAME = "STUDIO_GRADLE_JDK";
@@ -264,6 +264,7 @@ public class IdeSdks {
    * Clean environment variable settings initialization, this method should only be used by tests that called
    * IdeSdks#initializeJdkEnvVariable(java.lang.String).
    */
+  @TestOnly
   public void cleanJdkEnvVariableInitialization() {
     myEnvVariableSettings.cleanInitialization();
   }
@@ -272,8 +273,17 @@ public class IdeSdks {
    * Allow to override the value of the environment variable {JDK_LOCATION_ENV_VARIABLE_NAME}, this method should only be used by tests that
    * need to use a different JDK from a thread that can perform write actions.
    */
+  @TestOnly
   public void overrideJdkEnvVariable(@Nullable String envVariableValue) {
     myEnvVariableSettings.overrideValue(envVariableValue);
+  }
+
+  /**
+   * Called from a project startup activity from a known threading state, before other activities and functions start calling other
+   * methods from variously arbitrary threading states.
+   */
+  public void ensureEnvVariableSettingsInitialized() {
+    myEnvVariableSettings.ensureInitialized();
   }
 
   /**
@@ -731,7 +741,7 @@ public class IdeSdks {
   @NotNull
   private static List<File> getPotentialJdkPaths() {
     JavaSdk javaSdk = JavaSdk.getInstance();
-    List<String> jdkPaths = Lists.newArrayList(javaSdk.suggestHomePaths());
+    List<String> jdkPaths = Lists.newArrayList(javaSdk.suggestHomePaths(null));
     jdkPaths.add(SystemProperties.getJavaHome());
     jdkPaths.add(0, System.getenv("JDK_HOME"));
     List<File> virtualFiles = Lists.newArrayListWithCapacity(jdkPaths.size());
@@ -1119,6 +1129,10 @@ public class IdeSdks {
       mySdk = sdk;
       myUseJdkEnvVariable = (variableValue != null) && (jdkFile != null) && (sdk != null);
       myInitialized = true;
+    }
+
+    public void ensureInitialized() {
+      initialize();
     }
 
     public boolean isUseJdkEnvVariable() {

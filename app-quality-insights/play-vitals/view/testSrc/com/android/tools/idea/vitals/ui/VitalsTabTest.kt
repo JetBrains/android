@@ -19,7 +19,7 @@ import com.android.testutils.delayUntilCondition
 import com.android.testutils.time.FakeClock
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
-import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
+import com.android.tools.idea.insights.AppInsightsCrashControllerRule
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.DEFAULT_FETCHED_DEVICES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_OSES
@@ -35,7 +35,7 @@ import com.android.tools.idea.insights.model.event.Event
 import com.android.tools.idea.insights.model.event.EventPage
 import com.android.tools.idea.insights.model.issue.DetailedIssueStats
 import com.android.tools.idea.insights.model.issue.IssueStats
-import com.android.tools.idea.insights.ui.AppInsightsIssuesTableView
+import com.android.tools.idea.insights.ui.AppInsightsCrashesTableView
 import com.android.tools.idea.insights.ui.DetailsPanelHeader
 import com.android.tools.idea.insights.ui.DistributionPanel
 import com.android.tools.idea.insights.ui.DistributionsContainerPanel
@@ -77,7 +77,7 @@ import org.junit.rules.RuleChain
 class VitalsTabTest {
 
   private val projectRule = ProjectRule()
-  private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
+  private val controllerRule = AppInsightsCrashControllerRule(projectRule)
 
   @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(controllerRule)
 
@@ -169,7 +169,7 @@ class VitalsTabTest {
       assertThat(fakeUi.getTimestampFromLastRefresh().displayText).startsWith("Last refreshed:")
 
       // Table
-      val table = fakeUi.findComponent<AppInsightsIssuesTableView.IssuesTableView>()!!
+      val table = fakeUi.findComponent<AppInsightsCrashesTableView.IssuesTableView>()!!
       assertThat(table.rowCount).isEqualTo(1)
       assertThat(table.getRow(0)).isEqualTo(ISSUE1)
 
@@ -391,7 +391,7 @@ class VitalsTabTest {
       controllerRule.controller.refresh()
       controllerRule.client.completeIssuesCallWithPreconditionFailed()
 
-      val tableView = fakeUi.findComponent<AppInsightsIssuesTableView.IssuesTableView>()!!
+      val tableView = fakeUi.findComponent<AppInsightsCrashesTableView.IssuesTableView>()!!
       delayUntilCondition(200) { !tableView.isLoading() }
 
       assertThat(tableView.emptyText.toString())

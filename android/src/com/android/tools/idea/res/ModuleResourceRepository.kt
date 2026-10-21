@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res
 
+import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.SingleNamespaceResourceRepository
 import com.android.resources.ResourceType
@@ -27,6 +28,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.application
+import java.util.concurrent.atomic.AtomicBoolean
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.facet.ResourceFolderManager.ResourceFolderListener
@@ -46,6 +48,10 @@ private constructor(
 ) : MemoryTrackingMultiResourceRepository(parentDisposable, facet.module.name), SingleNamespaceResourceRepository {
 
   private val registry = ResourceFolderRegistry.getInstance(facet.module.project)
+  private val _isLoaded = AtomicBoolean(false)
+  /** Returns `true` after [ensureLoaded] has been called. */
+  val isLoaded
+    get() = _isLoaded.get()
 
   init {
     val childRepositories = delegates ?: computeChildRepositories()
@@ -81,7 +87,7 @@ private constructor(
    *
    * @param facet [AndroidFacet] that repositories will correspond to
    */
-  private fun computeChildRepositories() = ResourceFolderManager.getInstance(facet).folders.asReversed().map { registry[facet, it] }
+  private fun computeChildRepositories() = ResourceFolderManager.getInstance(facet).folders.asReversed().map { registry[facet, it, false] }
 
   override fun refreshChildren() {
     // There are no current scenarios where this function will be called on
@@ -154,6 +160,16 @@ private constructor(
     super.invalidateCache()
 
     application.invokeLater { runWriteAction { facet.module.publishModuleOutOfBlockModificationEvent() } }
+  }
+
+  /**
+   * This method ensures any children repositories are loaded. This method is separated from the constructor to ensure we don't hold on to
+   * any locks during expensive IO operations.
+   */
+  @Slow
+  fun ensureLoaded() {
+    children.forEach { (it as? ResourceFolderRepository)?.ensureLoaded() }
+    _isLoaded.set(true)
   }
 
   companion object {

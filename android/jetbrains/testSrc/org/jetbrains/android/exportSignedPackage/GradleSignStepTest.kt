@@ -22,6 +22,8 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl
 import com.android.tools.idea.gservices.DevServicesDeprecationData
 import com.android.tools.idea.gservices.DevServicesDeprecationStatus
 import com.android.tools.idea.help.AndroidWebHelpProvider
+import com.android.tools.idea.publishing.AdiClient
+import com.android.tools.idea.publishing.RegistrationState
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.testing.flags.overrideForTest
 import com.google.common.truth.Truth.assertThat

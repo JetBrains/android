@@ -20,6 +20,7 @@ import com.android.adblib.DeviceState.ONLINE
 import com.android.adblib.testingutils.CoroutineTestUtils.yieldUntil
 import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
@@ -43,13 +44,15 @@ internal class TestDevice(
   private val manufacturer: String = "",
   private val model: String = "",
   private val avdName: String = "",
+  id: DeviceId? = null,
   private val type: DeviceType = DeviceType.HANDHELD,
 ) {
-
+  val id = id ?: DeviceId("Fake", false, serialNumber)
   val device =
     when {
       serialNumber.isEmulatorSerial() ->
         Device.createEmulator(
+          this.id,
           serialNumber,
           state == ONLINE,
           release,
@@ -58,7 +61,7 @@ internal class TestDevice(
           AVD_ROOT.resolve("$avdName.avd").pathString,
           type,
         )
-      else -> Device.createPhysical(serialNumber, state == ONLINE, release, AndroidVersion(sdk, 0), manufacturer, model, type)
+      else -> Device.createPhysical(this.id, serialNumber, state == ONLINE, release, AndroidVersion(sdk, 0), manufacturer, model, type)
     }
   private val deviceProperties =
     when {
@@ -80,13 +83,17 @@ internal class TestDevice(
     }
 
   // Return a new TestDevice with a different serial number
-  fun withSerialNumber(serialNumber: String): TestDevice = TestDevice(serialNumber, state, release, sdk, manufacturer, model, avdName)
+  fun withSerialNumber(serialNumber: String): TestDevice = TestDevice(serialNumber, state, release, sdk, manufacturer, model, avdName, id)
 
   // Return a new TestDevice with a different state
-  fun withState(state: DeviceState): TestDevice = TestDevice(device.serialNumber, state, release, sdk, manufacturer, model, avdName)
+  fun withState(state: DeviceState): TestDevice = TestDevice(device.serialNumber, state, release, sdk, manufacturer, model, avdName, id)
+
+  // Return a new TestDevice with an explicit id
+  fun withId(id: String): TestDevice =
+    TestDevice(device.serialNumber, state, release, sdk, manufacturer, model, avdName, DeviceId("Fake", false, id))
 
   suspend fun addDevice(plugin: FakeAdbDeviceProvisionerPlugin): FakeDeviceHandle {
-    val handle = plugin.newDevice(serialNumber, deviceProperties)
+    val handle = plugin.newDevice(serialNumber, deviceProperties, id)
     plugin.addDevice(handle)
     if (state == ONLINE) {
       handle.activationAction.activate()

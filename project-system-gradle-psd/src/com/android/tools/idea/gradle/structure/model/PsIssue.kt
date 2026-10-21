@@ -21,17 +21,13 @@ import com.intellij.icons.AllIcons.Actions.Download
 import com.intellij.icons.AllIcons.General.BalloonError
 import com.intellij.icons.AllIcons.General.BalloonInformation
 import com.intellij.icons.AllIcons.General.BalloonWarning
-import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.ui.JBColor
 import com.intellij.ui.JBColor.GRAY
 import com.intellij.ui.JBColor.RED
 import java.awt.Color
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
-import java.io.Serializable
 import javax.swing.Icon
+import org.jetbrains.annotations.VisibleForTesting
 
 interface PsIssue {
   val text: String
@@ -57,21 +53,83 @@ interface PsIssue {
   }
 }
 
-interface PsQuickFix : Serializable {
-  val text: String
+abstract class PsQuickFix {
+  abstract val text: String
 
-  fun execute(context: PsContext)
+  abstract fun execute(context: PsContext)
+
+  fun serialize(): String = serializedInfo().joinToString("|") { escape(it) }
+
+  abstract fun serializedInfo(): List<String>
+
+  object NoOpPsQuickFix : PsQuickFix() {
+    override val text: String = ""
+
+    override fun execute(context: PsContext) {}
+
+    override fun serializedInfo() = listOf("NO_OP")
+  }
 
   companion object {
-    fun deserialize(data: String): PsQuickFix =
-      ObjectInputStream(ByteArrayInputStream(StringUtil.parseHexString(data))).readObject() as PsQuickFix
-  }
-}
+    private val LOG = Logger.getInstance(PsQuickFix::class.java)
+    private val deserializers: MutableMap<String, (List<String>) -> PsQuickFix> = mutableMapOf()
 
-fun PsQuickFix.serialize(): String {
-  val byteArrayOutputStream = ByteArrayOutputStream()
-  ObjectOutputStream(byteArrayOutputStream).use { objectOutputStream -> objectOutputStream.writeObject(this) }
-  return StringUtil.toHexString(byteArrayOutputStream.toByteArray())
+    @VisibleForTesting
+    fun escape(value: String): String {
+      return value.replace("\\", "\\\\").replace("|", "\\|")
+    }
+
+    @VisibleForTesting
+    fun splitEscaped(data: String): List<String> {
+      val result = mutableListOf<String>()
+      var currentSegment = StringBuilder()
+      var i = 0
+      while (i < data.length) {
+        val char = data[i]
+        if (char == '\\') {
+          if (i + 1 < data.length) {
+            currentSegment.append(data[i + 1])
+            i++ // Skip next char
+          } else {
+            currentSegment.append(char) // Trailing backslash
+          }
+        } else if (char == '|') {
+          result.add(currentSegment.toString())
+          currentSegment.setLength(0)
+        } else {
+          currentSegment.append(char)
+        }
+        i++
+      }
+      result.add(currentSegment.toString())
+      return result
+    }
+
+    fun registerDeserializer(type: String, deserializer: (List<String>) -> PsQuickFix) {
+      if (deserializers.containsKey(type)) {
+        LOG.error("Duplicate PsQuickFix deserializer registration for type '$type'")
+      } else {
+        deserializers[type] = deserializer
+      }
+    }
+
+    init {
+      registerDeserializer("NO_OP") { NoOpPsQuickFix }
+    }
+
+    fun deserialize(data: String): PsQuickFix {
+      try {
+        val parts = splitEscaped(data)
+        val type = parts[0]
+        val args = parts.drop(1)
+        val deserializer = deserializers[type]
+        return deserializer?.invoke(args) ?: NoOpPsQuickFix.also { LOG.warn("No deserializer found for type '$type'") }
+      } catch (e: Exception) {
+        LOG.warn("Failed to deserialize PsQuickFix data: $data", e)
+        return NoOpPsQuickFix
+      }
+    }
+  }
 }
 
 fun PsQuickFix.getHyperlinkDestination(): String = "$QUICK_FIX_PATH_TYPE${serialize()}"

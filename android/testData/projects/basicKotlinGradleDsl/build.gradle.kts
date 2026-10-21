@@ -1,6 +1,5 @@
 plugins {
   alias(libs.plugins.android.application) apply true
-  alias(libs.plugins.kotlinAndroid) apply true
 }
 
 @Suppress("DEPRECATION")

@@ -67,7 +67,8 @@ private constructor(
   val postures: List<PostureDescriptor> = emptyList(),
   val touchpadSize: Dimension? = null,
   val dimmingLevels: FloatArray = floatArrayOf(),
-  val ledIndicators: List<LedIndicator> = emptyList(),
+  val hasLedIndicators: Boolean = false,
+  val handAndEyeInputSupported: Boolean = false,
 ) {
 
   val displayWidth: Int
@@ -246,22 +247,22 @@ private constructor(
             }
           }
         }
-      val ledIndicators =
-        when (val ledIndicatorsValue = configIni[HW_LED_INDICATORS]) {
-          null -> emptyList()
-          else -> {
+      val hasLedIndicators =
+        when {
+          configIni[HW_LED_INDICATORS] == "yes" -> {
             val features = systemImageFeatures ?: readSystemImageFeatures(systemImageDir).also { systemImageFeatures = it }
-            try {
-              val ledIndicatorsFeature = features["LedIndicators"]
-              if (ledIndicatorsFeature == "on") {
-                ledIndicatorsValue.split(',').map { LedIndicator(it) }
-              } else {
-                emptyList()
-              }
-            } catch (e: Exception) {
-              throw RuntimeException("Unrecognized value of the $HW_LED_INDICATORS property, \"$ledIndicatorsValue\", in $configIniFile", e)
-            }
+            features["LedIndicators"] == "on"
           }
+          else -> false
+        }
+
+      val handAndEyeInputSupported =
+        when (deviceType) {
+          DeviceType.XR_HEADSET -> {
+            val features = systemImageFeatures ?: readSystemImageFeatures(systemImageDir).also { systemImageFeatures = it }
+            features["XrHandAndEyePointers"] == "on"
+          }
+          else -> false
         }
 
       return EmulatorConfiguration(
@@ -282,7 +283,8 @@ private constructor(
         postures = postures,
         touchpadSize = touchpadSize,
         dimmingLevels = dimmingLevels,
-        ledIndicators = ledIndicators,
+        hasLedIndicators = hasLedIndicators,
+        handAndEyeInputSupported = handAndEyeInputSupported,
       )
     }
 
@@ -383,19 +385,6 @@ private constructor(
     enum class ValueType {
       HINGE_ANGLE,
       ROLL_PERCENTAGE,
-    }
-  }
-
-  data class LedIndicator(val id: Int, val facing: Facing) {
-
-    /** Parses a string like "1:OUTSIDE". */
-    constructor(
-      s: String
-    ) : this(id = s.substringBefore(':').trim().toInt(), facing = Facing.valueOf(s.substringAfter(':').trim().uppercase()))
-
-    enum class Facing {
-      INSIDE,
-      OUTSIDE,
     }
   }
 }

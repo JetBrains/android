@@ -45,6 +45,8 @@ import com.intellij.psi.search.DelegatingGlobalSearchScope
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.usageView.UsageInfo
+import java.util.Optional
+import kotlin.jvm.optionals.getOrNull
 import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.augment.StyleableAttrLightField
@@ -243,8 +245,8 @@ private fun extractResourceFieldFromNameElement(resourceNameElement: PsiElement)
 
 internal fun inferPackageNames(result: Collection<ResourceUsageInfo>, progressIndicator: ProgressIndicator?) {
 
-  val inferredNamespaces: Table<ResourceType, String, String> =
-    Tables.newCustomTable(Maps.newEnumMap(ResourceType::class.java)) { mutableMapOf<String, String>() }
+  val inferredNamespaces: Table<ResourceType, String, Optional<String>> =
+    Tables.newCustomTable(Maps.newEnumMap(ResourceType::class.java)) { mutableMapOf() }
 
   val total = result.size.toDouble()
 
@@ -255,22 +257,19 @@ internal fun inferPackageNames(result: Collection<ResourceUsageInfo>, progressIn
     val facet = resourceUsageInfo.element?.androidFacet ?: return@forEachIndexed
     val leafRepos = StudioResourceRepositoryManager.getAppResources(facet).leafResourceRepositories
 
-    val row = inferredNamespaces.row(resourceUsageInfo.resourceType)
-    var inferredPackage = row[resourceUsageInfo.name]
-    if (inferredPackage == null) {
-      for (repo in leafRepos) {
-        if (repo.hasResources(ResourceNamespace.RES_AUTO, resourceUsageInfo.resourceType, resourceUsageInfo.name)) {
-          // TODO(b/78765120): check other repos and build a list of unresolved or conflicting references, to display in a UI later.
-          inferredPackage = (repo as SingleNamespaceResourceRepository).packageName
-          break
+    val inferredPackage =
+      inferredNamespaces.row(resourceUsageInfo.resourceType).computeIfAbsent(resourceUsageInfo.name) {
+        for (repo in leafRepos) {
+          if (repo.hasResources(ResourceNamespace.RES_AUTO, resourceUsageInfo.resourceType, resourceUsageInfo.name)) {
+            // TODO(b/78765120): check other repos and build a list of unresolved or conflicting references, to display in a UI later.
+            return@computeIfAbsent Optional.ofNullable((repo as SingleNamespaceResourceRepository).packageName)
+          }
         }
+        Optional.empty()
       }
 
-      if (inferredPackage != null) {
-        row.put(resourceUsageInfo.name, inferredPackage)
-      }
-    }
-    resourceUsageInfo.inferredPackage = inferredPackage
+    resourceUsageInfo.inferredPackage = inferredPackage.getOrNull()
+
     progressIndicator?.fraction = (index + 1) / total
   }
 }

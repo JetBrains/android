@@ -16,14 +16,21 @@
 package com.android.tools.idea.publishing.play
 
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.android.mockito.kotlin.whenever as staticWhenever
 import com.android.tools.adtui.compose.LocalProject
 import com.android.tools.adtui.compose.TestComposeWizard
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule
 import com.android.tools.analytics.UsageTrackerRule
+import com.android.tools.idea.gservices.DevServicesDeprecationData
+import com.android.tools.idea.gservices.DevServicesDeprecationDataProvider
+import com.android.tools.idea.gservices.DevServicesDeprecationStatus
+import com.android.tools.idea.publishing.AdiClient
 import com.android.tools.idea.publishing.AppPublishingService
 import com.android.tools.idea.publishing.AppPublishingSource
+import com.android.tools.idea.publishing.RegistrationState
 import com.android.tools.idea.publishing.play.client.FakePlayPublishingClient
 import com.android.tools.idea.publishing.play.client.NO_APP_LISTING_CORRECTION_MESSAGE
 import com.android.tools.idea.publishing.play.client.PlayPublishingClient
@@ -33,6 +40,7 @@ import com.android.tools.idea.publishing.play.client.type.AppEdit
 import com.android.tools.idea.publishing.play.client.type.Bundle
 import com.android.tools.idea.publishing.play.client.type.Track
 import com.android.tools.idea.publishing.play.wizard.PlayPublishingWizardState
+import com.android.tools.idea.publishing.play.wizard.page.AccountChooserPage
 import com.android.tools.idea.publishing.play.wizard.page.ChooseBundlePage
 import com.android.tools.idea.publishing.play.wizard.page.CreateReleasePage
 import com.android.tools.idea.testing.NotificationRule
@@ -41,11 +49,13 @@ import com.google.common.truth.Truth.assertThat
 // import com.google.gct.login2.LoginFeatureRule
 // import com.google.gct.login2.LoginUsersRule
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.DevServiceDeprecationInfo
 import com.google.wireless.android.sdk.stats.PlayPublishingEvent.CreateAppDetails.CreateAppResult
 import com.google.wireless.android.sdk.stats.PlayPublishingEvent.CreateReleaseDetails.CreateReleaseResult
 import com.google.wireless.android.sdk.stats.PlayPublishingEvent.CreateReleaseDetails.TrackType
 import com.google.wireless.android.sdk.stats.PlayPublishingEvent.PlayPublishingEventType
 import com.google.wireless.android.sdk.stats.PlayPublishingEvent.WizardShownDetails.WizardInvocationSource
+import com.intellij.ide.BrowserUtil
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.impl.NotificationGroupEP
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -58,11 +68,18 @@ import com.intellij.testFramework.replaceService
 import com.intellij.util.application
 import com.intellij.util.xmlb.XmlSerializer
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.ArgumentMatchers.anyString
+import org.mockito.Mockito
+import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 private const val NOTIFICATION_GROUP_ID = "Play Publishing"
 
@@ -353,13 +370,172 @@ class PlayPublishingUsageTrackerTest {
       .isEqualTo(CreateReleaseResult.FAILED_RELEASE_NOT_ALLOWED_ON_TRACK)
   }
 
+  @Test
+  fun testTrackDeprecationOnDisplay() {
+    replaceDeprecationService()
+
+    // AND-142 JetBrains patch (Google Play Publishing): LoginUsersRule is in tools/vendor/google/login, which this repository does not carry.
+    // The deprecation banner this test drives does not read the signed-in account, so the test runs without it.
+    // loginUsersRule.setActiveUser("user@google.com")
+
+    val wizard = TestComposeWizard { AccountChooserPage() }
+    composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
+
+    composeTestRule.waitForIdle()
+
+    // Verify deprecation display event is logged
+    val loggedEvents =
+      usageTrackerRule.usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_DEPRECATION_NOTIFICATION_EVENT }
+    assertThat(loggedEvents).hasSize(1)
+    val info = loggedEvents[0].studioEvent.studioDeprecationNotificationEvent.devServiceDeprecationInfo
+    assertThat(info.deprecationStatus).isEqualTo(DevServiceDeprecationInfo.DeprecationStatus.DEPRECATED)
+    assertThat(info.deliveryType).isEqualTo(DevServiceDeprecationInfo.DeliveryType.BANNER)
+    assertThat(info.userNotified).isTrue()
+  }
+
+  @Test
+  fun testTrackDeprecationOnlyOnce() {
+    replaceDeprecationService()
+
+    // AND-142 JetBrains patch (Google Play Publishing): LoginUsersRule is in tools/vendor/google/login, which this repository does not carry.
+    // The deprecation banner this test drives does not read the signed-in account, so the test runs without it.
+    // loginUsersRule.setActiveUser("user@google.com")
+
+    val state = PlayPublishingWizardState()
+    val wizard = TestComposeWizard {
+      getOrCreateState { state }
+      AccountChooserPage()
+    }
+    composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
+
+    composeTestRule.waitForIdle()
+
+    // First composition triggers 1 event
+    var loggedEvents =
+      usageTrackerRule.usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_DEPRECATION_NOTIFICATION_EVENT }
+    assertThat(loggedEvents).hasSize(1)
+
+    // Trigger a recomposition / navigation away and back
+    wizard.pushPage { ChooseBundlePage() }
+    composeTestRule.waitForIdle()
+    wizard.popPage()
+    composeTestRule.waitForIdle()
+
+    // Verify deprecation display event is still only logged exactly once
+    loggedEvents =
+      usageTrackerRule.usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_DEPRECATION_NOTIFICATION_EVENT }
+    assertThat(loggedEvents).hasSize(1)
+  }
+
+  @Test
+  fun testTrackDeprecationOnMoreInfoClicked() {
+    replaceDeprecationService()
+
+    // AND-142 JetBrains patch (Google Play Publishing): LoginUsersRule is in tools/vendor/google/login, which this repository does not carry.
+    // The deprecation banner this test drives does not read the signed-in account, so the test runs without it.
+    // loginUsersRule.setActiveUser("user@google.com")
+
+    val wizard = TestComposeWizard { AccountChooserPage() }
+    composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
+
+    Mockito.mockStatic(BrowserUtil::class.java).use { browserUtil ->
+      browserUtil.staticWhenever<Unit> { BrowserUtil.browse(anyString()) }.thenAnswer {}
+      composeTestRule.onNodeWithText("More info").performClick()
+      composeTestRule.waitForIdle()
+    }
+
+    // Verify deprecation click event is logged
+    val clickedEvents =
+      usageTrackerRule.usages.filter {
+        it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_DEPRECATION_NOTIFICATION_EVENT &&
+          it.studioEvent.studioDeprecationNotificationEvent.devServiceDeprecationInfo.moreInfoClicked
+      }
+    assertThat(clickedEvents).hasSize(1)
+    val info = clickedEvents[0].studioEvent.studioDeprecationNotificationEvent.devServiceDeprecationInfo
+    assertThat(info.deprecationStatus).isEqualTo(DevServiceDeprecationInfo.DeprecationStatus.DEPRECATED)
+    assertThat(info.deliveryType).isEqualTo(DevServiceDeprecationInfo.DeliveryType.BANNER)
+  }
+
+  @Test
+  fun testTrackDeprecationOnUpdateClicked() {
+    replaceDeprecationService()
+
+    // AND-142 JetBrains patch (Google Play Publishing): LoginUsersRule is in tools/vendor/google/login, which this repository does not carry.
+    // The deprecation banner this test drives does not read the signed-in account, so the test runs without it.
+    // loginUsersRule.setActiveUser("user@google.com")
+
+    val wizard = TestComposeWizard { AccountChooserPage() }
+    composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
+
+    composeTestRule.onNodeWithText("Update Android Studio").performClick()
+    composeTestRule.waitForIdle()
+
+    // Verify deprecation click event is logged
+    val clickedEvents =
+      usageTrackerRule.usages.filter {
+        it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_DEPRECATION_NOTIFICATION_EVENT &&
+          it.studioEvent.studioDeprecationNotificationEvent.devServiceDeprecationInfo.updateClicked
+      }
+    assertThat(clickedEvents).hasSize(1)
+    val info = clickedEvents[0].studioEvent.studioDeprecationNotificationEvent.devServiceDeprecationInfo
+    assertThat(info.deprecationStatus).isEqualTo(DevServiceDeprecationInfo.DeprecationStatus.DEPRECATED)
+    assertThat(info.deliveryType).isEqualTo(DevServiceDeprecationInfo.DeliveryType.BANNER)
+  }
+
+  @Test
+  fun testTrackDeprecationOnDismissed() {
+    replaceDeprecationService()
+
+    // AND-142 JetBrains patch (Google Play Publishing): LoginUsersRule is in tools/vendor/google/login, which this repository does not carry.
+    // The deprecation banner this test drives does not read the signed-in account, so the test runs without it.
+    // loginUsersRule.setActiveUser("user@google.com")
+
+    val wizard = TestComposeWizard { AccountChooserPage() }
+    composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
+
+    composeTestRule.onNodeWithContentDescription("Dismiss").performClick()
+    composeTestRule.waitForIdle()
+
+    // Verify deprecation dismissal event is logged
+    val dismissedEvents =
+      usageTrackerRule.usages.filter {
+        it.studioEvent.kind == AndroidStudioEvent.EventKind.STUDIO_DEPRECATION_NOTIFICATION_EVENT &&
+          it.studioEvent.studioDeprecationNotificationEvent.devServiceDeprecationInfo.deliveryDismissed
+      }
+    assertThat(dismissedEvents).hasSize(1)
+    val info = dismissedEvents[0].studioEvent.studioDeprecationNotificationEvent.devServiceDeprecationInfo
+    assertThat(info.deprecationStatus).isEqualTo(DevServiceDeprecationInfo.DeprecationStatus.DEPRECATED)
+    assertThat(info.deliveryType).isEqualTo(DevServiceDeprecationInfo.DeliveryType.BANNER)
+  }
+
+  private fun replaceDeprecationService() {
+    val mockDeprecationProvider = mock<DevServicesDeprecationDataProvider>()
+    val deprecationData =
+      DevServicesDeprecationData(
+        header = "Deprecation Header",
+        description = "Play Publishing service is deprecated.",
+        moreInfoUrl = "https://google.com",
+        showUpdateAction = true,
+        status = DevServicesDeprecationStatus.DEPRECATED,
+      )
+    whenever(mockDeprecationProvider.getCurrentDeprecationData("play/publishing", "Google Play Publishing")).thenReturn(deprecationData)
+    application.replaceService(DevServicesDeprecationDataProvider::class.java, mockDeprecationProvider, disposableRule.disposable)
+  }
+
   private fun createChooseBundleWizard(
     state: PlayPublishingWizardState = PlayPublishingWizardState(bundlePath = "/some/fake/path"),
     appMetadata: () -> AppMetadata,
   ): TestComposeWizard {
+    val client =
+      mock<AdiClient>().apply {
+        runBlocking {
+          whenever(checkPackageRegistrationStatus(any(), anyOrNull()))
+            .thenReturn(mapOf("com.fake.app" to RegistrationState.REGISTERED) to null)
+        }
+      }
     val wizard = TestComposeWizard {
       getOrCreateState { state }
-      ChooseBundlePage { appMetadata() }
+      ChooseBundlePage(createAdiClient = { client }, shouldExtractMetadata = { true }) { appMetadata() }
     }
     composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
     return wizard
@@ -368,7 +544,7 @@ class PlayPublishingUsageTrackerTest {
   private fun createCreateReleaseWizard(state: PlayPublishingWizardState = PlayPublishingWizardState()): TestComposeWizard {
     val wizard = TestComposeWizard {
       getOrCreateState { state }
-      CreateReleasePage()
+      CreateReleasePage(releaseNotesDebounceMillis = 0L)
     }
     composeTestRule.setContent { CompositionLocalProvider(LocalProject provides projectRule.project) { wizard.Content() } }
     return wizard

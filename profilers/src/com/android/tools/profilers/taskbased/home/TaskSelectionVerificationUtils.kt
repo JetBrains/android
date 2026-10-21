@@ -79,7 +79,7 @@ object TaskSelectionVerificationUtils {
         isPreferredProcessNameAvailable(selectedProcess, profilers.preferredProcessName)
     val isTaskSupported =
       if (selectedTaskType == ProfilerTaskType.LEAKCANARY) {
-        true
+        !profilers.ideServices.isPccApp(selectedProcess.packageName)
       } else {
         profilers.ideServices.isTaskSupportedOnStartup(selectedTaskType)
       }
@@ -170,15 +170,19 @@ object TaskSelectionVerificationUtils {
     assert(!canTaskStartFromProcessStart(selectedTaskType, selectedDevice, selectedProcess, profilers))
     assert(areSelectionsValid(selectedTaskType, selectedDevice, selectedProcess))
 
+    val isPccApp = profilers.ideServices.isPccApp(selectedProcess.packageName)
+
     val isTaskSupported =
       if (selectedTaskType == ProfilerTaskType.LEAKCANARY) {
-        true
+        !isPccApp
       } else {
         profilers.ideServices.isTaskSupportedOnStartup(selectedTaskType)
       }
 
     return if (!isSelectedProcessPreferred(selectedProcess, profilers)) {
       StartTaskSelectionError(StartTaskSelectionErrorCode.PREFERRED_PROCESS_NOT_SELECTED_FOR_STARTUP_TASK)
+    } else if (selectedTaskType == ProfilerTaskType.LEAKCANARY && isPccApp) {
+      StartTaskSelectionError(StartTaskSelectionErrorCode.LEAKCANARY_NOT_SUPPORTED_FOR_PCC)
     } else if (!isTaskSupported) {
       StartTaskSelectionError(StartTaskSelectionErrorCode.TASK_UNSUPPORTED_ON_STARTUP)
     } else if (!TaskSupportUtils.doesDeviceSupportProfilingTaskFromProcessStart(selectedTaskType, selectedDevice!!.featureLevel)) {
@@ -300,6 +304,7 @@ data class StartTaskSelectionError(val startTaskSelectionErrorCode: StartTaskSel
     LEAKCANARY_CHECK_IN_PROGRESS,
     LEAKCANARY_CHECK_TIMEOUT,
     LEAKCANARY_REFLECTION_FAILED,
+    LEAKCANARY_NOT_SUPPORTED_FOR_PCC,
     TASK_HAS_DEBUGGER_ATTACHED,
     // Generalized error to cover the rest of task start errors.
     GENERAL_ERROR,

@@ -20,10 +20,10 @@ import com.intellij.openapi.Disposable
 import com.intellij.util.containers.DisposableWrapperList
 import java.util.AbstractQueue
 import kotlin.time.Duration
+import kotlin.time.Instant
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Instant
 
 /**
  * A thread-safe queue of [Perishable] items. The elements in the queue are ordered by ascending expiration time. Elements with the same

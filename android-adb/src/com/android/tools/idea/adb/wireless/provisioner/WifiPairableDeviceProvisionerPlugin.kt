@@ -35,6 +35,7 @@ import com.android.sdklib.deviceprovisioner.DeviceProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceState.Disconnected
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.sdklib.deviceprovisioner.EmulatorType
 import com.android.sdklib.deviceprovisioner.HideDeviceAction
 import com.android.sdklib.deviceprovisioner.PairDeviceAction
 import com.android.sdklib.deviceprovisioner.PairedGlassesInfo
@@ -268,6 +269,7 @@ class WifiPairableDeviceProvisionerPlugin(
     override val androidRelease: String?,
     override val deviceType: DeviceType?,
     override val isVirtual: Boolean?,
+    override val emulatorType: EmulatorType?,
     override val isRemote: Boolean?,
     override val isDebuggable: Boolean?,
     override val isResizable: Boolean?,
@@ -307,6 +309,7 @@ class WifiPairableDeviceProvisionerPlugin(
           androidRelease = androidRelease,
           deviceType = deviceType,
           isVirtual = isVirtual,
+          emulatorType = emulatorType,
           isRemote = isRemote,
           isDebuggable = isDebuggable,
           isResizable = isResizable,

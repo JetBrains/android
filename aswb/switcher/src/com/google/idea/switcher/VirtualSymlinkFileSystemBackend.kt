@@ -15,7 +15,6 @@
  */
 package com.google.idea.switcher
 
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.platform.eel.provider.MultiRoutingFileSystemBackend
 import java.io.IOException
@@ -72,6 +71,14 @@ interface WorkspaceMappingManager {
   fun getWorkspacePath(workspaceName: String): Path
 
   /**
+   * Recovers the workspace name from a virtual workspace directory path.
+   *
+   * @param path The virtual workspace path (or a child path under it).
+   * @return The logical name of the workspace, or null if the path does not match the workspace pattern.
+   */
+  fun getWorkspaceName(path: Path): String?
+
+  /**
    * Resolves a virtual switch workspace path into its underlying canonical physical path on disk.
    *
    * @param path The incoming path.
@@ -87,11 +94,11 @@ interface WorkspaceMappingManager {
   }
 
   companion object {
-    fun getInstance(): WorkspaceMappingManager = ApplicationManager.getApplication().getService(WorkspaceMappingManager::class.java)
+    fun getInstance(): WorkspaceMappingManager = WorkspaceMappingManagerImpl
   }
 }
 
-class WorkspaceMappingManagerImpl : WorkspaceMappingManager {
+internal object WorkspaceMappingManagerImpl : WorkspaceMappingManager {
   override val switchesRoot: Path = PathManager.getSystemDir().resolve(SWITCHES_ROOT).toAbsolutePath().normalize()
   private val systemPrefixPath: String = switchesRoot.toString()
   private val _mappingChangeEvents = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
@@ -131,6 +138,7 @@ class WorkspaceMappingManagerImpl : WorkspaceMappingManager {
       )
       discoveredRootsCache[workspacePath.toString()]?.reload()
       publishMappingChangedEvent()
+      WorkspaceFileWatcher.getInstance()?.handleMappingChange()
     }
     return workspacePath.toRealPath()
   }
@@ -149,6 +157,15 @@ class WorkspaceMappingManagerImpl : WorkspaceMappingManager {
 
   override fun getWorkspacePath(workspaceName: String): Path {
     return Path.of(workspacePath(workspaceName))
+  }
+
+  override fun getWorkspaceName(path: Path): String? {
+    val normalizedPath = path.normalize()
+    if (!normalizedPath.startsWith(switchesRoot)) return null
+    if (normalizedPath == switchesRoot) return null
+    val relative = switchesRoot.relativize(normalizedPath)
+    val name = relative.getName(0).toString()
+    return if (name.isEmpty()) null else name
   }
 
   override fun unwrapPhysicalPath(path: Path): Path {

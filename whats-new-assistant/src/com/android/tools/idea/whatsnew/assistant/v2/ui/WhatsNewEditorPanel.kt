@@ -54,6 +54,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.compose.getDefaultRenderExtensions
 import com.android.tools.adtui.compose.markdownFactory
+import com.android.tools.idea.whatsnew.assistant.v2.model.WhatsNewAssets
 import com.android.tools.idea.whatsnew.assistant.v2.model.WhatsNewMarkdownDocument
 import com.android.tools.idea.whatsnew.assistant.v2.ui.composeutils.ActiveItemTracker
 import com.android.tools.idea.whatsnew.assistant.v2.ui.composeutils.AdaptiveVerticalScrollbarAdapter
@@ -129,13 +130,15 @@ import org.jetbrains.jewel.ui.theme.scrollbarStyle
  * * **Image Handling:** Images within the Markdown are loaded asynchronously through a
  *   [com.android.tools.idea.whatsnew.assistant.v2.ui.composeutils.ImagePainterLoader] to ensure the UI remains responsive.
  *
- * @param markdownDocuments The list of "What's New" documents to display.
+ * @param markdownDocuments The parsed "What's New" Markdown documents to display.
+ * @param whatsNewAssets The background resource assets to display.
  * @param imageLoader The loader used for Markdown images.
  * @param onUrlClick Callback invoked when a link in the Markdown is clicked.
  */
 @Composable
 internal fun WhatsNewEditorPanel(
   markdownDocuments: List<WhatsNewMarkdownDocument>,
+  whatsNewAssets: WhatsNewAssets,
   imageLoader: ImagePainterLoader,
   onUrlClick: (String) -> Unit = BrowserUtil::browse,
 ) {
@@ -149,6 +152,7 @@ internal fun WhatsNewEditorPanel(
   Box(Modifier.fillMaxSize()) {
     WhatsNewAllDocuments(
       markdownDocuments = markdownDocuments,
+      whatsNewAssets = whatsNewAssets,
       imageLoader = imageLoader,
       onUrlClick = onUrlClick,
       lazyListState = lazyListState,
@@ -160,12 +164,12 @@ internal fun WhatsNewEditorPanel(
 @Composable
 private fun WhatsNewAllDocuments(
   markdownDocuments: List<WhatsNewMarkdownDocument>,
+  whatsNewAssets: WhatsNewAssets,
   imageLoader: ImagePainterLoader,
   onUrlClick: (String) -> Unit,
   lazyListState: LazyListState,
   scrollbarAdapter: AdaptiveVerticalScrollbarAdapter,
 ) {
-
   // First, we parse all Markdown files, so that we don't try to display "empty" documents in the "LazyColumn".
   // If we were to parse documents asynchronously while displaying the LazyColumn of documents, the scrollbar
   // would "jump" around and being jittery overall.
@@ -200,7 +204,7 @@ private fun WhatsNewAllDocuments(
               orientation = Orientation.Horizontal,
               modifier = Modifier.padding(PaddingValues(top = 16.dp, bottom = 8.dp)).fillMaxWidth(),
               color = blockRenderer.rootStyling.thematicBreak.lineColor,
-              thickness = 6.dp,
+              thickness = 1.dp,
             )
           }
           WhatsNewMarkdown(
@@ -293,7 +297,11 @@ private fun createWhatsNewMarkdownBlockRenderer(
   val inlineRenderer = remember(markdownFactory, renderExtensions) { markdownFactory.createInlineMarkdownRenderer(renderExtensions) }
   val customRenderer =
     remember(markdownStyling, renderExtensions, inlineRenderer) {
-      WhatsNewMarkdownBlockRenderer(rootStyling = markdownStyling, rendererExtensions = renderExtensions, inlineRenderer = inlineRenderer)
+      WhatsNewMarkdownBlockRenderer(
+        rootStyling = markdownStyling,
+        rendererExtensions = renderExtensions,
+        inlineRenderer = inlineRenderer,
+      )
     }
   return customRenderer
 }

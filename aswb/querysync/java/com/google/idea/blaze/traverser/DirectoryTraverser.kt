@@ -46,21 +46,16 @@ fun interface DirectoryProcessor {
   fun processDirectory(rootDir: Path, currentDir: Path): DirectoryContents?
 }
 
+/** A single scan task indicating the root directory and the current directory to be processed. */
+data class ScanTask(val rootDir: Path, val currentDir: Path)
+
 /**
- * Traverses the specified directories concurrently and processes them, partitioning the work by the most specific root provided in
- * [includeAbsolute].
+ * Traverses the specified directories concurrently and processes them.
  *
- * If [includeAbsolute] contains overlapping roots (e.g., `/a` and `/a/b`), this method ensures that each directory is processed with the
- * closest (most specific) matching root. A more general root will not traverse into directories that are covered by a more specific root.
- *
- * Discovered subdirectories inherit the same root as their parent directory.
- *
- * @param includeAbsolute The list of absolute paths to start the traversal from.
+ * @param initialTasks The list of initial tasks to start the traversal from.
  * @param directoryProcessor The processor to apply to each directory.
  */
-suspend fun traverseIncludedDirectories(includeAbsolute: List<Path>, directoryProcessor: DirectoryProcessor) {
-  data class ScanTask(val rootDir: Path, val currentDir: Path)
-
+suspend fun traverseIncludedDirectories(initialTasks: List<ScanTask>, directoryProcessor: DirectoryProcessor) {
   coroutineScope {
     val directoryChannel = Channel<ScanTask>(Channel.UNLIMITED)
     val activeDirCount = AtomicInteger(0)
@@ -74,7 +69,7 @@ suspend fun traverseIncludedDirectories(includeAbsolute: List<Path>, directoryPr
     }
 
     // Seed initial directories first
-    includeAbsolute.forEach { rootDir -> offerDir(rootDir, rootDir) }
+    initialTasks.forEach { task -> offerDir(task.rootDir, task.currentDir) }
 
     // If no directories to start with, close channel
     if (activeDirCount.get() == 0) {

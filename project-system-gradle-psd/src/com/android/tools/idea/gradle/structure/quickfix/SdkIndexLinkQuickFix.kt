@@ -23,14 +23,29 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.SdkIndexLibraryDetails
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.project.Project
-import java.io.Serializable
 import org.jetbrains.annotations.VisibleForTesting
 
 data class SdkIndexLinkQuickFixNoLog(
   override val text: String,
   val url: String,
+  // Non-serialized fields below
   val browseFunction: ((String) -> Unit) = BrowserUtil::browse,
-) : PsQuickFix, Serializable {
+) : PsQuickFix() {
+  override fun serializedInfo() = listOf(NAME, text, url)
+
+  companion object {
+    private const val NAME = "SdkIndexLinkNoLog"
+
+    init {
+      registerDeserializer(NAME, ::deserialize)
+    }
+
+    fun deserialize(args: List<String>): SdkIndexLinkQuickFixNoLog {
+      if (args.size != 2) throw IllegalArgumentException("Invalid number of arguments")
+      return SdkIndexLinkQuickFixNoLog(args[0], args[1])
+    }
+  }
+
   override fun execute(context: PsContext) {
     browseFunction(url)
   }
@@ -42,9 +57,25 @@ data class SdkIndexLinkQuickFix(
   val groupId: String,
   val artifactId: String,
   val version: String,
+  // Non-serialized fields below
   val browseFunction: ((String) -> Unit) = BrowserUtil::browse,
-  val eventReport: ((Project?) -> Unit) = { project -> logClickEvent(groupId, artifactId, version, project) },
-) : PsQuickFix, Serializable {
+  val eventReport: ((String, String, String, Project?) -> Unit) = ::logClickEvent,
+) : PsQuickFix() {
+  override fun serializedInfo() = listOf(NAME, text, url, groupId, artifactId, version)
+
+  companion object {
+    private const val NAME = "SdkIndexLink"
+
+    init {
+      registerDeserializer(NAME, ::deserialize)
+    }
+
+    fun deserialize(args: List<String>): SdkIndexLinkQuickFix {
+      if (args.size != 5) throw IllegalArgumentException("Invalid number of arguments")
+      return SdkIndexLinkQuickFix(args[0], args[1], args[2], args[3], args[4])
+    }
+  }
+
   override fun execute(context: PsContext) {
     applyQuickfix(context.project.ideProject)
   }
@@ -52,7 +83,7 @@ data class SdkIndexLinkQuickFix(
   @VisibleForTesting
   fun applyQuickfix(project: Project?) {
     browseFunction(url)
-    eventReport(project)
+    eventReport(groupId, artifactId, version, project)
   }
 }
 

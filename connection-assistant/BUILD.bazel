@@ -54,7 +54,6 @@ jvm_library(
         # do not sort,
         ":connection-assistant",
         "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
         "//libraries/guava:guava_test_lib",
         "//libraries/jetbrains/annotations:annotations_test_lib",
         "//libraries/protobuf:protobuf_test_lib",

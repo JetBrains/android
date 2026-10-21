@@ -29,6 +29,7 @@ import com.android.tools.idea.codenavigation.CodeLocation
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.ProfilerDropDownComponent
 import com.android.tools.profilers.ProfilerFlows
+import com.android.tools.profilers.ProfilerFonts
 import com.android.tools.profilers.Selection
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.memory.CapturePanelTabContainer
@@ -204,6 +205,9 @@ internal constructor(
       .setOrientation(orientation)
       .setRootVisible(false)
       .build()
-      .apply { isDrawDebugInfo = profilersView.studioProfilers.ideServices.featureConfig.isPerformanceMonitoringEnabled }
+      .apply {
+        font = ProfilerFonts.STANDARD_FONT
+        isDrawDebugInfo = profilersView.studioProfilers.ideServices.featureConfig.isPerformanceMonitoringEnabled
+      }
   }
 }

@@ -421,7 +421,7 @@ class DeviceFileExplorerControllerTest {
     }
     var downloadPath = pumpEventsAndWaitForFuture(myMockFileManager.openFileInEditorTracker.consume())
     assertThat(downloadPath.invariantSeparatorsPathString)
-      .endsWith(myDownloadLocation.get().invariantSeparatorsPathString + "/TestDevice-1/file1.txt")
+      .endsWith(myDownloadLocation.get().invariantSeparatorsPathString + "/TestDevice-1/_/file1.txt")
 
     // Change the setting to an alternate directory, ensure that changing during runtime works
     val changedPath = FileUtil.createTempDirectory("device-explorer-temp-2", "", true).toPath()
@@ -437,7 +437,7 @@ class DeviceFileExplorerControllerTest {
       pumpEventsAndWaitForFuture(myMockView.openNodesInEditorInvokedTracker.consume())
     }
     downloadPath = pumpEventsAndWaitForFuture(myMockFileManager.openFileInEditorTracker.consume())
-    assertThat(downloadPath.invariantSeparatorsPathString).endsWith("device-explorer-temp-2/TestDevice-1/file1.txt")
+    assertThat(downloadPath.invariantSeparatorsPathString).endsWith("device-explorer-temp-2/TestDevice-1/_/file1.txt")
   }
 
   @Test
@@ -872,7 +872,11 @@ class DeviceFileExplorerControllerTest {
     // Assert
     val message = pumpEventsAndWaitForFuture(futureMessageDialog)
     checkNotNull(message)
-    assertTrue(message.contains(UIBundle.message("create.new.folder.could.not.create.folder.error.message", newDirectoryName)))
+    assertTrue(
+      message.contains(
+        StringUtil.escapeXmlEntities(UIBundle.message("create.new.folder.could.not.create.folder.error.message", newDirectoryName))
+      )
+    )
 
     // Ensure entry does not exist in tree view
     val newChild =

@@ -24,6 +24,7 @@ def main():
   parser.add_argument('--count-lines', action='store_true', help='quantify module size by lines instead of files')
   parser.add_argument('--draw-to-scale', action='store_true', help='draw nodes proportional to module size')
   parser.add_argument('--include-tests', action='store_true', help='include test sources and test-scoped dependencies')
+  parser.add_argument('--include', metavar='GLOB', action='append', help='only include modules matching GLOB')
   parser.add_argument('--exclude', metavar='GLOB', action='append', help='hide modules matching GLOB')
   parser.add_argument('--full-module-names', action='store_true', help='use fully qualified module names')
   parser.add_argument('--print-module-sizes', action='store_true', help='print the size of the rendered modules at the end')
@@ -124,6 +125,13 @@ def prune_graph(g, args):
   for node, iml_module in list(g.nodes(data='iml_module')):
     if iml_module.size == 0:
       remove_node(g, node)
+  # Check include-filter.
+  if args.include:
+    include_patterns = [re.escape(glob).replace('\\*', '.*') for glob in args.include]
+    any_include_pattern = re.compile('|'.join(include_patterns))
+    for node, iml_module in list(g.nodes(data='iml_module')):
+      if not any_include_pattern.fullmatch(iml_module.name):
+        remove_node(g, node)
   # Remove explicitly excluded modules.
   if args.exclude:
     exclude_patterns = [re.escape(glob).replace('\\*', '.*') for glob in args.exclude]

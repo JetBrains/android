@@ -44,7 +44,6 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.adtui.compose.TestComposeWizard
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
-import com.android.tools.idea.avdmanager.EnvironmentsUpdater
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.AndroidSdksImpl
@@ -227,9 +226,7 @@ class AddDeviceWizardTest {
 
       composeTestRule.onNodeWithText(api34XrOst.displayName).assertIsSelected()
       composeTestRule.onNodeWithText("Additional settings").performClick()
-      // XR Glasses have skin, not background.
-      composeTestRule.onNodeWithText("Background").assertDoesNotExist()
-      composeTestRule.onNodeWithText("Device skin").assertIsDisplayed()
+      composeTestRule.onNodeWithText("Device skin").assertDoesNotExist()
       // We need to disable the external storage, since we can't run mksdcard.
       composeTestRule.onNode(hasText("None") and hasParent(hasTestTag("StorageGroup"))).performClick()
 

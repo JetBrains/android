@@ -81,6 +81,7 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.libraries.mockito" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.libraries.mockito.kotlin" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.jdom" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.play-publishing" scope="TEST" />
   </component>

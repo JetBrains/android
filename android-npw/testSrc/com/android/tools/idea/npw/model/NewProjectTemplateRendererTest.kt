@@ -37,6 +37,7 @@ import com.android.tools.idea.wizard.template.DslLanguage.GROOVY
 import com.android.tools.idea.wizard.template.DslLanguage.KTS
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ProjectTemplateData
+import com.intellij.openapi.application.runReadActionBlocking
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.guessProjectDir
@@ -114,7 +115,7 @@ class NewProjectTemplateRendererTest {
     multiTemplateRenderer.requestRender(render)
 
     assertFoojayPlugin(true)
-    assertGradleDaemonJvmCriteria(21)
+    assertGradleDaemonJvmCriteria(25)
   }
 
   @Test
@@ -123,7 +124,7 @@ class NewProjectTemplateRendererTest {
     multiTemplateRenderer.requestRender(render)
 
     assertFoojayPlugin(true)
-    assertGradleDaemonJvmCriteria(21)
+    assertGradleDaemonJvmCriteria(25)
   }
 
   @Test
@@ -139,14 +140,27 @@ class NewProjectTemplateRendererTest {
 
   @Test
   fun `Given gradle version with toolchain as default and defined default criteria When create project Then Foojay plugin and Daemon JVM criteria are defined`() {
-    GradleDefaultJvmCriteriaStore.daemonJvmCriteria = GradleDaemonJvmCriteria("17", "tencent".toJvmVendor())
+    val embeddedKey = "embedded.jdk.path"
+    val originalEmbeddedPath = System.getProperty(embeddedKey)
+    try {
+      System.setProperty(embeddedKey, "prebuilts/studio/jdk/jdk17")
 
-    // Using version of Gradle that doesn't generate the download URLs when executing updateDaemonJvm task that's
-    // because 'foojay-resolver' plugin requires to access 'api.foojay.io' host which will fail when running from bazel
-    val render = createNewProjectTemplateRender("8.11.1", removeFoojayPlugin = true, dslLanguage = GROOVY)
-    multiTemplateRenderer.requestRender(render)
+      GradleDefaultJvmCriteriaStore.daemonJvmCriteria = GradleDaemonJvmCriteria("17", "tencent".toJvmVendor())
 
-    assertBasicGradleDaemonJvmCriteria(17, "tencent")
+      // Using version of Gradle that doesn't generate the download URLs when executing updateDaemonJvm task that's
+      // because 'foojay-resolver' plugin requires to access 'api.foojay.io' host which will fail when running from bazel
+      // This also requires using JDK 17 as the used Gradle version is incompatible with 25
+      val render = createNewProjectTemplateRender("8.11.1", removeFoojayPlugin = true, dslLanguage = GROOVY)
+      multiTemplateRenderer.requestRender(render)
+
+      assertBasicGradleDaemonJvmCriteria(17, "tencent")
+    } finally {
+      if (originalEmbeddedPath != null) {
+        System.setProperty(embeddedKey, originalEmbeddedPath)
+      } else {
+        System.clearProperty(embeddedKey)
+      }
+    }
   }
 
   private fun createNewProjectTemplateRender(
@@ -201,8 +215,10 @@ class NewProjectTemplateRendererTest {
   private fun assertFoojayPlugin(isApplied: Boolean) {
     assertEquals(
       isApplied,
-      ProjectBuildModel.get(projectRule.project).projectSettingsModel!!.plugins().declaredProperties.any {
-        it.valueAsString()!!.contains(FOOJAY_RESOLVER_CONVENTION_NAME)
+      runReadActionBlocking {
+        ProjectBuildModel.get(projectRule.project).projectSettingsModel!!.plugins().declaredProperties.any {
+          it.valueAsString()!!.contains(FOOJAY_RESOLVER_CONVENTION_NAME)
+        }
       },
     )
   }
@@ -229,7 +245,8 @@ class NewProjectTemplateRendererTest {
   }
 
   private fun withGradleSettings(action: StringBuilder.() -> Unit) {
-    val gradleSettings = getTopLevelBuildScriptSettingsPsiFile(projectRule.project, projectBasePath)?.virtualFile?.toIoFile()
+    val gradleSettings =
+      runReadActionBlocking { getTopLevelBuildScriptSettingsPsiFile(projectRule.project, projectBasePath) }?.virtualFile?.toIoFile()
     val gradleSettingsBuilder = StringBuilder(gradleSettings!!.readText())
 
     action.invoke(gradleSettingsBuilder)

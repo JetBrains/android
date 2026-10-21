@@ -17,7 +17,7 @@ apply plugin: 'com.android.test'
 
 android {
   compileSdkVersion 19
-  namespace "com.example.android.test2"
+  namespace = "com.example.android.test2"
 
   defaultConfig {
     minSdkVersion 15
@@ -26,7 +26,6 @@ android {
   }
 
   targetProjectPath ':app'
-  targetVariant 'debug'
 }
 
 repositories {

@@ -28,6 +28,7 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckedTreeNode
+import java.io.File
 import java.util.Base64
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -327,7 +328,8 @@ class UpdateReferenceImagesDialogTest {
   @Test
   fun testOkActionLogsMetric() = runInEdtAndWait {
     val srcPath = createTempImage("source.png")
-    val destPath = tempFolder.newFile("dest.png").absolutePath
+    val destDir = File(projectRule.project.basePath, "app/src/screenshotTest/reference").apply { mkdirs() }
+    val destPath = File(destDir, "dest.png").canonicalPath
 
     val details =
       PreviewDetails(
@@ -378,7 +380,8 @@ class UpdateReferenceImagesDialogTest {
   }
 
   private fun createTempImage(name: String): String {
-    val file = tempFolder.newFile(name)
+    val buildDir = File(projectRule.project.basePath, "build/tmp").apply { mkdirs() }
+    val file = File(buildDir, name).canonicalFile
     file.writeBytes(TINY_PNG_BYTES)
     return file.absolutePath
   }

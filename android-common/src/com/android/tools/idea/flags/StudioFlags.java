@@ -304,7 +304,7 @@ public final class StudioFlags {
   public static final Flag<AndroidApiLevel> NPW_COMPILE_SDK_VERSION = new AndroidApiFlag(
     NPW, "new.project.compile.sdk", "New project Compile SDK version",
     "SDK version to be used for compileSdk for newly created project. Must be of the form <major> or <major>.<minor>",
-    new AndroidApiLevel(36,1));
+    new AndroidApiLevel(37));
 
   public static final Flag<String> NPW_DAEMON_JVM_CRITERIA_REQUIRED_GRADLE_VERSION = new StringFlag(
     NPW, "new.project.daemon.jvm.criteria.gradle.version", "New project Daemon JVM criteria required Gradle version",
@@ -386,6 +386,22 @@ public final class StudioFlags {
     PROFILER, "method.trace.in.editor", "Open Method Trace in Editor",
     "Opens Java/Kotlin Method Trace files in a new editor tab");
 
+  public static final Flag<Boolean> PROFILER_CALLSTACK_SAMPLE_TRACE_IN_EDITOR = new BooleanFlag(
+    PROFILER, "callstack.sample.trace.in.editor", "Open Callstack Sample in Editor",
+    "Opens Callstack Sample Trace files in a new editor tab");
+
+  public static final Flag<Boolean> PROFILER_HEAP_DUMP_TRACE_IN_EDITOR = new BooleanFlag(
+    PROFILER, "heap.dump.trace.in.editor", "Open Heap Dump in Editor",
+    "Opens Heap Dump files in a new editor tab");
+
+  public static final Flag<Boolean> PROFILER_NATIVE_ALLOCATIONS_TRACE_IN_EDITOR = new BooleanFlag(
+    PROFILER, "native.allocations.trace.in.editor", "Open Native Allocations in Editor",
+    "Opens Native Allocations files in a new editor tab");
+
+  public static final Flag<Boolean> PROFILER_JAVA_KOTLIN_ALLOCATIONS_LEGACY_TRACE_IN_EDITOR = new BooleanFlag(
+    PROFILER, "java.kotlin.allocations.legacy.trace.in.editor", "Open Java/Kotlin Allocations (Legacy) in Editor",
+    "Opens Java/Kotlin Allocations (Legacy) files in a new editor tab");
+
   public static final Flag<Boolean> PROFILER_PERFETTO_QUERY_GENERATION = new BooleanFlag(
     PROFILER, "perfetto.query.generation", "Generate Perfetto SQL queries",
     "Uses AI to generate Perfetto SQL queries");
@@ -435,6 +451,10 @@ public final class StudioFlags {
     DESIGN_TOOLS, "render.tool.diff.viewer", "Enable the render tool diff viewer",
     "If enabled, the render tool shows previous render in a diff viewer");
 
+  public static final Flag<Boolean> COMPOSE_IN_MEMORY_PREVIEW_ENABLED = new BooleanFlag(
+    DESIGN_TOOLS, "preview.in.memory.preview", "Enable In-Memory Compose Preview",
+    "Enables the agentic tool to preview Compose UI in memory without modifying project files.");
+
   public static final Flag<Boolean> COMPOSE_MESH_GRADIENT_EDITOR = new BooleanFlag(
     DESIGN_TOOLS, "compose.mesh.gradient.editor", "Enable the Mesh Gradient Editor",
     "If enabled, the Mesh Gradient Editor gutter icon and Tools menu action will be available.");
@@ -457,10 +477,6 @@ public final class StudioFlags {
     NELE, "preview.class.preloading.diagnostics", "Enable class preloading overlay",
     "If enabled, the surface displays background class preloading progress");
 
-  public static final Flag<Boolean> NELE_XML_TO_COMPOSE = new BooleanFlag(
-    NELE, "xml.to.compose", "Enable XML to Compose conversion",
-    "Enable an action that converts XML layouts to Compose using the Gemini backend");
-
   public static final Flag<Boolean> PREVIEW_ZOOM_ANIMATION = new BooleanFlag(
     NELE, "preview.zoom.animation", "Enable animation while zooming",
     "If enabled, Zoom change will show up an animation.");
@@ -476,10 +492,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> FORCE_MONOCHROME_ADAPTIVE_ICON = new BooleanFlag(
     NELE, "force.monochrome.adaptive.icon", "Display monochrome preview of adaptive icon when none provided",
     "When enabled, the adaptive icon preview will automatically create a monochrome version if none is provided.");
-
-  public static final Flag<Boolean> ENABLE_MONOCHROME_ICON_EDITOR_TAB = new BooleanFlag(
-    NELE, "enable.monochrome.icon.editor.tab", "Show monochrome editor tab in Image Asset Editor",
-    "When enabled, shows a tab in Image Asset Editor where to add monochrome layer for launcher icons");
 
   public static final Flag<Boolean> USE_BYTECODE_R_CLASS_PARSING = new BooleanFlag(
     NELE, "use.bytecode.r.class.loading", "Uses bytecode R class parsing instead of reflection",
@@ -1258,18 +1270,21 @@ public final class StudioFlags {
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_DISCOVERY = new BooleanFlag(
     EMBEDDED_EMULATOR, "trace.discovery", "Enable Tracing of Emulator Discovery",
     "Enables tracing of Emulator discovery");
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_ALLOW_AI_GLASSES_AVD = new BooleanFlag(
-    EMBEDDED_EMULATOR, "allow.ai.glasses", "Allow AI glasses AVD to run embedded",
-    "Enables running an AI glasses AVD in the Running Devices tool window");
   public static final Flag<Boolean> EMBEDDED_EMULATOR_ALLOW_DESKTOP_SDK37PLUS_AVD = new BooleanFlag(
     EMBEDDED_EMULATOR, "allow.desktop.sdk37plus", "Allow Desktop AVD (SDK 37+) to run embedded",
     "Enables running a Desktop AVD (SDK 37+) in the Running Devices tool window");
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_XR_HAND_TRACKING = new BooleanFlag(
-    EMBEDDED_EMULATOR, "xr.hand.tracking", "Enable hand tracking input mode for XR AVDs",
-    "Enables hand tracking input mode for XR AVDs");
-  public static final Flag<Boolean> EMBEDDED_EMULATOR_XR_EYE_TRACKING = new BooleanFlag(
-    EMBEDDED_EMULATOR, "xr.eye.tracking", "Enable eye tracking input mode for XR AVDs",
-    "Enables eye tracking input mode for XR AVDs");
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_XR_HAND_AND_EYE_INPUT = new BooleanFlag(
+    EMBEDDED_EMULATOR, "xr.hand.and.eye.input", "Enable hand and eye input modes for XR AVDs",
+    "Enables hand and eye input modes for XR AVDs");
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_CAMERA_ENVIRONMENT = new BooleanFlag(
+    EMBEDDED_EMULATOR, "camera.environment", "Enable Camera Environment",
+    "Enables displaying host cameras in the environment menu for AI Glasses");
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_360_IMAGE_ENVIRONMENT = new BooleanFlag(
+    EMBEDDED_EMULATOR, "360.image.environment", "Enable 360 Image Environment",
+    "Enables 360 image support for AI Glasses environments");
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_3D_SCENE_ENVIRONMENT = new BooleanFlag(
+    EMBEDDED_EMULATOR, "3d.scene.environment", "Enable 3D Scene Environment",
+    "Enables 3D scene (.obj) support for AI Glasses environments");
   public static final Flag<Boolean> RUNNING_DEVICES_HIDE_TOOL_WINDOW_NAME = new BooleanFlag(
     EMBEDDED_EMULATOR, "hide.tool.window.name", "Hide Tool Window Name",
     "Hides the name of the Running Devices window when it contains any device tabs");
@@ -1279,6 +1294,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> RUNNING_DEVICES_CONTEXT_MENU = new BooleanFlag(
     EMBEDDED_EMULATOR, "context.menu", "Enable Context Menu",
     "Enables context menu in the Running Devices tool window");
+  public static final Flag<Boolean> RUNNING_DEVICES_VERTICAL_FLOATING_TOOLBARS = new BooleanFlag(
+    EMBEDDED_EMULATOR, "vertical.floating.toolbars", "Vertical Floating Toolbars",
+    "Makes floating toolbars in the Running Devices tool window vertical.");
   //endregion
 
   //region Device Mirroring
@@ -1400,15 +1418,6 @@ public final class StudioFlags {
     "If enabled, the change review agent is available."
   );
 
-  //endregion
-
-  //region Unified App Bundle
-  private static final FlagGroup UAB = new FlagGroup(FLAGS, "uab", "Unified App Bundle");
-
-  public static final Flag<Boolean> UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS = new BooleanFlag(
-    UAB, "enable.ia.run.configs", "Enable new instant app run configuration options",
-    "If enabled, shows the new instant app deploy checkbox in the run configuration dialog and allows new instant app deploy workflow."
-  );
   //endregion
 
   //region Testing
@@ -1650,6 +1659,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_INTERACTIVE_PREVIEW_PREDICTIVE_BACK = new BooleanFlag(
     COMPOSE, "interactive.preview.predictive.back", "Enable predictive back navigation in Interactive Preview",
     "When using navigation3, enables a bottom panel to interact with the predictive back feature.");
+
   //endregion
 
   // region Wear surfaces
@@ -1698,11 +1708,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> WEAR_DECLARATIVE_WATCH_FACE_XML_EDITOR_SUPPORT = new BooleanFlag(
     WEAR_DECLARATIVE_WATCH_FACE, "xml.editor.support.enabled", "Enable XML editor support for Declarative Watch Faces",
     "If enabled, the editor will support Watch Face Format in XML files"
-  );
-
-  public static final Flag<Boolean> WATCH_FACE_STUDIO_FILE_IMPORT = new BooleanFlag(
-    WEAR_DECLARATIVE_WATCH_FACE, "wfs.import.enabled", "Enable support for importing Watch Face Studio files (.wfs)",
-    "If enabled, it will be possible to import Watch Face Studio files."
   );
   // endregion
 
@@ -1776,12 +1781,6 @@ public final class StudioFlags {
   //region Device Manager
   private static final FlagGroup DEVICE_MANAGER = new FlagGroup(FLAGS, "device.manager", "Device Manager");
 
-  public static final Flag<Boolean> POST_MVP_VIRTUAL_DEVICE_DIALOG_FEATURES_ENABLED = new BooleanFlag(
-    DEVICE_MANAGER,
-    "post.mvp.virtual.device.dialog.features.enabled",
-    "Post MVP Virtual Device Dialog Features Enabled",
-    "Enable miscellaneous Add/Edit Device dialog features for post MVP");
-
   public static final Flag<Boolean> XR_DEVICE_SUPPORT_ENABLED = new BooleanFlag(
     DEVICE_MANAGER,
     "xr.device.support.enabled",
@@ -1801,13 +1800,6 @@ public final class StudioFlags {
     "ai.glasses.displayless.device.support.enabled",
     "AI Glasses Displayless Support Enabled",
     "Enable the support of the displayless AI Glasses device in the device manager"
-  );
-
-  public static final Flag<Boolean> AI_GLASSES_DISPLAY_SETTING_ENABLED = new BooleanFlag(
-    DEVICE_MANAGER,
-    "ai.glasses.display.setting.enabled",
-    "AI Glasses Display Setting Enabled",
-    "Enable the configuration of Display or Displayless for AI Glasses AVDs"
   );
 
   public static final Flag<Boolean> XR_GLASSES_DEVICE_SUPPORT_ENABLED = new BooleanFlag(
@@ -1869,6 +1861,14 @@ public final class StudioFlags {
       "Enable Play Policy Insights"
     );
 
+  public static final Flag<Boolean> PLAY_POLICY_METADATA_EXPORT_ENABLED =
+    new BooleanFlag(
+      PLAY_POLICY_INSIGHTS,
+      "play.policy.metadata.export.enabled",
+      "Play Policy Metadata Export",
+      "Enable Play Policy Metadata export via MetadataProvider"
+    );
+
   // Flag only for unplanned compatibility issues between Android Studio and lint libraries.
   public static final Flag<String> PLAY_POLICY_INSIGHTS_TARGET_LIBRARY_VERSION =
     new StringFlag(
@@ -1885,6 +1885,14 @@ public final class StudioFlags {
       "Play Policy Insights Holdout Ratio",
       "Holdout some Play Policy lint checks for a subset of applications.",
       "1.0");
+
+  public static final Flag<String> PLAY_POLICY_INSIGHTS_DETAILED_HOLDOUT_RATIO =
+    new StringFlag(
+      PLAY_POLICY_INSIGHTS,
+      "play.policy.insights.detailed.holdout.ratio",
+      "Play Policy Insights Detailed Holdout Ratio",
+      "Holdout some Play Policy lint checks with different ratios.",
+      "[]");
   // endregion Play Policy Insights
 
   // region Firebase Test Lab
@@ -1981,19 +1989,11 @@ public final class StudioFlags {
   // region App Insights
   @VisibleForTesting public static final FlagGroup APP_INSIGHTS = new FlagGroup(FLAGS, "appinsights", "App Insights");
 
-  public static final Flag<Boolean> GEMINI_ASSISTED_CONTEXT_FETCH =
-    new BooleanFlag(
-      APP_INSIGHTS,
-      "gemini.assisted.context.fetch",
-      "Ask Gemini for context files",
-      "Ask Gemini for the context files it needs to generate an insight."
-    );
-
-  public static final Flag<Boolean> SUGGEST_A_FIX = new BooleanFlag(
+  public static final Flag<Boolean> APP_INSIGHTS_GLOBAL_SELECTOR = new BooleanFlag(
     APP_INSIGHTS,
-    "suggest.a.fix",
-    "Enables suggest a fix button in insights panel",
-    "Allows AQI to provide suggested fix based on the generated insight."
+    "global.selector",
+    "Use the global App Quality Insights connection selector instead of the tab-specific ones.",
+    "Use a global App Quality Insights connection selector that spans across multiple providers (Firebase, Play)"
   );
 
   public static final Flag<String> CRASHLYTICS_GRPC_SERVER =
@@ -2018,10 +2018,6 @@ public final class StudioFlags {
       "Set Play Vitals gRpc server address",
       "Set Play Vitals gRpc server address, mainly used for testing purposes.",
       "playdeveloperreporting.googleapis.com");
-
-  public static final Flag<Boolean> AQI_FIX_WITH_AGENT =
-    new BooleanFlag(APP_INSIGHTS, "fix.with.agent", "Use Agent for suggested fixes.",
-                    "Use the AI Agent to propose and implement suggested fixes.");
 
   public static final Flag<Boolean> PLAY_FINDINGS_ENABLED =
     new BooleanFlag(
@@ -2119,6 +2115,25 @@ public final class StudioFlags {
                     "Enable Agent Tabs",
                     "Enables opening the Agent UI as Editor Tabs.");
 
+  public static final Flag<Boolean> STUDIOBOT_NPA_ONBOARDING_ENABLED =
+    new BooleanFlag(STUDIOBOT, "npa.onboarding.enabled",
+                    "Enable NPA Onboarding",
+                    "Enables the onboarding flow within the New Project Agent Wizard");
+
+  public enum CompletionGhostTextHintStyle {
+    NONE,
+    NEXT_LINE,
+    CARET_POPUP,
+    BOTTOM_LEFT_OVERLAY,
+    SAME_LINE,
+  }
+
+  public static final EnumFlag<CompletionGhostTextHintStyle> STUDIOBOT_COMPLETION_GHOST_TEXT_HINT_STYLE =
+    new EnumFlag<>(STUDIOBOT, "completion.ghost.style",
+                   "Presentation style for cyclic expansion word-based completion ghost hint",
+                   "The presentation style of cyclic expansion ghost hint: NONE (do not show hint), NEXT_LINE (inline new-line layout), CARET_POPUP (floating popup under caret), BOTTOM_LEFT_OVERLAY (floating popup below bottom-left of query box), SAME_LINE (same line inline).",
+                   CompletionGhostTextHintStyle.NONE);
+
   // a debug flag for the timeline to show *all* steps. This is NOT to be enabled in feature_flags.txt
   // This is to be manually enabled only.
   public static final Flag<Boolean> STUDIOBOT_TIMELINE_DEBUG_MODE =
@@ -2126,10 +2141,10 @@ public final class StudioFlags {
                     "Enable showing all steps in the agent timeline",
                     "When enabled, steps like the system prompt and the context steps will be shown");
 
-  public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_CES_TELEMETRY_ENABLED =
-    new BooleanFlag(STUDIOBOT, "inline.code.completion.ces.telemetry.enabled",
-                    "Enable sending inline code completion metrics to the AIDA CES service",
-                    "When enabled, metrics related to inline code completion suggestions will be sent to the CES service for AIDA.");
+  public static final Flag<Boolean> STUDIOBOT_SHOW_MAPPED_CALLS =
+    new BooleanFlag(STUDIOBOT, "timeline.show.mapped.calls",
+                    "Show original shell command for mapped tool calls",
+                    "When enabled, tool calls that were originally shell commands but were mapped to better tools will show the original command in the timeline.");
 
   public static final Flag<Boolean> STUDIOBOT_QUERY_CODE_COMPLETION_ENABLED =
     new BooleanFlag(STUDIOBOT, "query.completion",
@@ -2142,36 +2157,6 @@ public final class StudioFlags {
                     "Enable cyclic expansion in queries",
                     "When enabled, queries will allow cyclic expansion of symbols in the context."
                     );
-
-  public static final Flag<Boolean> STUDIOBOT_INCLUDE_SYMBOL_REFERENCES =
-    new BooleanFlag(STUDIOBOT, "include.symbol.references",
-                    "Include symbol references in context",
-                    "When enabled, symbol references will be included in the context sent to Gemini."
-                    );
-
-  public static final Flag<Boolean> STUDIOBOT_READ_OUTLINE_TOOL =
-    new BooleanFlag(STUDIOBOT, "read.outline.tool",
-                    "Enable the Read Outline tool",
-                    "When enabled, the Read Outline tool will be available for agents."
-    );
-
-  public static final Flag<Boolean> STUDIOBOT_FIND_DECLARATION_TOOL =
-    new BooleanFlag(STUDIOBOT, "find.declaration.tool",
-                    "Enable the Find Declaration tool",
-                    "When enabled, the Find Declaration tool will be available for agents."
-    );
-
-  public static final Flag<Boolean> STUDIOBOT_READ_URI_TOOL =
-    new BooleanFlag(STUDIOBOT, "read.uri.tool",
-                    "Enable the Read URI tool",
-                    "When enabled, the Read URI tool will be available for agents."
-    );
-
-  public static final Flag<Boolean> STUDIOBOT_SHOW_THOUGHTS =
-    new BooleanFlag(STUDIOBOT, "show.thoughts",
-                    "Shows thoughts in the timeline",
-                    "When enabled, thoughts will be shown in the timeline for models that support thinking."
-    );
 
   public static final Flag<Boolean> STUDIOBOT_CODE_SEARCH_PAGINATION_ENABLED =
     new BooleanFlag(STUDIOBOT, "code.search.pagination.enabled",
@@ -2211,16 +2196,6 @@ public final class StudioFlags {
                     "Enable sending context with editor actions.",
                     "When enabled, queries sent by editor actions, like Explain Code, will attach context (e.g. resolved references) from the project.");
 
-  public static final Flag<Boolean> STUDIOBOT_TRANSFORMS_ENABLED =
-    new BooleanFlag(STUDIOBOT, "editor.ai.transforms.enabled",
-                    "Enable the transform actions.",
-                    "When enabled, the transform actions (document, comment, the custom transform action, etc.) are enabled.");
-
-  public static final Flag<Boolean> STUDIOBOT_TRANSFORM_HISTORY_ENABLED =
-    new BooleanFlag(STUDIOBOT, "editor.ai.transform.history.enabled",
-                    "Enable the transform history in the transform diff.",
-                    "When enabled, allows the user to navigate transform history in the diff view.");
-
   public static final Flag<Boolean> STUDIOBOT_SHOW_TRANSFORM_HISTORY_FORWARD_BACK =
     new BooleanFlag(STUDIOBOT, "editor.ai.transform.show.history.forward.back",
                     "Enable the transform history forward/back buttons in the transform diff.",
@@ -2246,30 +2221,16 @@ public final class StudioFlags {
                     "Show transform results that have citations.",
                     "When enabled, will show transform results with citations instead of blocking them.");
 
-  public static final Flag<Boolean> STUDIOBOT_EXPERIMENTAL_SLASH_COMMANDS_ENABLED =
-    new BooleanFlag(STUDIOBOT, "editor.ai.experimental.slash.commands.enabled",
-                    "Enable experimental slash comments.",
-                    "When enabled, experimental slash commands will be enabled.");
-
   public static final Flag<Boolean> STUDIOBOT_RENDER_TOOL_ROLLBACK_ENABLED =
     new BooleanFlag(STUDIOBOT, "editor.ai.render.tool.rollback.enabled",
                     "Enable rollback action in the render tool.",
                     "When enabled, allow the user to reverts project files to the state they were in when the preview was rendered.");
 
 
-  public static final Flag<Boolean> STUDIOBOT_CONTEXT_ATTACHMENT_ENABLED =
-    new BooleanFlag(STUDIOBOT, "chat.enable.context.attachment",
-                    "Enable @file attachment and the context drawer.",
-                    "When enabled, @file can be used to attach text files as context. Also enables the context drawer for context management.");
-
   public static final Flag<Boolean> STUDIOBOT_CONTEXT_ATTACHMENT_CHANGES_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.context.attachment.changes",
                     "Enable inline context management.",
                     "When enabled, inline references in the query box will be used for context management.");
-  public static final Flag<Boolean> STUDIOBOT_FOLDER_CONTEXT_SELECTION_ENABLED =
-    new BooleanFlag(STUDIOBOT, "chat.enable.folder.context.selection",
-                    "Enable @folder attachment.",
-                    "When enabled, @folder can be used to attach folders as context.");
 
   public static final Flag<Long> STUDIOBOT_FOLDER_CONTEXT_MAX_INCLUDED_FILES =
     new LongFlag(STUDIOBOT, "chat.folder.context.max.included.files",
@@ -2278,30 +2239,10 @@ public final class StudioFlags {
                  100L
     );
 
-  public static final Flag<Boolean> STUDIOBOT_DEPENDENCY_SUGGESTION_ENABLED =
-    new BooleanFlag(STUDIOBOT, "chat.suggest.dependencies.on.insert",
-                    "Suggest missing dependencies when inserting/pasting code snippets",
-                    "When enabled, a dependency suggestion dialog will appear when inserting/pasting code snippets that might require missing dependencies.");
-
-  public static final Flag<Boolean> STUDIOBOT_HALLUCINATION_DETECTOR_ENABLED =
-    new BooleanFlag(STUDIOBOT, "hallucination.detector.enabled",
-                    "Run hallucination analysis on generated code.",
-                    "When enabled, a hallucination detection utility will run on generated code snippets, and emit metrics when hallucinations are detected.");
-
-  public static final Flag<Boolean> STUDIOBOT_CURRENT_FILE_CONTEXT =
-    new BooleanFlag(STUDIOBOT, "current.file.context",
-                    "Enable the Current File macro in the context drawer",
-                    "This macro attaches the current file's path, contents, and selection with chat queries.");
-
   public static final Flag<Boolean> STUDIOBOT_RECENT_FILES_CONTEXT =
     new BooleanFlag(STUDIOBOT, "open.files.context",
                     "Enable the Recent Files macro in the context drawer",
                     "This macro attaches the most recently opened files' (but not including the currently open one's) paths and contents with chat queries.");
-
-  public static final Flag<Boolean> STUDIOBOT_AGENTS_MD_FILES_CONTEXT =
-    new BooleanFlag(STUDIOBOT, "agents.md.files.context",
-                    "Enable the AGENTS.md Files macro in the context drawer",
-                    "This macro attaches AGENTS.md or GEMINI.md Files under directories of the current file and its recursive parents.");
 
   public static final Flag<Boolean> STUDIOBOT_AGENTS_MD_GENERATION =
     new BooleanFlag(STUDIOBOT, "agents.md.generation",
@@ -2318,25 +2259,10 @@ public final class StudioFlags {
                     "Enable the new Lucene-backed IntelliJ index for RAG",
                     "When enabled, the RAG index will use the new Lucene-backed IntelliJ index pipeline. Otherwise, the original crawler-based pipeline will be used.");
 
-  public static final Flag<Boolean> STUDIOBOT_WORD_DIFF_ENABLED =
-    new BooleanFlag(STUDIOBOT, "word.diff",
-                    "Enable word-level diffs",
-                    "Enables word-level diffs in the changes drawer and inline diffs.");
-
-  public static final Flag<Boolean> STUDIOBOT_INLINE_DIFF_WORD_DIFF_IGNORE_WHITESPACE =
-    new BooleanFlag(STUDIOBOT, "inline.diff.word.diff.ignore.whitespace",
-                    "Ignore whitespace in word diffs",
-                    "Whether word-level diffs in the inline diff viewer should ignore whitespace.");
-
   public static final Flag<Boolean> STUDIOBOT_IS_G1_INTEGRATION_ENABLED =
     new BooleanFlag(STUDIOBOT, "g1.integration.enabled",
                     "Enable the integration with Google one.",
                     "When enabled, the studio-bot will show UI and upgrade paths corresponding to the Google one subscription held by the user.");
-
-  public static final Flag<Boolean> STUDIOBOT_IS_ASK_MODE_IN_DROPDOWN_ENABLED =
-    new BooleanFlag(STUDIOBOT, "ask.mode.in.dropdown.enabled",
-                    "Enable Ask mode in dropdown",
-                    "If enabled, Ask mode is available as a dropdown option instead of a separate tab.");
 
   public static final Flag<Boolean> STUDIOBOT_IS_SKILLS_ENABLED =
     new BooleanFlag(STUDIOBOT, "skills.enabled",
@@ -2348,15 +2274,15 @@ public final class StudioFlags {
                     "Enable Studio Bot Skills V2.",
                     "When enabled, the studio-bot agents will be able to use version 2 of skills.");
 
-  public static final Flag<Boolean> STUDIOBOT_IS_IDE_HISTORY_EVENTS_IN_CONTEXT =
-    new BooleanFlag(STUDIOBOT, "ide.history.enabled",
-                    "Enable IDE history in context",
-                    "When enabled, the agent will be told about IDE events.");
-
   public static final Flag<Boolean> STUDIOBOT_IS_QUICK_EDIT_ENABLED =
     new BooleanFlag(STUDIOBOT, "quick.edit.enabled",
                     "Enable the quick edit support.",
                     "When enabled, the user can use Command + I and Command + K to quickly chat with agent and make changes inline.");
+
+  public static final Flag<Boolean> STUDIOBOT_RESTRICT_QUICK_EDIT_TOOLS =
+    new BooleanFlag(STUDIOBOT, "restrict.quick.edit.tools",
+                    "Enable the restrictive tools for quick edit.",
+                    "When enabled, the quick edit agent will use a highly-targeted restrictive toolset to reduce latency.");
 
   public static final Flag<Boolean> STUDIOBOT_USE_BM25_FOR_FIND_FILES =
     new BooleanFlag(STUDIOBOT, "use.bm25.find.files",
@@ -2388,17 +2314,10 @@ public final class StudioFlags {
                     "Show Saved Prompts in chat lookup",
                     "When enabled, add Rules section to lookup popup.");
 
-  public static final Flag<Boolean> STUDIOBOT_AGENT_NOTIFICATIONS =
-    new BooleanFlag(STUDIOBOT, "agent.notifications",
-                    "Enable agent notifications",
-                    "Shows notifications when agent is blocked or finishes long tasks");
-
   public static final Flag<Boolean> STUDIOBOT_MCP_HOST_ENABLED =
     new BooleanFlag(STUDIOBOT, "mcp.host.enabled",
                     "Enable Model Context Protocol (MCP) support",
                     "Allows the agent to use custom tools provided by Model Context Protocol (MCP) servers");
-
-
 
   public static final Flag<Boolean> STUDIOBOT_MCP_SETTINGS_ENABLED =
     new BooleanFlag(STUDIOBOT, "mcp.settings.enabled",
@@ -2415,88 +2334,37 @@ public final class StudioFlags {
                     "Enable support for the MCP registry",
                     "When enabled, adds a Registry tab into the MCP settings");
 
-  public static final Flag<Boolean> STUDIOBOT_SCROLL_TO_BOTTOM_ENABLED =
-    new BooleanFlag(STUDIOBOT, "chat.scroll.to.bottom",
-                    "Enable AutoScroll Button",
-                    "When enabled, the chat will show a button on the timeline to toggle auto-scrolling.");
+  public static final Flag<Boolean> STUDIOBOT_ACP_CLIENT_ENABLED =
+    new BooleanFlag(STUDIOBOT, "acp.client.enabled",
+                    "Enable Agent Context Protocol (ACP) Support",
+                    "Allows using ACP-compatible agent harnesses");
 
   public static final Flag<Boolean> STUDIOBOT_CHAT_QUERY_STATUS_BANNER_ENABLED =
     new BooleanFlag(STUDIOBOT, "chat.query.status.banner.enabled",
                     "Enable thinking banner in Chat Timeline",
                     "When enabled, the chat timeline will show a banner that shows the thinking stream of an ongoing response.");
 
-  public static final Flag<Boolean> STUDIOBOT_AGENT_MODE_QUERY_STATUS_BANNER_ENABLED =
-    new BooleanFlag(STUDIOBOT, "agent.query.status.banner.enabled",
-                    "Enable query status banner in Agent Mode Timeline",
-                    "When enabled, the agent mode timeline will show a banner showing thinking stream and tool usage of an ongoing response.");
-
-  public static final Flag<Boolean> STUDIOBOT_PLAN_TOOL_ENABLED =
-    new BooleanFlag(STUDIOBOT, "agent.plan.tool.enabled",
-                    "Enable planning tool for the agent and showing the plan in the thinker",
-                    "When enabled, the agent mode will be able to use the plan tool and we will display the current plan state in the thinker (query status banner).");
-
-  public static final Flag<Boolean> STUDIOBOT_TLDR_MODE_ENABLED =
-    new BooleanFlag(STUDIOBOT, "agent.tldr.mode.enabled",
-                    "Enable tl;dr mode for the agent",
-                    "When enabled, the agent timeline UI will show a summary of each plan step execution.");
-
   public enum StudioBotPlanMode {
     NONE,
-    V2,
     GUIDED_MODE
   }
 
   public static final Flag<StudioBotPlanMode> STUDIOBOT_PLAN_MODE =
     new EnumFlag<>(STUDIOBOT, "plan.mode",
                    "Select Studio Bot planning mode",
-                   "Controls whether planning mode is disabled, uses v2 planning, or uses guided mode.",
-                   StudioBotPlanMode.V2);
+                   "Controls whether planning mode is disabled or uses guided mode.",
+                   StudioBotPlanMode.GUIDED_MODE);
 
   public static final Flag<Boolean> STUDIOBOT_ASK_FOR_MORE_DETAIL_ENABLED =
     new BooleanFlag(STUDIOBOT, "ask.for.more.detail.enabled",
                     "Enable the 'ask for more detail' feature",
                     "When enabled, users can ask for more detail in planning mode markdown artifacts.");
 
-  public static final Flag<Boolean> STUDIOBOT_STOP_BUTTON_ENABLED =
-    new BooleanFlag(STUDIOBOT, "chat.stop.button.enabled",
-                    "Enable Stop Button",
-                    "When enabled, the query box will show a button to stop ongoing responses.");
-
-  public static final Flag<Boolean> STUDIOBOT_CHAT_MULTIPLE_SESSIONS_ENABLED =
-    new BooleanFlag(STUDIOBOT, "chat.multiple.sessions",
-                    "Enable multiple sessions in gemini window",
-                    "When enabled, allows creating and selecting different sessions for the gemini Chat/Agent window.");
-
-  public static final Flag<Boolean> COMMIT_MESSAGE_SUGGESTION =
-    new BooleanFlag(STUDIOBOT, "commit.message.suggestion",
-                    "Use ML model to suggest commit messages",
-                    "Enables the \"Suggest Commit Message\" button in the Commit tool window");
-
-  public static final Flag<Boolean> COMMIT_MESSAGE_SUGGESTION_OVERRIDE =
-    new BooleanFlag(STUDIOBOT, "commit.message.suggestion.override",
-                    "Allow users to override prompt for suggesting commit messages",
-                    "Enables the \"Commit Message Generation\" in Prompt Library setting");
-
 
   public static final Flag<Boolean> VCS_MERGE_CONFLICTS_ACTION =
     new BooleanFlag(STUDIOBOT, "vcs.merge.conflicts.agent",
     "Enable the Merge Conflicts action.",
     "If enabled, the merge conflicts action is available.");
-
-  public static final Flag<Boolean> README_GENERATION =
-    new BooleanFlag(STUDIOBOT, "readme.generation",
-                    "Use ML model to create a README",
-                    "Enables the \"Generate README\" button in the Project tool window");
-
-  public static final Flag<Boolean> ANALYZE_THREAD_SAFETY =
-    new BooleanFlag(STUDIOBOT, "analyze.thread.safety",
-                    "Use ML model analyze thread safety of selected files",
-                    "Enables the \"Analyze Thread Safety\" button in the Project tool window");
-
-  public static final Flag<Boolean> AI_RENAME_ACTION =
-    new BooleanFlag(STUDIOBOT, "ai.rename.action",
-                    "Use AI to suggest a better identifier name",
-                    "Enables AI rename suggestion functionality");
 
   public static final Flag<Boolean> FIX_WITH_AI_EDITOR_ACTION =
     new BooleanFlag(STUDIOBOT, "ai.fix.error.editor.action",
@@ -2513,11 +2381,6 @@ public final class StudioFlags {
                     "Enable the replace text tool",
                     "When enabled, adds the replace text tool to a set of default tools");
 
-  public static final Flag<Boolean> STUDIOBOT_ATTACHMENTS =
-    new BooleanFlag(STUDIOBOT, "attachments",
-                    "Enable action to add attachments",
-                    "When enabled, enables the actions to manage attachments");
-
   public static final Flag<Boolean> STUDIOBOT_ASK_USER_TOOL_ENABLED =
     new BooleanFlag(STUDIOBOT, "ask.user.tool.enabled",
                     "Enable the AskUserTool",
@@ -2527,6 +2390,23 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "tool.timeout.monitor.enabled",
                     "Enable the inactivity monitor for tool calls",
                     "When enabled, tool execution will be monitored for inactivity and cancelled after a timeout");
+
+  public static final Flag<Boolean> STUDIOBOT_CENTRAL_TOOL_TOKEN_CAPPING_ENABLED =
+    new BooleanFlag(STUDIOBOT, "central.tool.token.capping.enabled",
+                    "Central tool token capping enabled",
+                    "When enabled, truncates/caps any tool output exceeding max tokens at the central level.");
+
+  public static final Flag<Integer> STUDIOBOT_MAX_TOOL_OUTPUT_TOKENS =
+    new IntFlag(STUDIOBOT, "max.tool.output.tokens",
+                "Max tokens for tool outputs",
+                "Maximum number of tokens allowed for a single tool call's output before middle truncation is applied.",
+                10_000);
+
+  public static final Flag<Integer> STUDIOBOT_TOOL_OUTPUT_PREFIX_PERCENT =
+    new IntFlag(STUDIOBOT, "tool.output.prefix.percent",
+                "Prefix percent for tool truncation",
+                "Percentage of the maximum token budget to preserve at the beginning of the output during middle truncation (head budget ratio).",
+                25);
 
   // rate limits are controlled by server flags
   public static final Flag<Integer> STUDIOBOT_COMPLETIONS_PER_HOUR =
@@ -2576,22 +2456,10 @@ public final class StudioFlags {
                       "Enable agentic automated unit test generation",
                       "When enabled, generate unit tests using studio bot agent.");
 
-
-  public static final Flag<Boolean> STUDIOBOT_SUPPORT_GIAS_ENTERPRISE =
-    new BooleanFlag(STUDIOBOT, "support.gias.enterprise",
-                    "Enable support for GCA Enterprise tier",
-                    "Enable support for GCA Enterprise tier");
-
   public static Flag<Boolean> STUDIOBOT_SHIMMER_PLACEHOLDER =
     new BooleanFlag(STUDIOBOT, "show.shimmer.placeholder",
                     "Enable shimmering placeholder in chat timeline.",
                     "When enabled, the compose chat timeline will show a shimmering placeholder while awaiting initial response content.");
-
-  public static Flag<Boolean> GEMINI_BRING_YOUR_OWN_KEY_ENABLED =
-    new BooleanFlag(STUDIOBOT, "bring.your.own.key",
-                    "Enable providing a public Gemini API key to override the default model.",
-                    "When enabled, a setting and various UI is made visible to provide a Gemini API key, and when provided and " +
-                    "enabled it replaces the default model with the public Gemini model.");
 
   public static Flag<Boolean> LOCAL_MODELS_ENABLED =
     new BooleanFlag(STUDIOBOT, "local.models.enabled",
@@ -2621,20 +2489,24 @@ public final class StudioFlags {
                     "Enable the model manager..",
                     "Allows individual features to use different models configured in model sets.");
 
-  public static final Flag<Boolean> STUDIOBOT_INCLUDE_GRADLE_PROJECT_STRUCTURE_TOOLS_BY_DEFAULT =
-    new BooleanFlag(STUDIOBOT, "include.gradle.project.structure.tools.by.default",
-                    "Enable using Gradle project structure Agent tools by default",
-                    "When enabled, a set of tools allowing the agent to query for the Gradle project structure will be included by default.");
+
+  public static final Flag<Boolean> STUDIOBOT_SMART_GRADLE_BUILD_TOOL =
+    new BooleanFlag(STUDIOBOT, "include.gradle.smart.build.tool",
+                    "Use Smart Gradle Build Tool in Agent",
+                    "When enabled, 'gradle_build' tool is replaced with a smarter version that can calculate required tasks from provided context.");
+
+
+  public static final Flag<Boolean> STUDIOBOT_GRADLE_PROJECT_INFO_TOOL =
+    new BooleanFlag(STUDIOBOT, "include.gradle.project.info.tool",
+                    "Use Gradle Project Info Tool in Agent",
+                    "When enabled, bunch of gradle project structure tools replaced with single `get_gradle_project_info` tool that provides all needed information for a gradle project.");
+
 
   public static final Flag<Boolean> STUDIOBOT_SUGGESTION_SMART_GROUPING_ENABLED =
     new BooleanFlag(STUDIOBOT, "suggestion.smart.grouping.enabled",
                     "Enable smart grouping of suggestions that are accepted or rejected together",
                     "When enabled, individual chunks of suggestions may be grouped together using heuristic logic into semantic chunks that can be accepted or rejected together.");
 
-  public static final Flag<Boolean> STUDIOBOT_DEPLOY_TOOLS_BY_DEFAULT =
-    new BooleanFlag(STUDIOBOT, "include.deploy.tools.by.default",
-                    "Enable using Deployment Agent tools by default",
-                    "When enabled, a set of tools allowing the agent to use deployment tools like Live Edit will be included by default.");
 
   public static final Flag<Boolean> STUDIOBOT_DEPLOY_VIBE_EDIT_AGENT =
     new BooleanFlag(STUDIOBOT, "deploy.vibe.edit.agent",
@@ -2645,11 +2517,6 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "include.device.tools",
                     "Enable using device tools",
                     "Enables a set of tools allowing the agent to list and activate devices.");
-
-  public static final Flag<Boolean> STUDIOBOT_JPS_TOOLS =
-    new BooleanFlag(STUDIOBOT, "include.jps.tools",
-                    "Enable using JPS tools",
-                    "Enables a set of tools allowing the agent to use JPS build and test tools.");
 
   public static final Flag<Boolean> STUDIOBOT_LOGCAT_TOOL =
     new BooleanFlag(STUDIOBOT, "include.logcat.tool",
@@ -2676,10 +2543,10 @@ public final class StudioFlags {
                     "Enable Layout XML to Compose migration",
                     "Enables the AI-powered migration flow from Layout XML to Jetpack Compose.");
 
-  public static final Flag<Boolean> GEMINI_AGENT_MODE =
-    new BooleanFlag(STUDIOBOT, "agent.mode",
-                    "Enable agent mode.",
-                    "When enabled, the agent mode will be enabled in the Gemini toolwindow.");
+  public static final Flag<Boolean> STUDIOBOT_LAYOUT_TO_COMPOSE_MIGRATION_ENABLE_SCREENSHOT_VERIFICATION =
+    new BooleanFlag(STUDIOBOT, "layout.to.compose.migration.enable.screenshot.verification",
+                    "Enable screenshot verification in Layout XML to Compose migration",
+                    "When enabled, baseline screenshot generation and screenshot verification steps are performed during layout migration.");
 
   public static final Flag<Boolean> IS_GEMINI_ONBOARDING_V2_ENABLED =
     new BooleanFlag(STUDIOBOT, "gemini.onboarding.v2.enabled",
@@ -2696,20 +2563,10 @@ public final class StudioFlags {
                     "Enable New Project Agent",
                     "Enables the 'New Project Agent'.");
 
-  public static final Flag<Boolean> GEMINI_SIMPLE_NEW_PROJECT_AGENT =
-    new BooleanFlag(STUDIOBOT, "simple.new.project.agent",
-                    "Enable Simple New Project Agent",
-                    "Enables the 'New Project Agent' for simple projects.");
-
   public static final Flag<Boolean> GEMINI_NEW_PROJECT_AGENT_WITH_PLANNER_UI =
     new BooleanFlag(STUDIOBOT, "new.project.agent.with.planner.ui",
                     "Enable New Project Agent's Planner UI",
                     "Enables the 'New Project Agent' Planner UI.");
-
-  public static final Flag<Boolean> GEMINI_AGENT_CHANGES_DRAWER_ENABLED =
-    new BooleanFlag(STUDIOBOT, "agent.changes.drawer",
-                    "Enable the Agent Changes Drawer",
-                    "Enables the 'Agent Changes Drawer' for viewing and reviewing changes made by agent tool calls.");
 
   public static final Flag<Boolean> GEMINI_WEB_SEARCH_TOOL_ENABLED =
     new BooleanFlag(STUDIOBOT, "web.search.tool",
@@ -2736,11 +2593,6 @@ public final class StudioFlags {
                     "Enable regenerating past chat queries.",
                     "Enable regenerating past chat queries by hovering and clicking a regenerate button.");
 
-  public static final Flag<Boolean> STUDIOBOT_V2_UI_ENABLED =
-    new BooleanFlag(STUDIOBOT, "ui.v2.enabled",
-                    "Enable v2 agent UI (sessions in editor tabs)",
-                    "Disables the toolwindow-based v1 agent UI and replaces it with the v2 editor tabs-based agent UI. Requires restart.");
-
   public static final Flag<Boolean> STUDIOBOT_AGENT_V2_TELEMETRY_ENABLED =
     new BooleanFlag(STUDIOBOT, "agent.v2.telemetry.enabled",
                     "Enable agent V2 telemetry",
@@ -2750,11 +2602,6 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "personalized.greeting.disabled",
                     "Disable personalized greeting",
                     "When false, shows 'Hi userName' if the user name is available; otherwise shows 'Hello'.");
-
-  public static final Flag<Boolean> GEMINI_DEBUGGER_TOOLS_ENABLED =
-    new BooleanFlag(STUDIOBOT, "debugger.tools",
-                    "Enable Debugger tools.",
-                    "Enable Debugger tools.");
 
   public static final Flag<String> NPA_ICON_IMAGE_GENERATION_MODEL_NAME =
     new StringFlag(STUDIOBOT, "npa.icon.image.generation.model.name",
@@ -2798,10 +2645,6 @@ public final class StudioFlags {
                    "Enable support for GCA Dasher accounts",
                    DasherSupportMode.AUTO);
 
-  public static final Flag<Boolean> GEMINI_SHOW_SIGN_IN_DIALOG =
-    new BooleanFlag(STUDIOBOT, "gemini.show.sign.in.dialog",
-                    "Enable sign in dialog for Gemini",
-                    "Enable Gemini actions to display a dialog prompting the user to sign in");
 
   public static final Flag<Boolean> GEMINI_VERIFY_USER_TIER_IN_ALL_AIDA_RPCS =
     new BooleanFlag(STUDIOBOT, "verify.user.tier.in.aida.rpcs",
@@ -2834,45 +2677,21 @@ public final class StudioFlags {
                     "Enable Gemini State Inspection Agent for the Layout Inspector.",
                     "Enables the agent that helps with explaining state read exception traces.");
 
-  public static final Flag<Boolean> STUDIOBOT_SHELL_TOOL =
-    new BooleanFlag(STUDIOBOT, "shell.tool",
-                    "Enable the shell tool in agent mode",
-                    "Enables the shell tool which can run arbitrary commands on the computer");
-
-  public static final Flag<Boolean> STUDIOBOT_WRITE_CRITIC =
-    new BooleanFlag(STUDIOBOT, "write.critic",
-                    "Enable agent critic",
-                    "Enables the agent to look for and report new warnings added after file changes");
-
-  public static final Flag<Boolean> STUDIOBOT_WRITE_CRITIC_MAIN_PASSES =
-    new BooleanFlag(STUDIOBOT, "write.critic.main.passes",
-                    "Enable agent critic via main passes runner API",
-                    "Enables the agent to look for and report new warnings added after file changes by invoking main passes runner API");
-
-  public static final Flag<Boolean> STUDIOBOT_PERMISSION_MODEL =
-    new BooleanFlag(STUDIOBOT, "permission.model",
-                    "Enable new permission model",
-                    "Enables the permission model which offers granular permission grants and denials");
-
-  public static final Flag<Boolean> STUDIOBOT_REMOVE_REDUNDANT_TOOL_CALLS =
-    new BooleanFlag(STUDIOBOT, "context.compression.prunecalls",
-                    "Remove obsolete tool calls from the context",
-                    "Enables removing redundant tool calls from the context");
-
-  public static final Flag<Boolean> STUDIOBOT_DISPLAY_TOKEN_USAGE =
-    new BooleanFlag(STUDIOBOT, "context.display.usage",
-                    "Display context usage",
-                    "Enables displaying the token usage in the context");
-
-  public static final Flag<Boolean> STUDIOBOT_CONTEXT_COMPRESSION =
-    new BooleanFlag(STUDIOBOT, "context.compression",
-                    "Enable context compression",
-                    "Enables agent context compression where when full, the oldest half is summarized to shorten the total context length");
+  public static final Flag<Boolean> STUDIOBOT_AGENT_PERMISSION_MODES_ENABLED =
+    new BooleanFlag(STUDIOBOT, "agent.permission.modes",
+                    "Enable agent permission modes",
+                    "Enables the agent execution modes (Safe, Supervision, Unrestricted) and corresponding settings UI");
 
   public static final Flag<Boolean> STUDIOBOT_AI_CODE_ENABLED =
     new BooleanFlag(STUDIOBOT, "aicode",
                     "Enable AICode integration",
                     "Enable AICode backend integration to be used for agent, code transform and code completion");
+
+  public static final Flag<Boolean> STUDIOBOT_BAICODE_ENABLED =
+    new BooleanFlag(STUDIOBOT, "baicode",
+                    "Support Gemini Enterprise integration",
+                    "Enable Gemini enterprise integration to be used for agent and onboarding selection");
+
 
   public static final Flag<Boolean> STUDIOBOT_USER_QUOTA_UI_ENABLED =
     new BooleanFlag(STUDIOBOT, "user.quota.ui.enabled",
@@ -2905,6 +2724,11 @@ public final class StudioFlags {
                     "Enable project-wide symbol linkification and navigation",
                     "Enables one-click navigation to code symbols mentioned in Studio Bot responses");
 
+  public static final Flag<Boolean> STUDIOBOT_SYMBOL_LINKS_FROM_MODEL =
+    new BooleanFlag(STUDIOBOT, "symbol.links.from.model",
+                    "Enable symbol links from model",
+                    "Enables the new explicit model-provided link translation and disables legacy index-based recognition by default");
+
   public static final Flag<Boolean> STUDIOBOT_TASK_ROADMAP_ENABLED =
     new BooleanFlag(STUDIOBOT, "task.roadmap.enabled",
                     "Enable Task Roadmap progress panels",
@@ -2914,6 +2738,21 @@ public final class StudioFlags {
     new BooleanFlag(STUDIOBOT, "change.review.native.diff.disabled",
                     "Disable native diff engine in Change Review details pane",
                     "When true, the Change Review details pane falls back to rendering file changes using markdown diff blocks instead of the native diff component.");
+
+  public static final Flag<Boolean> STUDIOBOT_ASK_USER_IN_QUERY_BOX =
+    new BooleanFlag(STUDIOBOT, "ask.user.in.query.box",
+                    "Replace the query box with the pending ask user tool call.",
+                    "When true, the query box UI will be completely replaced with the pending ask user tool call instead of rendering it in the timeline.");
+
+  public static final Flag<Boolean> STUDIOBOT_PERMISSION_REQUEST_IN_QUERY_BOX =
+    new BooleanFlag(STUDIOBOT, "permission.request.in.query.box",
+                    "Replace the query box with the pending permissions request.",
+                    "When true, the query box UI will be completely replaced with the pending permissions request instead of rendering it in the timeline.");
+
+  public static final Flag<Boolean> STUDIOBOT_CONVERSATION_SEARCH_ENABLED =
+    new BooleanFlag(STUDIOBOT, "conversation.search.enabled",
+                    "Enable past conversation search",
+                    "Enables a conversational search feature inside the Studio Bot tool window to allow users to search their historical chat histories.");
 
   // endregion STUDIO_BOT
 
@@ -2930,6 +2769,13 @@ public final class StudioFlags {
   public static final Flag<Boolean> STUDIO_LABS_SETTINGS_FAKE_FEATURE_ENABLED =
     new BooleanFlag(STUDIO_LABS, "fakefeature", "Enable fake feature in StudioLabs.", "Enable this for testing.");
   // endregion STUDIO_LABS
+
+  // region SDK_MANAGER
+  private static final FlagGroup SDK_MANAGER = new FlagGroup(FLAGS, "sdk.manager", "SDK Manager");
+  public static final Flag<Boolean> SDK_MANAGER_SHOW_PACKAGE_DETAILS =
+    new BooleanFlag(SDK_MANAGER, "show.package.details", "Enable Show Package Details",
+                    "Enable a right-click menu and shortcut to show package details in the SDK Manager.");
+  // endregion SDK_MANAGER
 
   // region WEAR_RUN_CONFIGS_AUTOCREATE
   private static final FlagGroup WEAR_RUN_CONFIGS_AUTOCREATE =
@@ -2961,6 +2807,9 @@ public final class StudioFlags {
   public static final Flag<Boolean> ENABLE_FSTS =
     new BooleanFlag(GOOGLE_LOGIN, "enable.fsts", "Enable flexible scoped tokens",
                     "Enable flexible scoped tokens and disable feature selection UI");
+  public static final Flag<Boolean> ENABLE_STARTUP_SIGN_IN_DIALOG =
+    new BooleanFlag(GOOGLE_LOGIN, "enable.startup.sign.in.dialog", "Enable startup sign-in dialog",
+                    "Enable startup sign-in dialog for logged-out users to prompt them to sign in");
   // endregion Google Login
 
   // region Backup
@@ -3044,10 +2893,6 @@ public final class StudioFlags {
     JOURNEYS_WITH_GEMINI, "enable.agent.support", "Enable the Journeys agent",
     "Enable running Journey tests using an AI agent"
   );
-  public static final Flag<Boolean> JOURNEYS_WITH_GEMINI_ANDROID_CLI_TOOLS = new BooleanFlag(
-    JOURNEYS_WITH_GEMINI, "enable.android.cli.tools", "Enable Android CLI tools based Journeys agent",
-    "Enable the use of the Android CLI skill and tool when running Journey tests with an agent"
-  );
   // endregion JOURNEYS_WITH_GEMINI
 
   public static Boolean isBuildOutputShowsDownloadInfo() {
@@ -3116,12 +2961,6 @@ public final class StudioFlags {
 
   // region deprecation policy
   private static final FlagGroup DEPRECATION_POLICY = new FlagGroup(FLAGS, "deprecationpolicy", "Deprecation Policy");
-  public static final Flag<Boolean> USE_POLICY_WITH_DEPRECATE =
-    new BooleanFlag(
-      DEPRECATION_POLICY,
-      "use.policy.with.deprecate",
-      "Use compatibility policy with DEPRECATE support",
-      "Use compatibility policy that supports DEPRECATED state");
   public static final Flag<String> DEFAULT_MORE_INFO_URL =
     new StringFlag(
       DEPRECATION_POLICY,
@@ -3201,6 +3040,13 @@ public final class StudioFlags {
       "Set Play Publishing server address",
       "Set Play Publishing server address",
       "androidpublisher.googleapis.com"
+    );
+  public static final Flag<Boolean> PLAY_PUBLISHING_BUILD_MENU_ACTION =
+    new BooleanFlag(
+      PLAY_PUBLISHING,
+      "play.publishing.build.menu.action",
+      "Enable Play Publishing Build Menu Action",
+      "When enabled, the Publish submenu is shown in the Build menu."
     );
   // endregion Play Publishing
 

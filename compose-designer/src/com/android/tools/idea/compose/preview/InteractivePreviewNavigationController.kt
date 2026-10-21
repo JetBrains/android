@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.compose.StudioComposePanel
 import com.android.tools.environment.Logger
 import com.android.tools.idea.compose.preview.interactive.NavigationControlsContent
+import com.android.tools.idea.compose.preview.util.isEdgeNavigationImplemented
 import com.android.tools.idea.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.openapi.actionSystem.DataKey
@@ -32,13 +33,13 @@ import kotlinx.coroutines.flow.asSharedFlow
 /** Enum representing the edge from which a back navigation gesture can be initiated. */
 enum class BackNavigationEdge(val visibleName: String) {
   /** Represents a back gesture initiated from the left edge of the screen. */
-  LEFT_EDGE("Left"),
+  EDGE_LEFT("Swipe Left"),
 
   /** Represents a back gesture initiated from the right edge of the screen. */
-  RIGHT_EDGE("Right"),
+  EDGE_RIGHT("Swipe Right"),
 
   /** Represents no specific edge for the back gesture. */
-  NONE("None"),
+  EDGE_NONE("None"),
 }
 
 /**
@@ -55,8 +56,17 @@ class InteractivePreviewNavigationController(
   private val _backPressCompletedFlow = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
   val backPressCompletedFlow = _backPressCompletedFlow.asSharedFlow()
 
-  private val showNavigationControlsProvider = {
-    StudioComposePanel { NavigationControlsContent(interactivePreviewNavigationController = this, fpsUpdater = fpsUpdater) }
+  var isBackGestureInProgress: Boolean = false
+    private set
+
+  private val showNavigationControlsProvider: (ComposePreviewElementInstance<*>) -> JComponent = { instance ->
+    StudioComposePanel {
+      NavigationControlsContent(
+        interactivePreviewNavigationController = this,
+        fpsUpdater = fpsUpdater,
+        isEdgeNavigationImplemented = { instance.isEdgeNavigationImplemented() },
+      )
+    }
   }
 
   /** The currently active [JComponent] for back navigation controls, or null if controls are hidden. */
@@ -68,6 +78,7 @@ class InteractivePreviewNavigationController(
   private var onBackPressProgressMethod: Method? = null
   private var onBackPressCompletedMethod: Method? = null
   private var onBackPressCancelledMethod: Method? = null
+  private var hasNavDisplayInViewTree: Boolean = false
 
   private val logger = Logger.getInstance(InteractivePreviewNavigationController::class.java)
 
@@ -81,12 +92,16 @@ class InteractivePreviewNavigationController(
    * @param currentNavigationEventDispatcherOwnerObj The local object [LocalNavigationEventDispatcherOwner] loaded from
    *   [LocalNavigationEventTransform].
    * @param currentComposeViewAdapterObj The object of the actual `androidx.compose.ui.tooling.ComposeViewAdapter`.
+   * @param hasNavDisplay Whether a `NavDisplay` component exists in the preview hierarchy.
    */
-  fun updateObjects(currentNavigationEventDispatcherOwnerObj: Any?, currentComposeViewAdapterObj: Any) {
+  fun updateObjects(currentNavigationEventDispatcherOwnerObj: Any?, currentComposeViewAdapterObj: Any, hasNavDisplay: Boolean) {
     backPressDispatcherOwner = getBackPressDispatcherOwner(currentNavigationEventDispatcherOwnerObj, currentComposeViewAdapterObj)
+
+    isBackGestureInProgress = false
 
     // Reset the cached values
     canBackPressMethod = null
+    hasNavDisplayInViewTree = hasNavDisplay
     onBackPressStartedMethod = null
     onBackPressProgressMethod = null
     onBackPressCompletedMethod = null
@@ -137,7 +152,8 @@ class InteractivePreviewNavigationController(
    *
    * @param edge The [BackNavigationEdge] of the device on which the progress is performed.
    */
-  fun backPressStart(edge: BackNavigationEdge = BackNavigationEdge.LEFT_EDGE) {
+  fun backPressStart(edge: BackNavigationEdge = BackNavigationEdge.EDGE_NONE) {
+    isBackGestureInProgress = true
     val resolvedMethod =
       onBackPressStartedMethod ?: backPressDispatcherOwner.findMethod(ON_BACK_PRESS_STARTED).also { onBackPressStartedMethod = it }
     resolvedMethod?.invoke(backPressDispatcherOwner, edge.name)
@@ -149,10 +165,15 @@ class InteractivePreviewNavigationController(
    * @param progress The progress of the gesture, from 0.0 to 1.0.
    * @param edge The [BackNavigationEdge] of the device on which the progress is performed.
    */
-  fun backPressProgress(progress: Float, edge: BackNavigationEdge = BackNavigationEdge.LEFT_EDGE) {
-    val resolvedMethod =
-      onBackPressProgressMethod ?: backPressDispatcherOwner.findMethod(ON_BACK_PRESS_PROGRESS).also { onBackPressProgressMethod = it }
-    resolvedMethod?.invoke(backPressDispatcherOwner, progress.coerceIn(0.0f, 1.0f), edge.name)
+  fun backPressProgress(progress: Float, edge: BackNavigationEdge = BackNavigationEdge.EDGE_NONE) {
+    // If we move progress back, to 0f we cancel the back press
+    if (progress <= 0.0f) {
+      backPressCancelled()
+    } else {
+      val resolvedMethod =
+        onBackPressProgressMethod ?: backPressDispatcherOwner.findMethod(ON_BACK_PRESS_PROGRESS).also { onBackPressProgressMethod = it }
+      resolvedMethod?.invoke(backPressDispatcherOwner, progress.coerceIn(0.0f, 1.0f), edge.name)
+    }
   }
 
   /**
@@ -161,15 +182,17 @@ class InteractivePreviewNavigationController(
    * It uses the interactive back press completion method identified during [updateObjects].
    */
   fun backPressCompleted() {
+    isBackGestureInProgress = false
     val resolvedMethod =
       onBackPressCompletedMethod ?: backPressDispatcherOwner.findMethod(ON_BACK_PRESS_COMPLETED).also { onBackPressCompletedMethod = it }
     resolvedMethod?.invoke(backPressDispatcherOwner)
-      ?: logger.debug("Can't perform back press,reflected method invocation should not be null")
+      ?: logger.debug("Can't perform back press, reflected method invocation should not be null")
     _backPressCompletedFlow.tryEmit(Unit)
   }
 
-  /** Cancels the back press, If a back press is in progress stops the interactive back gesture simulation. */
+  /** Cancels the back press. If a back press is in progress, stops the interactive back gesture simulation. */
   fun backPressCancelled() {
+    isBackGestureInProgress = false
     val resolvedMethod =
       onBackPressCancelledMethod ?: backPressDispatcherOwner.findMethod(ON_BACK_PRESS_CANCELLED).also { onBackPressCancelledMethod = it }
     resolvedMethod?.invoke(backPressDispatcherOwner)
@@ -187,15 +210,19 @@ class InteractivePreviewNavigationController(
       null
 
   /**
-   * Checks, via reflection, if predictive back navigation can be performed.
+   * Checks, via reflection, if it is possible to show the navigation panel.
    *
-   * This method only supports the new (navigation3) back press API.
+   * This is possible if predictive back navigation can be performed and if `NavDisplay` is implemented in code. This method only supports
+   * the new (navigation3) back press API.
    *
-   * @return true if [backPressProgress] and [backPressCompleted] can be called, false otherwise.
+   * @return true if [backPressProgress] can be called and `NavDisplay` is implemented in code, false otherwise.
    */
-  fun isPredictiveBackReady(): Boolean =
-    (onBackPressProgressMethod ?: backPressDispatcherOwner.findMethod(ON_BACK_PRESS_PROGRESS).also { onBackPressProgressMethod = it }) !=
-      null
+  fun canShowNavigationPanel(): Boolean {
+    val isPredictiveBackReady =
+      (onBackPressProgressMethod ?: backPressDispatcherOwner.findMethod(ON_BACK_PRESS_PROGRESS).also { onBackPressProgressMethod = it }) !=
+        null
+    return isPredictiveBackReady && hasNavDisplayInViewTree
+  }
 
   /**
    * Shows the navigation controls for the given [instance].
@@ -208,7 +235,7 @@ class InteractivePreviewNavigationController(
   @UiThread
   fun showNavigationControls(instance: ComposePreviewElementInstance<*>) {
     if (activeBackNavigationPanelInInteractiveMode == null) {
-      activeBackNavigationPanelInInteractiveMode = showNavigationControlsProvider()
+      activeBackNavigationPanelInInteractiveMode = showNavigationControlsProvider(instance)
       onAfterPanelUpdate()
       usageTrackerProvider().trackNavigationPanelVisibilityChange(isShown = true)
     }

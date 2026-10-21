@@ -2324,7 +2324,6 @@ jvm_library(
         # do not sort,
         ":descriptor",
         "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
         "//plugins/groovy:groovy_test_lib",
         "//plugins/gradle/java/plugin:plugin_test_lib",
         "//platform/compose/plugin:plugin_test_lib",

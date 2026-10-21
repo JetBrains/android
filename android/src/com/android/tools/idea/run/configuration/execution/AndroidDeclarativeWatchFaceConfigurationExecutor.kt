@@ -116,7 +116,9 @@ class AndroidDeclarativeWatchFaceConfigurationExecutor(
 
       // Declarative Watch Faces are run by WATCH_FACE_RUNTIME_APPLICATION_ID, so that's where the
       // user can see if there are any errors or warnings at runtime
-      environment.project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, WATCH_FACE_RUNTIME_APPLICATION_ID)
+      environment.project.messageBus
+        .syncPublisher(ShowLogcatListener.TOPIC)
+        .showLogcat(environment.project, device, WATCH_FACE_RUNTIME_APPLICATION_ID)
     }
 
     devices.map { async { onDevice(it) } }.joinAll()

@@ -15,7 +15,6 @@
  */
 package com.google.idea.blaze.qsync;
 
-import com.google.idea.blaze.common.vcs.VcsState;
 import com.google.idea.blaze.qsync.project.PostQuerySyncData;
 import com.google.idea.blaze.qsync.query.QuerySpec;
 import com.google.idea.blaze.qsync.query.QuerySummary;
@@ -23,8 +22,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
- * A project update that does nothing other than return the existing project state, with the vcs
- * state updated.
+ * A project update that does nothing other than return the existing query data.
  *
  * <p>This is used when performing a partial sync when there have been no significant changes to
  * targets in the workspace (e.g. dependencies modified or source files added) since the last sync.
@@ -32,16 +30,9 @@ import java.util.function.Supplier;
 public class NoopProjectRefresh implements RefreshOperation {
 
   private final Supplier<QuerySyncProjectSnapshot> latestProjectSnapshotSupplier;
-  private final Optional<VcsState> currentVcsState;
-  private final Optional<String> bazelVersion;
 
-  public NoopProjectRefresh(
-      Supplier<QuerySyncProjectSnapshot> latestProjectSnapshotSupplier,
-      Optional<VcsState> currentVcsState,
-      Optional<String> bazelVersion) {
+  public NoopProjectRefresh(Supplier<QuerySyncProjectSnapshot> latestProjectSnapshotSupplier) {
     this.latestProjectSnapshotSupplier = latestProjectSnapshotSupplier;
-    this.currentVcsState = currentVcsState;
-    this.bazelVersion = bazelVersion;
   }
 
   @Override
@@ -51,9 +42,6 @@ public class NoopProjectRefresh implements RefreshOperation {
 
   @Override
   public PostQuerySyncData createPostQuerySyncData(QuerySummary output) {
-    return latestProjectSnapshotSupplier.get().getQueryData().toBuilder()
-        .setVcsState(currentVcsState)
-        .setBazelVersion(bazelVersion)
-        .build();
+    return latestProjectSnapshotSupplier.get().getQueryData();
   }
 }

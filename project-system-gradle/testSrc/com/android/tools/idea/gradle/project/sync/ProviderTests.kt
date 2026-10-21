@@ -224,7 +224,7 @@ fun IntegrationTestEnvironment.runProviderTest(
             is Target.ManuallyAssembled ->
               if (setup.viaBundle) error("viaBundle mode is not supported with ManuallyAssembled test configurations")
               else {
-                null to manuallyAssemble(target.gradlePath, target.forTests)
+                null as RunConfiguration? to manuallyAssemble(target.gradlePath, target.forTests)
               }
           }
 

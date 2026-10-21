@@ -15,32 +15,28 @@
  */
 package com.google.idea.bazel.java.qsync
 
+import com.google.idea.blaze.base.projectview.section.sections.MiscSection
 import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.qsync.java.AddDependencyGenSrcsJars.Companion.ENABLED_NAVIGATION_POLICY
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.psi.PsiElement
-import com.intellij.psi.impl.compiled.ClsCustomNavigationPolicy
 import com.intellij.psi.impl.compiled.ClsFileImpl
 import com.intellij.psi.util.CachedValueProvider.Result
 import com.intellij.psi.util.CachedValuesManager
 
 /** Substitutes a workspace source file in place of a decompiled class file for non-project dependencies with sources in the workspace. */
-class ProtoSrcJarQuerySyncNavigationPolicy : ClsCustomNavigationPolicy {
+class ProtoSrcJarQuerySyncNavigationPolicy : QuerySyncNavigationPolicyBase {
 
   override fun getNavigationElement(clsFile: ClsFileImpl): PsiElement? {
-    if (!ENABLED_NAVIGATION_POLICY.value) return null
-
     val project = clsFile.project
+    if (!MiscSection.isExperimentEnabled(project, ENABLED_NAVIGATION_POLICY)) return null
+
     if (!project.isQuerySyncProject() || DaemonCodeAnalyzer.getInstance(project).isRunning) {
       return null
     }
 
     return CachedValuesManager.getCachedValue(clsFile) {
-      Result.create(
-        ProtoFileJavaSourceFinder(clsFile).findSourceFile(),
-        clsFile,
-        QuerySyncManager.getInstance(project).projectModificationTracker,
-      )
+      Result.create(ProtoFileJavaSourceFinder(clsFile).findSourceFile(), QuerySyncManager.getInstance(project).projectModificationTracker)
     }
   }
 }

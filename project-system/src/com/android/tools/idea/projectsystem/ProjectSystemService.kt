@@ -35,7 +35,7 @@ import org.jetbrains.annotations.TestOnly
 
 @Service(Service.Level.PROJECT)
 @State(name = "AndroidProjectSystem", storages = [Storage("AndroidProjectSystem.xml")], reloadable = false)
-class ProjectSystemService(val project: Project) : PersistentStateComponent<ProjectSystemService.State> {
+class ProjectSystemService(val project: Project) : PersistentStateComponent<@Suppress("DEPRECATION") ProjectSystemService.State> {
 
   init {
     // Make sure all project systems call `androidModelsUpdated` and listeners are not left hanging.
@@ -79,10 +79,11 @@ class ProjectSystemService(val project: Project) : PersistentStateComponent<Proj
   private var projectSystemForTests: AndroidProjectSystem? = null
 
   fun setProviderId(id: String) {
+    @Suppress("DEPRECATION")
     state = State(id)
   }
 
-  private var state: State? = null
+  @Suppress("DEPRECATION") private var state: State? = null
 
   companion object {
     private const val NORMAL_STATE = 0
@@ -141,6 +142,7 @@ class ProjectSystemService(val project: Project) : PersistentStateComponent<Proj
 
   private fun detectProjectSystem(project: Project): AndroidProjectSystem {
     val extensions = EP_NAME.extensionList
+    @Suppress("DEPRECATION")
     getState()?.providerId?.let { providerId ->
       extensions
         .find { it.id == providerId }
@@ -165,6 +167,7 @@ class ProjectSystemService(val project: Project) : PersistentStateComponent<Proj
       val provider = extensions.find { it.isApplicable(project) }
       if (provider != null) {
         result = provider.projectSystemFactory(project)
+        @Suppress("DEPRECATION")
         state = State(provider.id)
       } else {
         result = defaultProjectSystem(project, extensions)
@@ -191,11 +194,13 @@ class ProjectSystemService(val project: Project) : PersistentStateComponent<Proj
   fun replaceProjectSystemForTests(projectSystem: AndroidProjectSystem) {
     projectSystemForTests = projectSystem
     if (cachedProjectSystemDelegate.isInitialized()) {
+      state = null
       // require EDT explicitly, due to issue with TransactionGuard IJPL-150392
       ApplicationManager.getApplication().invokeAndWait { runWriteAction { sendRootsChangedEvents(project) } }
     }
   }
 
+  @Deprecated("Internal implementation detail", level = DeprecationLevel.WARNING)
   class State(id: String? = null) {
     var providerId: String? = id
   }
@@ -203,8 +208,12 @@ class ProjectSystemService(val project: Project) : PersistentStateComponent<Proj
   // Do not serialize default project system provider if it somehow ends up getting to be our state: if we have fallen back
   // to the default provider, give detection another chance when re-opening the project (for example, opening a Bazel-based
   // project in Android Studio with Bazel support after once opening it in vanilla Android Studio).
+  @Suppress("DEPRECATION")
+  @Deprecated("Internal implementation detail", level = DeprecationLevel.WARNING)
   override fun getState(): State? = state?.takeIf { it.providerId.orEmpty() != "" }
 
+  @Suppress("DEPRECATION")
+  @Deprecated("Internal implementation detail", level = DeprecationLevel.WARNING)
   override fun loadState(state: State) {
     this.state = state
   }

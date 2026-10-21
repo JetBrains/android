@@ -40,7 +40,6 @@ jvm_library(
         "//android/designer:designer_test_lib",
         "//android/nav/editor:editor_test_lib",
         "//android/nav/editor/gradle:gradle_test_lib",
-        "@lib//:studio-test-platform",
         "//libraries/layoutlib:layoutlib_test_lib",
         "//android/compose-designer:compose-designer_test_lib",
         "//android/layoutlib:layoutlib_test_lib",

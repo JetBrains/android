@@ -17,8 +17,8 @@ package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.rendering.RenderResult;
-import com.android.tools.rendering.imagepool.ImagePool;
-import com.android.tools.rendering.imagepool.ImagePoolImageDisposer;
+import com.android.ide.common.rendering.api.RecyclableImage;
+import com.android.tools.rendering.imagepool.RecyclableImageDisposer;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
@@ -100,7 +100,7 @@ public class ScreenViewLayer extends Layer {
    */
   @NotNull
   private static BufferedImage getPreviewImage(@NotNull GraphicsConfiguration configuration,
-                                               @NotNull ImagePool.Image renderedImage,
+                                               @NotNull RecyclableImage renderedImage,
                                                int screenViewX, int screenViewY,
                                                @NotNull Rectangle screenViewVisibleSize,
                                                double xScaleFactor, double yScaleFactor,
@@ -166,7 +166,11 @@ public class ScreenViewLayer extends Layer {
     RenderResult renderResult = myScreenView.getResult();
     boolean drawNewImg = false;
     if (newRenderImageAvailable(renderResult)) {
+      if (myLastRenderResult != null) {
+        Disposer.dispose(myLastRenderResult);
+      }
       myLastRenderResult = renderResult;
+      Disposer.register(this, myLastRenderResult);
       myScreenView.getScene().needsRebuildList();
       drawNewImg = true;
     }
@@ -178,8 +182,8 @@ public class ScreenViewLayer extends Layer {
     //noinspection FloatingPointEquality
     if (drawNewImg || currentScale != myLastScale || !myScreenViewVisibleRect.equals(myCachedScreenViewDisplayRect)) {
       if (myLastRenderResult != null) {
-        ImagePool.Image image = myLastRenderResult.getRenderedImage();
-        ImagePoolImageDisposer.runWithDisposeLock(image, theImage -> {
+        RecyclableImage image = myLastRenderResult.getRenderedImage();
+        RecyclableImageDisposer.runWithDisposeLock(image, theImage -> {
           if (theImage.isValid()) {
             int resultImageWidth = theImage.getWidth();
             int resultImageHeight = theImage.getHeight();
@@ -223,7 +227,7 @@ public class ScreenViewLayer extends Layer {
 
   /**
    * Check whether the provided render result has new image to draw. We only accept renders containing a valid image. If the new result is
-   * an error without image, we prefer to keep the last valid image..
+   * an error without image, we prefer to keep the last valid image.
    *
    * @param renderResult The renderResult from {@link LayoutlibSceneManager#getRenderResult()}
    * @return false if renderResult is null or the same as the previous one or if no image is available, true otherwise

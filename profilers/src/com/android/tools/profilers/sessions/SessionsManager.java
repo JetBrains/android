@@ -476,18 +476,25 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   }
 
   private void setSessionInternal(@NotNull Common.Session session) {
-    // When a profiler task is editor enabled, although a session is selected, its editor tab may be hidden because
-    // the user has shifted to another tab or closed it, so we need to reselect it to bring it to focus even if it's already selected.
     SessionItem sessionItem = mySessionItems.get(session.getSessionId());
-    boolean openInEditor = sessionItem != null && ProfilerInEditorUtils.isEditorEnabled(
-      myProfilers.getIdeServices().getFeatureConfig(), sessionItem.getTaskType());
+    if (sessionItem != null) {
+      session = sessionItem.getSession();
+    }
 
-    if (mySelectedSession.equals(session) && !openInEditor) {
+    if (mySelectedSession.equals(session)) {
+      boolean openInEditor = sessionItem != null && ProfilerInEditorUtils.isEditorEnabled(
+        myProfilers.getIdeServices().getFeatureConfig(), sessionItem.getTaskType());
+
+      // When a profiler task is editor enabled, although a session is selected, its editor tab may be hidden because
+      // the user has shifted to another tab or closed it, so we need to reselect it to bring it to focus even if it's already selected.
+      if (openInEditor) {
+        myProfilers.bringSelectedEditorToFront();
+      }
       return;
     }
 
     assert Common.Session.getDefaultInstance().equals(session) ||
-           (mySessionItems.containsKey(session.getSessionId()) && mySessionItems.get(session.getSessionId()).getSession().equals(session));
+           mySessionItems.containsKey(session.getSessionId());
 
     // First cache the view range associated with the previous session.
     if (!Common.Session.getDefaultInstance().equals(mySelectedSession)) {

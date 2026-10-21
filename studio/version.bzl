@@ -7,8 +7,8 @@ visibility([
     "//tools/vendor/google/aswb/searchable-options",
 ])
 
-STUDIO_CODENAME = "Quail 2"
+STUDIO_CODENAME = "Quail 4"
 STUDIO_CONFIG = "stable"
 STUDIO_VERSION = "Stable"
-STUDIO_MICRO_PATCH = "2.10"
+STUDIO_MICRO_PATCH = "4.7"
 STUDIO_RELEASE_NUMBER = 1

@@ -39,7 +39,7 @@ public class UrlUtil {
 
   public static String pathToUrl(String filePath, Path innerJarPath) {
     filePath = FileUtil.toSystemIndependentName(filePath);
-    if (filePath.endsWith(".srcjar") || filePath.endsWith(".jar")) {
+    if (filePath.endsWith(".srcjar") || filePath.endsWith(".jar") || filePath.endsWith(".zip")) {
       return URLUtil.JAR_PROTOCOL
           + URLUtil.SCHEME_SEPARATOR
           + filePath

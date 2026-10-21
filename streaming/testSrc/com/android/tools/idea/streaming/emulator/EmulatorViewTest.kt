@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator
 
+import com.android.emulator.control.Environment
 import com.android.emulator.control.Posture.PostureValue
 import com.android.mockito.kotlin.whenever
 import com.android.testutils.GoldenImageRule
@@ -31,15 +32,16 @@ import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
-import com.android.tools.idea.streaming.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.core.AndroidInputEvent
+import com.android.tools.idea.streaming.core.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.core.DeviceInputListener
 import com.android.tools.idea.streaming.core.DeviceInputListenerManager
 import com.android.tools.idea.streaming.core.ZoomType
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.IGNORE_SCREENSHOT_CALL_FILTER
 import com.android.tools.idea.streaming.emulator.FakeEmulator.GrpcCallRecord
+import com.android.tools.idea.streaming.emulator.actions.EnvironmentTracker
 import com.android.tools.idea.streaming.testutil.newEmulatorDisplayPanel
 import com.android.tools.idea.streaming.xr.TRANSLATION_STEP_SIZE
 import com.android.tools.idea.testing.mockStatic
@@ -95,10 +97,13 @@ import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.CHAR_UNDEFINED
 import java.awt.event.KeyEvent.KEY_PRESSED
 import java.awt.event.KeyEvent.KEY_RELEASED
+import java.awt.event.KeyEvent.VK_A
 import java.awt.event.KeyEvent.VK_BACK_SPACE
 import java.awt.event.KeyEvent.VK_CONTROL
+import java.awt.event.KeyEvent.VK_D
 import java.awt.event.KeyEvent.VK_DELETE
 import java.awt.event.KeyEvent.VK_DOWN
+import java.awt.event.KeyEvent.VK_E
 import java.awt.event.KeyEvent.VK_END
 import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.KeyEvent.VK_ESCAPE
@@ -112,18 +117,21 @@ import java.awt.event.KeyEvent.VK_LEFT
 import java.awt.event.KeyEvent.VK_M
 import java.awt.event.KeyEvent.VK_PAGE_DOWN
 import java.awt.event.KeyEvent.VK_PAGE_UP
+import java.awt.event.KeyEvent.VK_Q
 import java.awt.event.KeyEvent.VK_RIGHT
 import java.awt.event.KeyEvent.VK_S
 import java.awt.event.KeyEvent.VK_SHIFT
 import java.awt.event.KeyEvent.VK_SPACE
 import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_UP
+import java.awt.event.KeyEvent.VK_W
 import java.awt.geom.Rectangle2D
 import java.nio.file.Path
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.TimeoutException
 import kotlin.math.absoluteValue
+import kotlin.test.assertFailsWith
 import kotlin.time.Duration.Companion.seconds
 import org.junit.After
 import org.junit.Before
@@ -696,7 +704,7 @@ class EmulatorViewTest {
   fun testMouseMoveNotSendWhenCameraOperating() {
     val container = createRootContainer()
     container.rootPane.size = Dimension(200, 300)
-    fakeUi = FakeUi(container.rootPane)
+    fakeUi = FakeUi(container.rootPane, createFakeWindow = true, parentDisposable = testRootDisposable)
 
     fakeUi.layoutAndDispatchEvents()
     getStreamScreenshotCallAndWaitForFrame()
@@ -915,7 +923,7 @@ class EmulatorViewTest {
   fun testHideCameraNotificationDuringHardwareInput() {
     val container = createRootContainer()
     container.rootPane.size = Dimension(200, 300)
-    fakeUi = FakeUi(container.rootPane)
+    fakeUi = FakeUi(container.rootPane, createFakeWindow = true, parentDisposable = testRootDisposable)
 
     // Activate the virtual scene camera
     focusManager.focusOwner = view
@@ -939,7 +947,7 @@ class EmulatorViewTest {
   fun testCameraNotificationHasOperatingMessageWhenHardwareInputDisabledWithShift() {
     val container = createRootContainer()
     container.rootPane.size = Dimension(200, 300)
-    fakeUi = FakeUi(container.rootPane)
+    fakeUi = FakeUi(container.rootPane, createFakeWindow = true, parentDisposable = testRootDisposable)
 
     // Enable hardware input
     emulatorViewRule.executeAction("android.streaming.hardware.input", view)
@@ -956,6 +964,130 @@ class EmulatorViewTest {
 
     assertThat(fakeUi.findComponent<EditorNotificationPanel>()?.text)
       .isEqualTo("Move camera with WASDQE keys, rotate with mouse or arrow keys")
+  }
+
+  @Test
+  fun testAiGlassesCameraRotation360() {
+    val container = createRootContainer { path -> FakeEmulator.createAudioGlassesAvd(path) }
+    container.rootPane.size = Dimension(200, 300)
+    fakeUi = FakeUi(container.rootPane, createFakeWindow = true, parentDisposable = testRootDisposable)
+
+    // Initially, environment is empty, no prompt.
+    focusManager.focusOwner = view
+    waitForCondition(200, MILLISECONDS) { fakeUi.findComponent<EditorNotificationPanel>() == null }
+
+    // Set environment to a 360-degree image.
+    val environmentTracker = EnvironmentTracker.forEmulator(view.emulator)!!
+    val env = Environment.newBuilder().putEnvironment("scene.mode", "image360:/some/path/image.jpg").build()
+    environmentTracker.environment = env
+
+    // Now, prompt should be "Hold Shift to rotate camera"
+    waitForCondition(2.seconds) { fakeUi.findComponent<EditorNotificationPanel>()?.text == "Hold Shift to rotate camera" }
+
+    // Press Shift, prompt should change to "Rotate camera with mouse or arrow keys"
+    fakeUi.keyboard.press(VK_SHIFT)
+    waitForCondition(2.seconds) { fakeUi.findComponent<EditorNotificationPanel>()?.text == "Rotate camera with mouse or arrow keys" }
+
+    // Release Shift, prompt should revert
+    fakeUi.keyboard.release(VK_SHIFT)
+    waitForCondition(2.seconds) { fakeUi.findComponent<EditorNotificationPanel>()?.text == "Hold Shift to rotate camera" }
+  }
+
+  @Test
+  fun testAiGlassesCameraTranslation360Disabled() {
+    val container = createRootContainer { path -> FakeEmulator.createAudioGlassesAvd(path) }
+    container.rootPane.size = Dimension(200, 300)
+    fakeUi = FakeUi(container.rootPane, createFakeWindow = true, parentDisposable = testRootDisposable)
+
+    focusManager.focusOwner = view
+    val environmentTracker = EnvironmentTracker.forEmulator(view.emulator)!!
+    val env = Environment.newBuilder().putEnvironment("scene.mode", "image360:/some/path/image.jpg").build()
+    environmentTracker.environment = env
+
+    // Hold Shift to enable camera controller.
+    fakeUi.keyboard.press(VK_SHIFT)
+    waitForCondition(2.seconds) { fakeUi.findComponent<EditorNotificationPanel>()?.text == "Rotate camera with mouse or arrow keys" }
+
+    // Try to move camera with WASDQE keys.
+    val keys = listOf(VK_W, VK_A, VK_S, VK_D, VK_Q, VK_E)
+    for (key in keys) {
+      fakeUi.keyboard.press(key)
+      // Check that no gRPC call was sent for translation.
+      val callFilter =
+        FakeEmulator.DEFAULT_CALL_FILTER.or(
+          "android.emulation.control.EmulatorController/streamClipboard",
+          "android.emulation.control.EmulatorController/streamScreenshot",
+        )
+      assertFailsWith<TimeoutException> { fakeEmulator.getNextGrpcCall(0.5.seconds, callFilter) }
+      fakeUi.keyboard.release(key)
+    }
+  }
+
+  @Test
+  fun testAiGlassesCameraRotationAndTranslation3d() {
+    val container = createRootContainer { path -> FakeEmulator.createAudioGlassesAvd(path) }
+    container.rootPane.size = Dimension(200, 300)
+    fakeUi = FakeUi(container.rootPane, createFakeWindow = true, parentDisposable = testRootDisposable)
+
+    // Initially, environment is empty, no prompt.
+    focusManager.focusOwner = view
+    waitForCondition(200, MILLISECONDS) { fakeUi.findComponent<EditorNotificationPanel>() == null }
+
+    // Set environment to a 3D scene (.obj).
+    val environmentTracker = EnvironmentTracker.forEmulator(view.emulator)!!
+    val env = Environment.newBuilder().putEnvironment("scene.mode", "mesh3d:/some/path/scene.obj").build()
+    environmentTracker.environment = env
+
+    // Now, prompt should be "Hold Shift to control camera" (since translation is allowed)
+    waitForCondition(2.seconds) { fakeUi.findComponent<EditorNotificationPanel>()?.text == "Hold Shift to control camera" }
+
+    // Press Shift, prompt should change to "Move camera with WASDQE keys, rotate with mouse or arrow keys"
+    fakeUi.keyboard.press(VK_SHIFT)
+    val keys = EmulatorSettings.getInstance().cameraVelocityControls.keys
+    waitForCondition(2.seconds) {
+      fakeUi.findComponent<EditorNotificationPanel>()?.text == "Move camera with $keys keys, rotate with mouse or arrow keys"
+    }
+
+    // Release Shift, prompt should revert
+    fakeUi.keyboard.release(VK_SHIFT)
+    waitForCondition(2.seconds) { fakeUi.findComponent<EditorNotificationPanel>()?.text == "Hold Shift to control camera" }
+  }
+
+  @Test
+  fun testAiGlassesCameraTranslation3dEnabled() {
+    val container = createRootContainer { path -> FakeEmulator.createAudioGlassesAvd(path) }
+    container.rootPane.size = Dimension(200, 300)
+    fakeUi = FakeUi(container.rootPane, createFakeWindow = true, parentDisposable = testRootDisposable)
+
+    focusManager.focusOwner = view
+    val environmentTracker = EnvironmentTracker.forEmulator(view.emulator)!!
+    val env = Environment.newBuilder().putEnvironment("scene.mode", "mesh3d:/some/path/scene.obj").build()
+    environmentTracker.environment = env
+
+    // Hold Shift to enable camera controller.
+    fakeUi.keyboard.press(VK_SHIFT)
+    val keys = EmulatorSettings.getInstance().cameraVelocityControls.keys
+    waitForCondition(2.seconds) {
+      fakeUi.findComponent<EditorNotificationPanel>()?.text == "Move camera with $keys keys, rotate with mouse or arrow keys"
+    }
+
+    val callFilter =
+      FakeEmulator.DEFAULT_CALL_FILTER.or(
+        "android.emulation.control.EmulatorController/streamClipboard",
+        "android.emulation.control.EmulatorController/streamScreenshot",
+      )
+
+    // Try to move camera with W key.
+    fakeUi.keyboard.press(VK_W)
+    val call = fakeEmulator.getNextGrpcCall(2.seconds, callFilter)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVirtualSceneCameraVelocity")
+    assertThat(shortDebugString(call.request)).isEqualTo("z: -1.0")
+    fakeUi.keyboard.release(VK_W)
+
+    // Stopping velocity
+    val stopCall = fakeEmulator.getNextGrpcCall(2.seconds, callFilter)
+    assertThat(stopCall.methodName).isEqualTo("android.emulation.control.EmulatorController/setVirtualSceneCameraVelocity")
+    assertThat(shortDebugString(stopCall.request)).isEqualTo("")
   }
 
   @Test
@@ -1066,6 +1198,8 @@ class EmulatorViewTest {
     fakeUi.layoutAndDispatchEvents()
     getStreamScreenshotCallAndWaitForFrame()
     focusManager.focusOwner = view
+
+    CopyPasteManager.getInstance().setContents(StringSelection(""))
 
     val settings = EmulatorSettings.getInstance()
     settings.synchronizeClipboard = true
@@ -1179,8 +1313,8 @@ class EmulatorViewTest {
     assertAppearance("AiGlasses5")
   }
 
-  private fun createRootContainer(): HeadlessRootPaneContainer =
-    HeadlessRootPaneContainer(NotificationHolderPanel(createEmulatorDisplayPanel()))
+  private fun createRootContainer(avdCreator: ((Path) -> Path)? = null): HeadlessRootPaneContainer =
+    HeadlessRootPaneContainer(NotificationHolderPanel(createEmulatorDisplayPanel(avdCreator)))
 
   private fun createEmulatorDisplayPanel(avdCreator: ((Path) -> Path)? = null): EmulatorDisplayPanel =
     emulatorViewRule.newEmulatorDisplayPanel(avdCreator).apply { view = displayView }

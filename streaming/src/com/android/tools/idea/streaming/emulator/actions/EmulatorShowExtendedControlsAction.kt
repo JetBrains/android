@@ -22,6 +22,7 @@ import com.android.emulator.control.WindowPosition
 import com.android.tools.idea.protobuf.Empty
 import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
 import com.android.tools.idea.streaming.emulator.EmulatorController
+import com.android.tools.idea.streaming.emulator.getEmptyObserver
 import com.android.tools.idea.streaming.emulator.getEmulatorUiTheme
 import com.intellij.ide.ui.LafManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -58,7 +59,7 @@ internal fun showExtendedControls(emulatorController: EmulatorController, projec
     getEmulatorUiTheme(LafManager.getInstance()),
     object : EmptyStreamObserver<Empty>() {
       override fun onCompleted() {
-        emulatorController.showExtendedControls(pane.build())
+        emulatorController.showExtendedControls(pane.build(), getEmptyObserver())
       }
     },
   )

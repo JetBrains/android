@@ -29,6 +29,7 @@ import com.android.tools.idea.apk.viewer.ApkFileSystem;
 import com.android.tools.idea.navigator.nodes.AndroidViewNodeProvider;
 import com.android.tools.idea.navigator.nodes.android.AndroidManifestsGroupNode;
 import com.android.tools.idea.navigator.nodes.apk.java.DexGroupNode;
+import com.intellij.ide.trustedProjects.TrustedProjects;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
@@ -103,6 +104,10 @@ public class ApkModuleNode extends ProjectViewModuleNode {
 
   @Nullable
   private PsiFile findApkPsiFile() {
+    if (!TrustedProjects.isProjectTrusted(myProject)) {
+      // APK_PATH originates from .iml; do not touch the filesystem in Safe Mode.
+      return null;
+    }
     String apkPath = myApkFacet.getConfiguration().APK_PATH;
     if (isNotEmpty(apkPath)) {
       File apkFilePath = new File(toSystemDependentName(apkPath));

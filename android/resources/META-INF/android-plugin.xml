@@ -193,6 +193,18 @@
         icon="AllIcons.Actions.Execute">
       <add-to-group group-id="RunContextPopupGroup" anchor="first"/>
     </action>
+
+    <!-- This group is declared here but only registered in the UI if running in Android Studio. -->
+    <group id="Android.NavBarToolBar">
+      <reference ref="AndroidDeviceManagerPlaceholder" />
+      <separator/>
+    </group>
+
+    <!-- This group is declared here but only registered in the UI if running in Android Studio. -->
+    <group id="Android.MainToolbarRight" >
+      <reference ref="Android.InstantRunActions" />
+      <reference ref="AndroidConnectDebuggerAction" />
+    </group>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -328,6 +340,7 @@
                               order="first"/>
     <runConfigurationProducer implementation="com.android.tools.idea.run.configuration.AndroidWatchFaceRunConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.run.configuration.AndroidTileRunConfigurationProducer"/>
+    <runConfigurationProducer implementation="com.android.tools.idea.run.configuration.AndroidWearWidgetRunConfigurationProducer"/>
     <runConfigurationProducer implementation="com.android.tools.idea.run.configuration.AndroidComplicationRunConfigurationProducer"/>
     <runLineMarkerContributor language="JAVA" implementationClass="com.android.tools.idea.run.configuration.AndroidWearRunMarkerContributor"/>
     <runLineMarkerContributor language="kotlin" implementationClass="com.android.tools.idea.run.configuration.AndroidWearRunMarkerContributor"/>
@@ -337,6 +350,7 @@
     <configurationType implementation="com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType"/>
     <configurationType implementation="com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType"/>
     <configurationType implementation="com.android.tools.idea.run.configuration.AndroidTileConfigurationType"/>
+    <configurationType implementation="com.android.tools.idea.run.configuration.AndroidWearWidgetConfigurationType"/>
     <configurationType implementation="com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType"/>
     <configurationType implementation="com.android.tools.idea.run.configuration.AndroidDeclarativeWatchFaceConfigurationType"/>
     <programRunner implementation="com.android.tools.idea.run.DefaultStudioProgramRunner" order="first" id="DefaultStudioProgramRunner"/>
@@ -487,8 +501,7 @@
     <moduleService serviceImplementation="org.jetbrains.android.resourceManagers.ModuleResourceManagers" />
     <moduleService serviceImplementation="org.jetbrains.android.facet.ResourceFolderManager" />
     <moduleService serviceInterface="com.android.tools.res.ids.ResourceIdManager"
-                   serviceImplementation="com.android.tools.idea.res.StudioResourceIdManager"
-                   testServiceImplementation="com.android.tools.idea.res.TestResourceIdManager" />
+                   serviceImplementation="com.android.tools.idea.res.StudioResourceIdManager" />
     <moduleService serviceImplementation="com.android.tools.idea.model.MergedManifestManager" />
     <moduleService serviceImplementation="com.android.tools.idea.model.MergedManifestModificationTracker" />
     <moduleService serviceImplementation="com.android.tools.idea.databinding.DataBindingAnnotationsService" />

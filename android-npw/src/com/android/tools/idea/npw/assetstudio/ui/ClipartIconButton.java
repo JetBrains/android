@@ -62,7 +62,7 @@ public final class ClipartIconButton extends JButton
     ActionListener actionListener =
       StudioFlags.DYNAMIC_MATERIAL_SYMBOLS.get() ?
       actionEvent -> {
-        SymbolPickerDialog iconPicker = new SymbolPickerDialog(myAndroidFacet, this, null, null);
+        SymbolPickerDialog iconPicker = new SymbolPickerDialog(this, null, null);
         if (iconPicker.showAndGet()) {
           VdIcon selectedIcon = iconPicker.getSelectedIcon();
           updateIcon(selectedIcon);

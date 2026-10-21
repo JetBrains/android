@@ -16,13 +16,14 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.insights.AppInsightsConfigurationManager
+import com.android.tools.idea.insights.InsightsProvider
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import javax.swing.Icon
 import kotlinx.coroutines.flow.Flow
 
 interface AppInsightsTabProvider {
-  val displayName: String
+  val insightsProvider: InsightsProvider
   val icon: Icon
 
   /** Populates the provided [tabPanel] with content. */

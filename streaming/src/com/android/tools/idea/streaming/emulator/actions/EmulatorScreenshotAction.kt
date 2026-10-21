@@ -24,7 +24,6 @@ import com.android.tools.adtui.device.SkinDefinition
 import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.emulator.EmulatorController
-import com.android.tools.idea.streaming.emulator.getScreenshot
 import com.android.tools.idea.ui.DISPLAY_ID_KEY
 import com.android.tools.idea.ui.DISPLAY_INFO_PROVIDER_KEY
 import com.android.tools.idea.ui.DisplayInfoProvider
@@ -36,6 +35,7 @@ import com.android.tools.idea.ui.screenshot.ScreenshotImage
 import com.android.tools.idea.ui.screenshot.ScreenshotProvider
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer
 import com.android.tools.idea.ui.screenshot.getScreenshotScale
+import com.android.utils.throwIfCancellation
 import com.google.common.base.Throwables.throwIfUnchecked
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -53,7 +53,6 @@ import java.awt.image.BufferedImage
 import java.io.IOException
 import javax.imageio.IIOException
 import javax.imageio.ImageIO
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -124,9 +123,8 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
                 )
               viewer.show()
             }
-          } catch (e: CancellationException) {
-            throw e
           } catch (e: Throwable) {
+            e.throwIfCancellation()
             val message = "Error obtaining screenshot"
             thisLogger().error(message, e)
             if (++errorCount == 1) { // Show error dialog no more than once.

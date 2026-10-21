@@ -59,6 +59,9 @@ public class ChooseModuleDialog extends DialogWrapper {
         if (c instanceof JLabel && value instanceof PsModule) {
           PsModule module = (PsModule)value;
           JLabel label = (JLabel)c;
+          if (label.getClientProperty("html.disable") != Boolean.TRUE) {
+            label.putClientProperty("html.disable", Boolean.TRUE);
+          }
           label.setText(module.getName());
           label.setIcon(module.getIcon());
         }

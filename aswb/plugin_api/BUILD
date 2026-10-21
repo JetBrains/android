@@ -89,6 +89,7 @@ java_library(
 aswb_module(
     name = "plugin_api_module",
     lib_deps = [
+        "//prebuilts/tools/common/m2:jspecify-0.2.0",
         "//prebuilts/tools/common/m2:jsr305-2.0.1",
         "//tools/adt/idea/.idea/libraries:libbinary-resources",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
@@ -98,7 +99,6 @@ aswb_module(
         "@maven//:com.google.auto.value.auto-value",
         "@maven//:com.google.auto.value.auto-value-annotations",
         "@maven//:com.google.errorprone.error_prone_annotations",
-        "@maven//:org.jspecify.jspecify",
     ],
     scope_prefixes = ["//tools/adt/idea/aswb/plugin_api/"],  # Note: the same suffix in :google_internal_api_module (manually managed)
     visibility = ["//visibility:public"],

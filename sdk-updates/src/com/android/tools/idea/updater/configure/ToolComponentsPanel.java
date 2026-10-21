@@ -35,14 +35,13 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
 import com.intellij.ui.treeStructure.treetable.TreeColumnInfo;
-import com.intellij.uiDesigner.core.GridConstraints;
-import com.intellij.uiDesigner.core.GridLayoutManager;
-import com.intellij.uiDesigner.core.Spacer;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.ColumnInfo;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.tree.TreeUtil;
+import java.awt.BorderLayout;
 import java.awt.CardLayout;
-import java.awt.Insets;
+import java.awt.FlowLayout;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Enumeration;
@@ -60,7 +59,7 @@ import org.jetbrains.annotations.NotNull;
 public class ToolComponentsPanel {
   private static final Set<String> MULTI_VERSION_PREFIXES =
     ImmutableSet.of(SdkConstants.FD_BUILD_TOOLS, SdkConstants.FD_LLDB, SdkConstants.FD_CMAKE,
-                    SdkConstants.FD_NDK_SIDE_BY_SIDE, SdkConstants.FD_CMDLINE_TOOLS,
+                    SdkConstants.FD_NDK_SIDE_BY_SIDE, SdkConstants.FD_CMDLINE_TOOLS, SdkConstants.FD_EMULATORS,
                     String.join(String.valueOf(RepoPackage.PATH_SEPARATOR),
                                 SdkConstants.FD_EXTRAS,
                                 SdkConstants.FD_ANDROID_EXTRAS,
@@ -72,14 +71,14 @@ public class ToolComponentsPanel {
 
   private static final String TOOLS_DETAILS_CHECKBOX_SELECTED = "updater.configure.tools.details.checkbox.selected";
 
-  private TreeTableView myToolsSummaryTable;
-  private JCheckBox myToolsDetailsCheckbox;
-  private JCheckBox myHideObsoletePackagesCheckbox;
-  private JPanel myToolsPanel;
-  private TreeTableView myToolsDetailTable;
-  private JPanel myToolsLoadingPanel;
-  @SuppressWarnings("unused") private AsyncProcessIcon myToolsLoadingIcon;
-  @SuppressWarnings("unused") private JPanel myRootPanel;
+  private final TreeTableView myToolsSummaryTable;
+  private final JCheckBox myToolsDetailsCheckbox;
+  private final JCheckBox myHideObsoletePackagesCheckbox;
+  private final JPanel myToolsPanel;
+  private final TreeTableView myToolsDetailTable;
+  private final JPanel myToolsLoadingPanel;
+  private final JPanel myRootPanel;
+
   private final Set<UpdatablePackage> myToolsPackages = Sets.newTreeSet((o1, o2) -> {
     // Since we won't have added these packages if they don't have something we care about.
     return ComparisonChain.start()
@@ -107,12 +106,56 @@ public class ToolComponentsPanel {
 
   @VisibleForTesting
   public ToolComponentsPanel(@NotNull PropertiesComponent propertiesComponent) {
-    setupUI();
+    UpdaterTreeNode.Renderer renderer = new SummaryTreeNode.Renderer();
+
+    ColumnInfo[] toolsSummaryColumns =
+      new ColumnInfo[]{new DownloadStatusColumnInfo(), new TreeColumnInfo("Name"), new VersionColumnInfo(), new StatusColumnInfo()};
+    myToolsSummaryRootNode = new RootNode();
+    myToolsSummaryTable = new TreeTableView(new ListTreeTableModelOnColumns(myToolsSummaryRootNode, toolsSummaryColumns));
+
+    SdkUpdaterConfigPanel.setTreeTableProperties(myToolsSummaryTable, renderer, myModificationListener);
+
+    ColumnInfo[] toolsDetailColumns =
+      new ColumnInfo[]{new DownloadStatusColumnInfo(), new TreeColumnInfo("Name"), new VersionColumnInfo(), new StatusColumnInfo()};
+    myToolsDetailsRootNode = new RootNode();
+    myToolsDetailTable = new TreeTableView(new ListTreeTableModelOnColumns(myToolsDetailsRootNode, toolsDetailColumns));
+    SdkUpdaterConfigPanel.setTreeTableProperties(myToolsDetailTable, renderer, myModificationListener);
+
+    final JBScrollPane summaryScrollPane = new JBScrollPane(myToolsSummaryTable);
+    final JBScrollPane detailsScrollPane = new JBScrollPane(myToolsDetailTable);
+    myToolsPanel = new JPanel(new CardLayout());
+    myToolsPanel.add(summaryScrollPane, "summary");
+    myToolsPanel.add(detailsScrollPane, "details");
+
+    myToolsLoadingPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, JBUI.scale(5), 0));
+    myToolsLoadingPanel.add(new JBLabel("Looking for updates..."));
+    myToolsLoadingPanel.add(new AsyncProcessIcon("Loading..."));
+
+    myHideObsoletePackagesCheckbox = new JCheckBox("Hide obsolete packages");
+    myHideObsoletePackagesCheckbox.setSelected(true);
+
+    myToolsDetailsCheckbox = new JCheckBox("Show package details");
     myToolsDetailsCheckbox.setSelected(propertiesComponent.getBoolean(TOOLS_DETAILS_CHECKBOX_SELECTED, false));
     myToolsDetailsCheckbox.addActionListener(e -> {
       propertiesComponent.setValue(TOOLS_DETAILS_CHECKBOX_SELECTED, myToolsDetailsCheckbox.isSelected());
       updateToolsTable();
     });
+
+    final JPanel checkboxPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, JBUI.scale(10), 0));
+    checkboxPanel.add(myHideObsoletePackagesCheckbox);
+    checkboxPanel.add(myToolsDetailsCheckbox);
+
+    final JPanel bottomControlsPanel = new JPanel(new BorderLayout());
+    bottomControlsPanel.add(myToolsLoadingPanel, BorderLayout.WEST);
+    bottomControlsPanel.add(checkboxPanel, BorderLayout.EAST);
+
+    myRootPanel = new JPanel(new BorderLayout(0, JBUI.scale(10)));
+    final JBLabel descriptionLabel = new JBLabel(
+      "<html>Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check \"show package details\" to display available versions of an SDK Tool.</html>");
+    myRootPanel.add(descriptionLabel, BorderLayout.NORTH);
+    myRootPanel.add(myToolsPanel, BorderLayout.CENTER);
+    myRootPanel.add(bottomControlsPanel, BorderLayout.SOUTH);
+
     updateToolsTable();
 
     myHideObsoletePackagesCheckbox.addActionListener(e -> updateToolsItems());
@@ -195,66 +238,6 @@ public class ToolComponentsPanel {
     updateToolsItems();
   }
 
-  private void setupUI() {
-    createUIComponents();
-    myRootPanel = new JPanel();
-    myRootPanel.setLayout(new GridLayoutManager(3, 1, new Insets(0, 0, 0, 0), -1, -1));
-    final JBLabel jBLabel1 = new JBLabel();
-    jBLabel1.setText(
-      "<html>Below are the available SDK developer tools. Once installed, the IDE will automatically check for updates. Check \"show package details\" to display available versions of an SDK Tool.</html>");
-    myRootPanel.add(jBLabel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
-                                                  GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
-                                                  GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myToolsPanel = new JPanel();
-    myToolsPanel.setLayout(new CardLayout(0, 0));
-    myRootPanel.add(myToolsPanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                      GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null,
-                                                      null, null, 0, false));
-    final JBScrollPane jBScrollPane1 = new JBScrollPane();
-    myToolsPanel.add(jBScrollPane1, "summary");
-    jBScrollPane1.setViewportView(myToolsSummaryTable);
-    final JBScrollPane jBScrollPane2 = new JBScrollPane();
-    myToolsPanel.add(jBScrollPane2, "details");
-    jBScrollPane2.setViewportView(myToolsDetailTable);
-    final JPanel panel1 = new JPanel();
-    panel1.setLayout(new GridLayoutManager(1, 4, new Insets(0, 0, 0, 0), -1, -1));
-    myRootPanel.add(panel1, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_SOUTH, GridConstraints.FILL_HORIZONTAL,
-                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null,
-                                                null, 0, false));
-    myToolsDetailsCheckbox = new JCheckBox();
-    myToolsDetailsCheckbox.setText("Show Package Details");
-    panel1.add(myToolsDetailsCheckbox,
-               new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
-                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    myToolsLoadingPanel = new JPanel();
-    myToolsLoadingPanel.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
-    panel1.add(myToolsLoadingPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
-                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                        GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null,
-                                                        null, null, 0, false));
-    final JBLabel jBLabel2 = new JBLabel();
-    jBLabel2.setText("Looking for updates...");
-    myToolsLoadingPanel.add(jBLabel2, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
-                                                          GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null,
-                                                          null, 0, false));
-    myToolsLoadingPanel.add(myToolsLoadingIcon, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_NONE,
-                                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK |
-                                                                    GridConstraints.SIZEPOLICY_CAN_GROW,
-                                                                    GridConstraints.SIZEPOLICY_CAN_SHRINK |
-                                                                    GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-    myHideObsoletePackagesCheckbox = new JCheckBox();
-    myHideObsoletePackagesCheckbox.setSelected(true);
-    myHideObsoletePackagesCheckbox.setText("Hide Obsolete Packages");
-    panel1.add(myHideObsoletePackagesCheckbox,
-               new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
-                                   GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-    final Spacer spacer1 = new Spacer();
-    panel1.add(spacer1, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
-                                            GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
-  }
-
   public JComponent getRootComponent() { return myRootPanel; }
 
   private static boolean shouldAlwaysHide(@NotNull String path) {
@@ -299,27 +282,9 @@ public class ToolComponentsPanel {
     myModified = false;
   }
 
-  private void createUIComponents() {
-    myToolsLoadingIcon = new AsyncProcessIcon("Loading...");
-
-    myToolsSummaryRootNode = new RootNode();
-    myToolsDetailsRootNode = new RootNode();
-
-    UpdaterTreeNode.Renderer renderer = new SummaryTreeNode.Renderer();
-
-    ColumnInfo[] toolsSummaryColumns =
-      new ColumnInfo[]{new DownloadStatusColumnInfo(), new TreeColumnInfo("Name"), new VersionColumnInfo(), new StatusColumnInfo()};
-    myToolsSummaryTable = new TreeTableView(new ListTreeTableModelOnColumns(myToolsSummaryRootNode, toolsSummaryColumns));
-
-    SdkUpdaterConfigPanel.setTreeTableProperties(myToolsSummaryTable, renderer, myModificationListener);
-
-    ColumnInfo[] toolsDetailColumns =
-      new ColumnInfo[]{new DownloadStatusColumnInfo(), new TreeColumnInfo("Name"), new VersionColumnInfo(), new StatusColumnInfo()};
-    myToolsDetailTable = new TreeTableView(new ListTreeTableModelOnColumns(myToolsDetailsRootNode, toolsDetailColumns));
-    SdkUpdaterConfigPanel.setTreeTableProperties(myToolsDetailTable, renderer, myModificationListener);
-  }
-
   public void setConfigurable(@NotNull SdkUpdaterConfigurable configurable) {
     myConfigurable = configurable;
+    PackageDetailsPopup.addPackageDetailsPopup(myToolsSummaryTable);
+    PackageDetailsPopup.addPackageDetailsPopup(myToolsDetailTable);
   }
 }

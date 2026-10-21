@@ -34,7 +34,6 @@ jvm_library(
         # do not sort,
         ":preview-fast-compile",
         "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
         "//libraries/kotlinx/coroutines/core:core_test_lib",
     ],
 )

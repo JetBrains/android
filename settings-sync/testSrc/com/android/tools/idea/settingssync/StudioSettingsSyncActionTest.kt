@@ -22,6 +22,7 @@ import com.android.tools.idea.settingssync.onboarding.BackupAndSyncWizardProvide
 import com.google.gct.login2.LoginUsersRule
 import com.google.gct.login2.PreferredUser
 import com.google.gct.wizard.StructuredFlowWizard
+import com.google.wireless.android.sdk.stats.GoogleLoginPluginEvent
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
@@ -40,6 +41,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
@@ -47,16 +50,28 @@ import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 
+@RunWith(Parameterized::class)
 @RunsInEdt
-class StudioSettingsSyncActionTest {
+class StudioSettingsSyncActionTest(private val enableFsts: Boolean) {
+  companion object {
+    @JvmStatic @Parameterized.Parameters(name = "enableFsts = {0}") fun flagVals() = listOf(true, false)
+  }
+
   private val applicationRule = ApplicationRule()
   private val disposableRule = DisposableRule()
-  private val flagRule = FlagRule(StudioFlags.ENABLE_SETTINGS_SYNC_ONBOARDING_WIZARD, true)
+  private val onboardingSettingsSyncRule = FlagRule(StudioFlags.ENABLE_SETTINGS_SYNC_ONBOARDING_WIZARD, true)
+  private val fstsRule = FlagRule(StudioFlags.ENABLE_FSTS, enableFsts)
   private val loginUsersRule = LoginUsersRule()
   private val edtRule = EdtRule()
 
   @get:Rule
-  val rules: RuleChain = RuleChain.outerRule(applicationRule).around(flagRule).around(disposableRule).around(loginUsersRule).around(edtRule)
+  val rules: RuleChain =
+    RuleChain.outerRule(applicationRule)
+      .around(onboardingSettingsSyncRule)
+      .around(fstsRule)
+      .around(disposableRule)
+      .around(loginUsersRule)
+      .around(edtRule)
 
   private lateinit var action: StudioSettingsSyncAction
   private lateinit var mockWizardProvider: BackupAndSyncWizardProvider
@@ -99,6 +114,7 @@ class StudioSettingsSyncActionTest {
 
   @Test
   fun `actionPerformed shows wizard when onboarding wizard enabled and user logged in`() {
+    // Simulate user already logged in to Google and authorized for Settings Sync (or FST covering it)
     loginUsersRule.setActiveUser("test@gmail.com")
 
     action.actionPerformed(mockEvent)
@@ -108,7 +124,24 @@ class StudioSettingsSyncActionTest {
     val userCaptor = argumentCaptor<PreferredUser>()
     verify(mockWizard).createDialog(userCaptor.capture())
     assertEquals("test@gmail.com", userCaptor.firstValue.email)
+    verify(mockDialog).show()
+    verify(mockShowSettingsUtil, never()).showSettingsDialog(mockProject, "settings.sync")
+    verify(mockFallbackAction, never()).actionPerformed(mockEvent)
+  }
 
+  @Test
+  fun `actionPerformed shows wizard when onboarding wizard enabled after login`() {
+    // Simulate user logged in to Google but NOT yet authorized for Settings Sync.
+    // This will force the action to trigger the login flow.
+    loginUsersRule.setActiveUser("test@gmail.com", features = emptyList(), loginType = GoogleLoginPluginEvent.LoginType.FEATURE_LOGIN)
+    action.actionPerformed(mockEvent)
+
+    executeSomeCoroutineTasksAndDispatchAllInvocationEvents()
+
+    val userCaptor = argumentCaptor<PreferredUser>()
+    verify(mockWizard).createDialog(userCaptor.capture())
+    assertEquals("test@gmail.com", userCaptor.firstValue.email)
+    verify(mockDialog).show()
     verify(mockShowSettingsUtil, never()).showSettingsDialog(mockProject, "settings.sync")
     verify(mockFallbackAction, never()).actionPerformed(mockEvent)
   }

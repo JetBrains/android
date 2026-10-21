@@ -40,6 +40,7 @@ data class JavaArtifactInfo(
   val srcJars: Set<ProjectPath>,
   val androidResourcesPackage: String,
   val kotlinCompilerFlags: List<String>,
+  val dependencies: Set<Label>,
 ) {
 
   fun withMetadata(metadata: Map<BuildArtifact, List<ArtifactMetadata>>): JavaArtifactInfo {
@@ -58,10 +59,30 @@ data class JavaArtifactInfo(
 
   companion object {
     @JvmStatic
+    fun empty(label: Label) =
+      JavaArtifactInfo(
+        label = label,
+        isExternalDependency = false,
+        isKotlinToolchain = false,
+        jars = emptySet(),
+        outputJars = emptySet(),
+        ideAar = null,
+        genSrcs = emptySet(),
+        genAndroidRes = emptySet(),
+        protoSrcjars = emptySet(),
+        sources = emptySet(),
+        srcJars = emptySet(),
+        androidResourcesPackage = "",
+        kotlinCompilerFlags = emptyList(),
+        dependencies = emptySet(),
+      )
+
+    @JvmStatic
     fun create(
       proto: JavaTargetInfo.JavaArtifacts,
       digestMap: DigestMap,
       externalRepositoryFinder: ProjectPath.ExternalRepositoryFinder,
+      dependencies: Set<Label>,
     ): JavaArtifactInfo {
       val target = Label.of(proto.target)
       val ideAar =
@@ -84,6 +105,7 @@ data class JavaArtifactInfo(
         androidResourcesPackage = proto.androidResourcesPackage,
         kotlinCompilerFlags = proto.kotlinCompilerFlagsList,
         isKotlinToolchain = proto.isKotlinToolchain,
+        dependencies = dependencies,
       )
     }
   }

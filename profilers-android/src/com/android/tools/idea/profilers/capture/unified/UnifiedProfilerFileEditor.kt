@@ -16,9 +16,14 @@
 package com.android.tools.idea.profilers.capture.unified
 
 import com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory
+import com.android.tools.idea.profilers.IntellijProfilerComponents
+import com.android.tools.profilers.StageView
+import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.StudioProfilersView
 // JetBrains patch: the sherlock.common module is not part of the monorepo and Google publishes no artifact for it,
 // so com.android.tools.sherlock.common.system.editor.PerfettoFileEditor cannot be imported here.
 // import com.android.tools.sherlock.common.system.editor.PerfettoFileEditor
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorLocation
 import com.intellij.openapi.fileEditor.FileEditorState
@@ -28,10 +33,10 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindowManager
+import java.awt.BorderLayout
 import java.beans.PropertyChangeListener
-import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.SwingConstants
+import java.io.File
+import javax.swing.JPanel
 import org.jetbrains.annotations.Nls
 
 /** A [com.intellij.openapi.fileEditor.FileEditor] for displaying profiler captures in a main editor tab. */
@@ -47,10 +52,46 @@ class UnifiedProfilerFileEditor(private val project: Project, private val file: 
       null
     }
 
-  private val component: JComponent = delegate?.component ?: JLabel("Unified Profiler Capture View for ${file.name}", SwingConstants.CENTER)
+  private var offlineProfilers: StudioProfilers? = null
+  private val component: JPanel = JPanel(BorderLayout())
+  // Strong references to prevent garbage collection of AspectObservers
+  private var profilersView: StudioProfilersView? = null
+  private var profilerStageView: StageView<*>? = null
 
   init {
-    importFileIntoAndroidProfiler(project, file)
+    if (delegate != null) {
+      component.add(delegate.component, BorderLayout.CENTER)
+      offlineProfilers = null
+
+      ApplicationManager.getApplication().executeOnPooledThread {
+        val localFile = File(file.path)
+        if (localFile.exists() && localFile.length() > 0L) {
+          ApplicationManager.getApplication().invokeLater { importFileIntoAndroidProfiler(project, file) }
+        }
+      }
+    } else {
+      OfflineProfilerSessionFactory.buildSessionAsync(
+        project,
+        file,
+        component,
+        this,
+        { ideServices -> IntellijProfilerComponents(project, this, ideServices.featureTracker) },
+      ) { session ->
+        offlineProfilers = session.profilers
+        profilersView = session.profilersView
+        profilerStageView = session.stageView
+        session.stageView?.let { component.add(it.component, BorderLayout.CENTER) }
+        component.revalidate()
+        component.repaint()
+
+        ApplicationManager.getApplication().executeOnPooledThread {
+          val localFile = File(file.path)
+          if (localFile.exists() && localFile.length() > 0L) {
+            ApplicationManager.getApplication().invokeLater { importFileIntoAndroidProfiler(project, file) }
+          }
+        }
+      }
+    }
   }
 
   override fun getComponent() = component

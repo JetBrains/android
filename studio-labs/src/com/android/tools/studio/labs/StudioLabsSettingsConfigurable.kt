@@ -136,20 +136,6 @@ class StudioLabsSettingsConfigurable : SearchableConfigurable, Promo, Configurab
       //      imageDescription = "Prompt Library settings",
       //    )
 
-      /*
-      Disabled pending move to agent
-      add(StudioLabsFeaturePanelUi(
-        flag = StudioFlags.SUGGEST_A_FIX,
-        heading = "Generate suggested fix in AQI",
-        description =
-          """
-            Enables AQI to generate suggested fixes based on Gemini insight.
-          """
-            .trimIndent(),
-        imageKey = StudioLabsIcons.Features.SuggestedFix,
-        imageDescription = "Suggested Fix in AQI",
-      ))
-      */
       add(
         StudioLabsFeaturePanelUi(
           flag = StudioFlags.JOURNEYS_WITH_GEMINI_EXECUTION,

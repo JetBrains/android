@@ -28,7 +28,6 @@ import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.core.AbstractDevicePanel
-import com.android.tools.idea.streaming.core.AbstractDisplayPanel
 import com.android.tools.idea.streaming.core.DisplayDescriptor
 import com.android.tools.idea.streaming.core.LayoutNode
 import com.android.tools.idea.streaming.core.LeafNode
@@ -37,7 +36,7 @@ import com.android.tools.idea.streaming.core.PanelState
 import com.android.tools.idea.streaming.core.RUNNING_DEVICES_NOTIFICATION_GROUP
 import com.android.tools.idea.streaming.core.SplitNode
 import com.android.tools.idea.streaming.core.SplitPanel
-import com.android.tools.idea.streaming.core.StreamingDeviceId
+import com.android.tools.idea.streaming.core.ZoomablePanel
 import com.android.tools.idea.streaming.core.computeBestLayout
 import com.android.tools.idea.streaming.core.htmlColored
 import com.android.tools.idea.streaming.core.icon
@@ -82,10 +81,9 @@ import org.jetbrains.annotations.TestOnly
 
 /** Provides view of one AVD in the Running Devices tool window. */
 internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val project: Project, val emulator: EmulatorController) :
-  AbstractDevicePanel<EmulatorDisplayPanel>(StreamingDeviceId.ofEmulator(emulator.emulatorId), EMULATOR_MAIN_TOOLBAR_ID),
-  ConnectionStateListener {
+  AbstractDevicePanel<EmulatorDisplayPanel>(emulator.deviceId, EMULATOR_MAIN_TOOLBAR_ID), ConnectionStateListener {
 
-  val log = Logger.getInstance("EmulatorToolWindowPanel: ${emulator.emulatorId.avdName}")
+  private val log = Logger.getInstance("EmulatorToolWindowPanel: ${emulator.emulatorId.avdName}")
 
   private val displayConfigurator = DisplayConfigurator(project)
   private var contentDisposable: Disposable? = null
@@ -217,7 +215,7 @@ internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val
     val uiState = savedUiState as EmulatorUiState? ?: EmulatorUiState()
     val zoomScrollState = uiState.zoomScrollState
     for (panel in displayPanels) {
-      zoomScrollState[panel.displayId]?.let { panel.zoomScrollState = it }
+      zoomScrollState[panel.displayId]?.let { panel.displayView.zoomScrollState = it }
     }
 
     multiDisplayStateStorage.addUpdater(multiDisplayStateUpdater)
@@ -244,7 +242,7 @@ internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val
     multiDisplayStateStorage.removeUpdater(multiDisplayStateUpdater)
 
     for (panel in displayPanels) {
-      uiState.zoomScrollState[panel.displayId] = panel.zoomScrollState
+      uiState.zoomScrollState[panel.displayId] = panel.displayView.zoomScrollState
     }
 
     val manageSnapshotsDialog = primaryDisplayView?.let { findManageSnapshotDialog(it) }
@@ -431,7 +429,7 @@ internal class EmulatorToolWindowPanel(disposableParent: Disposable, private val
   class EmulatorUiState : UiState {
     var manageSnapshotsDialogShown = false
     var extendedControlsShown = false
-    val zoomScrollState = Int2ObjectRBTreeMap<AbstractDisplayPanel.ZoomScrollState>()
+    val zoomScrollState = Int2ObjectRBTreeMap<ZoomablePanel.ZoomScrollState>()
   }
 
   /** Persistent multi-display state corresponding to a single AVD. The no-argument constructor is used by the XML deserializer. */

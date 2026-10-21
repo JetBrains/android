@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.insights.events.actions
 
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.AppInsightsCrashState
 import com.android.tools.idea.insights.CancellableTimeoutException
 import com.android.tools.idea.insights.Filters
 import com.android.tools.idea.insights.InsightsProvider
@@ -63,12 +62,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.onTimeout
 import kotlinx.coroutines.selects.select
 
-data class ActionContext(val action: Action, val currentState: AppInsightsState, val lastGoodState: AppInsightsState?) {
+data class ActionContext(val action: Action, val currentState: AppInsightsCrashState, val lastGoodState: AppInsightsCrashState?) {
   companion object {
     fun getDefaultState(defaultFilters: Filters) =
       ActionContext(
         Action.NONE,
-        AppInsightsState(
+        AppInsightsCrashState(
           Selection.emptySelection(),
           defaultFilters,
           LoadingState.Loading,
@@ -169,7 +168,7 @@ class ActionDispatcher(
       .toToken(action)
   }
 
-  private fun fetchNotes(connection: Connection, state: AppInsightsState, action: Action.FetchNotes): CancellationToken {
+  private fun fetchNotes(connection: Connection, state: AppInsightsCrashState, action: Action.FetchNotes): CancellationToken {
     return scope
       .launch {
         val fetchedNotes = appInsightsClient.listNotes(connection, action.id, state.mode)
@@ -222,7 +221,7 @@ class ActionDispatcher(
       .toToken(action)
   }
 
-  private fun fetchDetails(state: AppInsightsState, action: Action.FetchDetails): CancellationToken {
+  private fun fetchDetails(state: AppInsightsCrashState, action: Action.FetchDetails): CancellationToken {
     val issueRequest = state.toIssueRequest(clock) ?: return CancellationToken.noop(Action.NONE)
     return scope
       .launch {
@@ -237,8 +236,8 @@ class ActionDispatcher(
   }
 
   private fun fetchIssues(
-    state: AppInsightsState,
-    lastGoodState: AppInsightsState?,
+    state: AppInsightsCrashState,
+    lastGoodState: AppInsightsCrashState?,
     reason: FetchSource,
     action: Action.Single,
   ): CancellationToken {
@@ -267,7 +266,7 @@ class ActionDispatcher(
       .toToken(action)
   }
 
-  private fun fetchIssueVariants(state: AppInsightsState, action: Action.FetchIssueVariants): CancellationToken {
+  private fun fetchIssueVariants(state: AppInsightsCrashState, action: Action.FetchIssueVariants): CancellationToken {
     val issueRequest = state.toIssueRequest(clock) ?: return CancellationToken.noop(Action.NONE)
     return scope
       .launch {
@@ -285,7 +284,7 @@ class ActionDispatcher(
       .toToken(action)
   }
 
-  private fun listEvents(state: AppInsightsState, action: Action.ListEvents): CancellationToken {
+  private fun listEvents(state: AppInsightsCrashState, action: Action.ListEvents): CancellationToken {
     val issueRequest = state.toIssueRequest(clock) ?: return CancellationToken.noop(Action.NONE)
     if (state.selectedIssue?.id != action.id || state.selectedVariant?.id != action.variantId) return CancellationToken.noop(Action.NONE)
     return scope
@@ -309,18 +308,13 @@ class ActionDispatcher(
       .toToken(action)
   }
 
-  private fun fetchInsight(connection: Connection, state: AppInsightsState, action: Action.FetchInsight): CancellationToken {
+  private fun fetchInsight(connection: Connection, state: AppInsightsCrashState, action: Action.FetchInsight): CancellationToken {
     return scope
       .launch {
         val insight =
           when {
             aiInsightToolkit.insightDeprecationData.isUnsupported() -> LoadingState.ServiceUnsupported
-            !aiInsightToolkit.isModelAvailable() ->
-              if (StudioFlags.AQI_FIX_WITH_AGENT.get()) {
-                LoadingState.NoModelAvailable
-              } else {
-                LoadingState.Unauthorized("Gemini is not enabled")
-              }
+            !aiInsightToolkit.isModelAvailable() -> LoadingState.NoModelAvailable
             state.mode == ConnectionMode.OFFLINE -> LoadingState.NetworkFailure(null)
             action.event.isStackTraceEmpty() -> {
               if (state.selectedEvent == null) {
@@ -342,7 +336,7 @@ class ActionDispatcher(
                 eventEmitter(
                   object : ChangeEvent {
                     override fun transition(
-                      state: AppInsightsState,
+                      state: AppInsightsCrashState,
                       tracker: AppInsightsTracker,
                       provider: InsightsProvider,
                       cache: AppInsightsCache,

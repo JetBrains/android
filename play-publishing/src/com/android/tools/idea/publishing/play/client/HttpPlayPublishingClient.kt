@@ -52,7 +52,6 @@ import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import java.io.File
@@ -103,14 +102,8 @@ class HttpPlayPublishingClient(
   }
 
   override suspend fun listDevelopers(): List<Developer> = runPublishingTask {
-    val response = httpClient.get("$url/developers")
-
-    // Temporary workaround for b/513706971
-    if (response.status == HttpStatusCode.NoContent) {
-      emptyList()
-    } else {
-      response.body<ListDevelopersResponse>().developers
-    }
+    val response = httpClient.get("$url/developers") { parameter("filter", "has_capability(CAN_CREATE_APPS)") }
+    response.body<ListDevelopersResponse>().developers
   }
 
   override suspend fun createAppRecord(developerId: Long, appConfig: AppConfig): AppConfig = runPublishingTask {

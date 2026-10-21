@@ -15,13 +15,16 @@
  */
 package com.google.idea.blaze.base.run.producers;
 
+import com.google.common.util.concurrent.Futures;
 import com.google.idea.blaze.base.BlazeIntegrationTestCase;
 import com.google.idea.blaze.base.EditorTestHelper;
 import com.google.idea.blaze.base.command.BlazeCommandName;
+import com.google.idea.blaze.base.dependencies.TargetInfo;
 import com.google.idea.blaze.base.model.MockBlazeProjectDataBuilder;
 import com.google.idea.blaze.base.model.MockBlazeProjectDataManager;
 import com.google.idea.blaze.base.model.primitives.WorkspacePath;
 import com.google.idea.blaze.base.run.BlazeCommandRunConfiguration;
+import com.google.idea.blaze.base.run.SourceToTargetFinder;
 import com.google.idea.blaze.base.run.state.BlazeCommandRunConfigurationCommonState;
 import com.google.idea.blaze.base.sync.data.BlazeProjectDataManager;
 import com.google.idea.testing.FunctionalHeadlessDataManager;
@@ -36,12 +39,18 @@ import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.ui.IconManager;
 import com.intellij.ui.icons.CoreIconManager;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import org.junit.After;
 import org.junit.Before;
@@ -51,9 +60,23 @@ public class BlazeRunConfigurationProducerTestCase extends BlazeIntegrationTestC
 
   protected EditorTestHelper editorTest;
   private DataManager defaultDataManager;
+  private final List<TargetInfo> registeredTargets = new ArrayList<>();
 
   @Before
   public final void doSetup() throws Throwable {
+    registerExtension(
+        SourceToTargetFinder.EP_NAME,
+        (project, sourceFiles, ruleType) -> {
+          List<TargetInfo> candidates = new ArrayList<>(registeredTargets);
+          if (ruleType.isPresent()) {
+            candidates =
+                candidates.stream()
+                    .filter(t -> ruleType.get().equals(t.getRuleType()))
+                    .collect(Collectors.toList());
+          }
+          return Futures.immediateFuture(candidates);
+        });
+
     BlazeProjectDataManager mockProjectDataManager =
         new MockBlazeProjectDataManager(MockBlazeProjectDataBuilder.builder(workspaceRoot).build());
     registerProjectService(BlazeProjectDataManager.class, mockProjectDataManager);
@@ -71,6 +94,11 @@ public class BlazeRunConfigurationProducerTestCase extends BlazeIntegrationTestC
     // IntelliJ will use a dummy icon manager that returns the same exact icon.
     // This will cause uniqueness issues for gutter icons.
     IconManager.Companion.activate(new CoreIconManager());
+  }
+
+  protected void registerTargets(TargetInfo... targets) {
+    registeredTargets.clear();
+    registeredTargets.addAll(Arrays.asList(targets));
   }
 
   @After
@@ -117,7 +145,9 @@ public class BlazeRunConfigurationProducerTestCase extends BlazeIntegrationTestC
             .add(Location.DATA_KEY, PsiLocation.fromPsiElement(elements[0]))
             .add(
                 Location.DATA_KEYS,
-                Arrays.stream(elements).map(PsiLocation::fromPsiElement).toArray(Location<?>[]::new))
+                Arrays.stream(elements)
+                    .map(PsiLocation::fromPsiElement)
+                    .toArray(Location<?>[]::new))
             .add(LangDataKeys.PSI_ELEMENT_ARRAY, elements)
             .build());
   }
@@ -133,5 +163,13 @@ public class BlazeRunConfigurationProducerTestCase extends BlazeIntegrationTestC
                     .build())
             .getConfiguration();
     return settings != null ? settings.getConfiguration() : null;
+  }
+
+  /**
+   * Test utility helper to execute a block within a progress indicator context, avoiding
+   * IllegalStateException in runBlockingCancellable during integration test execution.
+   */
+  protected <T> T runWithProgress(Computable<T> computable) {
+    return ProgressManager.getInstance().runProcess(computable, new EmptyProgressIndicator());
   }
 }

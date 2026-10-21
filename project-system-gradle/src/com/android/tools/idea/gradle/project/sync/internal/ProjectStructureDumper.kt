@@ -243,7 +243,7 @@ private fun ProjectDumper.dump(runConfiguration: AndroidRunConfigurationBase) {
   prop("StartupCpuProfilingEnabled") { runConfiguration.profilerState.STARTUP_CPU_PROFILING_ENABLED.takeUnless { it == false }?.toString() }
   prop("StartupCpuProfilingConfigurationName") {
     runConfiguration.profilerState.STARTUP_CPU_PROFILING_CONFIGURATION_NAME.takeUnless {
-      it == CpuProfilerConfig.Technology.SAMPLED_JAVA.getName()
+      it == CpuProfilerConfig.Technology.INSTRUMENTED_JAVA.getName()
     }
   }
 }

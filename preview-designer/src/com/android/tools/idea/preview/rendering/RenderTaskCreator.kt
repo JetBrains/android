@@ -115,6 +115,6 @@ fun createRenderResultFuture(
     CompletableFuture.supplyAsync({ renderTaskFuture.get() }, AppExecutorUtil.getAppExecutorService()).thenCompose {
       it?.render() ?: CompletableFuture.completedFuture(null as RenderResult?)
     }
-  renderResultFuture.handle { _, _ -> renderTaskFuture.get().dispose() }
+  renderResultFuture.handle { _, _ -> renderTaskFuture.get().disposeAsync() }
   return renderResultFuture
 }

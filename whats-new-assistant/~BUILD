@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 iml_module(
@@ -22,7 +23,15 @@ iml_module(
         "//tools/adt/idea/app-inspection/ide:app-inspection.ide",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
+        "//tools/adt/idea/whats-new-assistant:whats-new-content",
     ],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "whats-new-content",
+    jars = ["//tools/adt/idea/whats-new-assistant/md-content:whats-new-content.jar"],
+    visibility = ["//visibility:public"],
 )
 
 # managed by go/iml_to_build

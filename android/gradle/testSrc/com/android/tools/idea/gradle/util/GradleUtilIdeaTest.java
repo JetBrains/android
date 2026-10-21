@@ -79,6 +79,7 @@ public class GradleUtilIdeaTest extends HeavyPlatformTestCase {
         false,
         false,
         false,
+        false,
         false
       );
 

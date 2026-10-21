@@ -137,13 +137,6 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "android-test-plugin-host-device-info-proto",
-    jars = ["//tools/base/utp/android-test-plugin-host-device-info-proto:libstudio.android-test-plugin-host-device-info-proto.jar"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
     name = "asm-tools",
     # do not sort: must match IML order
     jars = ["//prebuilts/tools/common/m2:asm-tools_files"],
@@ -180,13 +173,6 @@ jvm_import(
         "//tools/base/dynamic-layout-inspector/agent/appinspection/proto:layout_inspector_view_java_proto.jar",
         "//tools/adt/idea/layout-inspector/proto:layout_inspector_snapshot_java_proto.jar",
     ],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
-    name = "layoutinspector-skia-proto",
-    jars = ["//tools/base/dynamic-layout-inspector/skia/proto:layout_inspector_skia_java_proto.jar"],
     visibility = ["//visibility:public"],
 )
 
@@ -363,5 +349,19 @@ jvm_import(
 jvm_import(
     name = "grpc-google-common-protos",
     jars = ["//prebuilts/tools/common/m2:grpc-google-common-protos_files"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "androidx-tracing",
+    jars = ["//prebuilts/tools/common/m2:androidx-tracing_files"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "protobuf-java-util",
+    jars = ["//prebuilts/tools/common/m2:protobuf-java-util_files"],
     visibility = ["//visibility:public"],
 )

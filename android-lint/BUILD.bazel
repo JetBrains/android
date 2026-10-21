@@ -120,7 +120,6 @@ jvm_library(
         # do not sort,
         ":lint",
         "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
         "//android/analytics:analytics_test_lib",
         "//android/assistant:assistant_test_lib",
         "//plugins/kotlin/base/psi:psi_test_lib",

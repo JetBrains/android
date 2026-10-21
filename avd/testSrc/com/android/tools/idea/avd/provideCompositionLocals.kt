@@ -18,8 +18,8 @@ package com.android.tools.idea.avd
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import com.android.tools.adtui.compose.LocalProject
-import org.jetbrains.jewel.foundation.LocalComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
+import org.jetbrains.jewel.foundation.LocalComponent
 import org.mockito.kotlin.mock
 
 @Composable

@@ -30,7 +30,9 @@ import org.junit.rules.TemporaryFolder;
 
 /**
  * Ensures Studio can launch even when all plugins are disabled---leaving behind only the plugins marked "essential"
- * in AndroidStudioApplicationInfo.xml. For background see b/202048599, b/365493089, and IJPL-6075.
+ * in AndroidStudioApplicationInfo.xml (plus dependencies thereof). This test is less important now that
+ * [IJPL-6075](https://youtrack.jetbrains.com/issue/IJPL-6075) is fixed upstream, but we still keep it around
+ * in case disabling plugins ever breaks Studio in other ways.
  */
 public class EssentialPluginsTest {
   @Rule
@@ -51,7 +53,6 @@ public class EssentialPluginsTest {
       int initialPluginCount;
       try (AndroidStudio studio = install.run(display)) {
         initialPluginCount = countEnabledPlugins(install);
-        studio.executeAction("Android.ValidateEssentialPlugins"); // Reports common issues (with polished error messages).
         studio.executeAction("Android.DisableAllPlugins");
         install.getIdeaLog().waitForMatchingLine(".*DisableAllPluginsAction - Disabled all plugins", 10, TimeUnit.SECONDS);
       }

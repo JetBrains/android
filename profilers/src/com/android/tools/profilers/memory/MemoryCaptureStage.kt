@@ -15,23 +15,30 @@
  */
 package com.android.tools.profilers.memory
 
+import com.android.tools.profilers.ProfilerContext
+import com.android.tools.profilers.Stage
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject
+import com.android.tools.profilers.tasks.analytics.TaskTracker
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent.Stage.MEMORY_HEAP_DUMP_STAGE
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent.Stage.MEMORY_NATIVE_RECORDING_STAGE
 import java.util.concurrent.Executor
 
 class MemoryCaptureStage(
   profilers: StudioProfilers,
+  context: ProfilerContext,
   loader: CaptureObjectLoader,
   private val durationData: CaptureDurationData<out CaptureObject?>?,
   private val joiner: Executor?,
-) : BaseMemoryProfilerStage(profilers, loader) {
+) : BaseMemoryProfilerStage(profilers, context, loader) {
 
   override fun onEnter() {
-    studioProfilers.ideServices.featureTracker.trackEnterStage(stageType)
+    if (context.ideProfilerServices.featureConfig.isTaskBasedUxEnabled) {
+      myTaskTracker = TaskTracker.createTaskTracker(studioProfilers, context)
+    }
+    context.ideProfilerServices.featureTracker.trackEnterStage(stageType)
     loader.start()
     doSelectCaptureDuration(durationData, joiner)
   }
@@ -41,9 +48,13 @@ class MemoryCaptureStage(
     loader.stop()
   }
 
-  override fun getParentStage() = MainMemoryProfilerStage(studioProfilers, loader)
+  override fun getParentStage(): Stage<*> {
+    return context.parentStage ?: MainMemoryProfilerStage(studioProfilers, loader)
+  }
 
-  override fun getHomeStageClass() = MainMemoryProfilerStage::class.java
+  override fun getHomeStageClass(): Class<out Stage<*>> {
+    return context.homeStageClass ?: MainMemoryProfilerStage::class.java
+  }
 
   override fun isInteractingWithTimeline() = false
 

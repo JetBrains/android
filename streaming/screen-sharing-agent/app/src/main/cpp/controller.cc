@@ -75,7 +75,7 @@ bool UnicodeCompositionSupported() {
   if (state < 0) {
     state = 0;
     if (Settings::Get(Settings::Table::SECURE, "default_input_method").rfind("com.google.android.inputmethod.latin", 0) == 0) {
-      string output = RTrim(ExecuteShellCommand("dumpsys package com.google.android.inputmethod.latin"));
+      string output = RTrim(ExecuteShellCommand("dumpsys package com.google.android.inputmethod.latin").output);
       basic_regex version_regex(R"(versionCode=(\d+)\s)");
       auto iter = sregex_iterator(output.begin(), output.end(), version_regex);
       if (iter != sregex_iterator()) {
@@ -525,7 +525,7 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
     event.display_id = display_id;
     event.action = action;
     event.button_state = message.button_state();
-    event.event_time_millis = duration_cast<milliseconds>(event_time).count();;
+    event.event_time_millis = duration_cast<milliseconds>(event_time).count();
     if (action != AMOTION_EVENT_ACTION_HOVER_MOVE && action != AMOTION_EVENT_ACTION_HOVER_ENTER &&
         action != AMOTION_EVENT_ACTION_HOVER_EXIT && action != AMOTION_EVENT_ACTION_SCROLL) {
       if (action == AMOTION_EVENT_ACTION_DOWN) {

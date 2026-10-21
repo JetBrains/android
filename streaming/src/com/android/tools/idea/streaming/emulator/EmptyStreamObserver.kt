@@ -26,3 +26,7 @@ open class EmptyStreamObserver<T> : StreamObserver<T> {
 
   @AnyThread override fun onCompleted() {}
 }
+
+private val EMPTY_OBSERVER = EmptyStreamObserver<Any>()
+
+@Suppress("UNCHECKED_CAST") fun <T> getEmptyObserver(): StreamObserver<T> = EMPTY_OBSERVER as StreamObserver<T>

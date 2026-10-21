@@ -50,10 +50,11 @@ fun <T : Any> previewAnnotationToPreviewElement(
 ): ComposePreviewElement<T> {
   val composableMethod = annotatedMethod.qualifiedName
   val baseName = annotatedMethod.name
-  val parameter = attributesProvider.getDeclaredAttributeValue<String?>(PARAMETER_NAME)
+  // Strip <html> to prevent HTML injection
+  val parameter = attributesProvider.getDeclaredAttributeValue<String?>(PARAMETER_NAME).neuterHtml()
+  val groupName = overrideGroupName ?: attributesProvider.getDeclaredAttributeValue<String?>(PARAMETER_GROUP).neuterHtml()
   val previewName = buildPreviewName(parameter)
   val parameterName = buildParameterName(parameter)
-  val groupName = overrideGroupName ?: attributesProvider.getDeclaredAttributeValue(PARAMETER_GROUP)
   val showDecorations =
     attributesProvider.getBooleanAttribute(PARAMETER_SHOW_DECORATION)
       ?: (attributesProvider.getBooleanAttribute(PARAMETER_SHOW_SYSTEM_UI))

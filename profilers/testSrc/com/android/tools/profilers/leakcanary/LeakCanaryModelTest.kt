@@ -35,6 +35,7 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.LeakCanary
 import com.android.tools.profiler.proto.LeakCanary.LeakCanaryAnalysisStatus
+import com.android.tools.profilers.FakeFeatureTracker
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
@@ -42,11 +43,19 @@ import com.android.tools.profilers.WithFakeTimer
 import com.android.tools.profilers.cpu.config.LeakCanaryConfiguration
 import com.android.tools.profilers.cpu.config.LeakCanaryMode
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
+import com.android.tools.profilers.tasks.analytics.LeakCanaryUiAction
 import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import java.util.concurrent.Executors
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -80,13 +89,19 @@ class LeakCanaryModelTest : WithFakeTimer {
   private lateinit var ideProfilerServices: FakeIdeProfilerServices
   private lateinit var mockHeapDumper: LeakCanaryHeapDumper
   private val extraConfigs = mutableListOf<ProfilingConfiguration>()
+  private var customInsightFlow: Flow<String>? = null
 
   @Before
   fun setup() {
+    customInsightFlow = null
     ideProfilerServices =
       object : FakeIdeProfilerServices() {
         override fun getTaskCpuProfilerConfigs(apiLevel: Int): List<ProfilingConfiguration> {
           return super.getTaskCpuProfilerConfigs(apiLevel) + extraConfigs
+        }
+
+        override fun fetchLeakInsight(rawTrace: String): Flow<String> {
+          return customInsightFlow ?: super.fetchLeakInsight(rawTrace)
         }
       }
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer)
@@ -113,7 +128,7 @@ class LeakCanaryModelTest : WithFakeTimer {
     transportService.setCommandHandler(Commands.Command.CommandType.FORCE_DUMP_LEAKCANARY_ON_DEVICE, handler)
 
     mockHeapDumper = mock(LeakCanaryHeapDumper::class.java)
-    stage = LeakCanaryModel(profilers, mockHeapDumper)
+    stage = LeakCanaryModel(profilers, mockHeapDumper, kotlinx.coroutines.Dispatchers.Unconfined)
   }
 
   @Test
@@ -476,60 +491,6 @@ class LeakCanaryModelTest : WithFakeTimer {
   }
 
   @Test
-  fun `test getLeakingFullClassName finds node with YES status`() {
-    val node1 = createTestNode(className = "NotLeaking", leakingStatus = LeakingStatus.NO)
-    val node2 = createTestNode(className = "LeakingVictim", leakingStatus = LeakingStatus.YES)
-    val node3 = createTestNode(className = "AlsoLeaking", leakingStatus = LeakingStatus.YES)
-    val leakTrace = LeakTrace(GcRootType.NATIVE_STACK, nodes = listOf(node1, node2, node3))
-    val leak =
-      Leak(
-        type = LeakType.APPLICATION_LEAKS,
-        retainedByteSize = 100,
-        signature = "sig",
-        leakTraceCount = 1,
-        displayedLeakTrace = listOf(leakTrace),
-      )
-
-    assertEquals("LeakingVictim", LeakCanaryModel.getLeakingFullClassName(leak))
-  }
-
-  @Test
-  fun `test getAnchorFullClassName finds last node with NO status`() {
-    val node1 = createTestNode(className = "Root", leakingStatus = LeakingStatus.NO)
-    val node2 = createTestNode(className = "Anchor", leakingStatus = LeakingStatus.NO)
-    val node3 = createTestNode(className = "Unknown", leakingStatus = LeakingStatus.UNKNOWN)
-    val node4 = createTestNode(className = "Leaking", leakingStatus = LeakingStatus.YES)
-    val leakTrace = LeakTrace(GcRootType.NATIVE_STACK, nodes = listOf(node1, node2, node3, node4))
-    val leak =
-      Leak(
-        type = LeakType.APPLICATION_LEAKS,
-        retainedByteSize = 100,
-        signature = "sig",
-        leakTraceCount = 1,
-        displayedLeakTrace = listOf(leakTrace),
-      )
-
-    assertEquals("Anchor", LeakCanaryModel.getAnchorFullClassName(leak))
-  }
-
-  @Test
-  fun `test getAnchorFullClassName returns empty if no NO status nodes`() {
-    val node1 = createTestNode(className = "Unknown", leakingStatus = LeakingStatus.UNKNOWN)
-    val node2 = createTestNode(className = "Leaking", leakingStatus = LeakingStatus.YES)
-    val leakTrace = LeakTrace(GcRootType.NATIVE_STACK, nodes = listOf(node1, node2))
-    val leak =
-      Leak(
-        type = LeakType.APPLICATION_LEAKS,
-        retainedByteSize = 100,
-        signature = "sig",
-        leakTraceCount = 1,
-        displayedLeakTrace = listOf(leakTrace),
-      )
-
-    assertEquals("", LeakCanaryModel.getAnchorFullClassName(leak))
-  }
-
-  @Test
   fun `analyzeLeakWithStudioBot delegates to ideServices`() {
     val leak = mock(Leak::class.java)
     `when`(leak.toString()).thenReturn("trace")
@@ -621,6 +582,325 @@ class LeakCanaryModelTest : WithFakeTimer {
     assertFalse(stage.isStopping.value)
   }
 
+  @Test
+  fun `test fetchInsight transitions state to Ready on success`() {
+    val leak = createMockLeak()
+
+    customInsightFlow = flow {
+      emit("Memory leak identified in class.")
+      emit(" Solution is simple.")
+    }
+
+    stage.insightModel.setInsightVisible(true)
+    stage.insightModel.setInsightAutoGenerateEnabled(true)
+    stage.onLeakSelection(leak)
+
+    val state = stage.insightModel.currentInsight.value
+    assertTrue(state is LoadingState.Ready)
+    val insight = state.value
+    assertTrue(insight != null)
+    assertEquals("Memory leak identified in class. Solution is simple.", insight.rawInsight)
+    assertEquals("AI Assistant", insight.modelName)
+    assertEquals(null, insight.feedback)
+  }
+
+  @Test
+  fun `test fetchInsight resolves response in one shot once flow completes`() = runBlocking {
+    val leak = createMockLeak()
+
+    customInsightFlow = flow {
+      emit("Memory leak identified in class.")
+      kotlinx.coroutines.yield()
+      emit(" Solution is simple.")
+    }
+
+    val states = mutableListOf<LoadingState<AiInsight?>>()
+    val job = launch(kotlinx.coroutines.Dispatchers.Unconfined) { stage.insightModel.currentInsight.collect { states.add(it) } }
+
+    stage.insightModel.setInsightVisible(true)
+    stage.insightModel.setInsightAutoGenerateEnabled(true)
+    stage.onLeakSelection(leak)
+
+    job.cancel()
+
+    // Since we now resolve in one shot, the states should transition directly:
+    // 1. Ready(null) (initial state)
+    // 2. Loading()
+    // 3. Ready(finalInsight)
+    assertEquals(3, states.size)
+    assertTrue(states[0] is LoadingState.Ready && (states[0] as LoadingState.Ready).value == null)
+    assertTrue(states[1] is LoadingState.Loading)
+
+    assertTrue(states[2] is LoadingState.Ready)
+    val finalInsight = (states[2] as LoadingState.Ready).value
+    assertEquals("Memory leak identified in class. Solution is simple.", finalInsight?.rawInsight)
+  }
+
+  @Test
+  fun `test isInsightAutoGenerateEnabled toggle updates preferences`() {
+    assertFalse(stage.insightModel.isInsightAutoGenerateEnabled.value)
+
+    stage.insightModel.setInsightAutoGenerateEnabled(true)
+    assertTrue(stage.insightModel.isInsightAutoGenerateEnabled.value)
+    assertTrue(ideProfilerServices.persistentProfilerPreferences.getBoolean("leakcanary.insight.auto.generate", false))
+
+    stage.insightModel.setInsightAutoGenerateEnabled(false)
+    assertFalse(stage.insightModel.isInsightAutoGenerateEnabled.value)
+    assertFalse(ideProfilerServices.persistentProfilerPreferences.getBoolean("leakcanary.insight.auto.generate", true))
+  }
+
+  @Test
+  fun `test LeakCanary AI Insights telemetry`() {
+    val fakeTracker = ideProfilerServices.featureTracker as FakeFeatureTracker
+    val leak = createMockLeak()
+    stage.onLeakSelection(leak)
+
+    // Test visibility telemetry
+    stage.insightModel.setInsightVisible(false)
+    assertEquals(LeakCanaryUiAction.INSIGHT_PANEL_CLOSED, fakeTracker.lastLeakCanaryUiAction)
+    stage.insightModel.setInsightVisible(true)
+    assertEquals(LeakCanaryUiAction.INSIGHT_PANEL_OPENED, fakeTracker.lastLeakCanaryUiAction)
+    stage.insightModel.setInsightVisible(false)
+    assertEquals(LeakCanaryUiAction.INSIGHT_PANEL_CLOSED, fakeTracker.lastLeakCanaryUiAction)
+
+    // Test auto-generate toggling telemetry
+    stage.insightModel.setInsightAutoGenerateEnabled(true)
+    assertEquals(LeakCanaryUiAction.INSIGHT_AUTO_GENERATE_ENABLED, fakeTracker.lastLeakCanaryUiAction)
+    stage.insightModel.setInsightAutoGenerateEnabled(false)
+    assertEquals(LeakCanaryUiAction.INSIGHT_AUTO_GENERATE_DISABLED, fakeTracker.lastLeakCanaryUiAction)
+
+    // Test fetch success telemetry
+    customInsightFlow = flowOf("Leak explanation")
+    stage.insightModel.setInsightVisible(true)
+    stage.insightModel.fetchInsight(leak)
+    assertEquals(LeakCanaryUiAction.INSIGHT_FETCH_SUCCEEDED, fakeTracker.lastLeakCanaryUiAction)
+
+    // Test fetch failure telemetry
+    customInsightFlow = flow { throw RuntimeException("Error") }
+    stage.insightModel.fetchInsight(leak)
+    assertEquals(LeakCanaryUiAction.INSIGHT_FETCH_FAILED, fakeTracker.lastLeakCanaryUiAction)
+
+    // Test fetch cancellation telemetry
+    customInsightFlow = flow {
+      kotlinx.coroutines.delay(1000)
+      emit("Should not run")
+    }
+    stage.insightModel.fetchInsight(leak)
+    assertEquals(LeakCanaryUiAction.INSIGHT_FETCH_TRIGGERED, fakeTracker.lastLeakCanaryUiAction)
+    stage.insightModel.clearInsights()
+    assertEquals(LeakCanaryUiAction.INSIGHT_FETCH_CANCELLED, fakeTracker.lastLeakCanaryUiAction)
+
+    // Test fetch cancellation when closing the panel mid-fetch
+    customInsightFlow = flow {
+      kotlinx.coroutines.delay(1000)
+      emit("Should not run")
+    }
+    stage.insightModel.setInsightVisible(true)
+    stage.insightModel.fetchInsight(leak)
+    assertEquals(LeakCanaryUiAction.INSIGHT_FETCH_TRIGGERED, fakeTracker.lastLeakCanaryUiAction)
+    stage.insightModel.setInsightVisible(false)
+    assertEquals(LeakCanaryUiAction.INSIGHT_FETCH_CANCELLED, fakeTracker.lastLeakCanaryUiAction)
+
+    // Reload successful insight to allow feedback submissions
+    customInsightFlow = flowOf("Leak explanation")
+    stage.insightModel.fetchInsight(leak)
+    assertEquals(LeakCanaryUiAction.INSIGHT_FETCH_SUCCEEDED, fakeTracker.lastLeakCanaryUiAction)
+
+    // Test sentiment feedback telemetry
+    stage.insightModel.submitInsightFeedback(InsightFeedback.THUMBS_UP)
+    assertEquals(LeakCanaryUiAction.INSIGHT_SENTIMENT_UP, fakeTracker.lastLeakCanaryUiAction)
+
+    // Clear feedback (should track CLEARED)
+    stage.insightModel.submitInsightFeedback(null)
+    assertEquals(LeakCanaryUiAction.INSIGHT_SENTIMENT_CLEARED, fakeTracker.lastLeakCanaryUiAction)
+
+    // Set other action to change the tracker state
+    stage.trackUiAction(LeakCanaryUiAction.INSIGHT_COPY_CLICKED)
+    assertEquals(LeakCanaryUiAction.INSIGHT_COPY_CLICKED, fakeTracker.lastLeakCanaryUiAction)
+
+    // Clear feedback again (already null, should NOT track CLEARED, so last action remains COPY_CLICKED)
+    stage.insightModel.submitInsightFeedback(null)
+    assertEquals(LeakCanaryUiAction.INSIGHT_COPY_CLICKED, fakeTracker.lastLeakCanaryUiAction)
+
+    // Test Thumbs Down
+    stage.insightModel.submitInsightFeedback(InsightFeedback.THUMBS_DOWN)
+    assertEquals(LeakCanaryUiAction.INSIGHT_SENTIMENT_DOWN, fakeTracker.lastLeakCanaryUiAction)
+
+    // Test manually tracked UI actions (stage fix, copy action)
+    stage.trackUiAction(LeakCanaryUiAction.INSIGHT_GENERATE_FIX_CLICKED)
+    assertEquals(LeakCanaryUiAction.INSIGHT_GENERATE_FIX_CLICKED, fakeTracker.lastLeakCanaryUiAction)
+    stage.trackUiAction(LeakCanaryUiAction.INSIGHT_COPY_CLICKED)
+    assertEquals(LeakCanaryUiAction.INSIGHT_COPY_CLICKED, fakeTracker.lastLeakCanaryUiAction)
+  }
+
+  @Test
+  fun `test fetchInsight transitions state to Failure on flow collection error`() {
+    val leak = createMockLeak()
+
+    customInsightFlow = flow { throw RuntimeException("AI Assistant Service Unavailable") }
+
+    stage.insightModel.setInsightVisible(true)
+    stage.insightModel.setInsightAutoGenerateEnabled(true)
+    stage.onLeakSelection(leak)
+
+    val state = stage.insightModel.currentInsight.value
+    assertTrue(state is LoadingState.Failure)
+    assertEquals("AI Assistant Service Unavailable", (state as LoadingState.Failure).message)
+  }
+
+  @Test
+  fun `test fetchInsight transitions state to Failure on empty response`() {
+    val leak = createMockLeak()
+
+    customInsightFlow = kotlinx.coroutines.flow.emptyFlow()
+
+    stage.insightModel.setInsightVisible(true)
+    stage.insightModel.setInsightAutoGenerateEnabled(true)
+    stage.onLeakSelection(leak)
+
+    val state = stage.insightModel.currentInsight.value
+    assertTrue(state is LoadingState.Failure)
+    assertEquals("AI Assistant returned an empty response.", (state as LoadingState.Failure).message)
+  }
+
+  @Test
+  fun `test fetchInsight caches results and returns from cache on re-selection`() {
+    val leak1 = createMockLeak("trace 1", "sig 1")
+    val leak2 = createMockLeak("trace 2", "sig 2")
+
+    // Setup first flow emission
+    customInsightFlow = flowOf("Insight 1")
+
+    stage.insightModel.setInsightVisible(true)
+    stage.insightModel.setInsightAutoGenerateEnabled(true)
+    stage.onLeakSelection(leak1)
+
+    // Verify leak1 loaded
+    val state1 = stage.insightModel.currentInsight.value
+    assertTrue(state1 is LoadingState.Ready)
+    assertEquals("Insight 1", (state1 as LoadingState.Ready).value?.rawInsight)
+
+    // Setup second flow emission
+    customInsightFlow = flowOf("Insight 2")
+    stage.onLeakSelection(leak2)
+
+    // Verify leak2 loaded
+    val state2 = stage.insightModel.currentInsight.value
+    assertTrue(state2 is LoadingState.Ready)
+    assertEquals("Insight 2", (state2 as LoadingState.Ready).value?.rawInsight)
+
+    // Change flow to throw error so that if it is called again, it will fail
+    customInsightFlow = flow { throw RuntimeException("Should not be called") }
+
+    // Re-select leak1
+    stage.onLeakSelection(leak1)
+
+    // Verify it returned from cache successfully
+    val state1Recalled = stage.insightModel.currentInsight.value
+    assertTrue(state1Recalled is LoadingState.Ready)
+    assertEquals("Insight 1", state1Recalled.value?.rawInsight)
+  }
+
+  @Test
+  fun `test fetchInsight skips resolution if panel is hidden`() {
+    val leak = createMockLeak()
+
+    customInsightFlow = flow { emit("Should not run") }
+
+    stage.insightModel.setInsightVisible(false)
+    stage.insightModel.setInsightAutoGenerateEnabled(true)
+    stage.onLeakSelection(leak)
+
+    val state = stage.insightModel.currentInsight.value
+    assertTrue(state is LoadingState.Ready)
+    assertEquals(null, (state as LoadingState.Ready).value)
+  }
+
+  @Test
+  fun `test submitInsightFeedback updates insight state correctly`() {
+    val leak = createMockLeak()
+
+    customInsightFlow = flow { emit("Insight text") }
+
+    stage.insightModel.setInsightVisible(true)
+    stage.insightModel.setInsightAutoGenerateEnabled(true)
+    stage.onLeakSelection(leak)
+
+    // Initial feedback is null
+    val state1 = stage.insightModel.currentInsight.value
+    assertTrue(state1 is LoadingState.Ready)
+    assertEquals(null, state1.value?.feedback)
+
+    // Submit THUMBS_UP
+    stage.insightModel.submitInsightFeedback(InsightFeedback.THUMBS_UP)
+    val state2 = stage.insightModel.currentInsight.value
+    assertTrue(state2 is LoadingState.Ready)
+    assertEquals(InsightFeedback.THUMBS_UP, state2.value?.feedback)
+
+    // Submit null to toggle feedback off
+    stage.insightModel.submitInsightFeedback(null)
+    val state3 = stage.insightModel.currentInsight.value
+    assertTrue(state3 is LoadingState.Ready)
+    assertEquals(null, state3.value?.feedback)
+  }
+
+  @Test
+  fun `test enabling auto-generate with selected leak triggers fetchInsight`() {
+    val leak = createMockLeak()
+    customInsightFlow = flowOf("Insight text")
+
+    stage.insightModel.setInsightVisible(true)
+    stage.insightModel.setInsightAutoGenerateEnabled(false)
+    stage.onLeakSelection(leak)
+
+    // No insight fetched yet because auto-generate is disabled
+    val state1 = stage.insightModel.currentInsight.value
+    assertTrue(state1 is LoadingState.Ready && state1.value == null)
+
+    // Enable auto-generate
+    stage.insightModel.setInsightAutoGenerateEnabled(true)
+
+    // Should trigger fetchInsight and complete
+    val state2 = stage.insightModel.currentInsight.value
+    assertTrue(state2 is LoadingState.Ready)
+    assertEquals("Insight text", (state2 as LoadingState.Ready).value?.rawInsight)
+  }
+
+  @Test
+  fun `test fetchInsight skips resolution if auto-generate is disabled when panel becomes visible`() {
+    val leak = createMockLeak()
+    customInsightFlow = flow { emit("Should not run") }
+
+    stage.insightModel.setInsightVisible(false)
+    stage.insightModel.setInsightAutoGenerateEnabled(false)
+    stage.onLeakSelection(leak)
+
+    // Make visible
+    stage.insightModel.setInsightVisible(true)
+
+    // Should NOT trigger fetchInsight, and state should remain Ready(null)
+    val state = stage.insightModel.currentInsight.value
+    assertTrue(state is LoadingState.Ready && state.value == null)
+  }
+
+  @Test
+  fun `test enabling auto-generate when panel is hidden does not trigger fetchInsight`() {
+    val leak = createMockLeak()
+    customInsightFlow = flow { emit("Should not run") }
+
+    stage.insightModel.setInsightVisible(false)
+    stage.insightModel.setInsightAutoGenerateEnabled(false)
+    stage.onLeakSelection(leak)
+
+    // Enable auto-generate while hidden
+    stage.insightModel.setInsightAutoGenerateEnabled(true)
+
+    // Should NOT trigger fetchInsight, state remains Ready(null), visibility remains false
+    val state = stage.insightModel.currentInsight.value
+    assertTrue(state is LoadingState.Ready && state.value == null)
+    assertFalse(stage.insightModel.isInsightVisible.value)
+  }
+
   private fun createTestNode(
     className: String,
     leakingStatus: LeakingStatus = LeakingStatus.UNKNOWN,
@@ -646,6 +926,13 @@ class LeakCanaryModelTest : WithFakeTimer {
       notes = emptyList(),
       referencingField = referencingField,
     )
+  }
+
+  private fun createMockLeak(trace: String = "sample trace", signature: String = "leak_sig"): Leak {
+    val leak = mock(Leak::class.java)
+    `when`(leak.toString()).thenReturn(trace)
+    `when`(leak.signature).thenReturn(signature)
+    return leak
   }
 }
 

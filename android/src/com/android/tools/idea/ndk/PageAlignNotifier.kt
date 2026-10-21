@@ -36,6 +36,7 @@ import com.intellij.notification.NotificationListener
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.StandardFileSystems
 import java.io.File
 import javax.swing.event.HyperlinkEvent
@@ -91,7 +92,7 @@ abstract class PageAlignNotifier(val balloonsEnabled: Boolean = PageAlignConfig.
       if (isWear || isAutomotive) continue
 
       // Show a warning balloon for the SO files that aren't aligned at a 16 KB boundary within the APK
-      val apkLink = "<a href='$apkFile'>${apkFile.name}</a>"
+      val apkLink = "<a href=\"${StringUtil.escapeXmlEntities(apkFile.absolutePath)}\">${StringUtil.escapeXmlEntities(apkFile.name)}</a>"
       problems
         .filter { entry -> entry.value.any { it is ZipEntryNotAligned } }
         .map { it.key }
@@ -128,8 +129,8 @@ abstract class PageAlignNotifier(val balloonsEnabled: Boolean = PageAlignConfig.
           val apkVirtualFile = StandardFileSystems.local().refreshAndFindFileByPath(apkFile.absolutePath) ?: return
           val openFileDescriptor = OpenFileDescriptor(project, apkVirtualFile)
           FileEditorManager.getInstance(project).openEditor(openFileDescriptor, true)
-        } else if (url != null) {
-          BrowserUtil.browse(url)
+        } else if (url != null && (url.protocol == "http" || url.protocol == "https")) {
+          BrowserUtil.browse(url.toExternalForm(), project)
         }
       }
     }

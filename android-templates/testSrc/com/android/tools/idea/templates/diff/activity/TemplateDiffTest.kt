@@ -43,6 +43,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameters
 import com.android.tools.idea.flags.StudioFlags.JOURNEYS_WITH_GEMINI_EXECUTION
+import com.android.tools.idea.flags.StudioFlags.NPW_ENABLE_AI_GLASSES_TEMPLATE
 import com.android.tools.idea.flags.StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE
 import com.android.tools.idea.flags.StudioFlags.NPW_ENABLE_XR_TEMPLATE
 
@@ -63,6 +64,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
   @get:Rule val xrTemplateFlagRule = FlagRule(NPW_ENABLE_XR_TEMPLATE, true)
   @get:Rule val navigationFlagRule = FlagRule(NPW_ENABLE_NAVIGATION_UI_TEMPLATE, true)
   @get:Rule val journeyFlagRule = FlagRule(JOURNEYS_WITH_GEMINI_EXECUTION, true)
+  @get:Rule val aiGlassesTemplateFlagRule = FlagRule(NPW_ENABLE_AI_GLASSES_TEMPLATE, true)
 
   companion object {
     /** Keeps track of whether the previous parameterized test failed */
@@ -319,18 +321,6 @@ class TemplateDiffTest(private val testMode: TestMode) {
   }
 
   @Test
-  fun testNewNavigationDrawerActivity() {
-    StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE.override(false)
-    checkCreateTemplate("Navigation Drawer Views Activity")
-  }
-
-  @Test
-  fun testNewNavigationDrawerActivityWithKotlin() {
-    StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE.override(false)
-    checkCreateTemplate("Navigation Drawer Views Activity", withKotlin())
-  }
-
-  @Test
   fun testNewPrimaryDetailFlow() {
     checkCreateTemplate("Primary/Detail Views Flow")
   }
@@ -414,18 +404,6 @@ class TemplateDiffTest(private val testMode: TestMode) {
       withKotlin(),
       templateStateCustomizer = mapOf("Split settings hierarchy into separate sub-screens" to true),
     )
-  }
-
-  @Test
-  fun testBottomNavigationActivity() {
-    StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE.override(false)
-    checkCreateTemplate("Bottom Navigation Views Activity")
-  }
-
-  @Test
-  fun testBottomNavigationActivityWithKotlin() {
-    StudioFlags.NPW_ENABLE_NAVIGATION_UI_TEMPLATE.override(false)
-    checkCreateTemplate("Bottom Navigation Views Activity", withKotlin())
   }
 
   @Test
@@ -763,6 +741,11 @@ class TemplateDiffTest(private val testMode: TestMode) {
   fun testBasicWatchFace() {
     StudioFlags.NPW_ENABLE_BASIC_WATCH_FACE_TEMPLATE.override(true)
     checkCreateTemplate("Basic Watch Face", withKotlin(), { moduleData, _ -> moduleData.isWatchFace = true })
+  }
+
+  @Test
+  fun testNewAiGlassesActivity() {
+    checkCreateTemplate("Basic Display Glasses Activity", withKotlin(), formFactor = FormFactor.AiGlasses)
   }
 }
 

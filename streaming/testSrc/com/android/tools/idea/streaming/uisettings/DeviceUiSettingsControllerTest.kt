@@ -32,6 +32,7 @@ import com.android.tools.idea.streaming.emulator.APPLICATION_ID1
 import com.android.tools.idea.streaming.emulator.APPLICATION_ID2
 import com.android.tools.idea.streaming.emulator.CUSTOM_DENSITY
 import com.android.tools.idea.streaming.emulator.CUSTOM_FONT_SCALE
+import com.android.tools.idea.streaming.uisettings.data.DEFAULT_LANGUAGE
 import com.android.tools.idea.streaming.uisettings.testutil.UiControllerListenerValidator
 import com.android.tools.idea.streaming.uisettings.ui.FontScale
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
@@ -97,7 +98,7 @@ class DeviceUiSettingsControllerTest {
     agent.setOriginalValues()
     agent.currentUiSettings.darkMode = true
     agent.currentUiSettings.gestureNavigation = false
-    agent.currentUiSettings.appLocales = "da"
+    agent.currentUiSettings.appLocale = "da"
     agent.talkBackInstalled = true
     agent.currentUiSettings.talkBackOn = true
     agent.currentUiSettings.selectToSpeakOn = true
@@ -114,7 +115,7 @@ class DeviceUiSettingsControllerTest {
   fun testReadCustomValueWithoutFontScaleAndDensity() {
     agent.currentUiSettings.darkMode = true
     agent.currentUiSettings.gestureNavigation = false
-    agent.currentUiSettings.appLocales = "da"
+    agent.currentUiSettings.appLocale = "da"
     agent.talkBackInstalled = true
     agent.currentUiSettings.talkBackOn = true
     agent.currentUiSettings.selectToSpeakOn = true
@@ -184,11 +185,23 @@ class DeviceUiSettingsControllerTest {
     controller.initAndWait()
     val appLanguage = model.appLanguage
     appLanguage.selection.setFromUi(appLanguage.getElementAt(1))
-    waitForCondition(10.seconds) { agent.currentUiSettings.appLocales == "da" }
+    waitForCondition(10.seconds) { agent.currentUiSettings.appLocale == "da" }
     waitForCondition(10.seconds) { model.differentFromDefault.value }
     appLanguage.selection.setFromUi(appLanguage.getElementAt(0))
-    waitForCondition(10.seconds) { agent.currentUiSettings.appLocales == "" }
+    waitForCondition(10.seconds) { agent.currentUiSettings.appLocale == "" }
     waitForCondition(10.seconds) { !model.differentFromDefault.value }
+  }
+
+  @Test
+  fun testAppLocalesFromAdb() {
+    agent.currentUiSettings.appLocales = listOf("es", "fr")
+    agent.setOriginalValues()
+    controller.initAndWait()
+    val appLanguage = model.appLanguage
+    assertThat(appLanguage.size).isEqualTo(3)
+    assertThat(appLanguage.getElementAt(0).toString()).isEqualTo(DEFAULT_LANGUAGE.toString())
+    assertThat(appLanguage.getElementAt(1).toString()).isEqualTo("French")
+    assertThat(appLanguage.getElementAt(2).toString()).isEqualTo("Spanish")
   }
 
   @Test
@@ -283,7 +296,7 @@ class DeviceUiSettingsControllerTest {
   }
 
   private fun createDeviceView(device: FakeDevice): DeviceView {
-    val deviceClient = DeviceClient(device.serialNumber, device.configuration, device.deviceState.cpuAbi)
+    val deviceClient = DeviceClient(device.handle.id, device.serialNumber, device.configuration, device.deviceState.cpuAbi)
     Disposer.register(testRootDisposable, deviceClient)
     val view = DeviceView(deviceClient, deviceClient, project, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION)
     view.size = Dimension(600, 800)

@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "app.google.myapplication"
+    namespace = "app.google.myapplication"
     compileSdkVersion 25
     defaultConfig {
         applicationId "app.google.myapplication"

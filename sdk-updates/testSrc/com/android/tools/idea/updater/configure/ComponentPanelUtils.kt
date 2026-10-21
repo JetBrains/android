@@ -47,3 +47,18 @@ internal fun createLocalPackage(
   typeDetails?.let { fakeLocalPackage.typeDetails = it }
   return fakeLocalPackage
 }
+
+internal fun createRemotePackage(
+  path: String,
+  major: Int,
+  minor: Int? = null,
+  micro: Int? = null,
+  preview: Int? = null,
+  typeDetails: TypeDetails? = null,
+): FakePackage.FakeRemotePackage {
+  val fakeRemotePackage = FakePackage.FakeRemotePackage(path)
+  fakeRemotePackage.setRevision(Revision(major, minor, micro, preview))
+  fakeRemotePackage.displayName = path
+  typeDetails?.let { fakeRemotePackage.typeDetails = it }
+  return fakeRemotePackage
+}

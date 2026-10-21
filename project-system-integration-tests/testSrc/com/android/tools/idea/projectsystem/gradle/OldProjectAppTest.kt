@@ -16,6 +16,7 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.tools.asdriver.tests.AndroidProject
+import com.android.tools.asdriver.tests.AndroidStudioInstallation
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.idea.sdk.IdeSdks
@@ -25,7 +26,10 @@ import org.junit.Test
 
 class OldProjectAppTest {
 
-  @JvmField @Rule var system: AndroidSystem = AndroidSystem.standard()
+  @JvmField
+  @Rule
+  var system: AndroidSystem =
+    AndroidSystem.withCustomJdkForGradle(AndroidStudioInstallation.AndroidStudioFlavor.FOR_EXTERNAL_USERS, AndroidSystem.JdkVersion.JDK_25)
 
   @Test
   fun `Given old app configured with JDK 11 and compatible gradle version When open project with recent studio Then gradle sync succeed`() {
@@ -34,7 +38,7 @@ class OldProjectAppTest {
       addVmOption("-Dstudio.project.sync.debug.mode=true")
     }
     val project = AndroidProject("tools/adt/idea/project-system-integration-tests/testData/oldprojectapp")
-    project.setDistribution("tools/external/gradle/gradle-7.0.2-bin.zip")
+    project.setDistribution("tools/external/gradle/gradle-7.2-bin.zip")
 
     val embeddedJdk11Path = EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk11")
     system.setEnv(IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME, embeddedJdk11Path.toString())

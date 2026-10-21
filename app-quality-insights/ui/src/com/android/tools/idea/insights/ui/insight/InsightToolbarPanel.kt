@@ -16,8 +16,7 @@
 package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.idea.concurrency.createCoroutineScope
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.AppInsightsCrashController
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.ai.AiInsight
 import com.android.tools.idea.insights.experiments.InsightFeedback
@@ -46,7 +45,7 @@ import kotlinx.coroutines.flow.stateIn
 const val INSIGHT_TOOLBAR = "InsightToolbarPanel"
 
 class InsightToolbarPanel(
-  controller: AppInsightsProjectLevelController,
+  controller: AppInsightsCrashController,
   currentInsightFlow: Flow<LoadingState<AiInsight?>>,
   parentDisposable: Disposable,
   private val onSubmitFeedback: (InsightFeedback) -> Unit,
@@ -78,11 +77,7 @@ class InsightToolbarPanel(
 
   init {
     val actionGroup =
-      DefaultActionGroup(copyAction, InsightRefreshAction(controller), upvoteAction, downvoteAction).apply {
-        if (StudioFlags.AQI_FIX_WITH_AGENT.get()) {
-          add(InsightSettingGroup())
-        }
-      }
+      DefaultActionGroup(copyAction, InsightRefreshAction(controller), upvoteAction, downvoteAction).apply { add(InsightSettingGroup()) }
 
     val toolbar = ActionManager.getInstance().createActionToolbar("${controller.provider.displayName} $INSIGHT_TOOLBAR", actionGroup, true)
     toolbar.targetComponent = this

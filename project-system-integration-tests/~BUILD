@@ -17,7 +17,7 @@ old_project_app_data = [
     ":oldprojectapp_deps",
     "//prebuilts/studio/jdk/jdk11:jdk_runtime_files",
     "//prebuilts/studio/sdk:build-tools/latest",
-    "//tools/base/build-system:gradle-distrib-7.0.2",
+    "//tools/base/build-system:gradle-distrib-7.2",
 ]
 
 # managed by go/iml_to_build
@@ -216,7 +216,7 @@ maven_repository(
     name = "oldprojectapp_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:com.android.tools.build.gradle_7.0.0",
+        "@maven//:com.android.tools.build.gradle_7.1.0",
         "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20",

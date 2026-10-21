@@ -19,6 +19,7 @@
     <orderEntry type="module" module-name="directaccess" />
     <orderEntry type="module" module-name="test-recorder" />
     <orderEntry type="module" module-name="url-assistant" />
+    <orderEntry type="module" module-name="app-link-assistant-ai" />
     <orderEntry type="module" module-name="targetsdkversion-upgrade-assistant" />
     <orderEntry type="module" module-name="intellij.android.gmd-code-completion" />
     <orderEntry type="module" module-name="aiplugin.android-plugin" />
@@ -38,8 +39,8 @@
     <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="module" module-name="ios-lang" />
     <orderEntry type="module" module-name="optional-plugins" />
-    <orderEntry type="module" module-name="intellij.android.projectSystem.lume" />
-    <orderEntry type="module" module-name="intellij.android.lume.aiplugin" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.lightbuild" />
+    <orderEntry type="module" module-name="intellij.android.lightbuild.aiplugin" />
     <orderEntry type="module" module-name="intellij.android.smali" />
   </component>
 </module>

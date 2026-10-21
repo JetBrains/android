@@ -16,12 +16,10 @@
 package com.android.tools.idea.whatsnew.assistant
 
 import com.intellij.openapi.application.PathManager
-import com.intellij.util.PathUtil
 import java.io.InputStream
 import java.net.MalformedURLException
 import java.net.URL
 import java.nio.file.Path
-import java.nio.file.Paths
 
 const val WNA_CACHE_DIR_KEY = "whatsnew"
 
@@ -54,7 +52,7 @@ open class WhatsNewURLProvider {
 
   /** @return path to directory where local xml config will be stored */
   private fun getConfigCacheDir(): Path {
-    val path = Paths.get(PathUtil.getCanonicalPath(PathManager.getSystemPath()), WNA_CACHE_DIR_KEY)
+    val path = PathManager.getSystemDir().resolve(WNA_CACHE_DIR_KEY).toRealPath()
     path.toFile().mkdirs()
     return path
   }

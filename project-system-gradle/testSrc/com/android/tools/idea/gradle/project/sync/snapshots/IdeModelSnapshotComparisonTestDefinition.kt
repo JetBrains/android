@@ -75,7 +75,11 @@ data class IdeModelSnapshotComparisonTestDefinition(
         IdeModelSnapshotComparisonTestDefinition(TestProject.APP_WITH_BUILD_FEATURES_ENABLED),
         IdeModelSnapshotComparisonTestDefinition(TestProject.WITH_GRADLE_METADATA),
         IdeModelSnapshotComparisonTestDefinition(TestProject.BASIC_CMAKE_APP),
-        IdeModelSnapshotComparisonTestDefinition(TestProject.PSD_SAMPLE_GROOVY),
+        IdeModelSnapshotComparisonTestDefinition(
+          TestProject.PSD_SAMPLE_GROOVY,
+          v1toV2PropertiesToSkip =
+            setOf("ProvidedDependencies", "ProvidedDependencies/provided", "RuntimeOnlyClasses", "RuntimeOnlyClasses/class"),
+        ),
         IdeModelSnapshotComparisonTestDefinition(TestProject.COMPOSITE_BUILD),
         IdeModelSnapshotComparisonTestDefinition(
           TestProject.NON_STANDARD_SOURCE_SETS,

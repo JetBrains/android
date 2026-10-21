@@ -16,8 +16,7 @@
 package com.android.tools.idea.insights.ui.insight
 
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
+import com.android.tools.idea.insights.AppInsightsCrashControllerRule
 import com.android.tools.idea.insights.DEFAULT_AI_INSIGHT
 import com.android.tools.idea.insights.DEFAULT_FETCHED_PERMISSIONS
 import com.android.tools.idea.insights.ISSUE1
@@ -28,7 +27,6 @@ import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.experiments.InsightFeedback
 import com.android.tools.idea.insights.model.event.EventPage
 import com.android.tools.idea.testing.disposable
-import com.android.tools.idea.testing.flags.overrideForTest
 import com.android.tools.idea.ui.resourcemanager.actions.HeaderAction
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
@@ -74,7 +72,7 @@ import org.mockito.kotlin.whenever
 
 class InsightToolbarPanelTest {
   private val projectRule = ProjectRule()
-  private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
+  private val controllerRule = AppInsightsCrashControllerRule(projectRule)
 
   @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(controllerRule)
 
@@ -244,17 +242,6 @@ class InsightToolbarPanelTest {
     autoGenerateAction.setSelected(testEvent, false)
     autoGenerateAction.update(testEvent)
     assertThat(Toggleable.isSelected(testEvent.presentation)).isFalse()
-  }
-
-  @Test
-  fun `settings action not added when fix with agent flag is off`() = runBlocking {
-    StudioFlags.AQI_FIX_WITH_AGENT.overrideForTest(false, projectRule.disposable)
-    createInsightBottomPanel()
-
-    val toolbar = findToolbar()
-    assertThat(toolbar.actions.size).isEqualTo(4)
-    assertThat(toolbar.actions.map { it::class }).doesNotContain(InsightSettingGroup::class)
-    assertThat(toolbar.actions.map { it::class }).doesNotContain(InsightAutoGenerateSetting::class)
   }
 
   private val AnActionEvent.isSelected: Boolean

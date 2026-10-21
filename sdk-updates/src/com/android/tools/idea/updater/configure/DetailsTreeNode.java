@@ -118,7 +118,7 @@ public class DetailsTreeNode extends UpdaterTreeNode {
   @NotNull
   public String getStatusString() {
     if (getInitialState() == PackageNodeModel.SelectedState.INSTALLED) {
-      return "Installed";
+      return getItem().hasRemote() ? "Installed" : "Installed (Obsolete)";
     }
     else {
       RepoManager mgr = myConfigurable.getRepoManager();

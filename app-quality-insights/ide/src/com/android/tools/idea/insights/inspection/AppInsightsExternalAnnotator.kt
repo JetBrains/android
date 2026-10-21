@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.inspection
 
 import com.android.tools.idea.insights.AppInsight
+import com.android.tools.idea.insights.AppInsightsCrashController
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.analytics.AppInsightsPerformanceTracker
 import com.android.tools.idea.insights.inspection.AppInsightsExternalAnnotator.AnnotationResult
@@ -130,25 +131,30 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
 
         when (val model = configurationManager.configuration.value) {
           is AppInsightsModel.Authenticated -> {
-            model.controller.insightsInFile(file).also {
-              logger.debug("Found ${it.size} ${model.controller.provider.displayName} insights for ${file.name}")
+            val controller = model.controller
+            if (controller is AppInsightsCrashController) {
+              controller.insightsInFile(file).also {
+                logger.debug("Found ${it.size} ${controller.provider.displayName} insights for ${file.name}")
+              }
+            } else {
+              emptyList()
             }
           }
           AppInsightsModel.Unauthenticated -> {
-            logger.debug("Skip annotation collection for ${tabProvider.displayName} because it is unauthenticated.")
+            logger.debug("Skip annotation collection for ${tabProvider.insightsProvider.displayName} because it is unauthenticated.")
             emptyList()
           }
           AppInsightsModel.Uninitialized -> {
             // This should only happen at project startup, when things are initializing.
             // Skip collection until the insights model is authenticated, after which the
             // framework will call to collect again and get the correct annotations.
-            logger.debug("Skip annotation collection for ${tabProvider.displayName} because it hasn't initialized.")
+            logger.debug("Skip annotation collection for ${tabProvider.insightsProvider.displayName} because it hasn't initialized.")
             emptyList()
           }
           AppInsightsModel.InitializationFailed -> {
             // This indicates some failure happened at startup and AQI has no useful information to
             // show.
-            logger.debug("Skip annotation collection for ${tabProvider.displayName} because its initialization failed.")
+            logger.debug("Skip annotation collection for ${tabProvider.insightsProvider.displayName} because its initialization failed.")
             emptyList()
           }
         }

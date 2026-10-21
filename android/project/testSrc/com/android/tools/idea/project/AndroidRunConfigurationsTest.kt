@@ -30,6 +30,7 @@ import com.android.tools.idea.run.configuration.AndroidDeclarativeWatchFaceConfi
 import com.android.tools.idea.run.configuration.AndroidTileConfigurationType
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration
+import com.android.tools.idea.run.configuration.AndroidWearWidgetConfigurationType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.requestSyncAndWait
@@ -142,6 +143,77 @@ class AndroidRunConfigurationsTest {
         val componentLaunchOptions = (configuration as AndroidWearConfiguration).componentLaunchOptions
         assertThat(componentLaunchOptions.componentName).isEqualTo("com.example.complication.MyComplicationService")
         assertThat(componentLaunchOptions.componentType).isEqualTo(ComponentType.COMPLICATION)
+        assertThat(configuration.module).isEqualTo(project.findAppModule().getHolderModule())
+      }
+    }
+  }
+
+  @Test
+  fun `wear widget configuration is added`() {
+    StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED.override(true)
+    val preparedProject = projectRule.prepareTestProject(testProject = AndroidCoreTestProject.WEAR_WITH_TILE_COMPLICATION_AND_WATCHFACE)
+
+    val glanceWearWidgetServiceFile = File(preparedProject.root, "app/src/main/java/androidx/glance/wear/GlanceWearWidgetService.kt")
+    glanceWearWidgetServiceFile.parentFile.mkdirs()
+    glanceWearWidgetServiceFile.createNewFile()
+    glanceWearWidgetServiceFile.writeText(
+      // language=kotlin
+      """
+      package androidx.glance.wear
+
+      open class GlanceWearWidgetService
+      """
+        .trimIndent()
+    )
+
+    val myWearWidgetFile = File(preparedProject.root, "app/src/main/java/com/example/myapplication/MyTestWidget.kt")
+    myWearWidgetFile.parentFile.mkdirs()
+    myWearWidgetFile.createNewFile()
+    myWearWidgetFile.writeText(
+      // language=kotlin
+      """
+      package com.example.myapplication
+
+      import androidx.glance.wear.GlanceWearWidgetService
+
+      class MyTestWidget : GlanceWearWidgetService() {
+      }
+      """
+        .trimIndent()
+    )
+
+    val manifestFile = File(preparedProject.root, "app/src/main/AndroidManifest.xml")
+    assertThat(manifestFile.exists()).isTrue()
+    manifestFile.writeText(
+      // language=xml
+      """
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+            package="com.example">
+            <application>
+                <service
+                    android:name="com.example.myapplication.MyTestWidget"
+                    android:exported="true">
+                    <intent-filter>
+                        <action android:name="androidx.glance.wear.action.BIND_GLANCE_WIDGET_PROVIDER" />
+                    </intent-filter>
+                </service>
+            </application>
+            <uses-feature android:name="android.hardware.type.watch" />
+        </manifest>
+      """
+        .trimIndent()
+    )
+
+    preparedProject.open { project ->
+      val runManager = RunManager.getInstance(project)
+      val widgetConfigurations = runManager.getConfigurationsList(AndroidWearWidgetConfigurationType())
+      assertThat(widgetConfigurations).hasSize(1)
+      widgetConfigurations[0].let { configuration ->
+        assertThat(configuration).isInstanceOf(AndroidWearConfiguration::class.java)
+        assertThat(configuration.name).isEqualTo("app.MyTestWidget")
+        val componentLaunchOptions = (configuration as AndroidWearConfiguration).componentLaunchOptions
+        assertThat(componentLaunchOptions.componentName).isEqualTo("com.example.myapplication.MyTestWidget")
+        assertThat(componentLaunchOptions.componentType).isEqualTo(ComponentType.WEAR_WIDGET)
         assertThat(configuration.module).isEqualTo(project.findAppModule().getHolderModule())
       }
     }

@@ -125,4 +125,26 @@ class AndroidWearRunLineMarkerContributorTest {
     assertNotNull(contributor.getSlowInfo(complicationFile.findElementByText("class")))
     assertNull(contributor.getSlowInfo(complicationFile.findElementByText("package com.example.myapplication;")))
   }
+
+  @Test
+  @RunsInEdt
+  fun testGetWidgetInfo() {
+    val widgetFile =
+      projectRule.fixture.addFileToProject(
+        "src/com/example/myapplication/MyWidgetService.kt",
+        """
+        package com.example.myapplication
+
+        import androidx.glance.wear.GlanceWearWidgetService
+
+        class MyTestWidget : GlanceWearWidgetService() {
+        }
+        """
+          .trimIndent(),
+      )
+
+    val contributor = AndroidWearRunMarkerContributor()
+    assertNotNull(contributor.getSlowInfo(widgetFile.findElementByText("class")))
+    assertNull(contributor.getSlowInfo(widgetFile.findElementByText("package com.example.myapplication")))
+  }
 }

@@ -18,14 +18,28 @@ package com.android.tools.idea.gradle.structure.quickfix
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.model.PsLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsQuickFix
-import java.io.Serializable
 
 data class PsLibraryDependencyPlusQuickFixPath(
   val moduleName: String,
   val dependencyGroup: String?,
   val dependencyName: String,
   val configurationName: String,
-) : PsQuickFix, Serializable {
+) : PsQuickFix() {
+  override fun serializedInfo() = listOf(NAME, moduleName, dependencyGroup ?: "", dependencyName, configurationName)
+
+  companion object {
+    private const val NAME = "LibraryDependencyPlus"
+
+    init {
+      registerDeserializer(NAME, ::deserialize)
+    }
+
+    fun deserialize(args: List<String>): PsLibraryDependencyPlusQuickFixPath {
+      if (args.size != 4) throw IllegalArgumentException("Invalid number of arguments")
+      return PsLibraryDependencyPlusQuickFixPath(args[0], args[1].ifEmpty { null }, args[2], args[3])
+    }
+  }
+
   override val text: String = "View Declaration"
 
   constructor(

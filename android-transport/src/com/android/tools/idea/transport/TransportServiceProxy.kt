@@ -382,24 +382,28 @@ class TransportServiceProxy(
       // 64-bit or 32-bit and its cpu arch. Old devices of 32-bit do not have the application data, fall back to device's abi cpu arch.
       // TODO: Remove when moving process discovery.
       val processAbiCpuArch =
-        client.abi.let { abi ->
-          when {
-            abi != null && ")" in abi -> abi.substring(abi.indexOf('(') + 1, abi.indexOf(')'))
-            else -> Abi.getEnum(ddmlibDevice.abis[0])!!.cpuArch
+        client.abi
+          .let { abi ->
+            when {
+              abi != null && ")" in abi -> abi.substring(abi.indexOf('(') + 1, abi.indexOf(')'))
+              else -> Abi.getEnum(ddmlibDevice.abis[0])!!.cpuArch
+            }
           }
-        }
+          .takeIf { SAFE_ABI_NAME.matches(it) } ?: ""
 
       // TODO: Set this to the applications actual start time.
+      val uid = ddmlibDevice.getUid(client.pid)
       val newProcess =
         Common.Process.newBuilder()
-          .setName(description)
+          .setName(StringUtil.escapeXmlEntities(description))
           .setPid(client.pid)
           .setDeviceId(transportDevice.deviceId)
           .setState(Common.Process.State.ALIVE)
           .setStartTimestampNs(timestampNs)
           .setAbiCpuArch(processAbiCpuArch)
           .setExposureLevel(level)
-          .setPackageName(client.packageName)
+          .setPackageName(client.packageName.takeIf { SAFE_PROCESS_NAME.matches(it) } ?: "")
+          .setUid(uid)
           .build()
       synchronized(cachedProcesses) { cachedProcesses[client.pid] = newProcess }
       // New pipeline event - create a ProcessStarted event for each process.
@@ -439,7 +443,8 @@ class TransportServiceProxy(
     private const val EMULATOR = "Emulator"
     const val PRE_LOLLIPOP_FAILURE_REASON = "Pre-Lollipop devices are not supported."
     private val ART_VERSION_CODE_REGEX = Regex("package:com\\.google\\.android\\.art versionCode:(\\d+)")
-    private val SAFE_PROCESS_NAME = Regex("[a-zA-Z0-9._:]+")
+    private val SAFE_PROCESS_NAME = Regex("[a-zA-Z0-9._:-]+")
+    private val SAFE_ABI_NAME = Regex("[a-zA-Z0-9._:-]+")
 
     /**
      * Converts an [IDevice] object into a [Common.Device].
@@ -501,6 +506,34 @@ class TransportServiceProxy(
         log.debug("Failed to check ART package version from device $device", e)
       }
       return 0L
+    }
+
+    fun IDevice.getUid(pid: Int): Int {
+      var uid = 0
+      try {
+        executeShellCommand(
+          "cat /proc/$pid/status",
+          object : MultiLineReceiver() {
+            override fun processNewLines(lines: Array<String>) {
+              for (line in lines) {
+                if (line.startsWith("Uid:")) {
+                  val parts = line.split("\\s+".toRegex())
+                  if (parts.size >= 2) {
+                    uid = parts[1].toIntOrNull() ?: 0
+                  }
+                }
+              }
+            }
+
+            override fun isCancelled() = false
+          },
+          2,
+          java.util.concurrent.TimeUnit.SECONDS,
+        )
+      } catch (e: Exception) {
+        log.warn("Failed to get uid for $pid", e)
+      }
+      return uid
     }
 
     private fun IDevice.getId(bootId: String) =

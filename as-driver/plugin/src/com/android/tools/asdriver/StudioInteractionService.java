@@ -30,6 +30,7 @@ import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.actionSystem.impl.ActionMenu;
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem;
 import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.TransactionGuard;
@@ -48,6 +49,8 @@ import java.awt.Container;
 import java.awt.Frame;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
@@ -81,6 +84,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.ListModel;
 import javax.swing.event.HyperlinkEvent;
 
@@ -171,9 +175,23 @@ public class StudioInteractionService {
   }
 
   private void setTextOnComponent(Component component, String text) {
-    if (component instanceof JTextField componentAsJTextField) {
-      log("Setting text on JTextField: " + componentAsJTextField);
-      componentAsJTextField.setText(text);
+    if (component instanceof JTextField) {
+      JTextField componentAsJTextField = (JTextField) component;
+      log("Setting text on JTextField: " + componentAsJTextField.getClass().getName());
+      if (ApplicationInfo.getInstance().getBuild().getBaselineVersion() >= 262) {
+        SwingUtilities.invokeLater(() -> {
+          componentAsJTextField.setText(text);
+          KeyEvent enterEvent = new KeyEvent(
+              componentAsJTextField, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, KeyEvent.VK_ENTER, '\n');
+          for (KeyListener listener : componentAsJTextField.getKeyListeners()) {
+            listener.keyPressed(enterEvent);
+          }
+          componentAsJTextField.dispatchEvent(enterEvent);
+          componentAsJTextField.postActionEvent();
+        });
+      } else {
+        componentAsJTextField.setText(text);
+      }
     } else {
       throw new IllegalArgumentException(String.format(Locale.ROOT, "Don't know how to invoke set text on class \"%s\"", component.getClass()));
     }
@@ -471,12 +489,6 @@ public class StudioInteractionService {
         Collections.addAll(componentsToSearch, container.getComponents());
       }
       componentsFound.add(c);
-      String componentClassName = c.getClass().toString();
-      // JewelComposePanel has all the same accessibility elements as its androidx.compose.ui.awt.ComposePanel pair, so lets skip it
-      if (componentClassName.contains("Compose") && !componentClassName.contains("org.jetbrains.jewel.bridge.JewelComposePanel")) {
-        Set<AccessibleContext> contexts = getAllAccessibleContext(c.getAccessibleContext());
-        componentsFound.addAll(getComponentsFromContext(contexts));
-      }
     }
     return componentsFound;
   }
@@ -608,28 +620,6 @@ public class StudioInteractionService {
       }
     }
   }
-
-  /**
-   * Gets all the AccessibleContext from the children of the passed in context
-   */
-  private Set<AccessibleContext> getAllAccessibleContext(AccessibleContext context) {
-    Set<AccessibleContext> allContext = new HashSet<>();
-    if (context == null) {
-      return allContext;
-    }
-    allContext.add(context);
-    if (context.getAccessibleChildrenCount() == 0) {
-      return allContext;
-    }
-    for (int i = 0; i < context.getAccessibleChildrenCount(); i++) {
-      Accessible child = context.getAccessibleChild(i);
-      if (child == null) continue; // It can happen sometimes, see b/456533108.
-      AccessibleContext c = child.getAccessibleContext();
-      allContext.addAll(getAllAccessibleContext(c));
-    }
-    return allContext;
-  }
-
   private String getAccessibleTextFromTable(JBTable jbTable) {
     AccessibleContext ac = jbTable.getAccessibleContext();
     if (ac == null) {
@@ -889,13 +879,14 @@ public class StudioInteractionService {
       Method getConfig = semanticsNode.getClass().getMethod("getConfig");
       Object config = getConfig.invoke(semanticsNode);
 
-      Class<?> actionsClass = Class.forName("androidx.compose.ui.semantics.SemanticsActions");
+      ClassLoader composeClassLoader = semanticsNode.getClass().getClassLoader();
+      Class<?> actionsClass = Class.forName("androidx.compose.ui.semantics.SemanticsActions", true, composeClassLoader);
       Field instanceField = actionsClass.getField("INSTANCE");
       Object actionsInstance = instanceField.get(null);
 
       Object actionKey = actionsClass.getMethod("getOnClick").invoke(actionsInstance);
 
-      Class<?> keyClass = Class.forName("androidx.compose.ui.semantics.SemanticsPropertyKey");
+      Class<?> keyClass = Class.forName("androidx.compose.ui.semantics.SemanticsPropertyKey", true, composeClassLoader);
       Method contains = config.getClass().getMethod("contains", keyClass);
       if (!(Boolean) contains.invoke(config, actionKey)) {
         return false;

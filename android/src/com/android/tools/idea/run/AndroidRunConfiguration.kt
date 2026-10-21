@@ -57,6 +57,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConfigurationModuleSelector
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.icons.AllIcons
+import com.intellij.ide.trustedProjects.TrustedProjects.isProjectTrusted
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
@@ -147,7 +148,7 @@ open class AndroidRunConfiguration(internal val project: Project, factory: Confi
 
   override fun validate(executor: Executor?, quickFixCallback: Runnable?): List<ValidationError> {
     val errors = super.validate(executor, quickFixCallback).toMutableList()
-    if (StudioFlags.BACKUP_ENABLED.get()) {
+    if (StudioFlags.BACKUP_ENABLED.get() && isProjectTrusted(project)) {
       val section = BackupManager.tryGetInstance(project)?.getRestoreRunConfigSection(project)
       if (section != null) {
         errors.addAll(section.validate(this@AndroidRunConfiguration))

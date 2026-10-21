@@ -19,7 +19,6 @@ import com.android.tools.idea.concurrency.coroutineScope
 import com.google.common.collect.Iterables.getOnlyElement
 import com.google.common.util.concurrent.SettableFuture.create
 import com.google.idea.blaze.base.logging.utils.querysync.QuerySyncActionStatsScope
-import com.google.idea.blaze.base.model.primitives.WorkspaceRoot
 import com.google.idea.blaze.base.qsync.QuerySyncManager
 import com.google.idea.blaze.base.qsync.QuerySyncManager.Companion.getInstance
 import com.google.idea.blaze.base.qsync.QuerySyncManager.TaskOrigin
@@ -30,7 +29,6 @@ import com.google.idea.blaze.qsync.project.TargetsToBuild
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
 import java.nio.file.Path
 import kotlin.jvm.optionals.getOrNull
 import kotlinx.coroutines.Deferred
@@ -63,20 +61,6 @@ class BuildDependenciesHelper(val project: Project) {
   fun getSourceFileMissingDepsCount(toBuild: TargetsToBuild.SourceFile): Int {
     val snapshot = syncManager.currentSnapshot.getOrNull() ?: return 0
     return snapshot.getPendingExternalDeps(toBuild.targets).size
-  }
-
-  fun canEnableAnalysisFor(virtualFile: VirtualFile): Boolean {
-    if (!virtualFile.isInLocalFileSystem) {
-      return false
-    }
-    val workspaceRoot = WorkspaceRoot.fromProject(project).path()
-    val filePath = virtualFile.fileSystem.getNioPath(virtualFile) ?: return false
-    if (!filePath.startsWith(workspaceRoot)) {
-      return false
-    }
-
-    val relative = workspaceRoot.relativize(filePath)
-    return syncManager.canEnableAnalysisFor(relative)
   }
 
   @get:Throws(BuildException::class)

@@ -35,7 +35,6 @@ class AgpCompatibleVersionTest : LightPlatformTestCase() {
          * comment should encourage the brave maintainer to do. Changes to GRADLE_LATEST_VERSION are both less likely to be disruptive and
          * more likely to be noticed quickly.
          */
-        "7.0" to GradleVersion.version("7.0.2"),
         "7.1" to GradleVersion.version("7.2"),
         "7.2" to GradleVersion.version("7.3.3"),
         "7.3" to GradleVersion.version("7.4"),
@@ -57,7 +56,8 @@ class AgpCompatibleVersionTest : LightPlatformTestCase() {
         "9.0" to GradleVersion.version("9.1.0"),
         "9.1" to GradleVersion.version("9.3.1"),
         "9.2" to GradleVersion.version("9.4.1"),
-        "9.3" to GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION),
+        "9.3" to GradleVersion.version("9.5.0"),
+        "9.4" to GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION),
       )
     fun String.toBetaVersionString() =
       when (this) {

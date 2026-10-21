@@ -49,6 +49,7 @@ open class LabelPanel(
     maximumSize = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
     foreground = AdtUiUtils.HEADER_COLOR
     font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
+    putClientProperty("html.disable", true)
 
     fun updateUi() {
       val parameter = displaySettings.parameterName.value

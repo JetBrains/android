@@ -74,6 +74,7 @@ internal fun handlePhoneAdbRequest(request: String): String? =
     request == "cat /proc/uptime" -> "500"
     request.contains("grep versionCode") -> "versionCode=${PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING.minVersion}"
     request.contains("grep 'cloud network id: '") -> "cloud network id: CloudID"
+    request.contains("dumpsys activity service WearableService | grep 'local: '") -> "local: phoneNodeId"
     request.startsWith("dumpsys activity") -> "Fake dumpsys activity"
     else -> null
   }
@@ -85,6 +86,7 @@ internal fun handleWearAdbRequest(request: String): String? =
     request == "am force-stop com.google.android.gms" -> "OK"
     request.contains("grep versionCode") -> "versionCode=${PairingFeature.REVERSE_PORT_FORWARD.minVersion}"
     request == "am broadcast -a com.google.android.gms.INITIALIZE" -> "OK"
+    request.contains("dumpsys activity service WearableService | grep 'local: '") -> "local: wearNodeId"
     request.startsWith("dumpsys activity") -> "Fake dumpsys activity"
     else -> null
   }

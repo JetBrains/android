@@ -59,16 +59,16 @@ class LanguageHighlightingTest {
         )
 
       // 2. Warning from Kotlin plugin.
-      assertThat(analysisResults)
-        .contains(
-          AnalysisResult(
-            HighlightSeverity.WEAK_WARNING,
-            "setText",
-            /* description = */ "Use of setter method instead of property access syntax",
-            /* toolId = */ "UsePropertyAccessSyntax",
-            /* lineNumber = */ 11,
-          )
-        )
+      val propertyAccessWarning =
+        analysisResults.firstOrNull {
+          it.severity == HighlightSeverity.WEAK_WARNING &&
+            it.description == "Use of setter method instead of property access syntax" &&
+            it.toolId == "UsePropertyAccessSyntax" &&
+            it.lineNumber == 11
+        }
+      assertThat(propertyAccessWarning).isNotNull()
+      checkNotNull(propertyAccessWarning)
+      assertThat(propertyAccessWarning.text).startsWith("setText")
 
       // 3. Warning from Android plugin.
       assertThat(analysisResults)

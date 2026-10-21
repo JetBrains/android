@@ -18,11 +18,15 @@ package org.jetbrains.android.uipreview
 import com.android.tools.idea.rendering.StudioModuleRenderContext
 import com.android.tools.rendering.classloading.ClassTransform
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.LinkedList
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicBoolean
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * How many different classloader types the hatchery stores. The current default is 2 with the idea of having:
@@ -32,6 +36,15 @@ import org.jetbrains.annotations.TestOnly
 private const val CAPACITY = 2
 /** How many copies of the same classloader the hatchery maintains */
 private const val COPIES = 1
+private const val DEFAULT_MAX_REQUESTS_SIZE = 20
+
+private fun getDefaultExecutor(): Executor {
+  return if (ApplicationManager.getApplication()?.isUnitTestMode == true) {
+    Executor { command -> command.run() }
+  } else {
+    AppExecutorUtil.getAppExecutorService()
+  }
+}
 
 /** Contains all the information that was used to create a [StudioModuleClassLoader]. */
 data class StudioModuleClassLoaderCreationContext(
@@ -80,22 +93,31 @@ private class Clutch(
   private val cloner: (StudioModuleClassLoaderCreationContext) -> StudioModuleClassLoader?,
   private val donor: StudioModuleClassLoaderCreationContext,
   copies: Int = COPIES,
+  executor: Executor = getDefaultExecutor(),
 ) {
   private val eggs = ConcurrentLinkedQueue<StudioPreloader>()
 
   init {
-    repeat(copies) { cloner(donor)?.let { eggs.add(StudioPreloader(it, donor.classesToPreload)) } }
+    executor.execute { repeat(copies) { cloner(donor)?.let { eggs.add(StudioPreloader(it, donor.classesToPreload)) } } }
   }
 
   /** Checks if the clutch maintains the [StudioModuleClassLoader]s of this type. */
-  fun isCompatible(parent: ClassLoader?, projectTransformations: ClassTransform, nonProjectTransformations: ClassTransform) =
-    eggs.peek()?.isForCompatible(parent, projectTransformations, nonProjectTransformations) ?: false
+  fun isCompatible(parent: ClassLoader?, projectTransformations: ClassTransform, nonProjectTransformations: ClassTransform): Boolean {
+    if (eggs.isNotEmpty()) {
+      return eggs.any { it.isForCompatible(parent, projectTransformations, nonProjectTransformations) }
+    }
+    // Fallback if eggs are still being preloaded in the background
+    return (donor.parent == parent) &&
+      (donor.projectTransform.id == projectTransformations.id) &&
+      (donor.nonProjectTransformation.id == nonProjectTransformations.id)
+  }
 
   /**
    * If possible, returns a [StudioModuleClassLoader] from the clutch and transfers full ownership to the caller, otherwise returns null.
    */
   fun retrieve(): StudioModuleClassLoader? {
-    return generateSequence { eggs.poll()?.getClassLoader() }
+    return generateSequence { eggs.poll() }
+      .mapNotNull { preloader -> preloader.getClassLoader() }
       .firstOrNull {
         if (!it.isUserCodeUpToDate) {
           // This class loader can not be used, it's not up-to-date
@@ -108,6 +130,10 @@ private class Clutch(
         cloner(donor)?.let { newClassLoader -> eggs.add(StudioPreloader(newClassLoader, donor.classesToPreload)) }
         compatibleClassLoader
       }
+  }
+
+  fun disposeFirstEggForTesting() {
+    eggs.peek()?.dispose()
   }
 
   /** Should be called when the clutch is no longer needed to free all the resources. */
@@ -130,22 +156,29 @@ private data class Request(
     if (other !is Request) {
       return false
     }
-    if (other.parent != null && this.parent != null && other.parent != this.parent) {
-      return false
-    }
-    return projectTransformations.id == other.projectTransformations.id &&
-      nonProjectTransformations.id == other.nonProjectTransformations.id
+    return (parent == other.parent) &&
+      (projectTransformations.id == other.projectTransformations.id) &&
+      (nonProjectTransformations.id == other.nonProjectTransformations.id)
   }
 
   override fun hashCode(): Int {
-    return projectTransformations.id.hashCode() xor nonProjectTransformations.id.hashCode()
+    var result = parent?.hashCode() ?: 0
+    result = 31 * result + projectTransformations.id.hashCode()
+    result = 31 * result + nonProjectTransformations.id.hashCode()
+    return result
   }
 }
 
 /** A data structure responsible for replenishing and providing on demand [StudioModuleClassLoader]s ready to use */
-class ModuleClassLoaderHatchery(private val capacity: Int = CAPACITY, private val copies: Int = COPIES, parentDisposable: Disposable) {
+class ModuleClassLoaderHatchery(
+  private val capacity: Int = CAPACITY,
+  private val copies: Int = COPIES,
+  private val maxRequestsSize: Int = DEFAULT_MAX_REQUESTS_SIZE,
+  private val executor: Executor = getDefaultExecutor(),
+  parentDisposable: Disposable,
+) {
   // Requests for ModuleClassLoaders type that hatchery does not know how to create
-  private val requests = mutableSetOf<Request>()
+  private val requests = LinkedHashSet<Request>()
   // Clutches of different ModuleClassLoader types
   private val storage = LinkedList<Clutch>()
 
@@ -174,6 +207,9 @@ class ModuleClassLoaderHatchery(private val capacity: Int = CAPACITY, private va
         return clutch.retrieve()
       }
     // If there is no compatible clutch we remember the request and will create one when we have an appropriate donor
+    if (requests.size >= maxRequestsSize) {
+      requests.remove(requests.first())
+    }
     requests.add(Request(parent, projectTransformations, nonProjectTransformations))
     return null
   }
@@ -197,7 +233,7 @@ class ModuleClassLoaderHatchery(private val capacity: Int = CAPACITY, private va
       if (storage.size == capacity) {
         storage.poll().destroy()
       }
-      storage.add(Clutch(cloner, donor, copies))
+      storage.add(Clutch(cloner, donor, copies, executor))
       return true
     }
     return false
@@ -206,6 +242,16 @@ class ModuleClassLoaderHatchery(private val capacity: Int = CAPACITY, private va
   @Synchronized
   fun getStats(): List<Stats> {
     return storage.map { it.getStats() }
+  }
+
+  @VisibleForTesting
+  fun disposeFirstEggForTesting() {
+    storage.firstOrNull()?.disposeFirstEggForTesting()
+  }
+
+  @VisibleForTesting
+  fun getRequestsSizeForTesting(): Int {
+    return requests.size
   }
 
   @Synchronized

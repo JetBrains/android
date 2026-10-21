@@ -766,7 +766,7 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
 
   @Override
   protected boolean isMonochromeSupported() {
-    return StudioFlags.ENABLE_MONOCHROME_ICON_EDITOR_TAB.get();
+    return true;
   }
 
   @Override

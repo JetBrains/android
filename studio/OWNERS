@@ -1,4 +1,6 @@
 # Bug component: 1855273
+per-file .bazelproject=solodkyy@google.com
+per-file .bazelproject=xinruiy@google.com
 gharrma@google.com  # JetBrains changes
 estebandlc@google.com
 ralucas@google.com

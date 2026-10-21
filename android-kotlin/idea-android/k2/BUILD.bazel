@@ -61,7 +61,6 @@ jvm_library(
         # do not sort,
         ":k2",
         "@lib//:studio-platform-provided",
-        "@lib//:studio-test-platform",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",

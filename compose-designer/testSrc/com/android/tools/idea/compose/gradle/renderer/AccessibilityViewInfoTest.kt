@@ -86,7 +86,7 @@ class AccessibilityViewInfoTest {
       assertEquals(rootView.viewObject, buttonView.viewObject)
       assertTrue(buttonView.children.isEmpty())
     } finally {
-      renderTask.dispose().get(5, TimeUnit.SECONDS)
+      renderTask.disposeAsync().get(5, TimeUnit.SECONDS)
     }
   }
 }

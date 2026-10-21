@@ -446,6 +446,13 @@ class UpdateReferenceImagesDialog(
   }
 
   override fun doOKAction() {
+    val projectBasePath = project?.basePath
+    if (projectBasePath.isNullOrBlank()) {
+      logger.error("Project base path is missing. Reference image copy aborted for safety.")
+      Messages.showErrorDialog(project, "Project base path is missing. Cannot add reference images.", "Error")
+      return
+    }
+
     val checkedPreviews = collectCheckedPreviews()
     if (checkedPreviews.isEmpty()) {
       close(OK_EXIT_CODE)
@@ -483,7 +490,7 @@ class UpdateReferenceImagesDialog(
     cancelButton?.isEnabled = false
 
     AppExecutorUtil.getAppExecutorService().submit {
-      val failures = copyReferenceImages(imagesToCopy)
+      val failures = copyReferenceImages(imagesToCopy, projectBasePath)
 
       ApplicationManager.getApplication().invokeLater {
         if (failures.isEmpty()) {

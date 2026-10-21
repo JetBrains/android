@@ -58,7 +58,10 @@ class InsightTextPane(private val project: Project) : JBHtmlPane(), CopyProvider
 
     addHyperlinkListener {
       if (it.eventType == EventType.ACTIVATED) {
-        BrowserUtil.browse(it.url)
+        val url = it.url ?: return@addHyperlinkListener
+        if (url.protocol.equals("http", true) || url.protocol.equals("https", true)) {
+          BrowserUtil.browse(url.toExternalForm(), project)
+        }
       }
     }
 

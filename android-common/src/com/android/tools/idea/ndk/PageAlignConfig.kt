@@ -20,6 +20,7 @@ import com.android.tools.idea.ndk.PageAlignConfig.Type.SO_UNALIGNED_LOAD_SEGMENT
 import com.android.tools.idea.serverflags.ServerFlagService
 import com.android.tools.idea.serverflags.protos.PageAlign16kb
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.util.text.StringUtil
 
 /** Configuration of 16 KB page alignment handling. */
 object PageAlignConfig {
@@ -71,7 +72,7 @@ object PageAlignConfig {
     val postscript = flag.messagePostscript
     return """
     |$prefix <ul>
-    |  ${soFiles.sorted().joinToString(separator = "</li><li>", prefix = "<li>")}
+    |  ${soFiles.sorted().joinToString(separator = "") { "<li>${StringUtil.escapeXmlEntities(it)}</li>" }}
     | </ul>
     |$postscript
     """

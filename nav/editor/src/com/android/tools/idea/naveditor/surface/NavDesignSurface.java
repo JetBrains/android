@@ -81,6 +81,7 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
@@ -386,7 +387,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
 
   private static boolean tryToCreateSchema(@NotNull AndroidFacet facet) {
     Module module = facet.getModule();
-    return DumbService.getInstance(module.getProject()).runReadActionInSmartMode(() -> {
+    return ReadAction.nonBlocking(() -> {
       try {
         NavigationSchema.createIfNecessary(module);
         return true;
@@ -394,7 +395,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
       catch (ClassNotFoundException e) {
         return false;
       }
-    });
+    }).inSmartMode(module.getProject()).executeSynchronously();
   }
 
   @Override
@@ -403,11 +404,28 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     NlModel model = getModel();
     if (model != null) {
       Module module = model.getModule();
-      try {
-        NavigationSchema.createIfNecessary(module);
-      }
-      catch (ClassNotFoundException e) {
-        // We don't have a schema at all, no need to try to update.
+      if (!NavigationSchema.hasSchema(module)) {
+        if (myEditorPanel == null) {
+          return;
+        }
+        myEditorPanel.getWorkBench().showLoading("Loading Navigators...");
+        ApplicationManager.getApplication().executeOnPooledThread(() -> {
+          if (tryToCreateSchema(model.getFacet())) {
+            ApplicationManager.getApplication().invokeLater(() -> {
+              if (myEditorPanel != null) {
+                myEditorPanel.initNeleModel();
+                myEditorPanel.getWorkBench().hideLoading();
+              }
+            });
+          }
+          else {
+            ApplicationManager.getApplication().invokeLater(() -> {
+              if (myEditorPanel != null) {
+                myEditorPanel.getWorkBench().loadingStopped(FAILED_DEPENDENCY);
+              }
+            });
+          }
+        });
         return;
       }
 

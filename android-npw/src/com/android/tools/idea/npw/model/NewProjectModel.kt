@@ -19,10 +19,10 @@ import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.io.CancellableFileIo
 import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.concurrency.createCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gemini.GeminiPluginApi
-import com.android.tools.idea.gemini.buildLlmPrompt
+import com.android.tools.idea.gemini.SourceProjectType
+import com.android.tools.idea.gemini.TargetProjectType
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
 import com.android.tools.idea.gradle.project.importing.GradleNewProjectConfiguration
@@ -71,7 +71,6 @@ import com.intellij.openapi.fileEditor.impl.NonProjectFileWritingAccessProvider
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.JavaSdkVersion
@@ -91,12 +90,6 @@ import java.nio.file.Paths
 import java.util.Locale
 import java.util.Optional
 import java.util.regex.Pattern
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.android.util.AndroidUtils
 
@@ -104,18 +97,6 @@ private val logger: Logger
   get() = logger<NewProjectModel>()
 
 private const val MIGRATION_IMPORT_DIR_NAME = ".migration/import"
-
-/**
- * The source project type for migration/import.
- *
- * @param importProjectType The equivalent [GeminiPluginApi.ImportProjectType].
- */
-enum class SourceProjectType(val importProjectType: GeminiPluginApi.ImportProjectType) {
-  IOS(GeminiPluginApi.ImportProjectType.IOS),
-  REACT_NATIVE(GeminiPluginApi.ImportProjectType.REACT_NATIVE),
-  FLUTTER(GeminiPluginApi.ImportProjectType.FLUTTER),
-  UNKNOWN(GeminiPluginApi.ImportProjectType.UNKNOWN),
-}
 
 interface ProjectModelData {
   val projectSyncInvoker: ProjectSyncInvoker
@@ -125,7 +106,9 @@ interface ProjectModelData {
   val dslLanguage: ObjectValueProperty<DslLanguage>
   val useVersionCatalog: BoolProperty
   val viewBindingSupport: OptionalValueProperty<ViewBindingSupport>
-  val templateRendererStrategy: OptionalValueProperty<TemplateRendererStrategy>
+  val templateRendererStrategy: OptionalValueProperty<TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>>
+  val templateRenderStrategyAdditionalUserSettings:
+    Map<TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>, TemplateRendererStrategy.AdditionalUserSettings>
   var project: Project
   val isNewProject: Boolean
   val language: OptionalProperty<Language>
@@ -134,11 +117,9 @@ interface ProjectModelData {
   val multiTemplateRenderer: MultiTemplateRenderer
   val projectTemplateDataBuilder: ProjectTemplateDataBuilder
   val prompt: StringProperty
+  val modelId: StringProperty
   val displayText: StringProperty
-  val sourceProjectType: ObjectValueProperty<SourceProjectType>
-  val importSourcePath: StringProperty
   val imageAttachments: ObjectValueProperty<List<VirtualFile>>
-  val userSkillDirectories: ObjectValueProperty<List<File>>
 }
 
 class NewProjectModel : WizardModel(), ProjectModelData {
@@ -158,14 +139,23 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     ObjectValueProperty(findAndroidStudioLocalMavenRepoPaths().map { it.toURI().toURL() })
   override val multiTemplateRenderer = MultiTemplateRenderer(::runRenderer)
   override val prompt = StringValueProperty("")
+  override val modelId = StringValueProperty("")
   override val displayText = StringValueProperty("")
   override val imageAttachments: ObjectValueProperty<List<VirtualFile>> = ObjectValueProperty(listOf())
-  override val userSkillDirectories: ObjectValueProperty<List<File>> = ObjectValueProperty(listOf())
+  val userSkillDirectories: ObjectValueProperty<List<File>> = ObjectValueProperty(listOf())
+  val migrationImportConfig = OptionalValueProperty<MigrationImportConfig>()
   val launchFirebaseWizard = BoolValueProperty(false)
-  override val templateRendererStrategy: OptionalValueProperty<TemplateRendererStrategy> =
-    OptionalValueProperty.fromNullable(calculateInitialCustomProjectSystem(properties).orElse(null))
-  override val sourceProjectType = ObjectValueProperty<SourceProjectType>(SourceProjectType.IOS)
-  override val importSourcePath = StringValueProperty("")
+  @Suppress("UNCHECKED_CAST") // Ugly generics here make the extension point itself slightly neater
+  override val templateRendererStrategy: OptionalValueProperty<TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>> =
+    OptionalValueProperty.fromNullable(
+      calculateInitialCustomProjectSystem(properties).orElse(null)
+        as? TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>
+    )
+  @Suppress("UNCHECKED_CAST") // Ugly generics here make the extension point itself slightly neater
+  override val templateRenderStrategyAdditionalUserSettings:
+    Map<TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>, TemplateRendererStrategy.AdditionalUserSettings> =
+    TemplateRendererStrategy.EP_NAME.extensions.associateWith { it.createAdditionalUserSettings() }
+      as Map<TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>, TemplateRendererStrategy.AdditionalUserSettings>
 
   private fun runRenderer(renderer: (Project) -> Unit) {
     val customStrategy = templateRendererStrategy.valueOrNull
@@ -207,18 +197,19 @@ class NewProjectModel : WizardModel(), ProjectModelData {
               // ExternalToolWindowManager). We want the Gemini window to be shown instead, so
               // delay opening the Gemini window until after Gradle has finished.
               ToolWindowManager.getInstance(newProject).invokeLater {
-                val sPath = importSourcePath.get()
-                if (sPath.isNotEmpty()) {
+                val config = migrationImportConfig.valueOrNull
+                if (config != null && config.importSourcePath.isNotEmpty()) {
                   GeminiPluginApi.getInstance()
                     .launchImportProjectAgent(
                       newProject,
                       prompt.get(),
                       imageAttachments.get(),
                       displayText.get().takeIf { it.isNotBlank() },
-                      importProjectType = sourceProjectType.get().importProjectType,
+                      modelId = modelId.get().takeIf { it.isNotBlank() },
                     )
                 } else {
-                  GeminiPluginApi.getInstance().launchNewProjectAgent(newProject, prompt.get(), imageAttachments.get())
+                  GeminiPluginApi.getInstance()
+                    .launchNewProjectAgent(newProject, prompt.get(), imageAttachments.get(), modelId.get().takeIf { it.isNotBlank() })
                 }
               }
             }
@@ -245,7 +236,10 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       .queue()
   }
 
-  private fun runCustomProjectRenderer(strategy: TemplateRendererStrategy, renderer: (Project) -> Unit) {
+  private fun runCustomProjectRenderer(
+    strategy: TemplateRendererStrategy<TemplateRendererStrategy.AdditionalUserSettings>,
+    renderer: (Project) -> Unit,
+  ) {
     object : Task.Backgroundable(null, "Generating project", false) {
         override fun run(indicator: ProgressIndicator) {
           val projectName = applicationName.get()
@@ -272,18 +266,19 @@ class NewProjectModel : WizardModel(), ProjectModelData {
 
             if (StudioFlags.GEMINI_NEW_PROJECT_AGENT.get() && !prompt.isEmpty.get()) {
               ToolWindowManager.getInstance(newProject).invokeLater {
-                val sPath = importSourcePath.get()
-                if (sPath.isNotEmpty()) {
+                val config = migrationImportConfig.valueOrNull
+                if (config != null && config.importSourcePath.isNotEmpty()) {
                   GeminiPluginApi.getInstance()
                     .launchImportProjectAgent(
                       newProject,
                       prompt.get(),
                       imageAttachments.get(),
                       displayText.get().takeIf { it.isNotBlank() },
-                      importProjectType = sourceProjectType.get().importProjectType,
+                      modelId = modelId.get().takeIf { it.isNotBlank() },
                     )
                 } else {
-                  GeminiPluginApi.getInstance().launchNewProjectAgent(newProject, prompt.get(), imageAttachments.get())
+                  GeminiPluginApi.getInstance()
+                    .launchNewProjectAgent(newProject, prompt.get(), imageAttachments.get(), modelId.get().takeIf { it.isNotBlank() })
                 }
               }
             }
@@ -413,21 +408,14 @@ class NewProjectModel : WizardModel(), ProjectModelData {
 
       try {
         val projectRoot = VfsUtilCore.virtualToIoFile(project.baseDir)
-        setGradleWrapperExecutable(projectRoot)
-
-        val sPath = importSourcePath.get()
-        if (sPath.isNotEmpty()) {
-          val migrationImportDir = File(projectRoot, MIGRATION_IMPORT_DIR_NAME)
-          migrationImportDir.mkdirs()
-          val importSourceLink = File(migrationImportDir, "source")
-          if (!importSourceLink.exists()) {
-            Files.createSymbolicLink(importSourceLink.toPath(), Paths.get(sPath))
-            // This is required so the new link is visible to the VFS
-            VfsUtil.markDirtyAndRefresh(false, true, true, projectRoot)
-          }
+        try {
+          setGradleWrapperExecutable(projectRoot)
+        } catch (e: Exception) {
+          logger.warn("Failed to set Gradle wrapper executable permissions", e)
         }
+        migrationImportConfig.valueOrNull?.let { config -> setupMigrationSettingsAndSourceLink(projectRoot, project, config) }
       } catch (e: Exception) {
-        logger.warn("Failed to update Gradle wrapper permissions or create symbolic link", e)
+        logger.warn("Failed to obtain project root or write migration configuration", e)
       }
     }
 
@@ -523,6 +511,17 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     @Suppress("InconsistentThreadingAnnotation")
     override fun render() {
       performCreateProject(false)
+      try {
+        val projectRoot = VfsUtilCore.virtualToIoFile(project.baseDir)
+        try {
+          setGradleWrapperExecutable(projectRoot)
+        } catch (e: Exception) {
+          logger.warn("Failed to set Gradle wrapper executable permissions", e)
+        }
+        migrationImportConfig.valueOrNull?.let { config -> setupMigrationSettingsAndSourceLink(projectRoot, project, config) }
+      } catch (e: Exception) {
+        logger.warn("Failed to obtain project root or write migration configuration for custom template", e)
+      }
     }
 
     private fun performCreateProject(dryRun: Boolean) {
@@ -532,7 +531,9 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         if (dryRun) {
           FindReferencesRecipeExecutor(context)
         } else {
-          templateRendererStrategy.valueOrNull?.createRecipeExecutor(context) ?: DefaultRecipeExecutor(context)
+          templateRendererStrategy.valueOrNull?.let { templateRendererStrategy ->
+            templateRendererStrategy.createRecipeExecutor(context, templateRenderStrategyAdditionalUserSettings[templateRendererStrategy]!!)
+          } ?: DefaultRecipeExecutor(context)
         }
 
       val recipe: Recipe = { _ -> }
@@ -544,45 +545,35 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     override fun logUsage() {}
   }
 
+  private fun setupMigrationSettingsAndSourceLink(projectRoot: File, project: Project, config: MigrationImportConfig) {
+    try {
+      val sPath = config.importSourcePath
+      if (sPath.isNotEmpty()) {
+        val propertiesComp = PropertiesComponent.getInstance(project)
+        propertiesComp.setValue(GeminiPluginApi.PROPERTIES_MIGRATION_SOURCE_KEY, config.sourceProjectType.name)
+        propertiesComp.setValue(GeminiPluginApi.PROPERTIES_MIGRATION_TARGET_KEY, config.targetProjectType.name)
+
+        val migrationImportDir = File(projectRoot, MIGRATION_IMPORT_DIR_NAME)
+        migrationImportDir.mkdirs()
+
+        val importSourceLink = File(migrationImportDir, "source")
+        if (!importSourceLink.exists()) {
+          Files.createSymbolicLink(importSourceLink.toPath(), Paths.get(sPath))
+        }
+
+        // This is required so the new link is visible to the VFS
+        VfsUtil.markDirtyAndRefresh(false, true, true, projectRoot)
+      }
+    } catch (e: Exception) {
+      logger.warn("Failed to create symbolic link or set migration project properties", e)
+    }
+  }
+
   fun findNewModuleRecommendedBuildSdk(): AndroidVersion? {
     if (::project.isInitialized) {
       return project.findNewModuleRecommendedBuildSdk()
     }
     return null
-  }
-
-  /** Generates a project name based on user provided description of the project. */
-  private suspend fun generateAppNameAsync(onStart: () -> Unit, onFinish: () -> Unit) {
-    withContext(Dispatchers.Main) {
-      onStart()
-      try {
-        val project = ProjectManager.getInstance().defaultProject
-        val llmPrompt =
-          buildLlmPrompt(project) {
-            userMessage {
-              text(
-                "Generate a short, cool, and unique name for an Android application with the following description: ${prompt.get()} " +
-                  "\n" +
-                  "Only return the name, with no additional text.",
-                filesUsed = emptyList(),
-              )
-            }
-          }
-        val suggestedNameFlow = GeminiPluginApi.getInstance().generate(project, prompt = llmPrompt)
-        val suggestedName =
-          withContext(Dispatchers.Default) { withTimeout(GENERATE_APP_NAME_TIMEOUT) { suggestedNameFlow.toList().joinToString("") } }
-        applicationName.set(suggestedName)
-      } catch (e: Exception) {
-        logger.warn("Failed to generate an application name.", e)
-        applicationName.set("My Application")
-      } finally {
-        onFinish()
-      }
-    }
-  }
-
-  fun generateAppName(onStart: () -> Unit, onFinish: () -> Unit) {
-    createCoroutineScope().launch { generateAppNameAsync(onStart, onFinish) }
   }
 
   companion object {
@@ -591,7 +582,6 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     @VisibleForTesting const val PROPERTIES_NPW_LANGUAGE_KEY = "SAVED_ANDROID_NPW_LANGUAGE"
     @VisibleForTesting const val PROPERTIES_NPW_ASKED_LANGUAGE_KEY = "SAVED_ANDROID_NPW_ASKED_LANGUAGE"
     const val PROPERTIES_NPW_DSL_LANGUAGE_KEY = "SAVED_ANDROID_NPW_DSL_LANGUAGE"
-    private val GENERATE_APP_NAME_TIMEOUT = 10.seconds
 
     private const val EXAMPLE_DOMAIN = "example.com"
     private val DISALLOWED_IN_DOMAIN = Pattern.compile("[^a-zA-Z0-9_]")
@@ -669,7 +659,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
      * @return If a custom project system name was previously saved in the DSL language property, return it.
      */
     @JvmStatic
-    fun calculateInitialCustomProjectSystem(props: PropertiesComponent): Optional<TemplateRendererStrategy> {
+    fun calculateInitialCustomProjectSystem(props: PropertiesComponent): Optional<TemplateRendererStrategy<*>> {
       val languageValue = props.getValue(PROPERTIES_NPW_DSL_LANGUAGE_KEY) ?: return Optional.empty()
       return Optional.ofNullable(TemplateRendererStrategy.EP_NAME.extensions.firstOrNull { it.id == languageValue })
     }
@@ -699,3 +689,9 @@ internal const val PROPERTIES_BYTECODE_LEVEL_KEY = "SAVED_BYTECODE_LEVEL"
 
 internal val properties
   get() = PropertiesComponent.getInstance()
+
+data class MigrationImportConfig(
+  val sourceProjectType: SourceProjectType,
+  val targetProjectType: TargetProjectType,
+  val importSourcePath: String,
+)

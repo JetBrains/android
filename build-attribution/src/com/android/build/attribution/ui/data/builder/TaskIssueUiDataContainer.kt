@@ -28,6 +28,7 @@ import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.TaskUiData
 import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.android.buildanalyzer.common.TaskCategory
+import com.intellij.openapi.util.text.StringUtil.escapeXmlEntities
 import java.util.EnumMap
 
 /**
@@ -113,8 +114,8 @@ class TaskIssueUiDataContainer(private val buildAnalysisResult: BuildEventsAnaly
       "Task declares the same output directory as task ${connectedTask.name} from ${connectedTask.pluginUiName()}: '$outputFolder'."
     override val explanation =
       """
-This task declares the same output directory as task '${connectedTask.taskPath}':
-$outputFolder
+This task declares the same output directory as task '${escapeXmlEntities(connectedTask.taskPath)}':
+${escapeXmlEntities(outputFolder)}
 As a result, these tasks are not able to take advantage of incremental
 build optimizations and might need to run with each subsequent build.
 """

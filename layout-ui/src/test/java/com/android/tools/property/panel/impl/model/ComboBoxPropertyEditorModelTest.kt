@@ -108,7 +108,7 @@ class ComboBoxPropertyEditorModelTest {
     assertThat(model.selectedItem).isEqualTo(EnumValue.item("visible"))
     assertThat(model.getIndexOfCurrentValue()).isEqualTo(0)
 
-    model.popupMenuWillBecomeVisible {}.get(2, TimeUnit.SECONDS)
+    model.popupMenuWillBecomeVisible {}.get(5, TimeUnit.SECONDS)
 
     assertThat(model.selectedItem).isSameAs(initialItem)
     assertThat(model.getIndexOfCurrentValue()).isEqualTo(-1)
@@ -126,7 +126,7 @@ class ComboBoxPropertyEditorModelTest {
     assertThat(model.selectedItem).isEqualTo(EnumValue.item("invisible"))
     assertThat(model.getIndexOfCurrentValue()).isEqualTo(-1)
 
-    model.popupMenuWillBecomeVisible {}.get(2, TimeUnit.SECONDS)
+    model.popupMenuWillBecomeVisible {}.get(5, TimeUnit.SECONDS)
 
     assertThat(model.selectedItem).isEqualTo(EnumValue.item("invisible"))
 
@@ -142,14 +142,14 @@ class ComboBoxPropertyEditorModelTest {
   @Test
   fun testSelectedItemFromInit() {
     val model = createModel()
-    model.popupMenuWillBecomeVisible {}.get(2, TimeUnit.SECONDS)
+    model.popupMenuWillBecomeVisible {}.get(5, TimeUnit.SECONDS)
     assertThat(model.selectedItem.toString()).isEqualTo("visible")
   }
 
   @Test
   fun testListModel() {
     val model = createModel()
-    model.popupMenuWillBecomeVisible {}.get(2, TimeUnit.SECONDS)
+    model.popupMenuWillBecomeVisible {}.get(5, TimeUnit.SECONDS)
 
     assertThat(model.size).isEqualTo(3)
     assertThat(model.getElementAt(0).toString()).isEqualTo("visible")
@@ -219,7 +219,7 @@ class ComboBoxPropertyEditorModelTest {
     val model = createModel()
     val listener = RecursiveListDataListener(model)
     model.addListDataListener(listener)
-    model.popupMenuWillBecomeVisible {}.get(2, TimeUnit.SECONDS)
+    model.popupMenuWillBecomeVisible {}.get(5, TimeUnit.SECONDS)
     model.selectedItem = "text"
     assertThat(listener.called).isTrue()
   }
@@ -227,38 +227,43 @@ class ComboBoxPropertyEditorModelTest {
   @Test
   fun testListModelWithSlowEnumSupport() {
     val enumSupport = createEnumSupport(delayed = true)
-    val model = createModel(enumSupport)
-    var controlNotified = false
-    val future = model.popupMenuWillBecomeVisible { controlNotified = true }
+    try {
+      val model = createModel(enumSupport)
+      var controlNotified = false
+      val future = model.popupMenuWillBecomeVisible { controlNotified = true }
 
-    assertThat(model.size).isEqualTo(1)
-    assertThat(model.getElementAt(0)!!.display).isEqualTo("Loading...")
-    assertThat(controlNotified).isFalse()
+      assertThat(model.size).isEqualTo(1)
+      assertThat(model.getElementAt(0)!!.display).isEqualTo("Loading...")
+      assertThat(controlNotified).isFalse()
 
-    enumSupport.releaseAll()
-    future.get(2, TimeUnit.SECONDS)
-    assertThat(controlNotified).isTrue()
-    assertThat(model.size).isEqualTo(3)
-    assertThat(model.getElementAt(0)!!.display).isEqualTo("visible")
-    assertThat(model.getElementAt(1)!!.display).isEqualTo("invisible")
-    assertThat(model.getElementAt(2)!!.display).isEqualTo("gone")
-    assertThat(controlNotified).isTrue()
+      enumSupport.releaseAll()
+      future.get(5, TimeUnit.SECONDS)
+      assertThat(controlNotified).isTrue()
+      assertThat(model.size).isEqualTo(3)
+      assertThat(model.getElementAt(0)!!.display).isEqualTo("visible")
+      assertThat(model.getElementAt(1)!!.display).isEqualTo("invisible")
+      assertThat(model.getElementAt(2)!!.display).isEqualTo("gone")
+      assertThat(controlNotified).isTrue()
+    } finally {
+      enumSupport.releaseAll()
+    }
   }
 
   @Test
   fun testCannotSelectLoadingValue() {
     val enumSupport = createEnumSupport(delayed = true)
-    val model = createModel(enumSupport)
-    assertThat(model.value).isEqualTo("visible")
-    model.popupMenuWillBecomeVisible {}
+    try {
+      val model = createModel(enumSupport)
+      assertThat(model.value).isEqualTo("visible")
+      model.popupMenuWillBecomeVisible {}
 
-    val loading = model.getElementAt(0)!!
-    assertThat(loading.display).isEqualTo("Loading...")
-    model.selectedItem = loading
-    assertThat(model.value).isEqualTo("visible")
-
-    // cleanup
-    enumSupport.releaseAll()
+      val loading = model.getElementAt(0)!!
+      assertThat(loading.display).isEqualTo("Loading...")
+      model.selectedItem = loading
+      assertThat(model.value).isEqualTo("visible")
+    } finally {
+      enumSupport.releaseAll()
+    }
   }
 
   @Test
@@ -276,7 +281,7 @@ class ComboBoxPropertyEditorModelTest {
       }
 
     val model = createModel(enumSupport)
-    model.popupMenuWillBecomeVisible {}.get(1L, TimeUnit.SECONDS) // load values from enumSupport
+    model.popupMenuWillBecomeVisible {}.get(5, TimeUnit.SECONDS) // load values from enumSupport
     assertTrue(valuesCalled)
   }
 

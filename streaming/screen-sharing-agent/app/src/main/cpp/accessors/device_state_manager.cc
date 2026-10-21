@@ -78,7 +78,7 @@ vector<DeviceState> DeviceStateInfo::GetSupportedStates(const JObject& device_st
 
 vector<DeviceState> DeviceStateInfo::GetSupportedStatesUsingPrintStatesCommand() {
   vector<DeviceState> supported_states;
-  string states = ExecuteShellCommand("cmd device_state print-states");
+  string states = ExecuteShellCommand("cmd device_state print-states").output;
   if (states.empty()) {
     return supported_states;
   }

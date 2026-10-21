@@ -46,7 +46,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.psd.sample.app.default"
-        applicationIdSuffix "defaultSuffix"
+        applicationIdSuffix = "defaultSuffix"
         testApplicationId "com.example.psd.sample.app.default.test"
         maxSdkVersion 26
         minSdkVersion 9
@@ -55,17 +55,17 @@ android {
         versionName "1.0"
         versionNameSuffix "vns"
         manifestPlaceholders = [aa: "aaa", bb: "bbb", "cc": true]
-        testFunctionalTest false
+        testFunctionalTest = false
     }
     buildTypes {
         release {
-            applicationIdSuffix "suffix"
+            applicationIdSuffix = "suffix"
             versionNameSuffix "vsuffix"
-            debuggable false
-            jniDebuggable false
+            debuggable = false
+            jniDebuggable = false
             minifyEnabled false
-            renderscriptOptimLevel 2
-            signingConfig signingConfigs.myConfig
+            renderscriptOptimLevel = 2
+            signingConfig = signingConfigs.myConfig
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.txt', 'proguard-rules2.txt'
         }
         specialRelease {
@@ -93,12 +93,12 @@ android {
             versionName "2.0"
             versionNameSuffix "vnsFoo"
             testInstrumentationRunnerArguments = ["a": "AAA", "b": "BBB", c: 'CCC']
-            testHandleProfiling varBool
-            testFunctionalTest rootProject.ext.rootBool
+            testHandleProfiling = varBool
+            testFunctionalTest = rootProject.ext.rootBool
         }
         bar {
             dimension "bar"
-            applicationIdSuffix "barSuffix"
+            applicationIdSuffix = "barSuffix"
         }
         otherBar {
             dimension "bar"

@@ -31,6 +31,7 @@ import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import com.android.tools.idea.transport.manager.StreamQueryUtils;
 import com.android.tools.idea.transport.poller.TransportEventPoller;
+import com.android.tools.idea.transport.poller.TransportPoller;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
@@ -244,13 +245,18 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   private boolean myAutoProfilingEnabled;
 
   /**
+   * Whether the profiler is in offline mode (e.g. viewing an imported file).
+   */
+  private final boolean myIsOffline;
+
+  /**
    * The number of update count the profilers have waited for an agent status to become ATTACHED for a particular session id.
    * If the agent status remains UNSPECIFIED after {@link StudioProfilers#AGENT_STATUS_MAX_RETRY_COUNT}, the profilers deem the process to
    * be without agent.
    */
   public final Map<Long, Integer> mySessionIdToAgentStatusRetryMap = new HashMap<>();
 
-  private TransportEventPoller myTransportPoller;
+  private TransportPoller myTransportPoller;
 
   @NotNull
   private final UnifiedTraceOpener myUnifiedTraceOpener;
@@ -258,6 +264,55 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @VisibleForTesting
   public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices) {
     this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE));
+  }
+
+  /**
+   * Creates a lightweight StudioProfilers instance for offline viewing (e.g. in UnifiedProfilerFileEditor).
+   * It initializes the necessary fields to satisfy UI dependencies (like TaskTracker) but bypasses
+   * background polling, timeline streaming, and updater tasks.
+   */
+  public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices, boolean isOffline) {
+    myIsOffline = isOffline;
+    myClient = client;
+    myIdeServices = ideServices;
+    myStage = createDefaultStage();
+    mySessionsManager = new SessionsManager(this);
+    mySessionChangeListener = new HashMap<>();
+    myDeviceToStreamIds = new HashMap<>();
+    myStreamIdToStreams = new HashMap<>();
+    myTaskHandlers = new HashMap<>();
+    myCreateTaskTab = (i, j) -> {};
+    myOpenTaskTab = () -> {};
+    myToolbarDeviceSelectionsFetcher = ArrayList::new;
+    myPreferredProcessNameFetcher = null;
+    myCurrentTaskHandlerFetcher = null;
+    myUnifiedTraceOpener = new UnifiedTraceOpener(this);
+
+    // In an offline scenario, we just use an FpsTimer and avoid starting it.
+    myUpdater = new Updater(new FpsTimer(1));
+
+    myTaskHomeTabModel = new TaskHomeTabModel(this);
+    myPastRecordingsTabModel = new PastRecordingsTabModel(this);
+
+    ImmutableList.Builder<StudioProfiler> profilersBuilder = new ImmutableList.Builder<>();
+    profilersBuilder.add(new CpuProfiler(this));
+    profilersBuilder.add(new MemoryProfiler(this));
+    myProfilers = profilersBuilder.build();
+
+    myTimeline = new StreamingTimeline(myUpdater);
+
+    myProcesses = Maps.newHashMap();
+    myDevice = null;
+    myProcess = null;
+
+    mySelectedSession = myProfilingSession = Common.Session.getDefaultInstance();
+    myAgentData = AgentData.getDefaultInstance();
+
+    myViewAxis = new ResizingAxisComponentModel.Builder(myTimeline.getViewRange(), TimeAxisFormatter.DEFAULT)
+      .setGlobalRange(myTimeline.getDataRange()).build();
+
+    // Leave transport poller null or create a placeholder one since no polling happens
+    myTransportPoller = TransportEventPoller.getNO_OP();
   }
 
   @VisibleForTesting
@@ -293,6 +348,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
                           @NotNull Function0<List<ToolbarDeviceSelection>> toolbarDeviceSelectionsFetcher,
                           @Nullable Function0<String> preferredProcessNameFetcher,
                           @Nullable Function0<ProfilerTaskHandler> currentTaskHandlerFetcher) {
+    myIsOffline = false;
     myClient = client;
     myIdeServices = ideServices;
     myStage = createDefaultStage();
@@ -412,8 +468,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   @NotNull
-  public TransportEventPoller getTransportPoller() {
+  public TransportPoller getTransportPoller() {
     return myTransportPoller;
+  }
+
+  public boolean isOffline() {
+    return myIsOffline;
   }
 
   public Map<Common.Device, List<Common.Process>> getDeviceProcessMap() {
@@ -615,6 +675,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   @Override
   public void update(long elapsedNs) {
+    if (myIsOffline) {
+      return;
+    }
     myEventPollingInternvalNs += elapsedNs;
     if (myEventPollingInternvalNs >= TRANSPORT_POLLER_INTERVAL_NS) {
       myTransportPoller.poll();
@@ -878,6 +941,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    */
   public void registerSessionChangeListener(Common.SessionMetaData.SessionType sessionType, Runnable listener) {
     mySessionChangeListener.put(sessionType, listener);
+  }
+
+  public void bringSelectedEditorToFront() {
+    if (getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+      myUnifiedTraceOpener.openUnifiedTrace(mySelectedSession, mySessionsManager.getSessionIdToSessionItems());
+    }
   }
 
   private void selectedSessionChanged() {

@@ -1942,7 +1942,7 @@ MODULE                        : kotlinMultiPlatform.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : kotlinMultiPlatform:app_debug
                     noReflect                     : true
                     noStdlib                      : true
@@ -2018,7 +2018,7 @@ MODULE                        : kotlinMultiPlatform.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : kotlinMultiPlatform:app_debugAndroidTest
                     noReflect                     : true
                     noStdlib                      : true
@@ -2113,7 +2113,7 @@ MODULE                        : kotlinMultiPlatform.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : kotlinMultiPlatform:app_debugUnitTest
                     noReflect                     : true
                     noStdlib                      : true
@@ -2182,7 +2182,7 @@ MODULE                        : kotlinMultiPlatform.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/classes/kotlin/jvm/main
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : kotlinMultiPlatform:app
                     noReflect                     : true
                     noStdlib                      : true
@@ -2247,7 +2247,7 @@ MODULE                        : kotlinMultiPlatform.app
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/app/build/classes/kotlin/jvm/test
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : kotlinMultiPlatform:app_test
                     noReflect                     : true
                     noStdlib                      : true
@@ -2827,7 +2827,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debug
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : kotlinMultiPlatform:module2_debug
                     noReflect                     : true
                     noStdlib                      : true
@@ -2906,7 +2906,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debugAndroidTest
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : kotlinMultiPlatform:module2_debugAndroidTest
                     noReflect                     : true
                     noStdlib                      : true
@@ -3003,7 +3003,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debugUnitTest
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : kotlinMultiPlatform:module2_debugUnitTest
                     noReflect                     : true
                     noStdlib                      : true
@@ -3075,7 +3075,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/module2/build/classes/kotlin/jvm/main
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : kotlinMultiPlatform:module2
                     noReflect                     : true
                     noStdlib                      : true
@@ -3144,7 +3144,7 @@ MODULE                        : kotlinMultiPlatform.module2
                     assertionsMode                : legacy
                     backendThreads                : 1
                     destination                   : <ROOT>/module2/build/classes/kotlin/jvm/test
-                    jvmTarget                     : 21
+                    jvmTarget                     : 25
                     moduleName                    : kotlinMultiPlatform:module2_test
                     noReflect                     : true
                     noStdlib                      : true

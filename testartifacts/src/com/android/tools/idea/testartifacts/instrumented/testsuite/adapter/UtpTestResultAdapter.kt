@@ -17,7 +17,7 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.adapter
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.sdklib.AndroidVersion
-import com.android.sdklib.SdkVersionInfo
+import com.android.sdklib.SdkVersionUtil
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.protobuf.Timestamp
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
@@ -171,7 +171,7 @@ private class AndroidDeviceResolver(private val artifactFileResolver: ArtifactFi
         deviceInfo.displayName(),
         deviceInfo.avdName,
         deviceType,
-        SdkVersionInfo.getVersion(deviceInfo.apiLevel, null) ?: AndroidVersion.DEFAULT,
+        SdkVersionUtil.getVersion(deviceInfo.apiLevel, null) ?: AndroidVersion.DEFAULT,
       )
       .apply {
         if (deviceInfo.manufacturer.isNotBlank()) {

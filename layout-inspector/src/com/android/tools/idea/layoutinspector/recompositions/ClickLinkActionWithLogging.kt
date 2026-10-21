@@ -41,7 +41,7 @@ class ClickLinkActionWithLogging : DumbAwareAction() {
   private fun getLink(event: AnActionEvent): HyperlinkInfo? {
     val editor = event.getData(CommonDataKeys.EDITOR) ?: return null
     val offset = editor.caretModel.offset
-    return EditorHyperlinkSupport.get(editor).getHyperlinkAt(offset)
+    return EditorHyperlinkSupport.getHyperlinkAt(editor, offset)
   }
 
   override fun update(event: AnActionEvent) {

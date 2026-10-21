@@ -18,6 +18,7 @@ import static com.intellij.psi.xml.XmlTokenType.XML_DATA_CHARACTERS;
 import static com.intellij.reference.SoftReference.dereference;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
+import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
@@ -206,7 +207,12 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
           }
 
           // Return the doc of the value if searching for an enum value, otherwise return the doc of the enum itself
-          return StringUtil.trim(isXmlValue ? attributeDefinition.getValueDescription(value) : attributeDefinition.getDescription(null));
+          String doc = StringUtil.trim(isXmlValue ? attributeDefinition.getValueDescription(value) : attributeDefinition.getDescription(null));
+          ResourceReference resourceReference = attributeDefinition.getResourceReference();
+          if (doc != null && resourceReference != null && !ResourceNamespace.ANDROID.equals(resourceReference.getNamespace())) {
+            doc = StringUtil.escapeXmlEntities(doc);
+          }
+          return doc;
         }
       }
 
@@ -400,7 +406,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       Arrays.sort(sortedValues);
 
       for (int i = 0; i < sortedValues.length; i++) {
-        builder.append(sortedValues[i]);
+        builder.append(StringUtil.escapeXmlEntities(sortedValues[i]));
 
         if (i < sortedValues.length - 1) {
           builder.append(", ");
@@ -414,7 +420,12 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       if (!builder.isEmpty()) {
         builder.append("<br><br>");
       }
-      builder.append(docValue);
+      ResourceReference resourceReference = definition.getResourceReference();
+      if (resourceReference != null && ResourceNamespace.ANDROID.equals(resourceReference.getNamespace())) {
+        builder.append(docValue);
+      } else {
+        builder.append(StringUtil.escapeXmlEntities(docValue));
+      }
     }
     builder.append("</body></html>");
     return builder.toString();

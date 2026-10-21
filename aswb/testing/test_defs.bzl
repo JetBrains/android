@@ -148,7 +148,8 @@ def intellij_unit_test_suite(
     )
     kotlin_library(
         name = name + ".testlib",
-        jvm_target = "21",
+        kotlin_version = "2.3",
+        jvm_target = "25",
         srcs = srcs + [suite_class_name],
         deps = deps,
         lint_enabled = False,
@@ -342,7 +343,8 @@ def intellij_integration_test_suite(
     target_compatible_with = kwargs.get("target_compatible_with", None)
     kotlin_library(
         name = name + ".testlib",
-        jvm_target = "21",
+        kotlin_version = "2.3",
+        jvm_target = "25",
         srcs = srcs + [suite_class_name],
         deps = deps,
         lint_enabled = False,
@@ -407,7 +409,8 @@ def aswb_test(
         srcs = srcs,
         deps = deps,
         testonly = True,
-        jvm_target = "21",
+        kotlin_version = "2.3",
+        jvm_target = "25",
         runtime_deps = runtime_deps,
         jar = name + "_testlib.jar",
         lint_enabled = False,

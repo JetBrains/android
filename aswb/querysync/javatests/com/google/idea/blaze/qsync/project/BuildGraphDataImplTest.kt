@@ -25,7 +25,6 @@ import com.google.idea.blaze.qsync.BlazeQueryParser
 import com.google.idea.blaze.qsync.QuerySyncTestUtils
 import com.google.idea.blaze.qsync.getCodeAnalysisDependencyGraphProvider
 import com.google.idea.blaze.qsync.project.BuildGraphDataImpl.Companion.builder
-import com.google.idea.blaze.qsync.project.BuildGraphDataImpl.Companion.filterRedundantTargets
 import com.google.idea.blaze.qsync.testdata.BuildGraphs
 import com.google.idea.blaze.qsync.testdata.TestData
 import java.io.IOException
@@ -675,6 +674,45 @@ class BuildGraphDataImplTest {
   private fun getRequiredTargets(graph: BuildGraphData, forTargets: Collection<Label>): Set<Label> {
     return RequestedTargets(graph.computeSufficientTargets(forTargets, replaceNativeTargetsWithAndroidTransitionTriggeringTargets = false))
       .requiredTargets(graph.getCodeAnalysisDependencyGraphProvider())
+  }
+
+  @Test
+  fun testAllDepsIncludesAdditionalAttributes() {
+    val builder = builder()
+
+    val t1 = Label.of("//t:t1")
+    val t2 = Label.of("//t:t2")
+    val t3 = Label.of("//t:t3")
+    val t4 = Label.of("//t:t4")
+    val t5 = Label.of("//t:t5")
+    val t6 = Label.of("//t:t6")
+
+    val t2Builder = ProjectTarget.builder().label(t2).kind("android_binary").tags(emptyList())
+    t2Builder.sourceLabelsBuilder().put(ProjectTarget.SourceType.REGULAR_JVM, Label.of("//t:T2.java"))
+    builder.addTarget(t2, t2Builder.build())
+    builder.addSourceFileLabel(Label.of("//t:T2.java"))
+
+    val t4Builder = ProjectTarget.builder().label(t4).kind("android_binary").tags(emptyList())
+    t4Builder.sourceLabelsBuilder().put(ProjectTarget.SourceType.REGULAR_JVM, Label.of("//t:T4.java"))
+    builder.addTarget(t4, t4Builder.build())
+    builder.addSourceFileLabel(Label.of("//t:T4.java"))
+
+    val t6Builder = ProjectTarget.builder().label(t6).kind("android_library").tags(emptyList())
+    t6Builder.sourceLabelsBuilder().put(ProjectTarget.SourceType.REGULAR_JVM, Label.of("//t:T6.java"))
+    builder.addTarget(t6, t6Builder.build())
+    builder.addSourceFileLabel(Label.of("//t:T6.java"))
+
+    builder.addTarget(t1, ProjectTarget.builder().label(t1).kind("android_instrumentation_test").testApp(t2).tags(emptyList()).build())
+    builder.addTarget(t3, ProjectTarget.builder().label(t3).kind("android_binary").instruments(t4).tags(emptyList()).build())
+    builder.addTarget(t5, ProjectTarget.builder().label(t5).kind("android_local_test").library(t6).tags(emptyList()).build())
+
+    val graph = builder.build(emptyTargetCollection, emptySet(), emptySet(), defaultProtoRules)
+
+    assertThat(graph.getReverseDepsForSource(Label.of("//t:T2.java")).map { it.label() }).contains(t1)
+
+    assertThat(graph.getReverseDepsForSource(Label.of("//t:T4.java")).map { it.label() }).contains(t3)
+
+    assertThat(graph.getReverseDepsForSource(Label.of("//t:T6.java")).map { it.label() }).contains(t5)
   }
 
   companion object {

@@ -15,8 +15,13 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static com.android.tools.profilers.StringFormattingUtils.formatStringInTitleCase;
+import static com.android.tools.profilers.cpu.systemtrace.BatteryDrainTrackModel.getFormattedBatteryDrainName;
+import static com.android.tools.profilers.cpu.systemtrace.BatteryDrainTrackModel.getUnitFromTrackName;
+
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.BoxSelectionModel;
+import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.DefaultTimeline;
 import com.android.tools.adtui.model.MultiSelectionModel;
 import com.android.tools.adtui.model.RangedSeries;
@@ -28,14 +33,17 @@ import com.android.tools.adtui.model.event.UserEvent;
 import com.android.tools.adtui.model.trackgroup.TrackGroupActionListener;
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
+import com.android.tools.adtui.model.updater.Updater;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.transport.EventStreamServer;
 import com.android.tools.profiler.perfetto.proto.TraceProcessor;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Trace;
-import com.android.tools.profiler.proto.Transport;
+import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.LogUtils;
 import com.android.tools.profilers.NullMonitorStage;
+import com.android.tools.profilers.ProfilerCaptureFileUtils;
+import com.android.tools.profilers.ProfilerContext;
 import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
@@ -52,6 +60,7 @@ import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineModel;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineTooltip;
+import com.android.tools.profilers.cpu.systemtrace.BatteryDrainTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.BufferQueueTooltip;
 import com.android.tools.profilers.cpu.systemtrace.BufferQueueTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuCoreTrackModel;
@@ -63,7 +72,6 @@ import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData;
 import com.android.tools.profilers.cpu.systemtrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.cpu.systemtrace.DeadlineTextModel;
 import com.android.tools.profilers.cpu.systemtrace.FrameState;
-import com.android.tools.profilers.cpu.systemtrace.BatteryDrainTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.PowerRailTooltip;
 import com.android.tools.profilers.cpu.systemtrace.PowerRailTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.RssMemoryTooltip;
@@ -81,7 +89,9 @@ import com.android.tools.profilers.event.UserEventTooltip;
 import com.android.tools.profilers.perfetto.config.PerfettoTraceConfigBuilders;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorModelKt;
 import com.android.tools.profilers.sessions.SessionsManager;
+import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.android.tools.profilers.tasks.analytics.TaskFinishedState;
+import com.android.tools.profilers.tasks.analytics.TaskTracker;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.openapi.diagnostic.Logger;
@@ -103,10 +113,6 @@ import kotlin.collections.CollectionsKt;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.tools.profilers.StringFormattingUtils.formatStringInTitleCase;
-import static com.android.tools.profilers.cpu.systemtrace.BatteryDrainTrackModel.getUnitFromTrackName;
-import static com.android.tools.profilers.cpu.systemtrace.BatteryDrainTrackModel.getFormattedBatteryDrainName;
 
 /**
  * This class holds the models and capture data for the {@code com.android.tools.profilers.cpu.CpuCaptureStageView}.
@@ -141,41 +147,12 @@ public class CpuCaptureStage extends Stage<Timeline> {
     ANALYZING,
   }
 
-  @Nullable
-  private static File getCaptureAsFile(@NotNull StudioProfilers profilers, long traceId) {
-    Transport.BytesRequest traceRequest = Transport.BytesRequest.newBuilder()
-      .setStreamId(profilers.getSession().getStreamId())
-      .setId(String.valueOf(traceId))
-      .build();
-    Transport.FileResponse traceResponse = profilers.getClient().getTransportClient().getFile(traceRequest);
-
-    if (traceResponse.getFilePath().isEmpty()) {
-      return null;
-    }
-    File captureFile = new File(traceResponse.getFilePath());
-    if (!captureFile.exists() || captureFile.length() == 0) {
-      return null;
-    }
-    return captureFile;
-  }
-
-  @Nullable
-  private static File getAndRenameCapture(@NotNull StudioProfilers profilers, long traceId) {
-    File captureFile = getCaptureAsFile(profilers, traceId);
-    if (captureFile == null) {
-      return null;
-    }
-    // The existing flow creates a temporary file (e.g., "/private/var/folders/.../T/transport-bytes-....tmp").
-    // If Unified Preview is enabled, we need to convert/save this to a permanent trace file to be viewed in the editor.
-    return CpuCaptureStageUtils.renameTempToTraceFile(
-      captureFile,
-      CpuCaptureStageUtils.getTraceFile(traceId).getName());
-  }
 
   /**
    * Responsible for parsing trace files into {@link CpuCapture}.
    * Parsed captures should be obtained from this object.
    */
+  private final ProfilerContext myContext;
   private final CpuCaptureHandler myCpuCaptureHandler;
   private final AspectModel<Aspect> myAspect = new AspectModel<>();
   private final List<CpuAnalysisModel<?>> myPinnedAnalysisModels = new ArrayList<>();
@@ -228,9 +205,9 @@ public class CpuCaptureStage extends Stage<Timeline> {
     boolean openInEditor = ProfilerInEditorUtils.isEditorEnabled(profilers.getIdeServices().getFeatureConfig(), configuration.getTraceType().toTaskType());
 
     if (openInEditor) {
-      captureFile = getAndRenameCapture(profilers, traceId);
+      captureFile = ProfilerCaptureFileUtils.getAndRenameCapture(profilers, profilers.getSession(), traceId);
     } else {
-      captureFile = getCaptureAsFile(profilers, traceId);
+      captureFile = ProfilerCaptureFileUtils.getCaptureAsFile(profilers, traceId);
     }
 
     if (captureFile == null) {
@@ -242,13 +219,90 @@ public class CpuCaptureStage extends Stage<Timeline> {
                                profilers.getSession().getPid());
   }
 
+  @NotNull
+  public static ProfilerContext createDefaultContext(@NotNull StudioProfilers profilers) {
+    return new ProfilerContext() {
+      @NotNull
+      @Override
+      public IdeProfilerServices getIdeProfilerServices() {
+        return profilers.getIdeServices();
+      }
+
+      @NotNull
+      @Override
+      public Updater getUpdater() {
+        return profilers.getUpdater();
+      }
+
+      @Override
+      public boolean isJvmtiEnabled() {
+        return profilers.getSessionsManager().getSelectedSessionMetaData().getJvmtiEnabled();
+      }
+
+      @NotNull
+      @Override
+      public DataSeries<Long> getDataSeries(@Nullable CpuCapture capture) {
+        return CpuUsage.buildDataSeries(profilers.getClient().getTransportClient(), profilers.getSession(), capture);
+      }
+
+      @Override
+      public void onParseFailure(@NotNull String message) {
+        if (profilers.getSessionsManager().isSessionAlive()) {
+          profilers.getIdeServices().getMainExecutor()
+            .execute(() -> profilers.setStage(new CpuProfilerStage(profilers, CpuCaptureMetadata.CpuProfilerEntryPoint.CHILD_STAGE_BACK_BTN_OR_FAILURE)));
+        }
+        else {
+          profilers.getIdeServices().getMainExecutor().execute(
+            () -> {
+              profilers.getSessionsManager().resetSessionSelection();
+              profilers.setStage(new NullMonitorStage(profilers, message));
+            });
+        }
+      }
+
+      @Override
+      public void reportParsedTrace(@NotNull CpuCapture capture) {
+        if (SessionsManager.isSessionImported(profilers.getSession()) &&
+            !profilers.getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+          // For an imported traces we need to insert a CPU_TRACE event into the database. This is used by the Sessions' panel to display the
+          // correct trace type associated with the imported file. In the Task Based UX, however, a CPU_TRACE event is inserted at import-time,
+          // so we do not need to insert another event here.
+          Trace.TraceInfo.Builder importedTraceInfo = Trace.TraceInfo.newBuilder()
+          // Use session ID as trace ID for imported traces.
+            .setTraceId(profilers.getSession().getSessionId())
+            .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMin()))
+            .setToTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMax()));
+
+          Trace.TraceConfiguration.Builder config = Trace.TraceConfiguration.newBuilder();
+          TraceConfigOptionsUtils.addDefaultTraceOptions(config, capture.getType());
+          importedTraceInfo.setConfiguration(config);
+
+          // TODO(b/141560550): add test when we can mock TransportService#registerStreamServer.
+          EventStreamServer streamServer =
+            profilers.getSessionsManager().getEventStreamServer(profilers.getSession().getStreamId());
+          if (streamServer != null) {
+            streamServer.getEventDeque().offer(
+              Common.Event.newBuilder()
+                .setGroupId(importedTraceInfo.getTraceId())
+                .setTimestamp(importedTraceInfo.getToTimestamp())
+                .setIsEnded(true)
+                .setKind(Common.Event.Kind.CPU_TRACE)
+                .setTraceData(
+                  Trace.TraceData.newBuilder().setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(importedTraceInfo)))
+                .build());
+          }
+        }
+      }
+    };
+  }
+
   @VisibleForTesting
   @NotNull
   public static CpuCaptureStage create(@NotNull StudioProfilers profilers,
                                        @NotNull ProfilingConfiguration configuration,
                                        @NotNull File captureFile,
                                        long sessionId) {
-    return new CpuCaptureStage(profilers, configuration, captureFile, sessionId, null, 0);
+    return new CpuCaptureStage(profilers, createDefaultContext(profilers), configuration, captureFile, sessionId, null, 0);
   }
 
   /**
@@ -265,6 +319,17 @@ public class CpuCaptureStage extends Stage<Timeline> {
          captureProcessIdHint);
   }
 
+  public CpuCaptureStage(@NotNull StudioProfilers profilers,
+                         @NotNull ProfilerContext context,
+                         @NotNull ProfilingConfiguration configuration,
+                         @NotNull File captureFile,
+                         long traceId,
+                         @Nullable String captureProcessNameHint,
+                         int captureProcessIdHint) {
+    this(profilers, context, configuration, new CpuCaptureMetadata(configuration), captureFile, traceId, captureProcessNameHint,
+         captureProcessIdHint);
+  }
+
   /**
    * Create a capture stage that loads a given file. Takes in the entry point as a parameter
    * to track how the user got to the CpuProfilerStage.
@@ -276,9 +341,21 @@ public class CpuCaptureStage extends Stage<Timeline> {
                          long traceId,
                          @Nullable String captureProcessNameHint,
                          int captureProcessIdHint) {
+    this(profilers, createDefaultContext(profilers), configuration, captureMetadata, captureFile, traceId, captureProcessNameHint, captureProcessIdHint);
+  }
+
+  public CpuCaptureStage(@NotNull StudioProfilers profilers,
+                         @NotNull ProfilerContext context,
+                         @NotNull ProfilingConfiguration configuration,
+                         @NotNull CpuCaptureMetadata captureMetadata,
+                         @NotNull File captureFile,
+                         long traceId,
+                         @Nullable String captureProcessNameHint,
+                         int captureProcessIdHint) {
     super(profilers);
+    myContext = context;
     myCpuCaptureHandler = new CpuCaptureHandler(
-      profilers, captureFile, traceId, configuration, captureMetadata, captureProcessNameHint, captureProcessIdHint);
+      context.getIdeProfilerServices(), captureFile, traceId, configuration, captureMetadata, captureProcessNameHint, captureProcessIdHint);
     getMultiSelectionModel().addDependency(this)
       .onChange(MultiSelectionModel.Aspect.SELECTIONS_CHANGED, this::onSelectionChanged)
       .onChange(MultiSelectionModel.Aspect.ACTIVE_SELECTION_CHANGED, this::onActiveSelectionChanged);
@@ -349,34 +426,23 @@ public class CpuCaptureStage extends Stage<Timeline> {
 
   @Override
   public void onEnter() {
-    getStudioProfilers().getUpdater().register(myCpuCaptureHandler);
-    getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getStageType());
+    if (myContext.getIdeProfilerServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+      myTaskTracker = TaskTracker.createTaskTracker(getStudioProfilers(), myContext);
+    }
+    myContext.getUpdater().register(myCpuCaptureHandler);
+    myContext.getIdeProfilerServices().getFeatureTracker().trackEnterStage(getStageType());
 
     myCpuCaptureHandler.parse(capture -> {
       try {
         if (capture == null) {
-          // Generic catch all for capture failing to load, this happens for both import and live captures.
-          if (getStudioProfilers().getSessionsManager().isSessionAlive()) {
-            // User will get a notification then sent back to the CpuProfilerStage
-            getStudioProfilers().getIdeServices().getMainExecutor()
-              .execute(() -> getStudioProfilers().setStage(getParentStage()));
-          }
-          else {
-            // If the user was importing a trace the user will be sent to the null stage with a warning + notification.
-            getStudioProfilers().getIdeServices().getMainExecutor().execute(
-              () -> {
-                // Deselect the imported session so user may import it again to retry.
-                getStudioProfilers().getSessionsManager().resetSessionSelection();
-                getStudioProfilers().setStage(new NullMonitorStage(getStudioProfilers(), myCpuCaptureHandler.getErrorMessage()));
-              });
-          }
+          myContext.onParseFailure(myCpuCaptureHandler.getErrorMessage());
         }
         else {
           LogUtils.log(getClass(), "CPU capture parse succeeded");
           myCapture = capture;
           onCaptureParsed(capture);
           setState();
-          if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+          if (myContext.getIdeProfilerServices().getFeatureConfig().isTaskBasedUxEnabled()) {
             myTaskTracker.trackTaskFinished(TaskFinishedState.COMPLETED);
           }
         }
@@ -390,7 +456,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
 
   @Override
   public void onExit() {
-    getStudioProfilers().getUpdater().unregister(myCpuCaptureHandler);
+    myContext.getUpdater().unregister(myCpuCaptureHandler);
   }
 
   @Override
@@ -417,7 +483,9 @@ public class CpuCaptureStage extends Stage<Timeline> {
 
   private void onCaptureParsed(@NotNull CpuCapture capture) {
     myTrackGroupTimeline.getDataRange().set(capture.getRange());
-    myMinimapModel = new CpuCaptureMinimapModel(getStudioProfilers(), capture, getTimeline().getViewRange());
+    ProfilerTaskType taskType = capture.getType().toTaskType();
+    boolean isEditorEnabled = ProfilerInEditorUtils.isEditorEnabled(myContext.getIdeProfilerServices().getFeatureConfig(), taskType);
+    myMinimapModel = new CpuCaptureMinimapModel(capture, getTimeline().getViewRange(), myContext.getDataSeries(capture), isEditorEnabled);
     if (!capture.getRange().isEmpty()) {
       initTrackGroupList(capture);
       addPinnedCpuAnalysisModel(new CpuFullTraceAnalysisModel(capture, getTimeline().getViewRange(), this::runInBackground));
@@ -431,50 +499,16 @@ public class CpuCaptureStage extends Stage<Timeline> {
         addPinnedCpuAnalysisModel(framesModel);
       }
     }
-    if (SessionsManager.isSessionImported(getStudioProfilers().getSession()) &&
-        !getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
-      // For an imported traces we need to insert a CPU_TRACE event into the database. This is used by the Sessions' panel to display the
-      // correct trace type associated with the imported file. In the Task Based UX, however, a CPU_TRACE event is inserted at import-time,
-      // so we do not need to insert another event here.
-      insertImportedTraceEvent(capture);
-    }
+    myContext.reportParsedTrace(capture);
   }
-
-  private void insertImportedTraceEvent(@NotNull CpuCapture capture) {
-    Trace.TraceInfo.Builder importedTraceInfo = Trace.TraceInfo.newBuilder()
-      // Use session ID as trace ID for imported traces.
-      .setTraceId(getStudioProfilers().getSession().getSessionId())
-      .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMin()))
-      .setToTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMax()));
-
-    Trace.TraceConfiguration.Builder config = Trace.TraceConfiguration.newBuilder();
-    TraceConfigOptionsUtils.addDefaultTraceOptions(config, capture.getType());
-    importedTraceInfo.setConfiguration(config);
-
-    // TODO(b/141560550): add test when we can mock TransportService#registerStreamServer.
-    EventStreamServer streamServer =
-      getStudioProfilers().getSessionsManager().getEventStreamServer(getStudioProfilers().getSession().getStreamId());
-    if (streamServer != null) {
-      streamServer.getEventDeque().offer(
-        Common.Event.newBuilder()
-          .setGroupId(importedTraceInfo.getTraceId())
-          .setTimestamp(importedTraceInfo.getToTimestamp())
-          .setIsEnded(true)
-          .setKind(Common.Event.Kind.CPU_TRACE)
-          .setTraceData(
-            Trace.TraceData.newBuilder().setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(importedTraceInfo)))
-          .build());
-    }
-  }
-
   /**
    * The order of track groups dictates their default order in the UI.
    */
   private void initTrackGroupList(@NotNull CpuCapture capture) {
     myTrackGroupModels.clear();
 
-    FeatureTracker featureTracker = getStudioProfilers().getIdeServices().getFeatureTracker();
-    boolean jvmtiEnabled = getStudioProfilers().getSessionsManager().getSelectedSessionMetaData().getJvmtiEnabled();
+    FeatureTracker featureTracker = myContext.getIdeProfilerServices().getFeatureTracker();
+    boolean jvmtiEnabled = myContext.isJvmtiEnabled();
 
     // Interaction events, e.g. user interaction, app lifecycle. Recorded trace only.
     if (jvmtiEnabled) {
@@ -507,7 +541,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
     }
 
     if (capture instanceof SystemTraceCpuCapture) {
-      if (getStudioProfilers().getIdeServices().getFeatureConfig().getSystemTracePowerProfilerDisplayMode() !=
+      if (myContext.getIdeProfilerServices().getFeatureConfig().getSystemTracePowerProfilerDisplayMode() !=
           PowerProfilerDisplayMode.HIDE) {
         // Power rail data is ODPM hardware exclusive, but we take a data driven approach for checking compatibility.
         if (!capture.getSystemTraceData().getPowerRailCounters().isEmpty()) {
@@ -568,7 +602,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
   }
 
   private void trackFrameSelection() {
-    getStudioProfilers().getIdeServices().getFeatureTracker().trackFrameSelectionPerTrace(++myFrameSelectionCount);
+    myContext.getIdeProfilerServices().getFeatureTracker().trackFrameSelectionPerTrace(++myFrameSelectionCount);
   }
 
   private TrackGroupModel createInteractionTrackGroup() {
@@ -695,11 +729,11 @@ public class CpuCaptureStage extends Stage<Timeline> {
       .setTitleHelpLink("Learn more", DISPLAY_HELP_LINK)
       .addDisplayToggle(
         toggleAllFrames, false,
-        () -> getStudioProfilers().getIdeServices().getFeatureTracker().trackAllFrameTogglingPerTrace(++myAllFrameTogglingCount));
+        () -> myContext.getIdeProfilerServices().getFeatureTracker().trackAllFrameTogglingPerTrace(++myAllFrameTogglingCount));
     if (!capture.getAndroidFrameLayers().isEmpty()) {
       displayBuilder.addDisplayToggle(
         toggleLifeCycle, false,
-        () -> getStudioProfilers().getIdeServices().getFeatureTracker().trackLifecycleTogglingPerTrace(++myLifecycleTogglingCount));
+        () -> myContext.getIdeProfilerServices().getFeatureTracker().trackLifecycleTogglingPerTrace(++myLifecycleTogglingCount));
     }
     TrackGroupModel display = displayBuilder.build();
 
@@ -755,7 +789,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
   }
 
   private TrackGroupModel createThreadsTrackGroup(@NotNull CpuCapture capture) {
-    FeatureTracker featureTracker = getStudioProfilers().getIdeServices().getFeatureTracker();
+    FeatureTracker featureTracker = myContext.getIdeProfilerServices().getFeatureTracker();
     // Collapse threads for ART and SimplePerf traces.
     boolean collapseThreads = !(capture instanceof SystemTraceCpuCapture);
     List<CpuThreadInfo> threadInfos =
@@ -836,7 +870,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
 
   private TrackGroupModel createPowerRailsTrackGroup(@NotNull CpuSystemTraceData systemTraceData) {
     PowerProfilerDisplayMode displayMode =
-      getStudioProfilers().getIdeServices().getFeatureConfig().getSystemTracePowerProfilerDisplayMode();
+      myContext.getIdeProfilerServices().getFeatureConfig().getSystemTracePowerProfilerDisplayMode();
     String displayModeTitleCase = formatStringInTitleCase(displayMode.name());
     TrackGroupModel power = TrackGroupModel.newBuilder()
       .setTitle("Power Rails " + "(" + displayModeTitleCase + ")")
@@ -924,7 +958,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
   }
 
   private Unit runInBackground(Runnable work) {
-    getStudioProfilers().getIdeServices().getPoolExecutor().execute(work);
+    myContext.getIdeProfilerServices().getPoolExecutor().execute(work);
     return Unit.INSTANCE;
   }
 }
