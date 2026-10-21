@@ -2099,6 +2099,13 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
                                                                                                                                                               isComputable = false,
                                                                                                                                                               isKey = false,
                                                                                                                                                               isOpen = false,
+                                                                                                                                                              name = "instrumentInPrivateComputeCore",
+                                                                                                                                                              valueType = primitiveTypeBooleanNotNullable,
+                                                                                                                                                              withDefault = false),
+                                                                                                                                                            OwnPropertyMetadata(
+                                                                                                                                                              isComputable = false,
+                                                                                                                                                              isKey = false,
+                                                                                                                                                              isOpen = false,
                                                                                                                                                               name = "instrumentedTestTaskName",
                                                                                                                                                               valueType = primitiveTypeStringNullable,
                                                                                                                                                               withDefault = false)),
@@ -4065,6 +4072,13 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
                                                                                                                                       isComputable = false,
                                                                                                                                       isKey = false,
                                                                                                                                       isOpen = false,
+                                                                                                                                      name = "isSigningReady",
+                                                                                                                                      valueType = primitiveTypeBooleanNotNullable,
+                                                                                                                                      withDefault = false),
+                                                                                                                                    OwnPropertyMetadata(
+                                                                                                                                      isComputable = false,
+                                                                                                                                      isKey = false,
+                                                                                                                                      isOpen = false,
                                                                                                                                       name = "keyAlias",
                                                                                                                                       valueType = primitiveTypeStringNullable,
                                                                                                                                       withDefault = false),
@@ -4967,6 +4981,13 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
                                                                                                                           isComputable = false,
                                                                                                                           isKey = false,
                                                                                                                           isOpen = false,
+                                                                                                                          name = "instrumentInPrivateComputeCore",
+                                                                                                                          valueType = primitiveTypeBooleanNotNullable,
+                                                                                                                          withDefault = false),
+                                                                                                                        OwnPropertyMetadata(
+                                                                                                                          isComputable = false,
+                                                                                                                          isKey = false,
+                                                                                                                          isOpen = false,
                                                                                                                           name = "instrumentationRunner",
                                                                                                                           valueType = primitiveTypeStringNullable,
                                                                                                                           withDefault = false),
@@ -5669,6 +5690,13 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
                                                                                                                                                     "ANDROIDX_TEST_ORCHESTRATOR",
                                                                                                                                                     "ANDROID_TEST_ORCHESTRATOR",
                                                                                                                                                     "HOST"))),
+                                                                                                                                              withDefault = false),
+                                                                                                                                            OwnPropertyMetadata(
+                                                                                                                                              isComputable = false,
+                                                                                                                                              isKey = false,
+                                                                                                                                              isOpen = false,
+                                                                                                                                              name = "instrumentInPrivateComputeCore",
+                                                                                                                                              valueType = primitiveTypeBooleanNotNullable,
                                                                                                                                               withDefault = false),
                                                                                                                                             OwnPropertyMetadata(
                                                                                                                                               isComputable = false,
@@ -8409,10 +8437,10 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
   }
 
   override fun initializeMetadataHash() {
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity", metadataHash = 588642854)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntity", metadataHash = 2039148947)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.entities.GradleAndroidModelEntityId", metadataHash = -1768909912)
     addMetadataHash(typeFqn = "com.intellij.platform.workspace.jps.entities.ModuleId", metadataHash = 369441961)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl", metadataHash = -1360807464)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl", metadataHash = 1469782874)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.IdeSourceProvider", metadataHash = 781378755)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.FileImpl", metadataHash = -1013892919)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeCustomSourceDirectoryImpl", metadataHash = 236716780)
@@ -8422,14 +8450,14 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
     addMetadataHash(typeFqn = "com.android.tools.idea.projectsystem.CommonTestType\$DeviceTest", metadataHash = -760449735)
     addMetadataHash(typeFqn = "com.android.tools.idea.projectsystem.TestComponentType\$HostTest", metadataHash = -1391885428)
     addMetadataHash(typeFqn = "com.android.tools.idea.projectsystem.CommonTestType\$HostTest", metadataHash = -2078241399)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl", metadataHash = 269000119)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl", metadataHash = -914245224)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl", metadataHash = 1606052470)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.IdeAaptOptions\$Namespacing", metadataHash = -976234809)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl", metadataHash = 730983063)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeBasicVariantImpl", metadataHash = -1818980688)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeVariantCoreSerializable", metadataHash = 755494654)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl", metadataHash = 1724448801)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl", metadataHash = -1686189610)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeVariantCoreSerializable", metadataHash = -594772583)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl", metadataHash = -1187176762)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl", metadataHash = -876057163)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeBuildTasksAndOutputInformationImpl", metadataHash = -778716903)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeBytecodeTransformationImpl", metadataHash = 1457664590)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.IdeBytecodeTransformation\$Type", metadataHash = 1692703930)
@@ -8442,7 +8470,7 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreRef", metadataHash = 117499923)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.ThrowingIdeDependencies", metadataHash = -1493306531)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.IdeArtifactName", metadataHash = -2028415565)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl", metadataHash = 1530773689)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl", metadataHash = 350613816)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.IdeTestOptions\$Execution", metadataHash = 2074843232)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeUnresolvedDependencyImpl", metadataHash = 1989792250)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl", metadataHash = 1395099721)
@@ -8465,7 +8493,7 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl", metadataHash = -1114382819)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl", metadataHash = -1790906672)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.IdeAndroidProjectType", metadataHash = -770095711)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl", metadataHash = 1294095739)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl", metadataHash = 795223723)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeTestSuiteImpl", metadataHash = -525100677)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeJUnitEngineInfoImpl", metadataHash = 1714162643)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeTestSuiteSourceImpl", metadataHash = -982450290)
@@ -8484,8 +8512,8 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
     addMetadataHash(typeFqn = "com.android.resources.ResourceType", metadataHash = 223320696)
     addMetadataHash(typeFqn = "com.android.sdklib.devices.Abi", metadataHash = 1474563559)
     addMetadataHash(typeFqn = "com.android.tools.idea.model.TestExecutionOption", metadataHash = -650853306)
-    addMetadataHash(typeFqn = "com.android.tools.idea.model.TestOptions", metadataHash = -411709092)
-    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeVariantImpl", metadataHash = -462128428)
+    addMetadataHash(typeFqn = "com.android.tools.idea.model.TestOptions", metadataHash = 1033509383)
+    addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeVariantImpl", metadataHash = 785975617)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactImpl", metadataHash = 11344619)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.IdeDependencies", metadataHash = -1816906722)
     addMetadataHash(typeFqn = "com.android.tools.idea.gradle.model.IdeLibrary", metadataHash = 1847052760)
