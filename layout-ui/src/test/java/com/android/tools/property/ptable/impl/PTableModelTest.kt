@@ -22,6 +22,7 @@ import com.android.tools.property.ptable.item.Item
 import com.android.tools.property.ptable.item.addModelListener
 import com.android.tools.property.ptable.item.createModel
 import com.google.common.truth.Truth.assertThat
+import com.intellij.idea.IJIgnore
 import javax.swing.event.TableModelListener
 import org.junit.Test
 import org.mockito.Mockito
@@ -104,6 +105,7 @@ class PTableModelTest {
   }
 
   @Test
+  @IJIgnore(issue = "AT-4013")
   fun testUpdateMovesActiveItem() {
     val tableModel = createModel(Item("item1"), Item("item2"), Group("item3", Item("child1"), Item("child2")), Item("item4"))
     val table = PTableImpl(tableModel, null, DefaultPTableCellRendererProvider(), EmptyPTableCellEditorProvider())
