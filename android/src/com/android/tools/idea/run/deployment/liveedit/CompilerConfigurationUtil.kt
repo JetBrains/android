@@ -61,14 +61,6 @@ fun KaCompilationOptionsBuilder.configureCompilerOptions(module: Module, file: K
   } else {
     configureLanguageVersionSettings(file.languageVersionSettings)
   }
-
-  // TODO(b/367786795): We met an exception from JVM IR CodeGen in the middle of K2 LiveEdit. It was caused by an
-  //  optimization similar to constant propagation. As explained in https://youtrack.jetbrains.com/issue/KT-70261,
-  //  "It is kind of experimental (because of -X) but only because the whole interpretation and optimization
-  //  thing is experimental.", we simply pass `-Xignore-const-optimization-errors`. When the optimization is
-  //  stable, we can drop this.
-  // TODO: android-merge; KaCompilationOptionsBuilder.ignoreConstOptimizationErrors does not exist in the analysis API we compile against
-  // @OptIn(KaIdeApi::class) ignoreConstOptimizationErrors(true)
 }
 
 @KaExperimentalApi
