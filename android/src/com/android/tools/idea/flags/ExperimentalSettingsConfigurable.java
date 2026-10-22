@@ -129,7 +129,7 @@ public class ExperimentalSettingsConfigurable extends CompositeConfigurable<Expe
     if (shouldAskForRestart) {
       String action = application.isRestartCapable() ? "Restart" : "Shutdown";
       int result =
-        Messages.showYesNoDialog("Android Studio must be restarted for changes to take effect.", "Restart Required", action, "Cancel",
+        Messages.showYesNoDialog(getRestartMessage(), "Restart Required", action, "Cancel",
                                  Messages.getQuestionIcon());
       if (result == Messages.YES) {
         shouldRestart = true;
@@ -145,6 +145,16 @@ public class ExperimentalSettingsConfigurable extends CompositeConfigurable<Expe
     if (shouldRestart) {
       // Suppress "Are you sure you want to exit Android Studio" dialog, and restart if possible.
       ApplicationManager.getApplication().exit(false, true, true);
+    }
+  }
+
+  @Nls
+  private String getRestartMessage() {
+    if (forAndroidStudio) {
+      return AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.restart.message");
+    }
+    else {
+      return AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.idea.restart.message");
     }
   }
 

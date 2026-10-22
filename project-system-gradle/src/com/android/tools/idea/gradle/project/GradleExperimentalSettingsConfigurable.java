@@ -84,6 +84,12 @@ public class GradleExperimentalSettingsConfigurable implements ExperimentalConfi
   }
 
   @Override
+  public @NotNull ApplyState preApplyCallback() {
+    // JetBrains patch: a change of the future AGP versions flag takes effect only after an IDE restart.
+    return StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.get() != isSupportFutureAgpVersions() ? ApplyState.RESTART : ApplyState.OK;
+  }
+
+  @Override
   public void apply() throws ConfigurationException {
     mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS = isUseMultiVariantExtraArtifact();
     mySettings.SKIP_GRADLE_TASKS_LIST = !isConfigureAllGradleTasksEnabled();
