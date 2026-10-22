@@ -9,9 +9,9 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeBundle
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Version
+import com.intellij.util.ui.RestartDialogImpl
 import java.util.concurrent.CompletableFuture
 
 internal fun BuildIssueComposer.enableFutureAgpVersionSupportQuickFix(rootCauseType: AndroidSyncExceptionType) {
@@ -29,7 +29,7 @@ internal fun BuildIssueComposer.enableFutureAgpVersionSupportQuickFix(rootCauseT
 /**
  *
  * Hyperlink that turns on the support of future Android Gradle plugin versions. The IDE reads the flag at the start of a sync, thus the new
- * value needs a restart.
+ * value needs a restart. The user can restart now or later.
  */
 class EnableFutureAgpVersionSupportQuickFix : DescribedBuildIssueQuickFix {
   override val id: String = "android.gradle.plugin.enable.future.agp.versions"
@@ -37,7 +37,7 @@ class EnableFutureAgpVersionSupportQuickFix : DescribedBuildIssueQuickFix {
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.override(true)
-    ApplicationManager.getApplication().restart()
+    RestartDialogImpl.showRestartRequired()
 
     return CompletableFuture.completedFuture(Unit)
   }
