@@ -124,6 +124,24 @@ public class GradleExperimentalSettingsConfigurableTest extends LightPlatformTes
     assertEquals(ApplyState.OK, myConfigurable.preApplyCallback());
   }
 
+  public void testPreApplyCallbackSupportFutureAgpVersions() {
+    StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.override(false);
+    try {
+      myConfigurable.enableSupportFutureAgpVersions(true);
+      assertEquals(ApplyState.RESTART, myConfigurable.preApplyCallback());
+      myConfigurable.enableSupportFutureAgpVersions(false);
+      assertEquals(ApplyState.OK, myConfigurable.preApplyCallback());
+
+      StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.override(true);
+      assertEquals(ApplyState.RESTART, myConfigurable.preApplyCallback());
+      myConfigurable.enableSupportFutureAgpVersions(true);
+      assertEquals(ApplyState.OK, myConfigurable.preApplyCallback());
+    }
+    finally {
+      StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.clearOverride();
+    }
+  }
+
   public void testApply() throws ConfigurationException {
     myConfigurable.enableUseMultiVariantExtraArtifacts(true);
     myConfigurable.enableConfigureAllGradleTasks(false);
