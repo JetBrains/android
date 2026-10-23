@@ -47,6 +47,8 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.common.waitUntil
 import java.io.IOException
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -141,7 +143,7 @@ class WifiPairableDeviceProvisionerPluginTest {
     assertThat(plugin.devices.value).isEmpty()
 
     serverStatusFlow.value = ServerStatus(version = "37.0.0")
-    advanceTimeBy(1000) // Past loop delay
+    advanceTimeBy(6.seconds) // Past debounce delay
 
     assertThat(plugin.devices.value).hasSize(1)
   }
@@ -194,6 +196,7 @@ class WifiPairableDeviceProvisionerPluginTest {
     assertThat(handle.state.error).isNull()
 
     mdnsFlow.value = createMdnsTlsService("service1", givenName = "New Foo Pixel")
+    advanceTimeBy(6.seconds)
 
     assertThat(plugin.devices.value).hasSize(1)
     waitUntil {
@@ -373,7 +376,55 @@ class WifiPairableDeviceProvisionerPluginTest {
     assertThat(handle.scope.isActive).isTrue()
 
     mdnsFlow.value = MdnsServices(emptyList(), emptyList(), emptyList())
+    advanceTimeBy(4.seconds) // Within 5s removal debounce window
+    assertThat(handle.scope.isActive).isTrue()
+    assertThat(plugin.devices.value).containsExactly(handle)
+
+    advanceTimeBy(2.seconds) // Past 5s removal debounce window
     waitUntil { !handle.scope.isActive }
+    assertThat(plugin.devices.value).isEmpty()
+  }
+
+  @Test
+  fun transientMdnsDrop_withinDebounceWindow_reusesSameHandle() = runTest {
+    mdnsFlow.value = createMdnsTlsService("service1", "My Pixel", "1.2.3.4", 1234)
+    val plugin = WifiPairableDeviceProvisionerPlugin(backgroundScope, adbService, project, notificationService)
+    advanceTimeBy(4.seconds) // Within 5s debounce window
+    assertThat(plugin.devices.value).isEmpty()
+
+    advanceTimeBy(2.seconds) // Past 5s debounce window
+    val handle = plugin.devices.value.first()
+    assertThat(handle.scope.isActive).isTrue()
+
+    mdnsFlow.value = MdnsServices(emptyList(), emptyList(), emptyList())
+    advanceTimeBy(3.seconds) // Within 5s debounce window
+    assertThat(handle.scope.isActive).isTrue()
+    assertThat(plugin.devices.value).containsExactly(handle)
+
+    // Service reappears before 5s debounce expires
+    mdnsFlow.value = createMdnsTlsService("service1", "My Pixel", "1.2.3.4", 1234, givenName = "Updated Pixel")
+    advanceTimeBy(6.seconds) // Past 5s debounce window for the new emission
+
+    assertThat(handle.scope.isActive).isTrue()
+    assertThat(plugin.devices.value).containsExactly(handle)
+    assertThat(handle.state.properties.model).isEqualTo("Updated Pixel")
+  }
+
+  @Test
+  fun hiddenDevice_cancelsHandleImmediatelyWithoutWaitingForDebounce() = runTest {
+    val hiddenDevicesFlow = MutableStateFlow(emptySet<String>())
+    doReturn(hiddenDevicesFlow).whenever(mockPersistentService).hiddenDevices
+    mdnsFlow.value = createMdnsTlsService("service1", "My Pixel", "1.2.3.4", 1234)
+    val plugin = WifiPairableDeviceProvisionerPlugin(backgroundScope, adbService, project, notificationService)
+    advanceTimeBy(6.seconds) // Past initial delay
+
+    val handle = plugin.devices.value.first()
+    assertThat(handle.scope.isActive).isTrue()
+
+    hiddenDevicesFlow.value = setOf("service1")
+    advanceTimeBy(100.milliseconds) // Well before 5s debounce window
+
+    assertThat(handle.scope.isActive).isFalse()
     assertThat(plugin.devices.value).isEmpty()
   }
 
@@ -399,9 +450,12 @@ class WifiPairableDeviceProvisionerPluginTest {
 
     // Second retry delay: 2000ms
     advanceTimeBy(2001)
-
-    assertThat(plugin.devices.value).hasSize(1)
     assertThat(attempt).isEqualTo(3)
+    assertThat(plugin.devices.value).isEmpty()
+
+    // Debounce delay: 5000ms
+    advanceTimeBy(5.seconds)
+    assertThat(plugin.devices.value).hasSize(1)
   }
 
   @Test

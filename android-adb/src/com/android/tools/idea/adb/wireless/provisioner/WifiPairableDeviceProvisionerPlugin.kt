@@ -67,6 +67,7 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -75,6 +76,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -83,6 +85,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.time.Duration
 
 class WifiPairableDeviceProvisionerPlugin(
   private val scope: CoroutineScope,
@@ -126,6 +129,7 @@ class WifiPairableDeviceProvisionerPlugin(
 
   init {
     scope.launch {
+      @OptIn(FlowPreview::class)
       val mdnsTrackServicesFlow: Flow<Set<MdnsTlsService>> =
         AdbServerStatusRetriever.getInstance(project)
           .serverStatus
@@ -150,6 +154,7 @@ class WifiPairableDeviceProvisionerPlugin(
             }
           }
           .map { it.tlsMdnsServices.toSet() }
+          .debounce(MDNS_DEBOUNCE_DURATION)
 
       combine(mdnsTrackServicesFlow, persistentState.hiddenDevices, wifiConnectedDevices) {
           currentTrackServices,
@@ -404,5 +409,6 @@ class WifiPairableDeviceProvisionerPlugin(
 
   companion object {
     const val PLUGIN_ID = "WifiPairableDevices"
+    private val MDNS_DEBOUNCE_DURATION: Duration = 5.seconds
   }
 }
