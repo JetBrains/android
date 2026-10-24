@@ -82,8 +82,6 @@ jvm_library(
         # do not sort,
         "@lib//:studio-platform-provided",
         "@lib//:studio-test-platform",
-        "//libraries/kotlin/reflect",
-        "//libraries/kotlin/reflect:reflect_test_lib",
         "@lib//:kotlin-stdlib",
         "//libraries/junit4",
         "//libraries/junit4:junit4_test_lib",

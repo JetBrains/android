@@ -110,8 +110,6 @@ jvm_library(
         "//libraries/jetbrains/annotations:annotations_test_lib",
         "//libraries/junit4",
         "//libraries/junit4:junit4_test_lib",
-        "//android/observable",
-        "//android/observable:observable_test_lib",
         "//android/observable:observable-tests",
         "//android/observable:observable-tests_test_lib",
         "@lib//:truth",

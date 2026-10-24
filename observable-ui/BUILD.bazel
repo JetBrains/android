@@ -93,15 +93,12 @@ jvm_library(
     runtime_deps = [
         # do not sort,
         ":observable-ui-tests",
-        "//platform/platform-impl:ide-impl_test_lib",
         "//platform/ide-core:ide-core_test_lib",
     ],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
         "@lib//:studio-test-platform",
-        "//libraries/jetbrains/annotations",
-        "//libraries/jetbrains/annotations:annotations_test_lib",
         "@lib//:kotlin-stdlib",
         "//libraries/guava",
         "//libraries/guava:guava_test_lib",
@@ -118,16 +115,11 @@ jvm_library(
         "//platform/core-api:core_test_lib",
         "//platform/core-ui",
         "//platform/core-ui:core-ui_test_lib",
-        "//platform/platform-api:ide",
-        "//platform/platform-api:ide_test_lib",
-        "//platform/platform-impl:ide-impl",
         "//platform/ide-core",
         "//android/adt-testutils",
         "//android/adt-testutils:adt-testutils_test_lib",
         "//platform/testFramework",
         "//platform/testFramework:testFramework_test_lib",
-        "//platform/util:util-ui",
-        "//platform/util:util-ui_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.observable.ui.tests` end
