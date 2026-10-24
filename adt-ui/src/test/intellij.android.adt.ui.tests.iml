@@ -59,7 +59,7 @@
     <orderEntry type="module" module-name="intellij.webp" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.testFramework.junit5" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.ide.ui" scope="TEST" />
-    <orderEntry type="module-library" exported="" scope="TEST">
+    <orderEntry type="module-library" scope="TEST">
       <library name="ibm.db2.jcc" type="repository">
         <properties include-transitive-deps="false" maven-id="com.ibm.db2:jcc:11.5.7.0">
           <verification>

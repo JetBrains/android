@@ -23,7 +23,6 @@ jvm_library(
     ),
     module_name = "intellij.android.adt.ui.tests",
     visibility = ["//visibility:public"],
-    exports = ["@lib//:android-adt-ui-tests-ibm-db2-jcc"],
     runtime_deps = ["//xml/plugin"],
 )
 
@@ -48,7 +47,6 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
-    exports = ["@lib//:android-adt-ui-tests-ibm-db2-jcc"],
     runtime_deps = [
         # do not sort,
         ":android-adt-ui-tests",
