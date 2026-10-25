@@ -15,5 +15,4 @@
     <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.observable" scope="TEST" />
   </component>
-  <component name="TestModuleProperties" production-module="intellij.android.observable" />
 </module>

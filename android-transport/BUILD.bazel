@@ -150,10 +150,7 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [
-        "//android/android-transport:transport",
-        "//android/android-transport:transport_test_lib",
-    ],
+    module_name = "intellij.android.transport.tests",
     visibility = ["//visibility:public"],
     runtime_deps = [
         # do not sort,
@@ -214,6 +211,8 @@ jvm_library(
         "//libraries/mockito-kotlin:mockito-kotlin_test_lib",
         "//platform/testFramework",
         "//platform/testFramework:testFramework_test_lib",
+        "//android/android-transport:transport",
+        "//android/android-transport:transport_test_lib",
         "//platform/scratch/plugin",
         "//platform/scratch/plugin:plugin_test_lib",
     ],

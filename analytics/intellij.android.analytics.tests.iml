@@ -15,5 +15,4 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.analytics" scope="TEST" />
   </component>
-  <component name="TestModuleProperties" production-module="intellij.android.analytics" />
 </module>

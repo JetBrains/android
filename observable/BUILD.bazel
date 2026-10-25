@@ -72,10 +72,7 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [
-        "//android/observable",
-        "//android/observable:observable_test_lib",
-    ],
+    module_name = "intellij.android.observable.tests",
     visibility = ["//visibility:public"],
     runtime_deps = [":observable-tests"],
     deps = [
@@ -89,6 +86,8 @@ jvm_library(
         "//libraries/guava:guava_test_lib",
         "//platform/util",
         "//platform/util:util_test_lib",
+        "//android/observable",
+        "//android/observable:observable_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.observable.tests` end

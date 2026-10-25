@@ -33,5 +33,4 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.server-flags" scope="TEST" />
   </component>
-  <component name="TestModuleProperties" production-module="intellij.android.server-flags" />
 </module>

@@ -217,10 +217,7 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [
-        "//android/layout-inspector",
-        "//android/layout-inspector:layout-inspector_test_lib",
-    ],
+    module_name = "intellij.android.layout-inspector.integration",
     resource_strip_prefix = "integration/testData",
     resources = glob(
         ["integration/testData/**/*"],
@@ -244,6 +241,8 @@ jvm_library(
         "//android/as-driver/utils:utils_test_lib",
         "//plugins/kotlin/plugin",
         "//plugins/kotlin/plugin:plugin_test_lib",
+        "//android/layout-inspector",
+        "//android/layout-inspector:layout-inspector_test_lib",
         "//platform/scratch/plugin",
         "//platform/scratch/plugin:plugin_test_lib",
     ],

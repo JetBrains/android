@@ -18,5 +18,4 @@
     <orderEntry type="module" module-name="intellij.platform.consoleView" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.utp" scope="TEST" />
   </component>
-  <component name="TestModuleProperties" production-module="intellij.android.utp" />
 </module>

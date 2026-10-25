@@ -28,10 +28,7 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [
-        "//android/android:core",
-        "//android/android:core_test_lib",
-    ],
+    module_name = "intellij.android.core.gutter",
     visibility = ["//visibility:public"],
     runtime_deps = [":gutter"],
     deps = [
@@ -48,6 +45,8 @@ jvm_library(
         "//android/project-system-gradle-psd:projectSystem-gradle-psd_test_lib",
         "//android/android-common:common",
         "//android/android-common:common_test_lib",
+        "//android/android:core",
+        "//android/android:core_test_lib",
         "//android/android:core-tests",
         "//android/android:core-tests_test_lib",
         "//android/render-resources",

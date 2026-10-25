@@ -24,10 +24,7 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [
-        "//android/android:core",
-        "//android/android:core_test_lib",
-    ],
+    module_name = "intellij.android.core.gradle",
     visibility = ["//visibility:public"],
     runtime_deps = [
         # do not sort,
@@ -38,6 +35,8 @@ jvm_library(
     ],
     deps = [
         # do not sort,
+        "//android/android:core",
+        "//android/android:core_test_lib",
         "//android/adt-ui",
         "//android/adt-ui:adt-ui_test_lib",
         "//android/adt-ui/src/test:android-adt-ui-tests",

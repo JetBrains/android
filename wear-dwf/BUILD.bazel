@@ -123,10 +123,7 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [
-        "//android/wear-dwf",
-        "//android/wear-dwf:wear-dwf_test_lib",
-    ],
+    module_name = "intellij.android.wear-dwf.tests",
     resource_strip_prefix = "testData",
     resources = glob(
         ["testData/**/*"],
@@ -140,6 +137,8 @@ jvm_library(
     ],
     deps = [
         # do not sort,
+        "//android/wear-dwf",
+        "//android/wear-dwf:wear-dwf_test_lib",
         "//android/android-common:common",
         "//android/android-common:common_test_lib",
         "//android/android:core",

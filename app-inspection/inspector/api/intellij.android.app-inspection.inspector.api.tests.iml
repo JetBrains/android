@@ -16,5 +16,4 @@
     <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" scope="TEST" />
   </component>
-  <component name="TestModuleProperties" production-module="intellij.android.app-inspection.inspector.api" />
 </module>

@@ -34,5 +34,4 @@
     <orderEntry type="module" module-name="intellij.android.inspectors-common.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.scratch.plugin" scope="TEST" />
   </component>
-  <component name="TestModuleProperties" production-module="intellij.android.inspectors-common.ui" />
 </module>

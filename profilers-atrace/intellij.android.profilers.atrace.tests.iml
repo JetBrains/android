@@ -14,5 +14,4 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.profilers.atrace" scope="TEST" />
   </component>
-  <component name="TestModuleProperties" production-module="intellij.android.profilers.atrace" />
 </module>

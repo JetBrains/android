@@ -78,10 +78,7 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [
-        "//android/server-flags",
-        "//android/server-flags:server-flags_test_lib",
-    ],
+    module_name = "intellij.android.server-flags.tests",
     visibility = ["//visibility:public"],
     runtime_deps = [":server-flags-tests"],
     deps = [
@@ -95,6 +92,8 @@ jvm_library(
         "//libraries/protobuf:protobuf_test_lib",
         "//libraries/junit4",
         "//libraries/junit4:junit4_test_lib",
+        "//android/server-flags",
+        "//android/server-flags:server-flags_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.server-flags.tests` end

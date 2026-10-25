@@ -85,10 +85,7 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [
-        "//android/app-inspection/inspectors/backgroundtask/model",
-        "//android/app-inspection/inspectors/backgroundtask/model:model_test_lib",
-    ],
+    module_name = "intellij.android.app-inspection.inspectors.backgroundtask.model.tests",
     visibility = ["//visibility:public"],
     runtime_deps = [":android-app-inspection-inspectors-backgroundtask-model-tests"],
     deps = [
@@ -107,6 +104,8 @@ jvm_library(
         "//android/app-inspection/inspector/api:api_test_lib",
         "//android/adt-testutils",
         "//android/adt-testutils:adt-testutils_test_lib",
+        "//android/app-inspection/inspectors/backgroundtask/model",
+        "//android/app-inspection/inspectors/backgroundtask/model:model_test_lib",
         "//platform/scratch/plugin",
         "//platform/scratch/plugin:plugin_test_lib",
     ],

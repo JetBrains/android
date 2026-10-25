@@ -15,5 +15,4 @@
     <orderEntry type="library" scope="TEST" name="equalsverifier" level="project" />
     <orderEntry type="module" module-name="intellij.android.gradle-tooling.impl" scope="TEST" />
   </component>
-  <component name="TestModuleProperties" production-module="intellij.android.gradle-tooling.impl" />
 </module>

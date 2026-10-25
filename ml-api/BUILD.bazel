@@ -80,10 +80,7 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [
-        "//android/ml-api",
-        "//android/ml-api:ml-api_test_lib",
-    ],
+    module_name = "intellij.android.ml-api-tests",
     visibility = ["//visibility:public"],
     runtime_deps = [":ml-api-tests"],
     deps = [
@@ -100,6 +97,8 @@ jvm_library(
         "//libraries/kotlin/test:libraries-kotlinTest_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
+        "//android/ml-api",
+        "//android/ml-api:ml-api_test_lib",
         "//libraries/junit4",
         "//libraries/junit4:junit4_test_lib",
         "//platform/core-api:core",

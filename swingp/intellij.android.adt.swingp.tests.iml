@@ -17,5 +17,4 @@
     <orderEntry type="module" module-name="intellij.libraries.jetbrains.annotations" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.swingp" scope="TEST" />
   </component>
-  <component name="TestModuleProperties" production-module="intellij.android.adt.swingp" />
 </module>

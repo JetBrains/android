@@ -83,10 +83,7 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [
-        "//android/inspectors-common/api",
-        "//android/inspectors-common/api:api_test_lib",
-    ],
+    module_name = "intellij.android.inspectors-common.api.tests",
     visibility = ["//visibility:public"],
     runtime_deps = [":android-inspectors-common-api-tests"],
     deps = [
@@ -111,6 +108,8 @@ jvm_library(
         "//platform/platform-api:ide_test_lib",
         "//platform/testFramework",
         "//platform/testFramework:testFramework_test_lib",
+        "//android/inspectors-common/api",
+        "//android/inspectors-common/api:api_test_lib",
         "//platform/scratch/plugin",
         "//platform/scratch/plugin:plugin_test_lib",
     ],

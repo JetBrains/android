@@ -103,10 +103,7 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [
-        "//android/inspectors-common/ui",
-        "//android/inspectors-common/ui:ui_test_lib",
-    ],
+    module_name = "intellij.android.inspectors-common.ui.tests",
     resource_strip_prefix = "resources",
     resources = glob(
         ["resources/**/*"],
@@ -156,6 +153,8 @@ jvm_library(
         "//platform/core-ui:core-ui_test_lib",
         "//platform/testFramework",
         "//platform/testFramework:testFramework_test_lib",
+        "//android/inspectors-common/ui",
+        "//android/inspectors-common/ui:ui_test_lib",
         "//platform/scratch/plugin",
         "//platform/scratch/plugin:plugin_test_lib",
     ],

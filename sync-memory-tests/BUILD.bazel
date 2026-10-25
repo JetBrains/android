@@ -69,10 +69,7 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [
-        "//android/sync-memory-tests",
-        "//android/sync-memory-tests:sync-memory-tests_test_lib",
-    ],
+    module_name = "intellij.android.sync-memory-tests.tests",
     visibility = ["//visibility:public"],
     runtime_deps = [":sync-memory-tests-tests"],
     deps = [
@@ -128,6 +125,8 @@ jvm_library(
         "//platform/util-ex",
         "//platform/util-ex:util-ex_test_lib",
         "@lib//:truth",
+        "//android/sync-memory-tests",
+        "//android/sync-memory-tests:sync-memory-tests_test_lib",
         "//platform/scratch/plugin",
         "//platform/scratch/plugin:plugin_test_lib",
     ],

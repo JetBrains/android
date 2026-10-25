@@ -79,10 +79,7 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [
-        "//android/adt-ui-model",
-        "//android/adt-ui-model:adt-ui-model_test_lib",
-    ],
+    module_name = "intellij.android.adt.ui.model.tests",
     visibility = ["//visibility:public"],
     runtime_deps = [":adt-ui-model-tests"],
     deps = [
@@ -99,6 +96,8 @@ jvm_library(
         "@lib//:truth",
         "//platform/util",
         "//platform/util:util_test_lib",
+        "//android/adt-ui-model",
+        "//android/adt-ui-model:adt-ui-model_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.adt.ui.model.tests` end

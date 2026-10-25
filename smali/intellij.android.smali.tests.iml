@@ -29,5 +29,4 @@
     <orderEntry type="module" module-name="intellij.java.aetherDependencyResolver.plugin" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.smali" scope="TEST" />
   </component>
-  <component name="TestModuleProperties" production-module="intellij.android.smali" />
 </module>

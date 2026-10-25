@@ -85,10 +85,7 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [
-        "//android/observable-ui",
-        "//android/observable-ui:observable-ui_test_lib",
-    ],
+    module_name = "intellij.android.observable.ui.tests",
     visibility = ["//visibility:public"],
     runtime_deps = [
         # do not sort,
@@ -120,6 +117,8 @@ jvm_library(
         "//android/adt-testutils:adt-testutils_test_lib",
         "//platform/testFramework",
         "//platform/testFramework:testFramework_test_lib",
+        "//android/observable-ui",
+        "//android/observable-ui:observable-ui_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.observable.ui.tests` end

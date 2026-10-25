@@ -95,10 +95,7 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [
-        "//android/analytics",
-        "//android/analytics:analytics_test_lib",
-    ],
+    module_name = "intellij.android.analytics.tests",
     visibility = ["//visibility:public"],
     runtime_deps = [":analytics-tests"],
     deps = [
@@ -112,6 +109,8 @@ jvm_library(
         "//libraries/protobuf:protobuf_test_lib",
         "//libraries/junit4",
         "//libraries/junit4:junit4_test_lib",
+        "//android/analytics",
+        "//android/analytics:analytics_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.analytics.tests` end

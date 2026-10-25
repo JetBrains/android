@@ -62,10 +62,7 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [
-        "//android/memory-usage",
-        "//android/memory-usage:memory-usage_test_lib",
-    ],
+    module_name = "intellij.android.memory-usage.tests",
     visibility = ["//visibility:public"],
     runtime_deps = [":memory-usage-tests"],
     deps = [
@@ -74,6 +71,8 @@ jvm_library(
         "@lib//:studio-test-platform",
         "//libraries/junit4",
         "//libraries/junit4:junit4_test_lib",
+        "//android/memory-usage",
+        "//android/memory-usage:memory-usage_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.memory-usage.tests` end
