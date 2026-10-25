@@ -11956,6 +11956,7 @@ jvm_library(
         "//android/server-flags",
         "//android/gradle-dsl-kotlin",
         "//idea/customization/plugin",
+        "//platform/main/intellij.platform.monolith.main:monolith-main",
     ],
 )
 
@@ -11988,6 +11989,7 @@ jvm_library(
         "//android/gradle-dsl-kotlin:gradle-dsl-kotlin_test_lib",
         "//platform/platform-util-io:ide-util-io_test_lib",
         "//idea/customization/plugin:plugin_test_lib",
+        "//platform/main/intellij.platform.monolith.main:monolith-main_test_lib",
     ],
     deps = [
         # do not sort,

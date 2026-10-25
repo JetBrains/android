@@ -36,6 +36,7 @@ jvm_library(
         "//plugins/sh/core",
         "//plugins/sh/plugin",
         "//plugins/sh/spellchecker",
+        "//platform/main/intellij.platform.monolith.main:monolith-main",
     ],
 )
 
@@ -69,6 +70,7 @@ jvm_library(
         "//plugins/sh/core:core_test_lib",
         "//plugins/sh/plugin:plugin_test_lib",
         "//plugins/sh/spellchecker:spellchecker_test_lib",
+        "//platform/main/intellij.platform.monolith.main:monolith-main_test_lib",
     ],
     deps = [
         # do not sort,
