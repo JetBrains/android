@@ -26,7 +26,7 @@ def debugger_test(
     runtime_deps = [
         test_dep,
         "//tools/adt/idea/ij-debugger-tests/lib:bazel-runner",
-        "@tools_idea//:main_test_lib",
+        "@tools_idea//:main",
     ] + [it.replace("@community/", "@tools_idea/").replace("@lib/", "@tools_idea_lib/") for it in TEST_FRAMEWORK_DEPS]
 
     test_jar = test_dep.removeprefix("@tools_idea/").replace(":", "/") + ".jar"
