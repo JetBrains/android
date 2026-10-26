@@ -20,8 +20,13 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.registerServiceInstance
+import com.intellij.facet.FacetManager
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
 import com.intellij.testFramework.PsiTestUtil
@@ -30,12 +35,17 @@ import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.kotlin.analysis.api.KaPlatformInterface
 import org.jetbrains.kotlin.analysis.api.platform.projectStructure.KotlinCompilerPluginsProvider
 import org.jetbrains.kotlin.analysis.api.projectStructure.KaModule
+import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.create
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.extensions.ExtensionPointDescriptor
+import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.idea.fir.extensions.KotlinFirCompilerPluginConfigurationForIdeProvider
+import org.jetbrains.kotlin.idea.test.configureKotlinFacet
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 
 /**
  * Path to the compose-runtime jar. Note that unlike all other dependencies, we don't need to load that into the test's runtime classpath.
@@ -100,6 +110,7 @@ fun <T : CodeInsightTestFixture> setUpComposeInProjectFixture(
   projectRule.project.modules.forEach {
     if (!exceptModuleNames.contains(it.name)) {
       PsiTestUtil.addLibrary(it, composeRuntimePath)
+      addJvm11KotlinFacet(it, projectRule.testRootDisposable)
     }
   }
   registerComposeCompilerPlugin(projectRule.project)
@@ -108,4 +119,23 @@ fun <T : CodeInsightTestFixture> setUpComposeInProjectFixture(
   // ask the test module system to pretend we have a compose module.
   val testProjectSystem = TestProjectSystem(projectRule.project).apply { usesCompose = true }
   runInEdtAndWait { testProjectSystem.useInTests() }
+}
+
+/**
+ * The compose runtime jar is built with JVM target 11. Without a Kotlin facet, [module] has JVM target 1.8, and a call of an inline
+ * function from the jar gets INLINE_FROM_HIGHER_PLATFORM. The facet is removed when [disposable] is disposed.
+ */
+private fun addJvm11KotlinFacet(module: Module, disposable: Disposable) {
+  if (KotlinFacet.get(module) != null) return
+  val facet = configureKotlinFacet(module) {
+    (settings.compilerArguments as? K2JVMCompilerArguments)?.jvmTarget = JvmTarget.JVM_11.description
+    settings.targetPlatform = JvmPlatforms.jvmPlatformByTargetVersion(JvmTarget.JVM_11)
+  }
+  Disposer.register(disposable) {
+    runInEdtAndWait {
+      val facetModel = FacetManager.getInstance(module).createModifiableModel()
+      facetModel.removeFacet(facet)
+      runWriteAction { facetModel.commit() }
+    }
+  }
 }

@@ -169,6 +169,9 @@
     <orderEntry type="module" module-name="intellij.idea.customization.plugin" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.adb.testUtil" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.scratch.plugin" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.facet" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.jps.common" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.core" />
 </module>
