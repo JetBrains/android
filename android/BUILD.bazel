@@ -12205,8 +12205,6 @@ jvm_library(
         "//plugins/kotlin/bundled-compiler-plugins-support:compilerPlugins-support-bundled_test_lib",
         "//android/android-templates:templates-tests",
         "//android/android-templates:templates-tests_test_lib",
-        "//images:images-tests",
-        "//images:images-tests_test_lib",
         "//RegExpSupport:regexp-tests",
         "//RegExpSupport:regexp-tests_test_lib",
         "//platform/statistics",
