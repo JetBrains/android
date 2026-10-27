@@ -21,8 +21,6 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.intellij.ide.scratch.ScratchFileCreationHelper
 import com.intellij.ide.scratch.ScratchFileCreator
-import com.intellij.ide.scratch.ScratchFileService.Option.create_new_always
-import com.intellij.ide.scratch.ScratchUtil
 import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.json.JsonLanguage
 import com.intellij.lang.Language
@@ -50,7 +48,6 @@ internal class CreateScratchFileAction : DumbAwareAction("Create a Scratch File 
 
   override fun update(e: AnActionEvent) {
     e.presentation.isVisible = false
-    if (ScratchUtil.findScratchesRootType() == null) return
     val (_, language) = e.findEmbeddedData() ?: return
     e.presentation.text = LogcatBundle.message("logcat.open.embedded.data.text", language.displayName)
     e.presentation.icon = language.associatedFileType?.icon
@@ -64,7 +61,7 @@ internal class CreateScratchFileAction : DumbAwareAction("Create a Scratch File 
     val formatted = ScratchFileCreationHelper.reformat(project, language, text)
     val fileExtension = language.associatedFileType?.defaultExtension ?: ""
     val fileName = PathUtil.makeFileName("logcat", fileExtension)
-    val file = ScratchFileCreator.createScratchFile(project, fileName, language, formatted, create_new_always) ?: return
+    val file = ScratchFileCreator.createScratchOrTempFile(project, fileName, language, formatted) ?: return
     navigationSupport.createNavigatable(project, file, 0).navigate(true)
   }
 
