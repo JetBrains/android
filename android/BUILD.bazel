@@ -12207,8 +12207,6 @@ jvm_library(
         "//android/android-templates:templates-tests_test_lib",
         "//platform/statistics",
         "//platform/statistics:statistics_test_lib",
-        "//plugins/kotlin/highlighting/highlighting-k2:kotlin-highlighting-tests",
-        "//plugins/kotlin/highlighting/highlighting-k2:kotlin-highlighting-tests_test_lib",
         "//plugins/kotlin/refactorings/kotlin.refactorings.tests.k2:kotlin-refactorings-tests",
         "//plugins/kotlin/refactorings/kotlin.refactorings.tests.k2:kotlin-refactorings-tests_test_lib",
         "//plugins/kotlin/refactorings/rename.k2:kotlin-refactorings-rename-tests",
