@@ -22,6 +22,7 @@ jvm_library(
         # do not sort,
         "//android/android-kotlin/idea-android:android-kotlin-idea",
         "//android/layoutlib",
+        "//platform/main/intellij.platform.monolith.main:monolith-main",
     ],
 )
 
@@ -45,6 +46,7 @@ jvm_library(
         "//platform/ide-core:ide-core_test_lib",
         "//android/android-kotlin/idea-android:android-kotlin-idea_test_lib",
         "//android/layoutlib:layoutlib_test_lib",
+        "//platform/main/intellij.platform.monolith.main:monolith-main_test_lib",
     ],
     deps = [
         # do not sort,

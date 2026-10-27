@@ -36,6 +36,7 @@
     <orderEntry type="module" module-name="intellij.kotlin.refactorings.rename" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.kotlin.base.plugin.testFramework" scope="RUNTIME" />
     <orderEntry type="module" module-name="kotlin.jvm.shared" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.platform.monolith.main" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.core.editing.metrics" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.core.editing.metrics" />

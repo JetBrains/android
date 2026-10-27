@@ -167,6 +167,7 @@
     <orderEntry type="module" module-name="intellij.kotlin.refactorings.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.kotlin.refactorings.rename.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.idea.customization.plugin" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.platform.monolith.main" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.adb.testUtil" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.scratch.plugin" scope="TEST" />
     <orderEntry type="module" module-name="intellij.kotlin.base.facet" scope="TEST" />

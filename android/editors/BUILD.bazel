@@ -10,7 +10,11 @@ jvm_library(
     ),
     module_name = "intellij.android.core.editors",
     visibility = ["//visibility:public"],
-    runtime_deps = ["//android/android-lint:lint"],
+    runtime_deps = [
+        # do not sort,
+        "//android/android-lint:lint",
+        "//platform/main/intellij.platform.monolith.main:monolith-main",
+    ],
 )
 
 jvm_library(
@@ -33,6 +37,7 @@ jvm_library(
         # do not sort,
         ":editors",
         "//android/android-lint:lint_test_lib",
+        "//platform/main/intellij.platform.monolith.main:monolith-main_test_lib",
     ],
     deps = [
         # do not sort,

@@ -14,6 +14,7 @@ jvm_library(
         # do not sort,
         "@lib//:kotlin-stdlib",
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
+        "//platform/main/intellij.platform.monolith.main:monolith-main",
     ],
 )
 
@@ -39,6 +40,7 @@ jvm_library(
         "//platform/ide-core:ide-core_test_lib",
         "//platform/platform-impl:ide-impl_test_lib",
         "//platform/platform-util-io:ide-util-io_test_lib",
+        "//platform/main/intellij.platform.monolith.main:monolith-main_test_lib",
     ],
     deps = [
         # do not sort,

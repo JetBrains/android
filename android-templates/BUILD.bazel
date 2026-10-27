@@ -179,6 +179,7 @@ jvm_library(
         "//plugins/kotlin/jsr223",
         "//plugins/kotlin/base/pluginTestFramework:kotlin-base-plugin-testFramework",
         "//plugins/kotlin/jvm/shared",
+        "//platform/main/intellij.platform.monolith.main:monolith-main",
     ],
 )
 
@@ -212,6 +213,7 @@ jvm_library(
         "//plugins/kotlin/jsr223:jsr223_test_lib",
         "//plugins/kotlin/base/pluginTestFramework:kotlin-base-plugin-testFramework_test_lib",
         "//plugins/kotlin/jvm/shared:shared_test_lib",
+        "//platform/main/intellij.platform.monolith.main:monolith-main_test_lib",
     ],
     deps = [
         # do not sort,

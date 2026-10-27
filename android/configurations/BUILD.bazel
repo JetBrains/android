@@ -10,7 +10,11 @@ jvm_library(
     ),
     module_name = "intellij.android.core.configurations",
     visibility = ["//visibility:public"],
-    runtime_deps = ["//android/layoutlib"],
+    runtime_deps = [
+        # do not sort,
+        "//android/layoutlib",
+        "//platform/main/intellij.platform.monolith.main:monolith-main",
+    ],
 )
 
 jvm_library(
@@ -30,6 +34,7 @@ jvm_library(
         # do not sort,
         ":configurations",
         "//android/layoutlib:layoutlib_test_lib",
+        "//platform/main/intellij.platform.monolith.main:monolith-main_test_lib",
     ],
     deps = [
         # do not sort,

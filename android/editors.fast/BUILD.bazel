@@ -10,6 +10,7 @@ jvm_library(
     ),
     module_name = "intellij.android.core.editors.fast",
     visibility = ["//visibility:public"],
+    runtime_deps = ["//platform/main/intellij.platform.monolith.main:monolith-main"],
 )
 
 jvm_library(
@@ -25,7 +26,11 @@ jvm_library(
     ),
     module_name = "intellij.android.core.editors.fast",
     visibility = ["//visibility:public"],
-    runtime_deps = [":editors.fast"],
+    runtime_deps = [
+        # do not sort,
+        ":editors.fast",
+        "//platform/main/intellij.platform.monolith.main:monolith-main_test_lib",
+    ],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",

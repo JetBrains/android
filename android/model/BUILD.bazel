@@ -10,6 +10,7 @@ jvm_library(
     ),
     module_name = "intellij.android.core.model",
     visibility = ["//visibility:public"],
+    runtime_deps = ["//platform/main/intellij.platform.monolith.main:monolith-main"],
 )
 
 jvm_library(
@@ -31,6 +32,7 @@ jvm_library(
         "//platform/ide-core:ide-core_test_lib",
         "//platform/ide-core-impl:ide-core-impl_test_lib",
         "//platform/platform-impl:ide-impl_test_lib",
+        "//platform/main/intellij.platform.monolith.main:monolith-main_test_lib",
     ],
     deps = [
         # do not sort,

@@ -79,6 +79,8 @@
     <orderEntry type="module" module-name="intellij.libraries.junit4" scope="TEST" />
     <orderEntry type="module" module-name="intellij.webp.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.plugin" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.platform.monolith.main" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.idea.community.customization" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.adt.ui" />

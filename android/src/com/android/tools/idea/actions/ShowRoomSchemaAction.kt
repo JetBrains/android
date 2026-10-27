@@ -16,10 +16,12 @@
 package com.android.tools.idea.actions
 
 import com.android.tools.idea.lang.androidSql.room.RoomSchemaManager
+import com.intellij.ide.scratch.ScratchFileCreator
+import com.intellij.ide.scratch.ScratchUtil
 import com.intellij.ide.scratch.ScratchFileService
-import com.intellij.ide.scratch.ScratchRootType
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -37,6 +39,12 @@ private val LOG = Logger.getInstance(ShowRoomSchemaAction::class.java)
  * action multiple times in a row, the schema is recomputed every time.
  */
 class ShowRoomSchemaAction : AnAction("Show Room schema") {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
+  override fun update(e: AnActionEvent) {
+    e.presentation.isEnabledAndVisible = e.project != null && ScratchUtil.findScratchesRootType() != null
+  }
+
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project!!
     val output = StringWriter()
@@ -61,14 +69,13 @@ class ShowRoomSchemaAction : AnAction("Show Room schema") {
       writer.println("Failed to get PSI file.")
     }
 
-    ScratchRootType.getInstance()
-      .createScratchFile(
+    ScratchFileCreator.createScratchFile(
         project,
         "roomSchema.txt",
         PlainTextLanguage.INSTANCE,
         output.toString(),
         ScratchFileService.Option.create_new_always,
       )
-      .let { FileEditorManager.getInstance(project).openFile(it!!, true) }
+      ?.let { FileEditorManager.getInstance(project).openFile(it, true) }
   }
 }

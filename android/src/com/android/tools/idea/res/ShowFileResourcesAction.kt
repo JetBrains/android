@@ -16,16 +16,24 @@
 package com.android.tools.idea.res
 
 import com.android.tools.idea.namespacing
+import com.intellij.ide.scratch.ScratchFileCreator
+import com.intellij.ide.scratch.ScratchUtil
 import com.intellij.ide.scratch.ScratchFileService
-import com.intellij.ide.scratch.ScratchRootType
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.CommonDataKeys.PSI_FILE
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileTypes.PlainTextLanguage
 import org.jetbrains.android.facet.AndroidFacet
 
 class ShowFileResourcesAction : AnAction("Show resources defined in file") {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
+  override fun update(e: AnActionEvent) {
+    e.presentation.isEnabledAndVisible = e.project != null && ScratchUtil.findScratchesRootType() != null
+  }
+
   override fun actionPerformed(e: AnActionEvent) {
     val psiFile = e.dataContext.getData(PSI_FILE) ?: return
     val project = psiFile.project
@@ -42,8 +50,7 @@ class ShowFileResourcesAction : AnAction("Show resources defined in file") {
       )
 
     val scratchFile =
-      ScratchRootType.getInstance()
-        .createScratchFile(
+      ScratchFileCreator.createScratchFile(
           project,
           "resources from ${psiFile.name}",
           PlainTextLanguage.INSTANCE,

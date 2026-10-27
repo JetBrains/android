@@ -16,6 +16,7 @@ jvm_library(
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
         "//libraries/kotlinc/symbol-light-classes:libraries-kotlinc-symbol-light-classes",
         "//android/android-kotlin/idea-android:android-kotlin-idea",
+        "//platform/main/intellij.platform.monolith.main:monolith-main",
     ],
 )
 
@@ -37,6 +38,7 @@ jvm_library(
         ":modularize",
         "//platform/ide-core:ide-core_test_lib",
         "//android/android-kotlin/idea-android:android-kotlin-idea_test_lib",
+        "//platform/main/intellij.platform.monolith.main:monolith-main_test_lib",
     ],
     deps = [
         # do not sort,
