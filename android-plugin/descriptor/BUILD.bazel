@@ -182,7 +182,6 @@ dev_dist_plugin(
         "//android/execution/common:resources/META-INF/android-execution-common.xml": "META-INF/android-execution-common.xml",
         "//android/layout-inspector/gradle:resources/META-INF/layout-inspector-gradle.xml": "META-INF/layout-inspector-gradle.xml",
         "//android/layout-inspector:resources/META-INF/layout-inspector.xml": "META-INF/layout-inspector.xml",
-        "//android/layoutlib:resources/META-INF/layoutlib.xml": "META-INF/layoutlib.xml",
         "//android/lint:resources/META-INF/lint-plugin.xml": "META-INF/lint-plugin.xml",
         "//android/logcat/gradle:resources/META-INF/logcat-gradle.xml": "META-INF/logcat-gradle.xml",
         "//android/logcat:resources/META-INF/logcat.xml": "META-INF/logcat.xml",

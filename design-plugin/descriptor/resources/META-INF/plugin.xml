@@ -49,8 +49,8 @@
 
   <!-- Library wrapper module used only by this plugin. The <content> tag has no 'namespace' attribute on purpose:
        that registers the module in this plugin's implicit private namespace, so other plugins may bundle their own
-       copy without a runtime module ID clash. loading="embedded" is required because intellij.android.designer and
-       intellij.android.visual-lint are packed into this plugin's JARs as plain modules
+       copy without a runtime module ID clash. loading="embedded" is required because intellij.android.layoutlib,
+       intellij.android.designer and intellij.android.visual-lint are packed into this plugin's JARs as plain modules
        and their sources import com.android.layoutlib.bridge.*, com.android.internal.* and
        com.android.tools.idea.validator.* directly, so the classes must be on the plugin's main classloader. -->
   <content>
@@ -70,6 +70,7 @@
   <xi:include href="/META-INF/naveditor-gradle.xml"/>
   <xi:include href="/META-INF/compose-designer.xml"/>
   <xi:include href="/META-INF/preview-designer.xml"/>
+  <xi:include href="/META-INF/layoutlib.xml"/>
   <xi:include href="/META-INF/glance-designer.xml"/>
   <xi:include href="/META-INF/wear-designer.xml"/>
 
