@@ -75,13 +75,15 @@ jvm_library(
         "//platform/platform-impl:ide-impl_test_lib",
     ],
 )
+### auto-generated section `build intellij.android.smali` end
 
+### auto-generated section `plugin intellij.android.smali` start
 ij_plugin(
     name = "smali_plugin",
     descriptor_module = ":smali",
     visibility = ["//visibility:public"],
 )
-### auto-generated section `build intellij.android.smali` end
+### auto-generated section `plugin intellij.android.smali` end
 
 ### auto-generated section `iml intellij.android.smali` start
 exports_files(
