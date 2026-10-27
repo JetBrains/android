@@ -39,11 +39,13 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import org.jetbrains.kotlin.analysis.api.KaSession
-import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotation
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationValue
 import org.jetbrains.kotlin.analysis.api.base.KaConstantValue
+import org.jetbrains.kotlin.analysis.api.session.analyze
+import org.jetbrains.kotlin.analysis.api.session.useSiteSession
 import org.jetbrains.kotlin.analysis.api.symbols.KaClassSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.symbol
 import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -136,7 +138,7 @@ class PreviewDefinitionProvider(private val project: Project, scope: CoroutineSc
       val functionSymbol = function.symbol
       for (annotation in functionSymbol.annotations) {
         ProgressManager.checkCanceled()
-        val leafPreviews = multiPreviewExpander.expandAnnotationToLeafPreviews(this, annotation)
+        val leafPreviews = multiPreviewExpander.expandAnnotationToLeafPreviews(useSiteSession, annotation)
         leafPreviews.forEach { leafAnnotation ->
           val leafName = extractNameArgument(leafAnnotation)
           resolvedPreviews.add(PreviewDefinition.create(function, leafAnnotation.psi as KtAnnotationEntry, leafName))

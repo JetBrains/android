@@ -44,9 +44,12 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaIdeApi
 import org.jetbrains.kotlin.analysis.api.KaSession
-import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.session.analyze
+import org.jetbrains.kotlin.analysis.api.session.useSiteSession
 import org.jetbrains.kotlin.analysis.api.symbols.KaCallableSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.markers.KaNamedSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.symbol
+import org.jetbrains.kotlin.analysis.api.visibility.createUseSiteVisibilityChecker
 import org.jetbrains.kotlin.idea.base.analysis.api.utils.KtSymbolFromIndexProvider
 import org.jetbrains.kotlin.idea.base.analysis.api.utils.shortenReferencesInRange
 import org.jetbrains.kotlin.idea.base.psi.imports.addImport
@@ -146,7 +149,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     ProgressManager.checkCanceled()
 
     val nameExpression = createNameExpression(element)
-    analyze(nameExpression) { fillCompletionVariants(parameters, nameExpression, isMethodCalledOnImportedModifier, resultSet) }
+    analyze(nameExpression) { useSiteSession.fillCompletionVariants(parameters, nameExpression, isMethodCalledOnImportedModifier, resultSet) }
   }
 
   @VisibleForTesting
@@ -191,7 +194,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
 
     val elementToAnalyze = this.containingClassOrObject ?: this
     analyze(elementToAnalyze) {
-      val visibilityChecker = createUseSiteVisibilityChecker(useSiteFile = ktFile.symbol, position = completionPosition)
+      val visibilityChecker = createUseSiteVisibilityChecker(useSiteFile = ktFile.symbol, receiverExpression = null, position = completionPosition)
       return visibilityChecker.isVisible(elementToAnalyze.symbol)
     }
   }

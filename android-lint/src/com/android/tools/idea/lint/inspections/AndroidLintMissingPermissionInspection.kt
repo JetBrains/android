@@ -64,7 +64,8 @@ import com.intellij.psi.xml.XmlTag
 import kotlin.collections.plus
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.session.analyze
+import org.jetbrains.kotlin.analysis.api.session.useSiteSession
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
 import org.jetbrains.kotlin.idea.base.psi.insertValueArgumentBefore
@@ -366,7 +367,7 @@ class AndroidLintMissingPermissionInspection :
     }
 
     private fun addOrUpdateKotlinAnnotation(ktAnnotated: KtAnnotated) {
-      val existing = analyze(ktAnnotated) { ktAnnotated.annotationEntries.firstOrNull { it.fqNameMatches(REQUIRES_PERMISSION, this) } }
+      val existing = analyze(ktAnnotated) { ktAnnotated.annotationEntries.firstOrNull { it.fqNameMatches(REQUIRES_PERMISSION, useSiteSession) } }
       if (existing == null) {
         ktAnnotated.addAnnotation(ClassId.topLevel(FqName(REQUIRES_PERMISSION)), getKotlinInnerText(), false)
         return
@@ -467,7 +468,7 @@ class AndroidLintMissingPermissionInspection :
 
         val argument =
           analyze(elementToAnnotate) {
-              elementToAnnotate.annotationEntries.firstOrNull { it.getQualifiedName(this) == REQUIRES_PERMISSION }
+              elementToAnnotate.annotationEntries.firstOrNull { it.getQualifiedName(useSiteSession) == REQUIRES_PERMISSION }
             }
             ?.valueArguments
             ?.firstOrNull { it.getArgumentName()?.asName?.asString()?.let(ARGUMENT_NAMES::contains) ?: true }

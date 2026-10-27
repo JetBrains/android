@@ -16,10 +16,12 @@
 package com.android.tools.compose.code
 
 import com.android.tools.compose.aa.code.getComposableFunctionRenderParts
-import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.session.analyze
+import org.jetbrains.kotlin.analysis.api.session.useSiteSession
 import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.symbol
 import org.jetbrains.kotlin.psi.KtDeclaration
 
 /** Represents parts of a Composable function to be used for rendering in various menus or dialogs. */
@@ -30,7 +32,7 @@ fun KtDeclaration.getComposableFunctionRenderParts(): ComposableFunctionRenderPa
   return allowAnalysisOnEdt {
     analyze(this) {
       val functionLikeSymbol = this@getComposableFunctionRenderParts.symbol as? KaFunctionSymbol ?: return null
-      getComposableFunctionRenderParts(functionLikeSymbol)
+      useSiteSession.getComposableFunctionRenderParts(functionLikeSymbol)
     }
   }
 }

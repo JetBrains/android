@@ -36,7 +36,8 @@ import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.text.nullize
 import java.util.concurrent.Callable
-import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.session.analyze
+import org.jetbrains.kotlin.analysis.api.session.useSiteSession
 import org.jetbrains.kotlin.idea.base.psi.deleteValueArgument
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtConstantExpression
@@ -124,7 +125,7 @@ internal open class PsiCallParameterPropertyItem(
           // If called from a background thread, we can perform the analysis synchronously
           cachedValue =
             ReadAction.compute<String?, Throwable> {
-              analyze(expression) { expression.tryEvaluateConstantAsText(this) }.takeIf { expression.isValid }
+              analyze(expression) { expression.tryEvaluateConstantAsText(useSiteSession) }.takeIf { expression.isValid }
             }
           isCachedValueValid = true
         }
@@ -142,7 +143,7 @@ internal open class PsiCallParameterPropertyItem(
 
   private fun triggerAsyncValueUpdate() {
     val pointer = argumentExpression ?: return
-    ReadAction.nonBlocking(Callable { pointer.element?.takeIf { it.isValid }?.let { analyze(it) { it.tryEvaluateConstantAsText(this) } } })
+    ReadAction.nonBlocking(Callable { pointer.element?.takeIf { it.isValid }?.let { analyze(it) { it.tryEvaluateConstantAsText(useSiteSession) } } })
       .finishOnUiThread(ModalityState.any()) { newValue ->
         if (argumentExpression === pointer) {
           cachedValue = newValue

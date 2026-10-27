@@ -27,11 +27,12 @@ import org.jetbrains.android.dom.manifest.Application
 import org.jetbrains.android.dom.manifest.ApplicationComponent
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.session.analyze
+import org.jetbrains.kotlin.analysis.api.session.useSiteSession
 import org.jetbrains.kotlin.android.isSubclassOf
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.intentions.SelfTargetingIntention
@@ -70,7 +71,7 @@ abstract class AbstractRegisterComponentAction<T : ApplicationComponent>(text: S
         @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
         allowAnalysisFromWriteAction {
             analyze(this@isSubclassOfComponentType) {
-                isSubclassOf(this@isSubclassOfComponentType, ClassId.topLevel(FqName(componentClassName)), strict = true)
+                useSiteSession.isSubclassOf(this@isSubclassOfComponentType, ClassId.topLevel(FqName(componentClassName)), strict = true)
             }
         }
     }

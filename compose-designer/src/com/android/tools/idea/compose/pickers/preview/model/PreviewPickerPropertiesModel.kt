@@ -67,11 +67,14 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
-import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.components.resolveToCall
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.resolution.singleFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
+import org.jetbrains.kotlin.analysis.api.session.analyze
+import org.jetbrains.kotlin.analysis.api.session.useSiteSession
+import org.jetbrains.kotlin.analysis.api.types.expandedSymbol
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtCallElement
@@ -322,7 +325,7 @@ private class PreviewPropertiesProvider(private val defaultValues: Map<String, S
       callableSymbol.valueParameters.forEach { parameter ->
         val argument = getArgumentForParameter(resolvedFunctionCall, parameter)
         val defaultValue = defaultValues[parameter.name.asString()]
-        val initialValue = argument?.tryEvaluateConstantAsText(this)
+        val initialValue = argument?.tryEvaluateConstantAsText(useSiteSession)
         collectParameterPropertyItems(
           project,
           model,

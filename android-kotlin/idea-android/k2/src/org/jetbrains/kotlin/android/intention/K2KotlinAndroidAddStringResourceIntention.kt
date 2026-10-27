@@ -15,12 +15,16 @@
  */
 package org.jetbrains.kotlin.android.intention
 
-import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.expressions.expressionType
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.session.analyze
+import org.jetbrains.kotlin.analysis.api.session.useSiteSession
 import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.classSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.symbol
 import org.jetbrains.kotlin.analysis.api.types.KaFunctionType
 import org.jetbrains.kotlin.android.isSubclassOf
 import org.jetbrains.kotlin.name.ClassId
@@ -37,7 +41,7 @@ class K2KotlinAndroidAddStringResourceIntention : KotlinAndroidAddStringResource
                 analyze(this) {
                     val functionSymbol = symbol as? KaFunctionSymbol ?: return false
                     val receiverType = functionSymbol.receiverParameter?.returnType ?: return false
-                    return baseClassIds.any { isSubclassOf(receiverType, it, strict = false) }
+                    return baseClassIds.any { useSiteSession.isSubclassOf(receiverType, it, strict = false) }
                 }
             }
         }
@@ -51,7 +55,7 @@ class K2KotlinAndroidAddStringResourceIntention : KotlinAndroidAddStringResource
                 analyze(this) {
                     val type = expressionType as? KaFunctionType ?: return false
                     val extendedType = type.receiverType ?: return false
-                    return baseClassIds.any { isSubclassOf(extendedType, it, strict = false) }
+                    return baseClassIds.any { useSiteSession.isSubclassOf(extendedType, it, strict = false) }
                 }
             }
         }
@@ -64,7 +68,7 @@ class K2KotlinAndroidAddStringResourceIntention : KotlinAndroidAddStringResource
             allowAnalysisFromWriteAction {
                 analyze(this) {
                     val classOrObjectSymbol = classSymbol ?: return false
-                    return baseClassIds.any { isSubclassOf(classOrObjectSymbol, it, strict = false) }
+                    return baseClassIds.any { useSiteSession.isSubclassOf(classOrObjectSymbol, it, strict = false) }
                 }
             }
         }

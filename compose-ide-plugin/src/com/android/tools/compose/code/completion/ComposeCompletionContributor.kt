@@ -41,8 +41,12 @@ import javax.swing.Icon
 import javax.swing.ImageIcon
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
-import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.session.analyze
+import org.jetbrains.kotlin.analysis.api.session.useSiteSession
+import org.jetbrains.kotlin.analysis.api.symbols.symbol
 import org.jetbrains.kotlin.analysis.api.types.KaFunctionType
+import org.jetbrains.kotlin.analysis.api.types.KaStandardTypeClassIds
+import org.jetbrains.kotlin.analysis.api.types.classId
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.idea.references.mainReference
@@ -173,9 +177,9 @@ private class ComposableFunctionLookupElement(original: LookupElement, private v
     val element = psiElement
     analyze(element) {
       val functionSymbol = element.symbol
-      val typeText = presentation.typeText.takeUnless { functionSymbol.returnType.isUnitType }
+      val typeText = presentation.typeText.takeUnless { functionSymbol.returnType.classId == KaStandardTypeClassIds.UNIT }
       presentation.setTypeText(typeText, null)
-      presentation.rewriteSignature(getComposableFunctionRenderParts(functionSymbol))
+      presentation.rewriteSignature(useSiteSession.getComposableFunctionRenderParts(functionSymbol))
     }
 
     presentation.icon = COMPOSABLE_FUNCTION_ICON

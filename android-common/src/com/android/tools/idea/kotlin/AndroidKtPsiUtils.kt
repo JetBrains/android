@@ -26,8 +26,8 @@ import org.jetbrains.kotlin.analysis.api.KaConstantInitializerValue
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaInitializerValue
 import org.jetbrains.kotlin.analysis.api.KaSession
-import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.base.KaConstantValue
+import org.jetbrains.kotlin.analysis.api.components.resolveToCall
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
@@ -35,10 +35,13 @@ import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.resolution.singleConstructorCallOrNull
 import org.jetbrains.kotlin.analysis.api.resolution.singleVariableAccessCall
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
+import org.jetbrains.kotlin.analysis.api.session.analyze
+import org.jetbrains.kotlin.analysis.api.session.useSiteSession
 import org.jetbrains.kotlin.analysis.api.symbols.KaClassKind
 import org.jetbrains.kotlin.analysis.api.symbols.KaDeclarationSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaPropertySymbol
 import org.jetbrains.kotlin.analysis.api.symbols.psiSafe
+import org.jetbrains.kotlin.analysis.api.symbols.symbol
 import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.findFacadeClass
 import org.jetbrains.kotlin.asJava.getAccessorLightMethods
@@ -76,7 +79,7 @@ inline fun <T> KaSession?.applyOrAnalyze(element: KtElement, block: KaSession.()
   if (this != null) {
     block()
   } else {
-    allowAnalysisOnEdt { analyze(element) { block() } }
+    allowAnalysisOnEdt { analyze(element) { useSiteSession.block() } }
   }
 
 /** Checks if this [KtProperty] has a backing field or implements get/set on its own. */
@@ -296,7 +299,7 @@ private inline fun <T> KtAnnotated.mapOnDeclarationSymbol(block: KaSession.(KaDe
     else -> {
       allowAnalysisOnEdt {
         @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
-        allowAnalysisFromWriteAction { analyze(this) { block(symbol) } }
+        allowAnalysisFromWriteAction { analyze(this) { useSiteSession.block(symbol) } }
       }
     }
   }

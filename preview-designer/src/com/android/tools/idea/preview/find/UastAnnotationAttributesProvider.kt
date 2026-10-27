@@ -20,8 +20,9 @@ import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiLiteralExpression
 import com.intellij.psi.util.ClassUtil
 import com.intellij.util.text.nullize
-import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationValue
+import org.jetbrains.kotlin.analysis.api.session.analyze
+import org.jetbrains.kotlin.analysis.api.symbols.symbol
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement

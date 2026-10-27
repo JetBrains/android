@@ -16,9 +16,11 @@
 package org.jetbrains.kotlin.android.inspection
 
 import org.jetbrains.kotlin.analysis.api.KaSession
-import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.components.resolveToCall
 import org.jetbrains.kotlin.analysis.api.resolution.successfulFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
+import org.jetbrains.kotlin.analysis.api.session.analyze
+import org.jetbrains.kotlin.analysis.api.session.useSiteSession
 import org.jetbrains.kotlin.analysis.api.symbols.KaNamedFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaTypeParameterSymbol
 import org.jetbrains.kotlin.analysis.api.types.KaCapturedType
@@ -27,6 +29,11 @@ import org.jetbrains.kotlin.analysis.api.types.KaErrorType
 import org.jetbrains.kotlin.analysis.api.types.KaFlexibleType
 import org.jetbrains.kotlin.analysis.api.types.KaType
 import org.jetbrains.kotlin.analysis.api.types.KaTypeParameterType
+import org.jetbrains.kotlin.analysis.api.types.hasFlexibleNullability
+import org.jetbrains.kotlin.analysis.api.types.isMarkedNullable
+import org.jetbrains.kotlin.analysis.api.types.isSubtypeOf
+import org.jetbrains.kotlin.analysis.api.types.type
+import org.jetbrains.kotlin.analysis.api.types.withNullability
 import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
 import org.jetbrains.kotlin.psi.KtCallExpression
 
@@ -40,7 +47,7 @@ class K2TypeParameterFindViewByIdInspection : TypeParameterFindViewByIdInspectio
             val typeParameterSymbol = calleeSymbol.typeParameters.singleOrNull() ?: return null
             // ... and return T (or T?).
             val returnType = calleeSymbol.returnType
-            if (unwrapToTypeParameterSymbol(returnType) != typeParameterSymbol) return null
+            if (useSiteSession.unwrapToTypeParameterSymbol(returnType) != typeParameterSymbol) return null
 
             // The target type of the cast must satisfy all of T's bounds.
             // We discard the ? on the cast target type when we execute the quickfix, so we need to check

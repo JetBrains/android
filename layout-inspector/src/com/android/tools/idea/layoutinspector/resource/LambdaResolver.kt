@@ -27,8 +27,9 @@ import com.intellij.psi.impl.source.tree.LeafElement
 import java.lang.Integer.min
 import java.util.IdentityHashMap
 import org.jetbrains.kotlin.analysis.api.KaSession
-import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.resolution.singleFunctionCallOrNull
+import org.jetbrains.kotlin.analysis.api.session.analyze
+import org.jetbrains.kotlin.analysis.api.session.useSiteSession
 import org.jetbrains.kotlin.lexer.KtSingleValueToken
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -89,8 +90,8 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
     val doc = ktFile.virtualFile?.let { FileDocumentManager.getInstance().getDocument(it) } ?: return unknown(fileName, ktFile)
 
     analyze(ktFile) {
-      val possible = findPossibleLambdas(ktFile, doc, functionName, startLine, endLine)
-      val lambda = selectLambdaFromSynthesizedName(possible, lambdaName)
+      val possible = useSiteSession.findPossibleLambdas(ktFile, doc, functionName, startLine, endLine)
+      val lambda = useSiteSession.selectLambdaFromSynthesizedName(possible, lambdaName)
       val checkedStartLine = min(startLine - 1, doc.lineCount)
       val navigatable = lambda?.navigationElement as? Navigatable ?: OpenFileDescriptor(project, ktFile.virtualFile, checkedStartLine, 0)
       val actualLine = 1 + if (lambda != null) doc.getLineNumber(lambda.startOffset) else checkedStartLine

@@ -41,7 +41,8 @@ import com.intellij.psi.PsiTypes
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.parents
-import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.session.analyze
+import org.jetbrains.kotlin.analysis.api.session.useSiteSession
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
@@ -204,7 +205,7 @@ sealed class TypeDefCompletionContributor : CompletionContributor() {
         annotationEntries
           .asSequence()
           .mapNotNull { annotationEntry ->
-            val qualifiedName = annotationEntry.getQualifiedName(this)
+            val qualifiedName = annotationEntry.getQualifiedName(useSiteSession)
             TypeDef.ANNOTATION_FQ_NAMES[qualifiedName]?.let { annotationEntry to it }
           }
           .firstOrNull() ?: return null

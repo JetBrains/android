@@ -39,11 +39,14 @@ import com.intellij.psi.util.parentOfType
 import java.util.regex.Pattern
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.analysis.api.KaSession
-import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.components.resolveToCall
+import org.jetbrains.kotlin.analysis.api.components.resolveToSymbol
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.resolution.singleFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
+import org.jetbrains.kotlin.analysis.api.session.analyze
+import org.jetbrains.kotlin.analysis.api.session.useSiteSession
 import org.jetbrains.kotlin.analysis.api.symbols.KaClassSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.name
@@ -108,7 +111,7 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
         allowAnalysisOnEdt {
             analyze(this) {
                 val symbol = mainReference.resolveToSymbol() ?: return null
-                val resourceType = getAndroidResourceType(symbol) ?: return null
+                val resourceType = useSiteSession.getAndroidResourceType(symbol) ?: return null
                 if (resourceType !in RESOURCE_TYPES) return null
             }
         }
@@ -172,7 +175,7 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
         allowAnalysisOnEdt {
             analyze(this) {
                 val symbol = mainReference.resolveToSymbol() ?: return null
-                resourceType = getAndroidResourceType(symbol) ?: return null
+                resourceType = useSiteSession.getAndroidResourceType(symbol) ?: return null
                 resourceModule = mainReference.resolve()?.module ?: return null
                 resolvedName = symbol.name?.identifier
             }

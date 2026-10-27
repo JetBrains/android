@@ -54,9 +54,12 @@ import org.jetbrains.android.actions.CreateXmlResourceDialog
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.android.util.AndroidUtils
-import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.expressions.expressionType
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.session.analyze
+import org.jetbrains.kotlin.analysis.api.types.KaStandardTypeClassIds
+import org.jetbrains.kotlin.analysis.api.types.classId
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.intentions.SelfTargetingIntention
 import org.jetbrains.kotlin.name.ClassId
@@ -217,12 +220,12 @@ abstract class KotlinAndroidAddStringResourceIntentionBase :
                                         val expressionType = expression.expressionType
                                         when {
                                             expressionType == null -> null
-                                            expressionType.isBooleanType -> 'b'
-                                            expressionType.isIntType ||
-                                                expressionType.isLongType ||
-                                                expressionType.isShortType ||
-                                                expressionType.isByteType -> 'd'
-                                            expressionType.isCharType -> 'c'
+                                            expressionType.classId == KaStandardTypeClassIds.BOOLEAN -> 'b'
+                                            expressionType.classId == KaStandardTypeClassIds.INT ||
+                                                expressionType.classId == KaStandardTypeClassIds.LONG ||
+                                                expressionType.classId == KaStandardTypeClassIds.SHORT ||
+                                                expressionType.classId == KaStandardTypeClassIds.BYTE -> 'd'
+                                            expressionType.classId == KaStandardTypeClassIds.CHAR -> 'c'
                                             else -> null
                                         }
                                     }

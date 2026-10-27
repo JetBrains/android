@@ -24,8 +24,9 @@ import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaSession
-import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotated
+import org.jetbrains.kotlin.analysis.api.components.resolveToCall
+import org.jetbrains.kotlin.analysis.api.expressions.returnType
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.rendering.KaRenderer
@@ -33,6 +34,8 @@ import org.jetbrains.kotlin.analysis.api.rendering.renderToString
 import org.jetbrains.kotlin.analysis.api.resolution.KaCallableMemberCall
 import org.jetbrains.kotlin.analysis.api.resolution.calls
 import org.jetbrains.kotlin.analysis.api.resolution.symbol
+import org.jetbrains.kotlin.analysis.api.session.analyze
+import org.jetbrains.kotlin.analysis.api.session.useSiteSession
 import org.jetbrains.kotlin.analysis.api.symbols.KaCallableSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaLocalVariableSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaNamedFunctionSymbol
@@ -81,13 +84,13 @@ internal fun KtValueArgument.matchingParamTypeFqName(callee: KtNamedFunction): S
 }
 
 internal fun KtDeclaration.returnTypeFqName(): String? =
-  if (this !is KtCallableDeclaration) null else analyze(this) { asFqNameString(this@returnTypeFqName.returnType) }
+  if (this !is KtCallableDeclaration) null else analyze(this) { useSiteSession.asFqNameString(this@returnTypeFqName.returnType) }
 
 @OptIn(KaAllowAnalysisOnEdt::class)
 internal fun KtElement.callReturnTypeFqName() = allowAnalysisOnEdt {
   analyze(this) {
     val call = this@callReturnTypeFqName.resolveToCall()?.calls?.firstOrNull() as? KaCallableMemberCall<*, *>
-    call?.let { asFqNameString(it.symbol.returnType) }
+    call?.let { useSiteSession.asFqNameString(it.symbol.returnType) }
   }
 }
 
