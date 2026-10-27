@@ -12207,8 +12207,6 @@ jvm_library(
         "//android/android-templates:templates-tests_test_lib",
         "//platform/statistics",
         "//platform/statistics:statistics_test_lib",
-        "//plugins/kotlin/base/fir/analysis-api-platform:kotlin-analysis-platform-tests",
-        "//plugins/kotlin/base/fir/analysis-api-platform:kotlin-analysis-platform-tests_test_lib",
         "//plugins/kotlin/base/fir/project-structure:kotlin-projectStructure-tests",
         "//plugins/kotlin/base/fir/project-structure:kotlin-projectStructure-tests_test_lib",
         "//plugins/kotlin/base/scripting/scripting:kotlin-base-scripting-tests",
