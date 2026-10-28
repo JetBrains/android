@@ -1,3 +1,4 @@
+load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.nav.safeargs.tests.k2` start
@@ -20,7 +21,11 @@ jvm_library(
     name = "k2_test_lib",
     testonly = True,
     srcs = glob(
-        [],
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
         allow_empty = True,
     ),
     module_name = "intellij.android.nav.safeargs.tests.k2",
@@ -28,8 +33,14 @@ jvm_library(
     runtime_deps = [
         # do not sort,
         ":k2",
+        "//platform/ide-core:ide-core_test_lib",
+        "//platform/platform-impl:ide-impl_test_lib",
+    ],
+    deps = [
+        # do not sort,
         "@lib//:studio-platform-provided",
         "@lib//:studio-test-platform",
+        "@lib//:kotlin-stdlib",
         "//libraries/guava",
         "//libraries/guava:guava_test_lib",
         "//libraries/junit4",
@@ -74,9 +85,7 @@ jvm_library(
         "//platform/platform-api:ide",
         "//platform/platform-api:ide_test_lib",
         "//platform/ide-core",
-        "//platform/ide-core:ide-core_test_lib",
         "//platform/platform-impl:ide-impl",
-        "//platform/platform-impl:ide-impl_test_lib",
         "//platform/testFramework",
         "//platform/testFramework:testFramework_test_lib",
         "//platform/util",
@@ -91,6 +100,7 @@ jvm_library(
         "//plugins/kotlin/base/plugin:plugin_test_lib",
         "//plugins/kotlin/uast/uast-kotlin-base:kotlin-uast-base",
         "//plugins/kotlin/uast/uast-kotlin-base:kotlin-uast-base_test_lib",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
         "//xml/xml-psi-api:psi",
         "//xml/xml-psi-api:psi_test_lib",
@@ -104,6 +114,18 @@ jvm_library(
         "//java/testFramework:testFramework_test_lib",
         "//android/project-system",
         "//android/project-system:project-system_test_lib",
+        "//java/java-psi-api:psi",
+        "//java/java-psi-api:psi_test_lib",
+        "//plugins/kotlin/base/analysis",
+        "//plugins/kotlin/base/analysis:analysis_test_lib",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
+        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
+        "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface",
+        "//libraries/kotlinc/analysis-api-platform-interface:libraries-kotlinc-analysis-api-platform-interface_test_lib",
+        "//platform/lang-core",
+        "//platform/lang-core:lang-core_test_lib",
+        "//platform/projectModel-api:projectModel",
+        "//platform/projectModel-api:projectModel_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.nav.safeargs.tests.k2` end
@@ -116,3 +138,10 @@ exports_files(
     visibility = ["//visibility:public"],
 )
 ### auto-generated section `iml intellij.android.nav.safeargs.tests.k2` end
+
+### auto-generated section `test intellij.android.nav.safeargs.tests.k2` start
+jps_test(
+    name = "k2_test",
+    runtime_deps = [":k2_test_lib"],
+)
+### auto-generated section `test intellij.android.nav.safeargs.tests.k2` end
