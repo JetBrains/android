@@ -48,33 +48,6 @@ jvm_library(
         "//platform/platform-impl:ide-impl",
     ],
 )
-
-jvm_library(
-    name = "smali_test_lib",
-    testonly = True,
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.smali",
-    visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":smali",
-        "//platform/analysis-api:analysis_test_lib",
-        "//platform/analysis-impl:analysis-impl_test_lib",
-        "//platform/core-api:core_test_lib",
-        "//platform/core-impl:core-impl_test_lib",
-        "//platform/diff-api:diff_test_lib",
-        "//platform/editor-ui-api:editor-ui_test_lib",
-        "//platform/extensions:extensions_test_lib",
-        "//platform/util:util_test_lib",
-        "//platform/util:util-ui_test_lib",
-        "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
-        "//platform/code-style-api:codeStyle_test_lib",
-        "//platform/platform-impl:ide-impl_test_lib",
-    ],
-)
 ### auto-generated section `build intellij.android.smali` end
 
 ### auto-generated section `plugin intellij.android.smali` start
@@ -97,24 +70,6 @@ exports_files(
 
 ### auto-generated section `build intellij.android.smali.tests` start
 jvm_library(
-    name = "smali-tests",
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.smali.tests",
-    visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "//xml/plugin",
-        "//platform/structure-view-impl/plugin",
-        "//aether-dependency-resolver/plugin",
-        "//platform/main/intellij.platform.monolith.main:monolith-main",
-        "//community-resources:customization",
-    ],
-)
-
-jvm_library(
     name = "smali-tests_test_lib",
     testonly = True,
     srcs = glob(
@@ -129,46 +84,31 @@ jvm_library(
     visibility = ["//visibility:public"],
     runtime_deps = [
         # do not sort,
-        ":smali-tests",
-        "//xml/plugin:plugin_test_lib",
-        "//platform/structure-view-impl/plugin:plugin_test_lib",
-        "//aether-dependency-resolver/plugin:plugin_test_lib",
-        "//platform/main/intellij.platform.monolith.main:monolith-main_test_lib",
-        "//community-resources:customization_test_lib",
+        "//xml/plugin",
+        "//platform/structure-view-impl/plugin",
+        "//aether-dependency-resolver/plugin",
+        "//platform/main/intellij.platform.monolith.main:monolith-main",
+        "//community-resources:customization",
     ],
     deps = [
         # do not sort,
         "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "//libraries/guava",
-        "//libraries/guava:guava_test_lib",
         "//libraries/junit4",
-        "//libraries/junit4:junit4_test_lib",
         "//libraries/mockito",
-        "//libraries/mockito:mockito_test_lib",
         "@lib//:truth",
         "//platform/analysis-api:analysis",
-        "//platform/analysis-api:analysis_test_lib",
         "//platform/analysis-impl",
-        "//platform/analysis-impl:analysis-impl_test_lib",
         "//platform/core-api:core",
-        "//platform/core-api:core_test_lib",
         "//platform/core-impl",
-        "//platform/core-impl:core-impl_test_lib",
         "//platform/editor-ui-api:editor-ui",
-        "//platform/editor-ui-api:editor-ui_test_lib",
         "//platform/util",
-        "//platform/util:util_test_lib",
-        "//android/adt-testutils",
         "//android/adt-testutils:adt-testutils_test_lib",
         "//platform/core-ui",
-        "//platform/core-ui:core-ui_test_lib",
         "//platform/testFramework",
-        "//platform/testFramework:testFramework_test_lib",
         "//platform/code-style-api:codeStyle",
-        "//platform/code-style-api:codeStyle_test_lib",
         "//android/smali",
-        "//android/smali:smali_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.smali.tests` end

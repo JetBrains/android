@@ -3,16 +3,6 @@ load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.emulator-snapshots` start
 jvm_library(
-    name = "emulator-snapshots",
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.emulator-snapshots",
-    visibility = ["//visibility:public"],
-)
-
-jvm_library(
     name = "emulator-snapshots_test_lib",
     testonly = True,
     srcs = glob(
@@ -25,7 +15,6 @@ jvm_library(
     ),
     module_name = "intellij.android.emulator-snapshots",
     visibility = ["//visibility:public"],
-    runtime_deps = [":emulator-snapshots"],
     deps = [
         # do not sort,
         "@lib//:studio-platform",

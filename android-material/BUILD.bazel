@@ -31,33 +31,6 @@ jvm_library(
         "//platform/rd-platform-community:rd-community",
     ],
 )
-
-jvm_library(
-    name = "android-material_test_lib",
-    testonly = True,
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.android-material",
-    visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":android-material",
-        "@lib//:studio-platform-provided",
-        "//libraries/guava:guava_test_lib",
-        "//libraries/gson:gson_test_lib",
-        "//android/android-common:common_test_lib",
-        "//android/android:core_test_lib",
-        "//platform/util/concurrency:concurrency_test_lib",
-        "//platform/core-api:core_test_lib",
-        "//platform/ide-core:ide-core_test_lib",
-        "//platform/util:util_test_lib",
-        "//platform/util/base:base_test_lib",
-        "//platform/util-ex:util-ex_test_lib",
-        "//platform/rd-platform-community:rd-community_test_lib",
-    ],
-)
 ### auto-generated section `build intellij.android.android-material` end
 
 ### auto-generated section `iml intellij.android.android-material` start
@@ -71,17 +44,6 @@ exports_files(
 
 ### auto-generated section `build intellij.android.android-material.tests` start
 jvm_library(
-    name = "android-material-tests",
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.android-material.tests",
-    visibility = ["//visibility:public"],
-    runtime_deps = ["@lib//:kotlin-stdlib"],
-)
-
-jvm_library(
     name = "android-material-tests_test_lib",
     testonly = True,
     srcs = glob(
@@ -92,63 +54,37 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [
-        "//android/android-material",
-        "//android/android-material:android-material_test_lib",
-    ],
+    associates = ["//android/android-material"],
     resource_strip_prefix = "testResources",
     resources = glob(
         ["testResources/**/*"],
     ),
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":android-material-tests",
-        "//platform/ide-core:ide-core_test_lib",
-    ],
     deps = [
         # do not sort,
         "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "@lib//:kotlin-stdlib",
         "//libraries/junit4",
-        "//libraries/junit4:junit4_test_lib",
         "//libraries/jetbrains/annotations",
-        "//libraries/jetbrains/annotations:annotations_test_lib",
         "//libraries/kotlin/test:libraries-kotlinTest",
-        "//libraries/kotlin/test:libraries-kotlinTest_test_lib",
         "//libraries/mockito",
-        "//libraries/mockito:mockito_test_lib",
         "//libraries/mockito-kotlin",
-        "//libraries/mockito-kotlin:mockito-kotlin_test_lib",
         "@lib//:truth",
-        "//android/adt-testutils",
         "//android/adt-testutils:adt-testutils_test_lib",
         "//android/android:core",
-        "//android/android:core_test_lib",
-        "//android/android-test-framework:testFramework",
         "//android/android-test-framework:testFramework_test_lib",
         "//platform/core-api:core",
-        "//platform/core-api:core_test_lib",
         "//platform/core-impl",
-        "//platform/core-impl:core-impl_test_lib",
         "//platform/ide-core",
         "//platform/testFramework",
-        "//platform/testFramework:testFramework_test_lib",
         "//platform/util",
-        "//platform/util:util_test_lib",
         "//platform/util-ex",
-        "//platform/util-ex:util-ex_test_lib",
         "//platform/util-rt",
-        "//platform/util-rt:util-rt_test_lib",
         "//libraries/gson",
-        "//libraries/gson:gson_test_lib",
         "//android/android-common:common",
-        "//android/android-common:common_test_lib",
         "//java/testFramework",
-        "//java/testFramework:testFramework_test_lib",
         "//platform/scratch/plugin",
-        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.android-material.tests` end

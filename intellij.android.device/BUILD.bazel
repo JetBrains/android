@@ -43,39 +43,6 @@ jvm_library(
         "//android/artwork-compose",
     ],
 )
-
-jvm_library(
-    name = "device_test_lib",
-    testonly = True,
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    kotlinc_opts = ":custom_device",
-    module_name = "intellij.android.device",
-    visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":device",
-        "@lib//:studio-platform-provided",
-        "//libraries/guava:guava_test_lib",
-        "//libraries/kotlinx/coroutines/core:core_test_lib",
-        "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
-        "//android/adt-ui-compose:adt-ui-compose_test_lib",
-        "//android/android-common:common_test_lib",
-        "//android/wizard:wizard_test_lib",
-        "//android/wizard-model:wizard-model_test_lib",
-        "//platform/core-api:core_test_lib",
-        "//platform/editor-ui-api:editor-ui_test_lib",
-        "//platform/platform-api:ide_test_lib",
-        "//platform/ide-core:ide-core_test_lib",
-        "//platform/projectModel-api:projectModel_test_lib",
-        "//platform/util:util_test_lib",
-        "//platform/util:util-ui_test_lib",
-        "//android/artwork:artwork_test_lib",
-        "//android/artwork-compose:artwork-compose_test_lib",
-    ],
-)
 ### auto-generated section `build intellij.android.device` end
 
 ### auto-generated section `iml intellij.android.device` start

@@ -3,17 +3,6 @@ load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.sync-perf-tests` start
 jvm_library(
-    name = "sync-perf-tests",
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.sync-perf-tests",
-    visibility = ["//visibility:public"],
-    runtime_deps = ["@lib//:kotlin-stdlib"],
-)
-
-jvm_library(
     name = "sync-perf-tests_test_lib",
     testonly = True,
     srcs = glob(
@@ -26,53 +15,30 @@ jvm_library(
     ),
     module_name = "intellij.android.sync-perf-tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":sync-perf-tests",
-        "//platform/platform-impl:ide-impl_test_lib",
-    ],
     deps = [
         # do not sort,
         "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "@lib//:kotlin-stdlib",
         "//libraries/junit4",
-        "//libraries/junit4:junit4_test_lib",
         "//libraries/protobuf",
-        "//libraries/protobuf:protobuf_test_lib",
-        "//android/adt-testutils",
         "//android/adt-testutils:adt-testutils_test_lib",
         "//android/android-common:common",
-        "//android/android-common:common_test_lib",
         "//android/android:core",
-        "//android/android:core_test_lib",
-        "//android/android:core-tests",
         "//android/android:core-tests_test_lib",
         "//android/project-system-gradle:projectSystem-gradle",
-        "//android/project-system-gradle:projectSystem-gradle_test_lib",
-        "//android/android-test-framework:testFramework",
         "//android/android-test-framework:testFramework_test_lib",
         "//plugins/gradle:gradle-common",
-        "//plugins/gradle:gradle-common_test_lib",
         "//plugins/gradle/plugin",
-        "//plugins/gradle/plugin:plugin_test_lib",
         "//platform/core-api:core",
-        "//platform/core-api:core_test_lib",
         "//platform/core-impl",
-        "//platform/core-impl:core-impl_test_lib",
         "//platform/external-system-api:externalSystem",
-        "//platform/external-system-api:externalSystem_test_lib",
         "//platform/platform-impl:ide-impl",
         "//platform/projectModel-api:projectModel",
-        "//platform/projectModel-api:projectModel_test_lib",
         "//platform/testFramework",
-        "//platform/testFramework:testFramework_test_lib",
         "//platform/util",
-        "//platform/util:util_test_lib",
         "//platform/util-rt",
-        "//platform/util-rt:util-rt_test_lib",
         "//platform/scratch/plugin",
-        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.sync-perf-tests` end

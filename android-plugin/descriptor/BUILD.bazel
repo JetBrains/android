@@ -2343,31 +2343,6 @@ jvm_library(
         "//platform/todo/plugin",
     ],
 )
-
-jvm_library(
-    name = "descriptor_test_lib",
-    testonly = True,
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.plugin.descriptor",
-    visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":descriptor",
-        "@lib//:studio-platform-provided",
-        "//plugins/groovy:groovy_test_lib",
-        "//plugins/gradle/java/plugin:plugin_test_lib",
-        "//platform/compose/plugin:plugin_test_lib",
-        "//plugins/groovy-scripting:groovy-scripting_test_lib",
-        "//aether-dependency-resolver/plugin:plugin_test_lib",
-        "//platform/structuralsearch/plugin:plugin_test_lib",
-        "//platform/structure-view-impl/plugin:plugin_test_lib",
-        "//platform/testRunner/plugin:plugin_test_lib",
-        "//platform/todo/plugin:plugin_test_lib",
-    ],
-)
 ### auto-generated section `build intellij.android.plugin.descriptor` end
 
 ### auto-generated section `iml intellij.android.plugin.descriptor` start

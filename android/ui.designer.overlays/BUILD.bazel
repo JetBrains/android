@@ -3,17 +3,6 @@ load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.core.ui.designer.overlays` start
 jvm_library(
-    name = "ui.designer.overlays",
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.core.ui.designer.overlays",
-    visibility = ["//visibility:public"],
-    runtime_deps = ["//platform/main/intellij.platform.monolith.main:monolith-main"],
-)
-
-jvm_library(
     name = "ui.designer.overlays_test_lib",
     testonly = True,
     srcs = glob(
@@ -26,54 +15,31 @@ jvm_library(
     ),
     module_name = "intellij.android.core.ui.designer.overlays",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":ui.designer.overlays",
-        "//platform/ide-core:ide-core_test_lib",
-        "//platform/main/intellij.platform.monolith.main:monolith-main_test_lib",
-    ],
+    runtime_deps = ["//platform/main/intellij.platform.monolith.main:monolith-main"],
     deps = [
         # do not sort,
         "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "//libraries/junit4",
-        "//libraries/junit4:junit4_test_lib",
         "//android/android:core",
-        "//android/android:core_test_lib",
         "//libraries/guava",
-        "//libraries/guava:guava_test_lib",
         "//libraries/mockito",
-        "//libraries/mockito:mockito_test_lib",
         "@lib//:truth",
         "//android/adt-ui",
-        "//android/adt-ui:adt-ui_test_lib",
-        "//android/android:core-tests",
         "//android/android:core-tests_test_lib",
         "//android/render-resources",
-        "//android/render-resources:render-resources_test_lib",
-        "//android/android-test-framework:testFramework",
         "//android/android-test-framework:testFramework_test_lib",
         "//platform/util/concurrency",
-        "//platform/util/concurrency:concurrency_test_lib",
         "//platform/core-api:core",
-        "//platform/core-api:core_test_lib",
         "//platform/core-ui",
-        "//platform/core-ui:core-ui_test_lib",
         "//platform/editor-ui-api:editor-ui",
-        "//platform/editor-ui-api:editor-ui_test_lib",
         "//platform/extensions",
-        "//platform/extensions:extensions_test_lib",
         "//platform/platform-api:ide",
-        "//platform/platform-api:ide_test_lib",
         "//platform/ide-core",
         "//platform/testFramework",
-        "//platform/testFramework:testFramework_test_lib",
         "//platform/util:util-ui",
-        "//platform/util:util-ui_test_lib",
         "//platform/lang-core",
-        "//platform/lang-core:lang-core_test_lib",
         "//platform/scratch/plugin",
-        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.core.ui.designer.overlays` end

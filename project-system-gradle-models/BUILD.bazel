@@ -30,25 +30,6 @@ jvm_library(
         "@lib//:kotlin-stdlib",
     ],
 )
-
-jvm_library(
-    name = "projectSystem-gradle-models_test_lib",
-    testonly = True,
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    kotlinc_opts = ":custom_projectSystem-gradle-models",
-    module_name = "intellij.android.projectSystem.gradle.models",
-    visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":projectSystem-gradle-models",
-        "@lib//:studio-platform-provided",
-        "//libraries/guava:guava_test_lib",
-        "//libraries/jetbrains/annotations:annotations_test_lib",
-    ],
-)
 ### auto-generated section `build intellij.android.projectSystem.gradle.models` end
 
 ### auto-generated section `iml intellij.android.projectSystem.gradle.models` start
@@ -62,21 +43,6 @@ exports_files(
 
 ### auto-generated section `build intellij.android.projectSystem.gradle.models.tests` start
 jvm_library(
-    name = "projectSystem-gradle-models-tests",
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.projectSystem.gradle.models.tests",
-    visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "@lib//:kotlin-stdlib",
-        "//android/android-test-framework:testFramework",
-    ],
-)
-
-jvm_library(
     name = "projectSystem-gradle-models-tests_test_lib",
     testonly = True,
     srcs = glob(
@@ -89,15 +55,12 @@ jvm_library(
     ),
     module_name = "intellij.android.projectSystem.gradle.models.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [":projectSystem-gradle-models-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "@lib//:kotlin-stdlib",
         "//libraries/junit4",
-        "//libraries/junit4:junit4_test_lib",
-        "//android/android-test-framework:testFramework",
         "//android/android-test-framework:testFramework_test_lib",
     ],
 )

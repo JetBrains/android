@@ -37,39 +37,6 @@ jvm_library(
         "//java/java-psi-api:psi",
     ],
 )
-
-jvm_library(
-    name = "api-ide_test_lib",
-    testonly = True,
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.inspectors-common.api-ide",
-    visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":api-ide",
-        "//libraries/guava:guava_test_lib",
-        "//libraries/jetbrains/annotations:annotations_test_lib",
-        "//libraries/protobuf:protobuf_test_lib",
-        "//android/adt-ui:adt-ui_test_lib",
-        "//android/inspectors-common/ui:ui_test_lib",
-        "//android/codenavigation:codenavigation_test_lib",
-        "//platform/core-api:core_test_lib",
-        "//platform/editor-ui-api:editor-ui_test_lib",
-        "//platform/projectModel-api:projectModel_test_lib",
-        "//android/inspectors-common/api:api_test_lib",
-        "//android/adt-ui-model:adt-ui-model_test_lib",
-        "//android/android-common:common_test_lib",
-        "//platform/core-ui:core-ui_test_lib",
-        "//platform/platform-impl:ide-impl_test_lib",
-        "//platform/ide-core:ide-core_test_lib",
-        "//platform/analysis-api:analysis_test_lib",
-        "//platform/util:util-ui_test_lib",
-        "//java/java-psi-api:psi_test_lib",
-    ],
-)
 ### auto-generated section `build intellij.android.inspectors-common.api-ide` end
 
 ### auto-generated section `iml intellij.android.inspectors-common.api-ide` start
@@ -83,16 +50,6 @@ exports_files(
 
 ### auto-generated section `build intellij.android.inspectors-common.api-ide.tests` start
 jvm_library(
-    name = "android-inspectors-common-api-ide-tests",
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.inspectors-common.api-ide.tests",
-    visibility = ["//visibility:public"],
-)
-
-jvm_library(
     name = "android-inspectors-common-api-ide-tests_test_lib",
     testonly = True,
     srcs = glob(
@@ -103,53 +60,30 @@ jvm_library(
         ],
         allow_empty = True,
     ),
-    associates = [
-        "//android/inspectors-common/api-ide",
-        "//android/inspectors-common/api-ide:api-ide_test_lib",
-    ],
+    associates = ["//android/inspectors-common/api-ide"],
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":android-inspectors-common-api-ide-tests",
-        "//platform/platform-impl:ide-impl_test_lib",
-        "//platform/ide-core:ide-core_test_lib",
-    ],
     deps = [
         # do not sort,
         "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "//libraries/guava",
-        "//libraries/guava:guava_test_lib",
         "@lib//:kotlin-stdlib",
         "//libraries/junit4",
-        "//libraries/junit4:junit4_test_lib",
         "@lib//:truth",
-        "//android/adt-ui/src/test:android-adt-ui-tests",
         "//android/adt-ui/src/test:android-adt-ui-tests_test_lib",
         "//android/inspectors-common/ui",
-        "//android/inspectors-common/ui:ui_test_lib",
         "//android/codenavigation",
-        "//android/codenavigation:codenavigation_test_lib",
-        "//android/adt-testutils",
         "//android/adt-testutils:adt-testutils_test_lib",
         "//platform/core-api:core",
-        "//platform/core-api:core_test_lib",
         "//platform/editor-ui-api:editor-ui",
-        "//platform/editor-ui-api:editor-ui_test_lib",
         "//platform/projectModel-api:projectModel",
-        "//platform/projectModel-api:projectModel_test_lib",
         "//platform/testFramework",
-        "//platform/testFramework:testFramework_test_lib",
         "//android/inspectors-common/api",
-        "//android/inspectors-common/api:api_test_lib",
         "//android/adt-ui-model",
-        "//android/adt-ui-model:adt-ui-model_test_lib",
         "//platform/core-ui",
-        "//platform/core-ui:core-ui_test_lib",
         "//platform/platform-impl:ide-impl",
         "//platform/ide-core",
         "//platform/scratch/plugin",
-        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.inspectors-common.api-ide.tests` end

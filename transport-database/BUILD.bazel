@@ -29,31 +29,6 @@ jvm_library(
         "//platform/util/base",
     ],
 )
-
-jvm_library(
-    name = "transport-database_test_lib",
-    testonly = True,
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.transportDatabase",
-    visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":transport-database",
-        "@lib//:studio-platform-provided",
-        "//libraries/jetbrains/annotations:annotations_test_lib",
-        "//libraries/protobuf:protobuf_test_lib",
-        "//libraries/sqlite:sqlite_test_lib",
-        "//libraries/guava:guava_test_lib",
-        "//android/adt-ui-model:adt-ui-model_test_lib",
-        "//android/android-common:common_test_lib",
-        "//platform/util:util_test_lib",
-        "//platform/core-api:core_test_lib",
-        "//platform/util/base:base_test_lib",
-    ],
-)
 ### auto-generated section `build intellij.android.transportDatabase` end
 
 ### auto-generated section `iml intellij.android.transportDatabase` start
@@ -66,21 +41,6 @@ exports_files(
 ### auto-generated section `iml intellij.android.transportDatabase` end
 
 ### auto-generated section `build intellij.android.transportDatabase.tests` start
-jvm_library(
-    name = "transportDatabase-tests",
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.transportDatabase.tests",
-    visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        "//community-resources:customization",
-        "//platform/main/intellij.platform.monolith.main:monolith-main",
-    ],
-)
-
 jvm_library(
     name = "transportDatabase-tests_test_lib",
     testonly = True,
@@ -100,9 +60,8 @@ jvm_library(
     visibility = ["//visibility:public"],
     runtime_deps = [
         # do not sort,
-        ":transportDatabase-tests",
-        "//community-resources:customization_test_lib",
-        "//platform/main/intellij.platform.monolith.main:monolith-main_test_lib",
+        "//community-resources:customization",
+        "//platform/main/intellij.platform.monolith.main:monolith-main",
     ],
     deps = [
         # do not sort,
@@ -110,28 +69,17 @@ jvm_library(
         "@lib//:studio-test-platform",
         "@lib//:kotlin-stdlib",
         "//libraries/guava",
-        "//libraries/guava:guava_test_lib",
         "@lib//:truth",
         "//libraries/mockito",
-        "//libraries/mockito:mockito_test_lib",
         "//libraries/junit4",
-        "//libraries/junit4:junit4_test_lib",
         "//libraries/jaxb",
-        "//libraries/jaxb:jaxb_test_lib",
-        "//android/intellij.android.testutils:testutils",
         "//android/intellij.android.testutils:testutils_test_lib",
-        "//android/adt-testutils",
         "//android/adt-testutils:adt-testutils_test_lib",
         "//libraries/hamcrest",
-        "//libraries/hamcrest:hamcrest_test_lib",
         "//platform/util",
-        "//platform/util:util_test_lib",
         "//platform/core-api:core",
-        "//platform/core-api:core_test_lib",
         "//platform/testFramework",
-        "//platform/testFramework:testFramework_test_lib",
         "//android/transport-database",
-        "//android/transport-database:transport-database_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.transportDatabase.tests` end

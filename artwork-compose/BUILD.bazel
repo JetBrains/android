@@ -35,33 +35,6 @@ jvm_library(
         "//platform/compose",
     ],
 )
-
-jvm_library(
-    name = "artwork-compose_test_lib",
-    testonly = True,
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    kotlinc_opts = ":custom_artwork-compose",
-    module_name = "intellij.android.artwork-compose",
-    visibility = ["//visibility:public"],
-    exports = [
-        # do not sort,
-        "//platform/compose/markdown",
-        "//platform/compose/markdown:markdown_test_lib",
-        "//platform/compose",
-        "//platform/compose:compose_test_lib",
-    ],
-    runtime_deps = [
-        # do not sort,
-        ":artwork-compose",
-        "@lib//:studio-platform-provided",
-        "//android/artwork:artwork_test_lib",
-        "//platform/compose/markdown:markdown_test_lib",
-        "//platform/compose:compose_test_lib",
-    ],
-)
 ### auto-generated section `build intellij.android.artwork-compose` end
 
 ### auto-generated section `iml intellij.android.artwork-compose` start

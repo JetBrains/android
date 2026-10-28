@@ -23,22 +23,6 @@ jvm_library(
         "@lib//:kotlin-stdlib",
     ],
 )
-
-jvm_library(
-    name = "profilers-atrace_test_lib",
-    testonly = True,
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.profilers.atrace",
-    visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":profilers-atrace",
-        "//libraries/kotlin/reflect:reflect_test_lib",
-    ],
-)
 ### auto-generated section `build intellij.android.profilers.atrace` end
 
 ### auto-generated section `iml intellij.android.profilers.atrace` start
@@ -52,16 +36,6 @@ exports_files(
 
 ### auto-generated section `build intellij.android.profilers.atrace.tests` start
 jvm_library(
-    name = "profilers-atrace-tests",
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.profilers.atrace.tests",
-    visibility = ["//visibility:public"],
-)
-
-jvm_library(
     name = "profilers-atrace-tests_test_lib",
     testonly = True,
     srcs = glob(
@@ -74,17 +48,14 @@ jvm_library(
     ),
     module_name = "intellij.android.profilers.atrace.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [":profilers-atrace-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "@lib//:kotlin-stdlib",
         "//libraries/junit4",
-        "//libraries/junit4:junit4_test_lib",
         "@lib//:truth",
         "//android/profilers-atrace",
-        "//android/profilers-atrace:profilers-atrace_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.profilers.atrace.tests` end

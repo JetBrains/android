@@ -32,30 +32,6 @@ jvm_library(
         "//platform/consoleView",
     ],
 )
-
-jvm_library(
-    name = "utp_test_lib",
-    testonly = True,
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.utp",
-    visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":utp",
-        "@lib//:studio-platform-provided",
-        "//libraries/guava:guava_test_lib",
-        "//plugins/gradle:gradle-common_test_lib",
-        "//platform/external-system-api:externalSystem_test_lib",
-        "//platform/util:util_test_lib",
-        "//platform/util-ex:util-ex_test_lib",
-        "//platform/core-api:core_test_lib",
-        "//platform/execution-impl:execution-impl_test_lib",
-        "//platform/consoleView:consoleView_test_lib",
-    ],
-)
 ### auto-generated section `build intellij.android.utp` end
 
 ### auto-generated section `iml intellij.android.utp` start
@@ -70,16 +46,6 @@ exports_files(
 
 ### auto-generated section `build intellij.android.utp.tests` start
 jvm_library(
-    name = "utp-tests",
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.utp.tests",
-    visibility = ["//visibility:public"],
-)
-
-jvm_library(
     name = "utp-tests_test_lib",
     testonly = True,
     srcs = glob(
@@ -92,25 +58,18 @@ jvm_library(
     ),
     module_name = "intellij.android.utp.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [":utp-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "@lib//:kotlin-stdlib",
         "//libraries/junit4",
-        "//libraries/junit4:junit4_test_lib",
         "//libraries/mockito",
-        "//libraries/mockito:mockito_test_lib",
         "//libraries/mockito-kotlin",
-        "//libraries/mockito-kotlin:mockito-kotlin_test_lib",
         "@lib//:truth",
         "//platform/core-api:core",
-        "//platform/core-api:core_test_lib",
         "//platform/consoleView",
-        "//platform/consoleView:consoleView_test_lib",
         "//android/utp",
-        "//android/utp:utp_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.utp.tests` end

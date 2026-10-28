@@ -27,29 +27,6 @@ jvm_library(
         "//platform/core-ui",
     ],
 )
-
-jvm_library(
-    name = "api_test_lib",
-    testonly = True,
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.inspectors-common.api",
-    visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":api",
-        "//android/adt-ui-model:adt-ui-model_test_lib",
-        "//libraries/jetbrains/annotations:annotations_test_lib",
-        "//libraries/guava:guava_test_lib",
-        "//android/codenavigation:codenavigation_test_lib",
-        "//platform/core-api:core_test_lib",
-        "//platform/editor-ui-api:editor-ui_test_lib",
-        "//platform/platform-api:ide_test_lib",
-        "//platform/core-ui:core-ui_test_lib",
-    ],
-)
 ### auto-generated section `build intellij.android.inspectors-common.api` end
 
 ### auto-generated section `iml intellij.android.inspectors-common.api` start
@@ -63,16 +40,6 @@ exports_files(
 
 ### auto-generated section `build intellij.android.inspectors-common.api.tests` start
 jvm_library(
-    name = "android-inspectors-common-api-tests",
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.inspectors-common.api.tests",
-    visibility = ["//visibility:public"],
-)
-
-jvm_library(
     name = "android-inspectors-common-api-tests_test_lib",
     testonly = True,
     srcs = glob(
@@ -85,33 +52,22 @@ jvm_library(
     ),
     module_name = "intellij.android.inspectors-common.api.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [":android-inspectors-common-api-tests"],
     deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
         "@lib//:studio-platform",
         "//libraries/junit4",
-        "//libraries/junit4:junit4_test_lib",
         "@lib//:studio-test-platform",
         "@lib//:truth",
-        "//android/adt-testutils",
         "//android/adt-testutils:adt-testutils_test_lib",
         "//android/codenavigation",
-        "//android/codenavigation:codenavigation_test_lib",
         "//android/gradle-declarative-lang-ide",
-        "//android/gradle-declarative-lang-ide:gradle-declarative-lang-ide_test_lib",
         "//platform/core-api:core",
-        "//platform/core-api:core_test_lib",
         "//platform/editor-ui-api:editor-ui",
-        "//platform/editor-ui-api:editor-ui_test_lib",
         "//platform/platform-api:ide",
-        "//platform/platform-api:ide_test_lib",
         "//platform/testFramework",
-        "//platform/testFramework:testFramework_test_lib",
         "//android/inspectors-common/api",
-        "//android/inspectors-common/api:api_test_lib",
         "//platform/scratch/plugin",
-        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.inspectors-common.api.tests` end

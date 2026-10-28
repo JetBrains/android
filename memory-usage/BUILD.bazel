@@ -16,19 +16,6 @@ jvm_library(
     module_name = "intellij.android.memory-usage",
     visibility = ["//visibility:public"],
 )
-
-jvm_library(
-    name = "memory-usage_test_lib",
-    testonly = True,
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    kotlinc_opts = "@community//:k8",
-    module_name = "intellij.android.memory-usage",
-    visibility = ["//visibility:public"],
-    runtime_deps = [":memory-usage"],
-)
 ### auto-generated section `build intellij.android.memory-usage` end
 
 ### auto-generated section `iml intellij.android.memory-usage` start
@@ -42,16 +29,6 @@ exports_files(
 
 ### auto-generated section `build intellij.android.memory-usage.tests` start
 jvm_library(
-    name = "memory-usage-tests",
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.memory-usage.tests",
-    visibility = ["//visibility:public"],
-)
-
-jvm_library(
     name = "memory-usage-tests_test_lib",
     testonly = True,
     srcs = glob(
@@ -64,15 +41,12 @@ jvm_library(
     ),
     module_name = "intellij.android.memory-usage.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [":memory-usage-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "//libraries/junit4",
-        "//libraries/junit4:junit4_test_lib",
         "//android/memory-usage",
-        "//android/memory-usage:memory-usage_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.memory-usage.tests` end

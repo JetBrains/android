@@ -39,30 +39,6 @@ jvm_library(
         "//platform/util",
     ],
 )
-
-jvm_library(
-    name = "gradle-declarative-lang_test_lib",
-    testonly = True,
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.gradle.declarative.lang",
-    visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":gradle-declarative-lang",
-        "@lib//:studio-platform-provided",
-        "//plugins/gradle:gradle_test_lib",
-        "//java/java-psi-api:psi_test_lib",
-        "//libraries/jetbrains/annotations:annotations_test_lib",
-        "//platform/analysis-impl:analysis-impl_test_lib",
-        "//platform/core-api:core_test_lib",
-        "//platform/core-impl:core-impl_test_lib",
-        "//uast/uast-common:uast_test_lib",
-        "//platform/util:util_test_lib",
-    ],
-)
 ### auto-generated section `build intellij.android.gradle.declarative.lang` end
 
 ### auto-generated section `iml intellij.android.gradle.declarative.lang` start
@@ -77,17 +53,6 @@ exports_files(
 
 ### auto-generated section `build intellij.android.gradle.declarative.lang.tests` start
 jvm_library(
-    name = "gradle-declarative-lang-tests",
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.gradle.declarative.lang.tests",
-    visibility = ["//visibility:public"],
-    runtime_deps = ["//android/gradle-declarative-lang-ide"],
-)
-
-jvm_library(
     name = "gradle-declarative-lang-tests_test_lib",
     testonly = True,
     srcs = glob(
@@ -100,54 +65,31 @@ jvm_library(
     ),
     module_name = "intellij.android.gradle.declarative.lang.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":gradle-declarative-lang-tests",
-        "//android/gradle-declarative-lang-ide:gradle-declarative-lang-ide_test_lib",
-    ],
+    runtime_deps = ["//android/gradle-declarative-lang-ide"],
     deps = [
         # do not sort,
         "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "//libraries/assertj-core",
-        "//libraries/assertj-core:assertj-core_test_lib",
         "//libraries/guava",
-        "//libraries/guava:guava_test_lib",
         "@lib//:truth",
-        "//android/intellij.android.testutils:testutils",
         "//android/intellij.android.testutils:testutils_test_lib",
         "//java/testFramework",
-        "//java/testFramework:testFramework_test_lib",
         "//platform/analysis-api:analysis",
-        "//platform/analysis-api:analysis_test_lib",
         "//platform/core-api:core",
-        "//platform/core-api:core_test_lib",
         "//platform/core-impl",
-        "//platform/core-impl:core-impl_test_lib",
         "//platform/core-ui",
-        "//platform/core-ui:core-ui_test_lib",
         "//platform/testFramework",
-        "//platform/testFramework:testFramework_test_lib",
         "//uast/uast-common:uast",
-        "//uast/uast-common:uast_test_lib",
-        "//android/android-test-framework:testFramework",
         "//android/android-test-framework:testFramework_test_lib",
         "//android/gradle-declarative-lang",
-        "//android/gradle-declarative-lang:gradle-declarative-lang_test_lib",
         "//android/lint:lint-common",
-        "//android/lint:lint-common_test_lib",
         "//libraries/junit4",
-        "//libraries/junit4:junit4_test_lib",
         "//libraries/mockito",
-        "//libraries/mockito:mockito_test_lib",
         "//libraries/mockito-kotlin",
-        "//libraries/mockito-kotlin:mockito-kotlin_test_lib",
         "//android/android:core",
-        "//android/android:core_test_lib",
-        "//android/adt-testutils",
         "//android/adt-testutils:adt-testutils_test_lib",
         "//platform/scratch/plugin",
-        "//platform/scratch/plugin:plugin_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.gradle.declarative.lang.tests` end

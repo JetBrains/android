@@ -30,28 +30,6 @@ jvm_library(
         "//android/layoutlib-loader",
     ],
 )
-
-jvm_library(
-    name = "layoutlib_test_lib",
-    testonly = True,
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.layoutlib",
-    visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":layoutlib",
-        "@lib//:studio-platform-provided",
-        "//libraries/guava:guava_test_lib",
-        "//libraries/asm-tools:asm-tools_test_lib",
-        "//libraries/jetbrains/annotations:annotations_test_lib",
-        "//libraries/layoutlib:layoutlib_test_lib",
-        "//libraries/asm:asm_test_lib",
-        "//android/layoutlib-loader:layoutlib-loader_test_lib",
-    ],
-)
 ### auto-generated section `build intellij.android.layoutlib` end
 
 ### auto-generated section `iml intellij.android.layoutlib` start
@@ -66,17 +44,6 @@ exports_files(
 
 ### auto-generated section `build intellij.android.layoutlib.tests` start
 jvm_library(
-    name = "layoutlib-tests",
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.android.layoutlib.tests",
-    visibility = ["//visibility:public"],
-    runtime_deps = ["@lib//:kotlin-stdlib"],
-)
-
-jvm_library(
     name = "layoutlib-tests_test_lib",
     testonly = True,
     srcs = glob(
@@ -89,24 +56,17 @@ jvm_library(
     ),
     module_name = "intellij.android.layoutlib.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = [":layoutlib-tests"],
     deps = [
         # do not sort,
         "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "@lib//:kotlin-stdlib",
         "//libraries/asm",
-        "//libraries/asm:asm_test_lib",
         "//libraries/guava",
-        "//libraries/guava:guava_test_lib",
         "//libraries/junit4",
-        "//libraries/junit4:junit4_test_lib",
         "//libraries/kotlin/test:libraries-kotlinTest",
-        "//libraries/kotlin/test:libraries-kotlinTest_test_lib",
         "//libraries/layoutlib",
-        "//libraries/layoutlib:layoutlib_test_lib",
         "//android/layoutlib",
-        "//android/layoutlib:layoutlib_test_lib",
     ],
 )
 ### auto-generated section `build intellij.android.layoutlib.tests` end

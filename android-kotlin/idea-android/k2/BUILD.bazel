@@ -46,38 +46,6 @@ jvm_library(
         "//plugins/kotlin/references",
     ],
 )
-
-jvm_library(
-    name = "k2_test_lib",
-    testonly = True,
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    kotlinc_opts = ":custom_k2",
-    module_name = "intellij.android.kotlin.idea.k2",
-    visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":k2",
-        "@lib//:studio-platform-provided",
-        "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
-        "//libraries/kotlinc/analysis-api-k2:libraries-kotlinc-analysis-api-k2_test_lib",
-        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
-        "//android/android-common:common_test_lib",
-        "//android/android:core_test_lib",
-        "//android/android-kotlin/idea-android/common:common_test_lib",
-        "//java/java-psi-api:psi_test_lib",
-        "//platform/analysis-api:analysis_test_lib",
-        "//platform/core-api:core_test_lib",
-        "//platform/core-impl:core-impl_test_lib",
-        "//platform/editor-ui-api:editor-ui_test_lib",
-        "//platform/extensions:extensions_test_lib",
-        "//platform/util:util_test_lib",
-        "//plugins/kotlin/code-insight/api:api_test_lib",
-        "//plugins/kotlin/references:references_test_lib",
-    ],
-)
 ### auto-generated section `build intellij.android.kotlin.idea.k2` end
 
 ### auto-generated section `iml intellij.android.kotlin.idea.k2` start
