@@ -7,9 +7,9 @@ import com.intellij.openapi.util.buildNsUnawareJdom
 import com.intellij.platform.testFramework.core.FileComparisonFailedError
 import org.jdom.Attribute
 import org.jdom.IllegalAddException
-import org.jetbrains.jps.model.java.JavaSourceRootType
 import org.jetbrains.jps.model.java.JpsJavaDependencyScope
 import org.jetbrains.jps.model.java.JpsJavaExtensionService
+import org.jetbrains.jps.model.module.JpsModule
 import org.jetbrains.jps.model.serialization.JDomSerializationUtil
 import org.junit.Rule
 import org.junit.Test
@@ -27,10 +27,9 @@ class AndroidPluginLibraryConsistencyTest : AndroidPluginProjectConsistencyTestC
   @JvmField
   val errorCollector: ErrorCollector = ErrorCollector()
 
-  private val androidModuleLibrariesCatalog: Map<String, List<ModuleLibrary>> = androidProject
+  private val androidModuleLibrariesCatalog: Map<JpsModule, List<ModuleLibrary>> = androidProject
     .modules
-    .filter { it.sourceRoots.singleOrNull()?.rootType != JavaSourceRootType.TEST_SOURCE }
-    .associateBy(keySelector = { it.name }) { module ->
+    .associateWith { module ->
       module.libraryDependencies.map { library ->
         val ref = library.libraryReference
         val moduleName = module.name
@@ -44,32 +43,33 @@ class AndroidPluginLibraryConsistencyTest : AndroidPluginProjectConsistencyTestC
 
   @Test
   fun `'studio-platform' and 'studio-test-platform' libraries are defined with a proper scope`() {
-    for ((moduleName, moduleLibraries) in androidModuleLibrariesCatalog) {
+    for ((module, moduleLibraries) in androidModuleLibrariesCatalog) {
       val studioPlatformLibraries = moduleLibraries
         .filter { it.libraryName == STUDIO_PLATFORM || it.libraryName == STUDIO_TEST_PLATFORM }
         .distinctBy { it.libraryName }
 
       val moduleLibraryDiffReport = ModuleLibraryDiffReport.NO_DIFF
 
+      val isTestModule = module.sourceRoots.isNotEmpty() && module.sourceRoots.all { it.rootType.isForTests }
       for (library in studioPlatformLibraries) {
         val expectedLibraryScope = when (library.libraryName) {
-          STUDIO_PLATFORM -> JpsJavaDependencyScope.PROVIDED
+          STUDIO_PLATFORM -> if (isTestModule) JpsJavaDependencyScope.TEST else JpsJavaDependencyScope.PROVIDED
           STUDIO_TEST_PLATFORM -> JpsJavaDependencyScope.TEST
           else -> library.scope
         }
 
         if (library.scope != expectedLibraryScope) {
-          if (moduleName == "intellij.android.plugin" && library.libraryName == STUDIO_PLATFORM) {
+          if (module.name == "intellij.android.plugin" && library.libraryName == STUDIO_PLATFORM) {
             // IDEA-356251
             logger<AndroidPluginModuleConsistencyTest>()
-              .warn("'$moduleName' module specifies '${library.libraryName}' as a '${library.scope}' dependency. " +
+              .warn("'${module.name}' module specifies '${library.libraryName}' as a '${library.scope}' dependency. " +
                     "It should be declared as a 'PROVIDED' dependency instead.")
           }
           else {
             moduleLibraryDiffReport.addReport(
               library,
               expectedLibraryScope,
-              "Module library '${library.libraryName}' in module '${moduleName}' should be defined with a '$expectedLibraryScope' scope."
+              "Module library '${library.libraryName}' in module '${module.name}' should be defined with a '$expectedLibraryScope' scope."
             )
           }
         }
