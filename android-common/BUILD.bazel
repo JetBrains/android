@@ -170,6 +170,11 @@ jvm_library(
         "//plugins/kotlin/base/pluginTestFramework:kotlin-base-plugin-testFramework",
         "//plugins/kotlin/jvm/shared",
         "//platform/main/intellij.platform.monolith.main:monolith-main",
+        "//plugins/groovy-live-templates",
+        "//platform/structure-view-impl/plugin",
+        "//platform/testRunner/plugin",
+        "//platform/vcs/plugin",
+        "//aether-dependency-resolver/plugin",
     ],
 )
 
@@ -198,6 +203,11 @@ jvm_library(
         "//plugins/kotlin/base/pluginTestFramework:kotlin-base-plugin-testFramework_test_lib",
         "//plugins/kotlin/jvm/shared:shared_test_lib",
         "//platform/main/intellij.platform.monolith.main:monolith-main_test_lib",
+        "//plugins/groovy-live-templates:groovy-live-templates_test_lib",
+        "//platform/structure-view-impl/plugin:plugin_test_lib",
+        "//platform/testRunner/plugin:plugin_test_lib",
+        "//platform/vcs/plugin:plugin_test_lib",
+        "//aether-dependency-resolver/plugin:plugin_test_lib",
     ],
     deps = [
         # do not sort,
