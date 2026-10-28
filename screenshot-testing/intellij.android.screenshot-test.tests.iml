@@ -38,7 +38,7 @@
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="module" module-name="intellij.android.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.gradle" scope="TEST" />

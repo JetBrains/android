@@ -5,7 +5,7 @@
     <content url="file://$MODULE_DIR$/testSrc">
       <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
     </content>
-    <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
+    <orderEntry type="library" scope="TEST" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.junit4" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="kotlin-stdlib" level="project" />
@@ -31,7 +31,7 @@
     <orderEntry type="module" module-name="intellij.android.transportDatabase" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.transportDatabase.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.maven.artifactResolver.m31" scope="PROVIDED" />
+    <orderEntry type="module" module-name="intellij.maven.artifactResolver.m31" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.extensions" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
