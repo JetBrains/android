@@ -163,7 +163,7 @@ jvm_library(
         "//android/android-test-framework:testFramework",
         "//android/android-test-framework:testFramework_test_lib",
         "@lib//:kotlin-stdlib",
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "//libraries/junit4",
         "//libraries/junit4:junit4_test_lib",
         "@lib//:studio-test-platform",
@@ -266,7 +266,7 @@ jvm_library(
     ],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "@lib//:kotlin-stdlib",
         "//libraries/guava",

@@ -47,7 +47,7 @@ jvm_library(
         "//android/adt-ui/src/test:android-adt-ui-tests",
         "//android/adt-ui/src/test:android-adt-ui-tests_test_lib",
         "@lib//:kotlin-stdlib",
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "//libraries/commons/lang3",
         "//libraries/commons/lang3:lang3_test_lib",

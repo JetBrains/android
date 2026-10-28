@@ -71,7 +71,7 @@ jvm_library(
         "//android/android-test-framework:testFramework",
         "//android/android-test-framework:testFramework_test_lib",
         "@lib//:kotlin-stdlib",
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "//libraries/guava",
         "//libraries/guava:guava_test_lib",

@@ -102,7 +102,7 @@ jvm_library(
     deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "//android/layout-inspector",
         "//android/layout-inspector:layout-inspector_test_lib",

@@ -107,7 +107,7 @@ jvm_library(
     ],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "//libraries/assertj-core",
         "//libraries/assertj-core:assertj-core_test_lib",

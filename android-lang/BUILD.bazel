@@ -188,7 +188,7 @@ jvm_library(
         "//android/android-lang:lang",
         "//android/android-lang:lang_test_lib",
         "@lib//:kotlin-stdlib",
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "//libraries/guava",
         "//libraries/guava:guava_test_lib",

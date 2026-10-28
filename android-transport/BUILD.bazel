@@ -187,7 +187,7 @@ jvm_library(
         "//android/adt-ui-model:adt-ui-model-tests",
         "//android/adt-ui-model:adt-ui-model-tests_test_lib",
         "@lib//:kotlin-stdlib",
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "//libraries/junit4",
         "//libraries/junit4:junit4_test_lib",
         "@lib//:studio-test-platform",

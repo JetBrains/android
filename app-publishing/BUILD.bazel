@@ -101,7 +101,7 @@ jvm_library(
     deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "//android/app-publishing",
         "//android/app-publishing:app-publishing_test_lib",

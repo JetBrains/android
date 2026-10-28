@@ -266,7 +266,7 @@ jvm_library(
     runtime_deps = [":compose-designer-integration"],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "@lib//:kotlin-stdlib",
         "//libraries/junit4",
@@ -335,7 +335,7 @@ jvm_library(
     deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "//libraries/junit4",
         "//libraries/junit4:junit4_test_lib",
@@ -479,7 +479,7 @@ jvm_library(
     ],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "//libraries/kotlin/test:libraries-kotlinTest",
         "//libraries/kotlin/test:libraries-kotlinTest_test_lib",

@@ -85,7 +85,7 @@ jvm_library(
     runtime_deps = [":ml-api-tests"],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "//libraries/mockito",
         "//libraries/mockito:mockito_test_lib",

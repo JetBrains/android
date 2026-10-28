@@ -67,7 +67,7 @@ jvm_library(
     runtime_deps = [":memory-usage-tests"],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "//libraries/junit4",
         "//libraries/junit4:junit4_test_lib",

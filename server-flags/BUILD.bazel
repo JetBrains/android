@@ -83,7 +83,7 @@ jvm_library(
     runtime_deps = [":server-flags-tests"],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "@lib//:truth",
         "@lib//:android-server-flags-tests-libserver-flag-test-proto",

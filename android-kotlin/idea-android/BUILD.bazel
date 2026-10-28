@@ -133,7 +133,7 @@ jvm_library(
     runtime_deps = [":android-kotlin-tests"],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "@lib//:kotlin-stdlib",
         "//libraries/guava",
@@ -149,7 +149,7 @@ jvm_library(
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api_test_lib",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common_test_lib",
-        "@lib//:kotlinc-kotlin-compiler-tests-provided",
+        "@lib//:kotlinc-kotlin-compiler-tests",
         "//android/android-common:common",
         "//android/android-common:common_test_lib",
         "//android/android:core",

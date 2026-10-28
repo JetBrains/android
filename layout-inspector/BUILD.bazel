@@ -226,7 +226,7 @@ jvm_library(
     runtime_deps = [":layout-inspector-integration"],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "@lib//:kotlin-stdlib",
         "//libraries/guava",
@@ -316,7 +316,7 @@ jvm_library(
         # do not sort,
         "//android/project-system",
         "//android/project-system:project-system_test_lib",
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:kotlin-stdlib",
         "@lib//:studio-test-platform",
         "//libraries/guava",

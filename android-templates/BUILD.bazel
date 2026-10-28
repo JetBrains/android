@@ -282,7 +282,7 @@ jvm_library(
         "//android/android-test-framework:testFramework_test_lib",
         "//android/adt-testutils",
         "//android/adt-testutils:adt-testutils_test_lib",
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:kotlin-stdlib",
         "@lib//:studio-test-platform",
         "//libraries/guava",

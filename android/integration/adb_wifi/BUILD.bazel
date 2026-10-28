@@ -42,7 +42,7 @@ jvm_library(
         "//java/java-syntax:syntax_test_lib",
         "//libraries/junit4",
         "//libraries/junit4:junit4_test_lib",
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "@lib//:kotlin-stdlib",
         "//libraries/jetbrains/annotations",

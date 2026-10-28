@@ -122,7 +122,7 @@ jvm_library(
     runtime_deps = [":android-app-inspection-inspectors-network-model-tests"],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "//libraries/guava",
         "//libraries/guava:guava_test_lib",

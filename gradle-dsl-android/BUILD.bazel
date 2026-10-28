@@ -95,7 +95,7 @@ jvm_library(
     runtime_deps = [":gradle-dsl-android-tests"],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "@lib//:kotlin-stdlib",
         "//libraries/jetbrains/annotations",

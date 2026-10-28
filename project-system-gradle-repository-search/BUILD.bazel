@@ -99,7 +99,7 @@ jvm_library(
     runtime_deps = [":projectSystem-gradle-repositorySearch-tests"],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "@lib//:kotlin-stdlib",
         "//libraries/guava",

@@ -90,7 +90,7 @@ jvm_library(
     runtime_deps = [":android-app-inspection-inspectors-backgroundtask-model-tests"],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "@lib//:kotlin-stdlib",
         "//libraries/kotlinx/coroutines/core",

@@ -158,7 +158,7 @@ jvm_library(
     ],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "//android/profilers",
         "//android/profilers:profilers_test_lib",

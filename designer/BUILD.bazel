@@ -268,7 +268,7 @@ jvm_library(
     runtime_deps = [":designer-integration"],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "@lib//:kotlin-stdlib",
         "//libraries/junit4",
@@ -542,7 +542,7 @@ jvm_library(
         "//libraries/jaxb",
         "//libraries/jaxb:jaxb_test_lib",
         "@lib//:kotlin-stdlib",
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "@lib//:studio-test-platform",
         "//libraries/commons/lang3",
         "//libraries/commons/lang3:lang3_test_lib",
@@ -661,7 +661,7 @@ jvm_library(
     ],
     deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
+        "@lib//:studio-platform",
         "//libraries/jaxb",
         "//libraries/jaxb:jaxb_test_lib",
         "@lib//:studio-test-platform",
