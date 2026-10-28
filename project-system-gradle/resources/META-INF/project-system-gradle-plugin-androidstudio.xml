@@ -82,6 +82,7 @@
         implementation="com.android.tools.idea.testartifacts.testsuite.runconfiguration.TestSuiteRunConfigurationProducer"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
+    <issueChecker implementation="com.android.tools.idea.gradle.project.sync.errors.IncompatibleGradleJvmAndGradleIssueChecker" order="first"/>
     <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>
     <taskManager implementation="com.android.tools.idea.testartifacts.testsuite.GradleAndroidTestsTaskManager"/>
     <syncExtension implementation="com.android.tools.idea.projectsystem.gradle.phased.CleanupAndroidGroupSyncExtension" />
