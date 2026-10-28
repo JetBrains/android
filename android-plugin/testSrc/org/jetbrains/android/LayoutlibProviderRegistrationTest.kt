@@ -11,6 +11,9 @@ private const val LAYOUTLIB_PROVIDER_EP = "com.android.tools.idea.layoutlib.layo
 private const val LAYOUTLIB_PROVIDER = "com.android.layoutlib.LayoutlibProvider"
 private const val ANDROID_PLUGIN = "org.jetbrains.android"
 private const val DESIGN_TOOLS_PLUGIN = "com.android.tools.design"
+private const val LAYOUTLIB_PROVIDER_SERVICE =
+  "META-INF/services/com.android.tools.idea.layoutlib.LayoutLibraryLoader\$LayoutLibraryProvider"
+private const val LAYOUTLIB_PROVIDER_BRIDGE = "com.android.tools.idea.layoutlib.LayoutLibraryProviderBridge"
 
 class LayoutlibProviderRegistrationTest : LightPlatformTestCase() {
   fun testBothPluginsRegisterLayoutlibProvider() {
@@ -26,6 +29,13 @@ class LayoutlibProviderRegistrationTest : LightPlatformTestCase() {
       .toMutableList()
     LoadingOrder.sortByLoadingOrder(registrations)
     assertEquals(listOf(DESIGN_TOOLS_PLUGIN, ANDROID_PLUGIN), registrations.map { it.pluginId })
+  }
+
+  fun testOnlyTheBridgeIsDeclaredAsLayoutlibProviderService() {
+    val serviceFiles = javaClass.classLoader.getResources(LAYOUTLIB_PROVIDER_SERVICE).toList()
+    assertEquals(serviceFiles.toString(), 1, serviceFiles.size)
+    val providers = serviceFiles.single().readText().lines().map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }
+    assertEquals(listOf(LAYOUTLIB_PROVIDER_BRIDGE), providers)
   }
 
   private fun layoutlibProviders(pluginId: String): List<ExtensionDescriptor> {

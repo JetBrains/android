@@ -194,7 +194,9 @@
   <xi:include href="/META-INF/play-publishing.xml" />
 <!--  JetBrains patch: the Android plugin registers the layoutlib provider too, because it can run without Design Tools, and
       without a provider Asset Studio previews are blank. order="last" lets the Design Tools provider win when both plugins are
-      enabled: each plugin has its own layoutlib copy, and the Designer casts rendered views to the classes of the Design Tools copy. -->
+      enabled: each plugin has its own layoutlib copy, and the Designer casts rendered views to the classes of the Design Tools copy.
+      The intellij.android.layoutlib module carries no META-INF/services file for this provider, so android.jar holds only the
+      LayoutLibraryProviderBridge entry and the provider is chosen through this extension point, not by the order of modules in the jar. -->
   <extensions defaultExtensionNs="com.android.tools.idea.layoutlib">
     <layoutLibraryProvider implementation="com.android.layoutlib.LayoutlibProvider" order="last"/>
   </extensions>
