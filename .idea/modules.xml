@@ -476,6 +476,7 @@
       <module fileurl="file://$PROJECT_DIR$/play-publishing/intellij.android.play-publishing.tests.iml" filepath="$PROJECT_DIR$/play-publishing/intellij.android.play-publishing.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-plugin/intellij.android.plugin.iml" filepath="$PROJECT_DIR$/android-plugin/intellij.android.plugin.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-plugin/descriptor/intellij.android.plugin.descriptor.iml" filepath="$PROJECT_DIR$/android-plugin/descriptor/intellij.android.plugin.descriptor.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android-plugin/intellij.android.plugin.tests.iml" filepath="$PROJECT_DIR$/android-plugin/intellij.android.plugin.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/preview-designer/intellij.android.preview-designer.iml" filepath="$PROJECT_DIR$/preview-designer/intellij.android.preview-designer.iml" />
       <module fileurl="file://$PROJECT_DIR$/preview-designer/intellij.android.preview-designer.tests.iml" filepath="$PROJECT_DIR$/preview-designer/intellij.android.preview-designer.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/preview-elements/intellij.android.preview-elements.iml" filepath="$PROJECT_DIR$/preview-elements/intellij.android.preview-elements.iml" />
