@@ -109,7 +109,7 @@ jvm_library(
         "//platform/lang-api:lang",
         "//platform/lang-core",
         "//platform/lang-impl",
-        "//platform/lang-impl/backend",
+        "//platform/indexing-impl/backend",
         "//platform/projectModel-api:projectModel",
         "//platform/refactoring",
         "//platform/remote-core",
