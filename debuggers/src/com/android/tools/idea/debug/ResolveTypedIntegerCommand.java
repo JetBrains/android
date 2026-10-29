@@ -19,7 +19,6 @@ import com.intellij.debugger.engine.DebugProcess;
 import com.intellij.debugger.engine.DebugProcessImpl;
 import com.intellij.debugger.engine.evaluation.EvaluationContext;
 import com.intellij.debugger.impl.DebuggerContextImpl;
-import com.intellij.debugger.impl.PositionUtil;
 import com.intellij.debugger.ui.tree.FieldDescriptor;
 import com.intellij.debugger.ui.tree.LocalVariableDescriptor;
 import com.intellij.debugger.ui.tree.ValueDescriptor;
@@ -87,7 +86,7 @@ public class ResolveTypedIntegerCommand extends ToStringCommand {
 
   @Nullable
   private PsiAnnotation getAnnotation(DebuggerContextImpl debuggerContext) {
-    PsiElement context = PositionUtil.getContextElement(debuggerContext);
+    PsiElement context = debuggerContext.getContextElement();
     if (context == null) {
       return null;
     }
