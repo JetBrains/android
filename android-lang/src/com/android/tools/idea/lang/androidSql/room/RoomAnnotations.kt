@@ -15,21 +15,19 @@
  */
 package com.android.tools.idea.lang.androidSql.room
 
-import com.android.support.AndroidxName
-
 object RoomAnnotations {
-  val PACKAGE_NAME = AndroidxName("android.arch.persistence.room.", "androidx.room.")
-  val ENTITY = AndroidxName.of(PACKAGE_NAME, "Entity")
-  val DATABASE = AndroidxName.of(PACKAGE_NAME, "Database")
-  val DAO = AndroidxName.of(PACKAGE_NAME, "Dao")
-  val COLUMN_INFO = AndroidxName.of(PACKAGE_NAME, "ColumnInfo")
-  val PRIMARY_KEY = AndroidxName.of(PACKAGE_NAME, "PrimaryKey")
-  val IGNORE = AndroidxName.of(PACKAGE_NAME, "Ignore")
-  val QUERY = AndroidxName.of(PACKAGE_NAME, "Query")
-  val DATABASE_VIEW = AndroidxName.of(PACKAGE_NAME, "DatabaseView")
-  val EMBEDDED = AndroidxName.of(PACKAGE_NAME, "Embedded")
-  val FTS3 = AndroidxName.of(PACKAGE_NAME, "Fts3")
-  val FTS4 = AndroidxName.of(PACKAGE_NAME, "Fts4")
+  val PACKAGE_NAME = RoomAndroidxName("android.arch.persistence.room.", "androidx.room.")
+  val ENTITY = RoomAndroidxName.of(PACKAGE_NAME, "Entity")
+  val DATABASE = RoomAndroidxName.of(PACKAGE_NAME, "Database")
+  val DAO = RoomAndroidxName.of(PACKAGE_NAME, "Dao")
+  val COLUMN_INFO = RoomAndroidxName.of(PACKAGE_NAME, "ColumnInfo")
+  val PRIMARY_KEY = RoomAndroidxName.of(PACKAGE_NAME, "PrimaryKey")
+  val IGNORE = RoomAndroidxName.of(PACKAGE_NAME, "Ignore")
+  val QUERY = RoomAndroidxName.of(PACKAGE_NAME, "Query")
+  val DATABASE_VIEW = RoomAndroidxName.of(PACKAGE_NAME, "DatabaseView")
+  val EMBEDDED = RoomAndroidxName.of(PACKAGE_NAME, "Embedded")
+  val FTS3 = RoomAndroidxName.of(PACKAGE_NAME, "Fts3")
+  val FTS4 = RoomAndroidxName.of(PACKAGE_NAME, "Fts4")
 }
 
 const val AUTO_VALUE_ANNOTATION = "com.google.auto.value.AutoValue"

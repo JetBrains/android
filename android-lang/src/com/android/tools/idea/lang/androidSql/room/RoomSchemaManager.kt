@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lang.androidSql.room
 
-import com.android.support.AndroidxName
 import com.android.tools.idea.kotlin.findArgumentExpression
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.kotlin.tryEvaluateConstant
@@ -116,7 +115,7 @@ class RoomSchemaManager(val module: Module) {
   private fun <T : Any> processAnnotatedClasses(
     psiFacade: JavaPsiFacade,
     scope: GlobalSearchScope,
-    annotation: AndroidxName,
+    annotation: RoomAndroidxName,
     processor: (PsiClass) -> T?,
   ): Set<T> {
     val allScope = GlobalSearchScope.allScope(psiFacade.project)
@@ -266,7 +265,7 @@ class RoomSchemaManager(val module: Module) {
 
   private fun <T> getNameAndNameElement(
     element: T,
-    annotationName: AndroidxName,
+    annotationName: RoomAndroidxName,
     annotationAttributeName: String,
   ): Pair<String, PsiElement>? where T : PsiModifierListOwner, T : PsiNamedElement {
     // First look for the annotation that can override the name:
@@ -281,7 +280,7 @@ class RoomSchemaManager(val module: Module) {
     return nameInCode to element
   }
 
-  private fun KtLightField.getPropertyAnnotationExpression(annotationName: AndroidxName, annotationAttributeName: String): KtExpression? {
+  private fun KtLightField.getPropertyAnnotationExpression(annotationName: RoomAndroidxName, annotationAttributeName: String): KtExpression? {
     val annotationEntry =
       kotlinOrigin?.annotationEntries?.firstOrNull {
         it.fqNameMatches(annotationName.oldName()) || it.fqNameMatches(annotationName.newName())
@@ -302,7 +301,7 @@ class RoomSchemaManager(val module: Module) {
    */
   private fun <T> getAnnotationAndAnnotationName(
     element: T,
-    annotationName: AndroidxName,
+    annotationName: RoomAndroidxName,
     annotationAttributeName: String,
   ): Pair<String, PsiElement>? where T : PsiModifierListOwner, T : PsiNamedElement {
     val annotation = element.modifierList?.findAnnotation(annotationName)
@@ -326,12 +325,12 @@ class RoomSchemaManager(val module: Module) {
     return null
   }
 
-  private inline fun AndroidxName.bothNames(f: (String) -> Unit) {
+  private inline fun RoomAndroidxName.bothNames(f: (String) -> Unit) {
     f(oldName())
     f(newName())
   }
 
-  private fun PsiModifierList.findAnnotation(annotation: AndroidxName): PsiAnnotation? {
+  private fun PsiModifierList.findAnnotation(annotation: RoomAndroidxName): PsiAnnotation? {
     return findAnnotation(annotation.oldName()) ?: findAnnotation(annotation.newName())
   }
 
