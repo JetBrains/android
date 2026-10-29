@@ -110,6 +110,16 @@ jvm_library(
     ),
     associates = ["//android/debuggers"],
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//platform/vcs/plugin",
+        "//plugins/kotlin/plugin",
+        "//plugins/kotlin/injection/base:kotlin-base-injection",
+        "//plugins/kotlin/jvm-debugger/evaluation",
+        "//plugins/kotlin/jvm/shared",
+        "//plugins/groovy-live-templates",
+        "//plugins/kotlin/base/pluginTestFramework:kotlin-base-plugin-testFramework",
+    ],
     deps = [
         # do not sort,
         "//android/android-test-framework:testFramework_test_lib",

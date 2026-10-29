@@ -56,6 +56,13 @@
     <orderEntry type="module" module-name="intellij.platform.util.jdom" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.scratch.plugin" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.vcs.plugin" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.kotlin.plugin" scope="RUNTIME" />
+    <orderEntry type="module" module-name="kotlin.base.injection" scope="RUNTIME" />
+    <orderEntry type="module" module-name="kotlin.jvm-debugger.evaluation" scope="RUNTIME" />
+    <orderEntry type="module" module-name="kotlin.jvm.shared" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.groovy.live.templates" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.plugin.testFramework" scope="RUNTIME" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.debuggers" />
 </module>
