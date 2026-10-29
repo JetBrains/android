@@ -32,6 +32,8 @@ interface GradleProjectPathEntityBuilder : WorkspaceEntityBuilder<GradleProjectP
   override var entitySource: EntitySource
   var module: ModuleEntityBuilder
   var gradleProjectPath: GradleProjectPath
+  val symbolicId: GradleProjectPathSymbolicId
+    get() = GradleProjectPathSymbolicId(gradleProjectPath)
 }
 
 internal object GradleProjectPathEntityType : EntityType<GradleProjectPathEntity, GradleProjectPathEntityBuilder>() {

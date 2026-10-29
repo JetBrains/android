@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.project.entities.impl.GradleAndroidModelEntityImpl
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelImpl
 import com.intellij.platform.workspace.jps.entities.ModuleEntityBuilder
+import com.intellij.platform.workspace.jps.entities.ModuleId
 import com.intellij.platform.workspace.storage.EntitySource
 import com.intellij.platform.workspace.storage.EntityType
 import com.intellij.platform.workspace.storage.GeneratedCodeApiVersion
@@ -34,6 +35,8 @@ interface GradleAndroidModelEntityBuilder : WorkspaceEntityBuilder<GradleAndroid
   var module: ModuleEntityBuilder
   var gradleAndroidModel: GradleAndroidModelImpl
   var resolvedVariant: IdeVariantImpl?
+  val symbolicId: GradleAndroidModelEntityId
+    get() = GradleAndroidModelEntityId(ModuleId(gradleAndroidModel.moduleName))
 }
 
 internal object GradleAndroidModelEntityType : EntityType<GradleAndroidModelEntity, GradleAndroidModelEntityBuilder>() {

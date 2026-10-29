@@ -20,6 +20,7 @@ package com.android.tools.idea.gradle.project.entities
 import com.android.tools.idea.gradle.project.entities.impl.GradleModuleModelEntityImpl
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.intellij.platform.workspace.jps.entities.ModuleEntityBuilder
+import com.intellij.platform.workspace.jps.entities.ModuleId
 import com.intellij.platform.workspace.storage.EntitySource
 import com.intellij.platform.workspace.storage.EntityType
 import com.intellij.platform.workspace.storage.GeneratedCodeApiVersion
@@ -32,6 +33,8 @@ interface GradleModuleModelEntityBuilder : WorkspaceEntityBuilder<GradleModuleMo
   override var entitySource: EntitySource
   var module: ModuleEntityBuilder
   var gradleModuleModel: GradleModuleModel
+  val symbolicId: GradleModuleModelEntityId
+    get() = GradleModuleModelEntityId(ModuleId(gradleModuleModel.moduleName))
 }
 
 internal object GradleModuleModelEntityType : EntityType<GradleModuleModelEntity, GradleModuleModelEntityBuilder>() {
