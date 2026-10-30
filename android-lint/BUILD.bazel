@@ -102,6 +102,7 @@ jvm_library(
         "//xml/xml-parser:parser",
         "//xml/xml-psi-api:psi",
         "//xml/xml-psi-impl:psi-impl",
+        "//android/android/webp",
         ":libraries_kotlinc_libraries-kotlinc-kotlin-jps-common_provided",
     ],
 )

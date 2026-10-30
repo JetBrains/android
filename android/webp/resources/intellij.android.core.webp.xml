@@ -14,7 +14,23 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
-  <actions>
+    <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
+    <dependencies>
+      <plugin id="intellij.webp"/>
+      <module name="intellij.libraries.guava"/>
+      <module name="intellij.platform.concurrency"/>
+      <module name="intellij.platform.core"/>
+      <module name="intellij.platform.core.ui"/>
+      <module name="intellij.platform.editor.ui"/>
+      <module name="intellij.platform.ide"/>
+      <module name="intellij.platform.ide.core"/>
+      <module name="intellij.platform.lang.core"/>
+      <module name="intellij.platform.projectModel"/>
+      <module name="intellij.platform.util.ui"/>
+      <module name="intellij.xml.dom"/>
+    </dependencies>
+    <!-- endregion -->
+    <actions>
     <action class="com.android.tools.idea.rendering.webp.ConvertToWebpAction" id="ConvertToWebp">
       <add-to-group group-id="ProjectViewPopupMenu"/>
       <add-to-group group-id="Images.EditorPopupMenu" relative-to-action="RefactoringMenu" anchor="after"/>

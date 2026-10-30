@@ -11,6 +11,7 @@ dev_dist_plugin(
         "intellij.libraries.layoutlib",
         "intellij.libraries.zxing.core",
         "intellij.libraries.sqlite",
+        "intellij.android.core.webp",
         "intellij.android.adb",
         "intellij.android.adb.ui",
         "intellij.android.adt.ui",
@@ -221,6 +222,9 @@ dev_dist_plugin(
         "@lib//:studio-platform": "META-INF/wizard-template-impl.xml",
     },
     main_module = "intellij.android.plugin.descriptor",
+    mode_refused_content_modules = {
+        "frontend": ["intellij.android.core.webp"],
+    },
     variants = [
         "darwin_aarch64",
         "darwin_x64",
@@ -366,7 +370,10 @@ dev_dist_complex_plugin(
     descriptor = "//android/android-plugin/descriptor:intellij.android.plugin.descriptor_windows_x64_dev_descriptor",
     directory_name = "android",
     execution_version = 2,
-    independent_artifacts = ["//libraries/sqlite:sqlite_content_module_jar"],
+    independent_artifacts = [
+        "//libraries/sqlite:sqlite_content_module_jar",
+        "//android/android/webp:webp_content_module_jar",
+    ],
     independent_destinations = {
         "intellij.libraries.sqlite": "lib/intellij.libraries.sqlite.jar",
     },
@@ -717,7 +724,10 @@ dev_dist_complex_plugin(
     descriptor = "//android/android-plugin/descriptor:intellij.android.plugin.descriptor_windows_aarch64_dev_descriptor",
     directory_name = "android",
     execution_version = 2,
-    independent_artifacts = ["//libraries/sqlite:sqlite_content_module_jar"],
+    independent_artifacts = [
+        "//libraries/sqlite:sqlite_content_module_jar",
+        "//android/android/webp:webp_content_module_jar",
+    ],
     independent_destinations = {
         "intellij.libraries.sqlite": "lib/intellij.libraries.sqlite.jar",
     },
@@ -1064,7 +1074,10 @@ dev_dist_complex_plugin(
     descriptor = "//android/android-plugin/descriptor:intellij.android.plugin.descriptor_darwin_x64_dev_descriptor",
     directory_name = "android",
     execution_version = 2,
-    independent_artifacts = ["//libraries/sqlite:sqlite_content_module_jar"],
+    independent_artifacts = [
+        "//libraries/sqlite:sqlite_content_module_jar",
+        "//android/android/webp:webp_content_module_jar",
+    ],
     independent_destinations = {
         "intellij.libraries.sqlite": "lib/intellij.libraries.sqlite.jar",
     },
@@ -1415,7 +1428,10 @@ dev_dist_complex_plugin(
     descriptor = "//android/android-plugin/descriptor:intellij.android.plugin.descriptor_darwin_aarch64_dev_descriptor",
     directory_name = "android",
     execution_version = 2,
-    independent_artifacts = ["//libraries/sqlite:sqlite_content_module_jar"],
+    independent_artifacts = [
+        "//libraries/sqlite:sqlite_content_module_jar",
+        "//android/android/webp:webp_content_module_jar",
+    ],
     independent_destinations = {
         "intellij.libraries.sqlite": "lib/intellij.libraries.sqlite.jar",
     },
@@ -1766,7 +1782,10 @@ dev_dist_complex_plugin(
     descriptor = "//android/android-plugin/descriptor:intellij.android.plugin.descriptor_linux_x64_dev_descriptor",
     directory_name = "android",
     execution_version = 2,
-    independent_artifacts = ["//libraries/sqlite:sqlite_content_module_jar"],
+    independent_artifacts = [
+        "//libraries/sqlite:sqlite_content_module_jar",
+        "//android/android/webp:webp_content_module_jar",
+    ],
     independent_destinations = {
         "intellij.libraries.sqlite": "lib/intellij.libraries.sqlite.jar",
     },
@@ -2117,7 +2136,10 @@ dev_dist_complex_plugin(
     descriptor = "//android/android-plugin/descriptor:intellij.android.plugin.descriptor_linux_aarch64_dev_descriptor",
     directory_name = "android",
     execution_version = 2,
-    independent_artifacts = ["//libraries/sqlite:sqlite_content_module_jar"],
+    independent_artifacts = [
+        "//libraries/sqlite:sqlite_content_module_jar",
+        "//android/android/webp:webp_content_module_jar",
+    ],
     independent_destinations = {
         "intellij.libraries.sqlite": "lib/intellij.libraries.sqlite.jar",
     },

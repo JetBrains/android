@@ -356,6 +356,7 @@
       <module fileurl="file://$PROJECT_DIR$/android/ui/intellij.android.core.ui.iml" filepath="$PROJECT_DIR$/android/ui/intellij.android.core.ui.iml" />
       <module fileurl="file://$PROJECT_DIR$/android/ui.designer.overlays/intellij.android.core.ui.designer.overlays.iml" filepath="$PROJECT_DIR$/android/ui.designer.overlays/intellij.android.core.ui.designer.overlays.iml" />
       <module fileurl="file://$PROJECT_DIR$/android/ui.resourcemanager/intellij.android.core.ui.resourcemanager.iml" filepath="$PROJECT_DIR$/android/ui.resourcemanager/intellij.android.core.ui.resourcemanager.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/webp/intellij.android.core.webp.iml" filepath="$PROJECT_DIR$/android/webp/intellij.android.core.webp.iml" />
       <module fileurl="file://$PROJECT_DIR$/dagger/intellij.android.dagger.iml" filepath="$PROJECT_DIR$/dagger/intellij.android.dagger.iml" />
       <module fileurl="file://$PROJECT_DIR$/dagger/intellij.android.dagger.tests.iml" filepath="$PROJECT_DIR$/dagger/intellij.android.dagger.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/databinding/intellij.android.databinding.iml" filepath="$PROJECT_DIR$/databinding/intellij.android.databinding.iml" />

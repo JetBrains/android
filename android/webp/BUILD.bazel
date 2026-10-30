@@ -1,0 +1,60 @@
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("//platform/build-scripts/bazel-rules:content_module_jar.bzl", "content_module_jar")
+
+### auto-generated section `dev intellij.android.core.webp` start
+content_module_jar(module = ":webp")
+### auto-generated section `dev intellij.android.core.webp` end
+
+### auto-generated section `build intellij.android.core.webp` start
+jvm_library(
+    name = "webp",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.core.webp",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+        "@lib//:studio-platform-provided",
+        "//platform/util:util-ui",
+        "//android/android:core",
+        "//android/jps-model",
+        "//platform/core-api:core",
+        "//platform/editor-ui-api:editor-ui",
+        "//platform/platform-api:ide",
+        "//android/project-system",
+        "//platform/forms_rt:java-guiForms-rt",
+        "//platform/lang-core",
+        "//android/adt-ui",
+        "//android/render-resources",
+        "//platform/ide-core",
+        "//android/android-common:common",
+        "//platform/projectModel-api:projectModel",
+        "//platform/core-ui",
+        "//plugins/webp",
+        "//libraries/guava",
+        "//platform/util/concurrency",
+        "//xml/dom-openapi:dom",
+    ],
+)
+### auto-generated section `build intellij.android.core.webp` end
+
+### auto-generated section `iml intellij.android.core.webp` start
+exports_files(
+    [
+        "intellij.android.core.webp.iml",
+        "resources/intellij.android.core.webp.xml",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `iml intellij.android.core.webp` end

@@ -18,7 +18,6 @@
   <depends>JUnit</depends>
   <depends>com.intellij.properties</depends>
   <depends>com.intellij.modules.json</depends>
-  <depends>intellij.webp</depends>
   <depends>com.intellij.gradle</depends>
   <depends>org.jetbrains.plugins.gradle</depends>
   <depends>org.intellij.groovy</depends>
@@ -36,7 +35,6 @@
 
   <depends optional="true" config-file="android-plugin-androidstudio.xml">com.intellij.modules.androidstudio</depends>
   <depends optional="true" config-file="android-plugin-idea.xml">com.intellij.modules.idea</depends>
-  <depends optional="true" config-file="android-webp.xml">intellij.webp</depends>
   <depends optional="true" config-file="android-smali.xml">com.android.tools.idea.smali</depends>
 
   <xi:include href="/org/jetbrains/android/dom/android-xml.xml"/>
@@ -805,4 +803,7 @@
   <xi:include href="/META-INF/studio-flags.xml"/>
   <!-- Resource Explorer is included at the bottom since it has dependencies on the general Android Plugin declarations -->
   <xi:include href="/com/android/tools/idea/ui/resourcemanager/META-INF/resources-explorer.xml"/>
+  <content namespace="jetbrains">
+    <module name="intellij.android.core.webp"/>
+  </content>
 </idea-plugin>
