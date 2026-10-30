@@ -163,7 +163,6 @@ jvm_library(
         "//android/gradle-declarative-lang-flags",
         "//android/gradle-declarative-lang",
         "//android/gradle-dsl-flags",
-        "//plugins/gradle/tooling-extension-impl:toolingExtension-tests_test_lib",
         "//platform/external-system-impl:externalSystem-tests_test_lib",
         "//platform/backend/workspace",
         "//plugins/gradle",
