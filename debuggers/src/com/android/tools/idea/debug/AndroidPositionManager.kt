@@ -174,7 +174,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
       ApplicationManager.getApplication().isUnitTestMode -> project
       else ->
         try {
-          val field = DebugProcessImpl::class.java.getDeclaredField("myDisposable")
+          val field = DebugProcessImpl::class.java.getDeclaredField("disposable")
           field.isAccessible = true
           field.get(this) as Disposable
         } catch (e: Exception) {
