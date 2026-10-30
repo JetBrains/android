@@ -80,6 +80,7 @@ jvm_library(
         # do not sort,
         "//android/android-kotlin/idea-android:android-kotlin-idea",
         "//json/plugin",
+        "//plugins/yaml/plugin",
         "//platform/main/intellij.platform.monolith.main:monolith-main",
     ],
     deps = [
