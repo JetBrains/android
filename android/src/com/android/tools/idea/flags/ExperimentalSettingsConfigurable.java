@@ -144,7 +144,8 @@ public class ExperimentalSettingsConfigurable extends CompositeConfigurable<Expe
     }
     if (shouldRestart) {
       // Suppress "Are you sure you want to exit Android Studio" dialog, and restart if possible.
-      ApplicationManager.getApplication().exit(false, true, true);
+      // JetBrains patch: restart after the Settings window completes the apply. Else, the window still shows the page as modified.
+      application.invokeLater(() -> application.exit(false, true, true));
     }
   }
 
