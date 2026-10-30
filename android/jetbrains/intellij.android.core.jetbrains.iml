@@ -34,7 +34,7 @@
     <orderEntry type="module" module-name="intellij.android.core.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
-    <orderEntry type="library" name="kotlin-stdlib" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="vavr" level="project" />
@@ -48,7 +48,7 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.app-publishing" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.psd" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.psd" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.navigator" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.rendering" scope="TEST" />
@@ -77,7 +77,7 @@
     <orderEntry type="module" module-name="intellij.platform.core.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.credentialStore" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.credentialStore.impl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.editor.ex" />
+    <orderEntry type="module" module-name="intellij.platform.editor.ex" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.editor.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.execution" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.extensions" scope="TEST" />

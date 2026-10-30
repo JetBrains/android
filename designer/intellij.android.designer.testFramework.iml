@@ -28,101 +28,101 @@
     <content url="file://$MODULE_DIR$/testFramework">
       <sourceFolder url="file://$MODULE_DIR$/testFramework" isTestSource="true" />
     </content>
-    <orderEntry type="module" module-name="intellij.libraries.guava" />
+    <orderEntry type="module" module-name="intellij.libraries.guava" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.junit4" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.common" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.common" scope="TEST" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.android.core" />
-    <orderEntry type="module" module-name="intellij.android.adt.ui" />
+    <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.tests" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" />
-    <orderEntry type="module" module-name="intellij.java.analysis.impl" />
-    <orderEntry type="module" module-name="intellij.java.frontback.psi" />
-    <orderEntry type="module" module-name="intellij.java.frontback.psi.impl" />
-    <orderEntry type="module" module-name="intellij.java.guiForms.rt" />
-    <orderEntry type="module" module-name="intellij.java.impl" />
-    <orderEntry type="module" module-name="intellij.java.indexing" />
-    <orderEntry type="module" module-name="intellij.java.psi" />
+    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java.analysis.impl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java.frontback.psi" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java.frontback.psi.impl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java.guiForms.rt" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java.impl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java.indexing" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java.psi" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.kotlin.base.indices" />
-    <orderEntry type="module" module-name="intellij.kotlin.base.util" />
-    <orderEntry type="module" module-name="intellij.kotlin.jvm.debugger.core" />
-    <orderEntry type="module" module-name="intellij.platform.analysis" />
-    <orderEntry type="module" module-name="intellij.platform.analysis.impl" />
-    <orderEntry type="module" module-name="intellij.platform.concurrency" />
-    <orderEntry type="module" module-name="intellij.platform.core" />
-    <orderEntry type="module" module-name="intellij.platform.core.impl" />
-    <orderEntry type="module" module-name="intellij.platform.core.ui" />
-    <orderEntry type="module" module-name="intellij.platform.editor.ex" />
-    <orderEntry type="module" module-name="intellij.platform.editor.ui" />
-    <orderEntry type="module" module-name="intellij.platform.extensions" />
-    <orderEntry type="module" module-name="intellij.platform.ide" />
-    <orderEntry type="module" module-name="intellij.platform.ide.concurrency" />
-    <orderEntry type="module" module-name="intellij.platform.ide.core" />
-    <orderEntry type="module" module-name="intellij.platform.ide.core.impl" />
-    <orderEntry type="module" module-name="intellij.platform.ide.designer" />
-    <orderEntry type="module" module-name="intellij.platform.ide.impl" />
-    <orderEntry type="module" module-name="intellij.platform.images" />
-    <orderEntry type="module" module-name="intellij.platform.indexing" />
-    <orderEntry type="module" module-name="intellij.platform.lang" />
-    <orderEntry type="module" module-name="intellij.platform.lang.core" />
-    <orderEntry type="module" module-name="intellij.platform.lang.impl" />
-    <orderEntry type="module" module-name="intellij.platform.problemView.ui" />
-    <orderEntry type="module" module-name="intellij.platform.projectModel" />
-    <orderEntry type="module" module-name="intellij.platform.refactoring" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.indices" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.util" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.kotlin.jvm.debugger.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.analysis" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.analysis.impl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.concurrency" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.core.impl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.core.ui" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.editor.ex" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.editor.ui" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.extensions" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.ide" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.ide.concurrency" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.ide.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.ide.core.impl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.ide.designer" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.ide.impl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.images" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.indexing" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.lang" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.lang.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.lang.impl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.problemView.ui" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.projectModel" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.refactoring" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.testFramework.common" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.tests" />
-    <orderEntry type="module" module-name="intellij.platform.uast" />
-    <orderEntry type="module" module-name="intellij.platform.util" />
-    <orderEntry type="module" module-name="intellij.platform.util.base" />
-    <orderEntry type="module" module-name="intellij.platform.util.jdom" />
-    <orderEntry type="module" module-name="intellij.platform.util.rt" />
-    <orderEntry type="module" module-name="intellij.platform.util.ui" />
-    <orderEntry type="module" module-name="intellij.spellchecker" />
-    <orderEntry type="module" module-name="intellij.uiDesigner" />
-    <orderEntry type="module" module-name="intellij.xml.dom" />
-    <orderEntry type="module" module-name="intellij.xml.parser" />
-    <orderEntry type="module" module-name="intellij.xml.psi" />
-    <orderEntry type="module" module-name="intellij.xml.psi.impl" />
-    <orderEntry type="module" module-name="intellij.android.adt.ui.compose" />
-    <orderEntry type="module" module-name="intellij.android.wizard" />
-    <orderEntry type="module" module-name="intellij.android.wizard.model" />
-    <orderEntry type="module" module-name="intellij.android.artwork" />
-    <orderEntry type="module" module-name="intellij.android.assistant" />
-    <orderEntry type="module" module-name="intellij.android.common" />
-    <orderEntry type="module" module-name="intellij.android.projectSystem" />
-    <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
-    <orderEntry type="module" module-name="intellij.android.layout-ui" />
-    <orderEntry type="module" module-name="intellij.libraries.jaxb" />
-    <orderEntry type="library" name="kotlin-stdlib" level="project" />
+    <orderEntry type="module" module-name="intellij.platform.tests" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.uast" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.util.base" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.util.jdom" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.util.rt" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.util.ui" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.spellchecker" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.uiDesigner" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.xml.parser" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.xml.psi" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.xml.psi.impl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.compose" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.wizard" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.wizard.model" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.assistant" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.model" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.layout-ui" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.libraries.jaxb" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
-    <orderEntry type="module" module-name="intellij.libraries.commons.lang3" />
-    <orderEntry type="module" module-name="intellij.libraries.jcip" />
-    <orderEntry type="module" module-name="intellij.libraries.jetbrains.annotations" />
-    <orderEntry type="module" module-name="intellij.libraries.kotlinx.collections.immutable" />
-    <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.core" />
-    <orderEntry type="module" module-name="intellij.libraries.layoutlib" />
-    <orderEntry type="module" module-name="intellij.android.compose-common" />
-    <orderEntry type="module" module-name="intellij.android.lint.common" />
-    <orderEntry type="module" module-name="intellij.android.newProjectWizard" />
-    <orderEntry type="module" module-name="intellij.android.jps.model" />
-    <orderEntry type="module" module-name="intellij.android.render-resources" />
-    <orderEntry type="module" module-name="intellij.android.rendering" />
-    <orderEntry type="module" module-name="intellij.android.layoutlib-loader" />
-    <orderEntry type="module" module-name="intellij.android.ml-api" />
-    <orderEntry type="module" module-name="intellij.android.avd" />
-    <orderEntry type="module" module-name="intellij.android.visual-lint" />
+    <orderEntry type="module" module-name="intellij.libraries.commons.lang3" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.libraries.jcip" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.libraries.jetbrains.annotations" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinx.collections.immutable" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.libraries.layoutlib" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.compose-common" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.lint.common" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.newProjectWizard" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.jps.model" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.rendering" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.layoutlib-loader" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.ml-api" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.avd" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.visual-lint" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.mockito" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.libraries.protobuf" />
+    <orderEntry type="module" module-name="intellij.libraries.protobuf" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="intellij.libraries.fastutil" />
+    <orderEntry type="module" module-name="intellij.libraries.fastutil" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.ir" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.mockito.kotlin" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.libraries.xerces" />
+    <orderEntry type="module" module-name="intellij.libraries.xerces" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.designer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.scratch.plugin" scope="TEST" />
   </component>
