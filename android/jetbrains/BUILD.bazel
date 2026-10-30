@@ -40,6 +40,7 @@ jvm_library(
         "//plugins/sh/core",
         "//plugins/sh/plugin",
         "//plugins/sh/spellchecker",
+        "//json/plugin",
         "//platform/main/intellij.platform.monolith.main:monolith-main",
     ],
     deps = [

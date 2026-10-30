@@ -11633,6 +11633,7 @@ jvm_library(
         "//android/gradle-dsl-kotlin",
         "//idea/customization/plugin",
         "//platform/main/intellij.platform.monolith.main:monolith-main",
+        "//json/plugin",
     ],
     deps = [
         # do not sort,

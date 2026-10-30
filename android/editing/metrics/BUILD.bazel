@@ -73,6 +73,7 @@ jvm_library(
         "//platform/structure-view-impl/plugin",
         "//platform/testRunner/plugin",
         "//platform/vcs/plugin",
+        "//json/plugin",
         "//aether-dependency-resolver/plugin",
     ],
     deps = [

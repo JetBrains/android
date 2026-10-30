@@ -89,6 +89,7 @@ jvm_library(
         "//plugins/kotlin/jvm-debugger/evaluation",
         "//platform/dvcs-impl:vcs-dvcs-impl",
         "//plugins/toml",
+        "//json/plugin",
         "//android/gradle-dsl",
         "//plugins/kotlin/jsr223",
         "//plugins/kotlin/base/pluginTestFramework:kotlin-base-plugin-testFramework",

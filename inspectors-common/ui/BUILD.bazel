@@ -66,6 +66,7 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = ["//json/plugin"],
     deps = [
         # do not sort,
         "@lib//:studio-platform",

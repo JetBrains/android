@@ -37,6 +37,7 @@
     <orderEntry type="module" module-name="kotlin.jvm-debugger.evaluation" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.vcs.dvcs.impl" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.toml" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.json.plugin" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.kotlin.jsr223" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.kotlin.base.plugin.testFramework" scope="RUNTIME" />
