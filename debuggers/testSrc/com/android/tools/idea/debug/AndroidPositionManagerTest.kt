@@ -158,7 +158,9 @@ class AndroidPositionManagerTest {
 
   @Test
   fun sourcePosition_nullLocation() {
-    assertFailsWith<NoDataException> { myPositionManager.getSourcePosition(null) }
+    mockDebugProcessImpl.invokeOnDebuggerManagerThread {
+      assertFailsWith<NoDataException> { myPositionManager.getSourcePosition(null) }
+    }
   }
 
   @Test
@@ -168,7 +170,9 @@ class AndroidPositionManagerTest {
 
     // Recreate myPositionManager, so that it reinitializes with a null version.
     myPositionManager = AndroidPositionManager(mockDebugProcessImpl)
-    assertFailsWith<NoDataException> { myPositionManager.getSourcePosition(location) }
+    mockDebugProcessImpl.invokeOnDebuggerManagerThread {
+      assertFailsWith<NoDataException> { myPositionManager.getSourcePosition(location) }
+    }
 
     // getSourcePosition should have exited before `location` was used.
     verifyNoInteractions(location)
@@ -181,7 +185,9 @@ class AndroidPositionManagerTest {
     val location: MockLocation = mock()
     whenever(location.declaringType()).thenReturn(null)
 
-    assertFailsWith<NoDataException> { myPositionManager.getSourcePosition(location) }
+    mockDebugProcessImpl.invokeOnDebuggerManagerThread {
+      assertFailsWith<NoDataException> { myPositionManager.getSourcePosition(location) }
+    }
   }
 
   @Test
@@ -206,7 +212,7 @@ class AndroidPositionManagerTest {
 
     val file = projectRule.fixture.addFileToProject("src/p1/Foo.java", text)
 
-    runReadAction {
+    mockDebugProcessImpl.invokeOnDebuggerManagerThread {
       // Ensure that the super class is actually finding this class.
       assertThat(myPositionManager.getPsiFileByLocation(project, location)).isSameAs(file)
 
@@ -217,7 +223,7 @@ class AndroidPositionManagerTest {
 
   @Test
   fun sourcePosition_locationIsAnAndroidFile() {
-    runReadAction { myPositionManager.getSourcePosition(androidSdkClassLocation) }
+    mockDebugProcessImpl.invokeOnDebuggerManagerThread { myPositionManager.getSourcePosition(androidSdkClassLocation) }
 
     val lineNumber = androidSdkClassLocation.lineNumber()
     verify(mockSdkSourcePositionFinder).getSourcePosition(eq(targetDeviceAndroidVersion.androidApiLevel), any(), eq(lineNumber - 1))

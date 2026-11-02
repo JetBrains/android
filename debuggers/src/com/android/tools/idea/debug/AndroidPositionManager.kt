@@ -26,16 +26,19 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.debugger.NoDataException
 import com.intellij.debugger.SourcePosition
 import com.intellij.debugger.engine.DebugProcessImpl
+import com.intellij.debugger.engine.DebuggerManagerThreadImpl
 import com.intellij.debugger.engine.PositionManagerImpl
 import com.intellij.debugger.engine.jdi.VirtualMachineProxy
 import com.intellij.debugger.impl.DebuggerUtilsEx
 import com.intellij.debugger.impl.PrioritizedTask
+import com.intellij.debugger.impl.runBlockingAssertNotInReadAction
 import com.intellij.debugger.requests.ClassPrepareRequestor
 import com.intellij.ide.highlighter.JavaClassFileType
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.thisLogger
@@ -54,6 +57,8 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
+import com.intellij.util.concurrency.annotations.RequiresBlockingContext
 import com.intellij.xdebugger.XDebugSessionListener
 import com.sun.jdi.Location
 import com.sun.jdi.ReferenceType
@@ -119,8 +124,15 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
   // returns a string of the form "FileName.java"; this resolves into a JavaFileType.
   override fun isAcceptedFileType(fileType: FileType): Boolean = fileType == JavaFileType.INSTANCE
 
+  @RequiresBlockingContext
   @Throws(NoDataException::class)
   override fun getSourcePosition(location: Location?): SourcePosition {
+    return runBlockingAssertNotInReadAction { getSourcePositionAsync(location) }
+  }
+
+  @RequiresBackgroundThread
+  override suspend fun getSourcePositionAsync(location: Location?): SourcePosition {
+    DebuggerManagerThreadImpl.assertIsManagerThread()
     if (location == null) throw NoDataException.INSTANCE
 
     if (myAndroidVersion == null) {
@@ -129,17 +141,21 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
     }
 
     val project = myDebugProcess.project
-    val file = getPsiFileByLocation(project, location)
-    if (file == null || !AndroidSdks.getInstance().isInAndroidSdk(file)) throw NoDataException.INSTANCE
+    @Suppress("ForbiddenInSuspectContextMethod")
+    val file = getPsiFileByLocation(project, location) ?: throw NoDataException.INSTANCE
+    val lineNumber = DebuggerUtilsEx.getLineNumber(location, true)
 
     // Since we have an Android SDK file, return the SDK source if it's available.
     // Otherwise, return a generated file with a comment indicating that sources are unavailable.
-    return SdkSourcePositionFinder.getInstance(project)
-      .getSourcePosition(myAndroidVersion.androidApiLevel, file, DebuggerUtilsEx.getLineNumber(location, true))
+    return readAction {
+      if (!file.isValid || !AndroidSdks.getInstance().isInAndroidSdk(file)) throw NoDataException.INSTANCE
+      SdkSourcePositionFinder.getInstance(project).getSourcePosition(myAndroidVersion.androidApiLevel, file, lineNumber)
+    }
   }
 
   // This override only exists for the purpose of changing visibility for invocation via tests.
   @VisibleForTesting
+  @RequiresBlockingContext
   public override fun getPsiFileByLocation(project: Project, location: Location): PsiFile? = super.getPsiFileByLocation(project, location)
 
   /** Listener that's responsible for closing the generated "no sources available" file when a debug session completes. */
