@@ -9,8 +9,8 @@ create_kotlinc_options(
 )
 
 jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-kotlin-jps-common_provided",
-    lib = "//libraries/kotlinc/kotlin-jps-common:libraries-kotlinc-kotlin-jps-common",
+    name = "plugins_kotlin_jps_util_runtime_provided",
+    lib = "//plugins/kotlin/jps/util/runtime",
 )
 
 jvm_library(
@@ -106,7 +106,7 @@ jvm_library(
         "//xml/xml-psi-api:psi",
         "//xml/xml-psi-impl:psi-impl",
         "//android/android/webp",
-        ":libraries_kotlinc_libraries-kotlinc-kotlin-jps-common_provided",
+        ":plugins_kotlin_jps_util_runtime_provided",
     ],
 )
 ### auto-generated section `build intellij.android.lint` end

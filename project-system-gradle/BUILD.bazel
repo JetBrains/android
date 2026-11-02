@@ -14,8 +14,8 @@ jvm_provided_library(
 )
 
 jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-kotlin-jps-common_provided",
-    lib = "//libraries/kotlinc/kotlin-jps-common:libraries-kotlinc-kotlin-jps-common",
+    name = "plugins_kotlin_jps_util_runtime_provided",
+    lib = "//plugins/kotlin/jps/util/runtime",
 )
 
 jvm_library(
@@ -200,7 +200,7 @@ jvm_library(
         "//platform/locking-impl",
         "//platform/util-class-loader:util-classLoader",
         ":libraries_kotlin_libraries-kotlin-gradle-plugin-idea_provided",
-        ":libraries_kotlinc_libraries-kotlinc-kotlin-jps-common_provided",
+        ":plugins_kotlin_jps_util_runtime_provided",
     ],
 )
 ### auto-generated section `build intellij.android.projectSystem.gradle` end

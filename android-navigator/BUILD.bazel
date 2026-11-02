@@ -3,8 +3,8 @@ load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 
 ### auto-generated section `build intellij.android.navigator` start
 jvm_provided_library(
-    name = "libraries_kotlinc_libraries-kotlinc-kotlin-jps-common_provided",
-    lib = "//libraries/kotlinc/kotlin-jps-common:libraries-kotlinc-kotlin-jps-common",
+    name = "plugins_kotlin_jps_util_runtime_provided",
+    lib = "//plugins/kotlin/jps/util/runtime",
 )
 
 jvm_library(
@@ -73,7 +73,7 @@ jvm_library(
         "//platform/util/base",
         "//platform/util-rt",
         "//platform/util:util-ui",
-        ":libraries_kotlinc_libraries-kotlinc-kotlin-jps-common_provided",
+        ":plugins_kotlin_jps_util_runtime_provided",
     ],
 )
 ### auto-generated section `build intellij.android.navigator` end
