@@ -202,12 +202,13 @@ internal constructor(private val mySdkSync: SdkSync, private val myTopLevelModul
       val projectSettings = GradleDefaultProjectSettings.createProjectSettings(externalProjectPath)
       if (GRADLE_USES_LOCAL_JAVA_HOME_FOR_NEW_CREATED_PROJECTS.get() || ApplicationManager.getApplication().isUnitTestMode) {
         projectSettings.gradleJvm = USE_GRADLE_LOCAL_JAVA_HOME
+        // JetBrains patch: write java.home before the link, because linkExternalProject starts a sync that reads it.
+        GradleConfigManager.initializeJavaHome(newProject, externalProjectPath)
         if (IdeInfo.getInstance().isAndroidStudio || ApplicationManager.getApplication().isUnitTestMode) {
           ExternalSystemApiUtil.getSettings(newProject, GradleConstants.SYSTEM_ID).linkProject(projectSettings)
         } else {
           ExternalSystemUtil.linkExternalProject(projectSettings, ImportSpecBuilder(newProject, GradleConstants.SYSTEM_ID))
         }
-        GradleConfigManager.initializeJavaHome(newProject, externalProjectPath)
         if (IdeInfo.getInstance().isAndroidStudio) {
           val projectMigration = ProjectMigrationsPersistentState.getInstance(newProject)
           projectMigration.migratedGradleRootsToGradleLocalJavaHome.add(externalProjectPath)
