@@ -40,6 +40,7 @@ import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizard.WizardListener
 import com.android.tools.idea.wizard.model.ModelWizard.WizardResult
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.LeakHunter
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import org.jetbrains.android.AndroidTestCase
@@ -441,6 +442,34 @@ class InstallTaskTest : AndroidTestCase() {
     } finally {
       wizard?.let { Disposer.dispose(it) }
     }
+  }
+
+  // JetBrains patch: SchemaModuleUtil.SCHEMA_CACHE keeps the progress of the install that built a schema in the error handler of the
+  // cached schema. LeakHunter does not walk into the closed java.xml module, so the check starts from that progress.
+  fun testInstallProgressKeptBySchemaCacheDoesNotLeakInstallStep() {
+    val factory = mock<InstallerFactory>()
+    whenever(factory.createInstaller(eq(available1), any(), any())).thenReturn(installer)
+    var installProgress: ProgressIndicator? = null
+    whenever(installer.prepare(any())).thenAnswer { invocation ->
+      installProgress = invocation.arguments[0] as ProgressIndicator
+      true
+    }
+    val installStep =
+      InstallSelectedPackagesStep(
+        installRequests = listOf(UpdatablePackage(available1)),
+        sdkHandler = sdkHandler,
+        factory = factory,
+      )
+    val installFinished = CompletableFuture<Boolean>()
+    installStep.canGoForward().addListener(InvalidationListener { installFinished.complete(true) })
+    val wizard = ModelWizard.Builder(installStep).build()
+    try {
+      pumpEventsAndWaitForFuture(installFinished, 5, TimeUnit.SECONDS)
+    } finally {
+      Disposer.dispose(wizard)
+    }
+
+    LeakHunter.checkLeak(installProgress!!, InstallSelectedPackagesStep::class.java)
   }
 
   private inline fun <reified T : Any> mock(): T = Mockito.mock(T::class.java)

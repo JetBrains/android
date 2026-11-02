@@ -110,6 +110,7 @@ class InstallSelectedPackagesStep(
       }
 
   private var logger: ProgressIndicator? = null
+  private var customLogger: CustomLogger? = null
   private val backgroundAction = BackgroundAction()
   private var outputStyle: MutableAttributeSet? = null
 
@@ -202,13 +203,15 @@ class InstallSelectedPackagesStep(
       if (!backgroundAction.isBackgrounded) {
         logger?.cancel()
       }
+      customLogger?.releaseStep()
     }
   }
 
   private fun startSdkInstall(sdkHandler: AndroidSdkHandler) {
-    val customLogger = CustomLogger()
+    val customLogger = CustomLogger(this)
     val activeLogger =
       synchronized(LOGGER_LOCK) {
+        this.customLogger = customLogger
         val log = if (throttleProgress) ThrottledProgressWrapper(customLogger) else customLogger
         logger = log
         log
@@ -365,13 +368,25 @@ class InstallSelectedPackagesStep(
     return panel
   }
 
-  private inner class CustomLogger : ProgressIndicator {
+  // JetBrains patch: the install progress outlives the step in static SDK caches (SchemaModuleUtil.SCHEMA_CACHE,
+  // RepoManagerImpl.inProgressInstalls), so the logger reaches the step through a field cleared on dispose instead of being inner.
+  private class CustomLogger(step: InstallSelectedPackagesStep) : ProgressIndicator {
+    @Volatile private var step: InstallSelectedPackagesStep? = step
     @Volatile private var isCancelled = false
     // Maintain separately since JProgressBar has low resolution
     private var fraction = 0.0
 
+    fun releaseStep() {
+      step = null
+    }
+
+    private fun updateStep(update: InstallSelectedPackagesStep.() -> Unit) {
+      val step = step ?: return
+      UIUtil.invokeLaterIfNeeded { step.update() }
+    }
+
     override fun setText(s: String?) {
-      UIUtil.invokeLaterIfNeeded { progressOverallLabel.text = s }
+      updateStep { progressOverallLabel.text = s }
     }
 
     override fun isCanceled(): Boolean = isCancelled
@@ -387,14 +402,14 @@ class InstallSelectedPackagesStep(
     override fun isCancellable(): Boolean = true
 
     override fun setIndeterminate(indeterminate: Boolean) {
-      UIUtil.invokeLaterIfNeeded { progressBar.isIndeterminate = indeterminate }
+      updateStep { progressBar.isIndeterminate = indeterminate }
     }
 
-    override fun isIndeterminate(): Boolean = progressBar.isIndeterminate
+    override fun isIndeterminate(): Boolean = step?.progressBar?.isIndeterminate ?: false
 
     override fun setFraction(v: Double) {
       fraction = v
-      UIUtil.invokeLaterIfNeeded {
+      updateStep {
         progressBar.isIndeterminate = false
         progressBar.value = (v * (progressBar.maximum - progressBar.minimum)).toInt()
       }
@@ -403,7 +418,7 @@ class InstallSelectedPackagesStep(
     override fun getFraction(): Double = fraction
 
     override fun setSecondaryText(label: String?) {
-      UIUtil.invokeLaterIfNeeded { progressDetailLabel.text = label }
+      updateStep { progressDetailLabel.text = label }
     }
 
     override fun logWarning(s: String) {
@@ -434,7 +449,7 @@ class InstallSelectedPackagesStep(
     override fun logVerbose(s: String) {}
 
     private fun appendText(text: String, color: Color) {
-      UIUtil.invokeLaterIfNeeded {
+      updateStep {
         val current = sdkManagerOutput.text.orEmpty()
         // Want to chew the first "extra" newline since in different places
         // the messages either end with an explicit "\n" or not, but the intention is always
@@ -446,7 +461,7 @@ class InstallSelectedPackagesStep(
         val offset = if (current.endsWith("\n")) 1 else 0
 
         val document = sdkManagerOutput.styledDocument
-        val style = outputStyle ?: return@invokeLaterIfNeeded
+        val style = outputStyle ?: return@updateStep
         StyleConstants.setForeground(style, color)
         try {
           document.insertString(document.length - offset, text, style)
