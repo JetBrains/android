@@ -136,6 +136,8 @@
     <orderEntry type="module" module-name="intellij.sh.core" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.sh.plugin" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.sh.spellchecker" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.json.plugin" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.yaml.plugin" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.monolith.main" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.scratch.plugin" scope="TEST" />

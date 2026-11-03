@@ -180,6 +180,7 @@ jvm_library(
     associates = ["//android/compose-ide-plugin"],
     kotlinc_opts = ":custom_compose-ide-plugin-tests",
     visibility = ["//visibility:public"],
+    runtime_deps = ["//json/plugin"],
     deps = [
         # do not sort,
         "@lib//:studio-platform",

@@ -15,7 +15,12 @@ jvm_library(
     ),
     module_name = "intellij.android.core.gradle",
     visibility = ["//visibility:public"],
-    runtime_deps = ["//platform/main/intellij.platform.monolith.main:monolith-main"],
+    runtime_deps = [
+        # do not sort,
+        "//platform/main/intellij.platform.monolith.main:monolith-main",
+        "//json/plugin",
+        "//plugins/yaml/plugin",
+    ],
     deps = [
         # do not sort,
         "//android/android:core",

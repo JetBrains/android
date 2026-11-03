@@ -240,6 +240,7 @@ jvm_library(
         "//android/gradle-dsl-declarative",
         "//android/android-kotlin/idea-android:android-kotlin-idea",
         "//android/android-kotlin/idea-android/common",
+        "//plugins/properties/plugin",
     ],
     deps = [
         # do not sort,
