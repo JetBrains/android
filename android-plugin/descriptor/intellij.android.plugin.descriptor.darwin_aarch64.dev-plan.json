@@ -102,6 +102,9 @@
             "module": "intellij.android.core.webp"
         },
         {
+            "module": "intellij.android.core.smali"
+        },
+        {
             "destination": "lib/adt-ui.jar",
             "recipe": {
                 "sources": [

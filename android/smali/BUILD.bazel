@@ -1,0 +1,57 @@
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("//platform/build-scripts/bazel-rules:content_module_jar.bzl", "content_module_jar")
+
+### auto-generated section `dev intellij.android.core.smali` start
+content_module_jar(module = ":smali")
+### auto-generated section `dev intellij.android.core.smali` end
+
+### auto-generated section `build intellij.android.core.smali` start
+jvm_library(
+    name = "smali",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.android.core.smali",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "//android/android:core",
+        "//platform/core-api:core",
+        "//platform/core-impl",
+        "//platform/analysis-api:analysis",
+        "//platform/lang-impl",
+        "//android/android-common:common",
+        "//platform/platform-api:ide",
+        "//platform/projectModel-api:projectModel",
+        "//platform/ide-core",
+        "//android/smali",
+        "//platform/editor-ui-api:editor-ui",
+        "//platform/lang-core",
+        "//java/java-psi-api:psi",
+        "//android/analytics",
+        "//libraries/guava",
+        "//libraries/protobuf",
+        "//platform/core-ui",
+        "@lib//:studio-platform-provided",
+    ],
+)
+### auto-generated section `build intellij.android.core.smali` end
+
+### auto-generated section `iml intellij.android.core.smali` start
+exports_files(
+    [
+        "intellij.android.core.smali.iml",
+        "resources/intellij.android.core.smali.xml",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `iml intellij.android.core.smali` end

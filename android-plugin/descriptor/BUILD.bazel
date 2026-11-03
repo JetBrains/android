@@ -12,6 +12,7 @@ dev_dist_plugin(
         "intellij.libraries.zxing.core",
         "intellij.libraries.sqlite",
         "intellij.android.core.webp",
+        "intellij.android.core.smali",
         "intellij.android.adb",
         "intellij.android.adb.ui",
         "intellij.android.adt.ui",
@@ -223,7 +224,10 @@ dev_dist_plugin(
     },
     main_module = "intellij.android.plugin.descriptor",
     mode_refused_content_modules = {
-        "frontend": ["intellij.android.core.webp"],
+        "frontend": [
+            "intellij.android.core.webp",
+            "intellij.android.core.smali",
+        ],
     },
     variants = [
         "darwin_aarch64",
@@ -373,6 +377,7 @@ dev_dist_complex_plugin(
     independent_artifacts = [
         "//libraries/sqlite:sqlite_content_module_jar",
         "//android/android/webp:webp_content_module_jar",
+        "//android/android/smali:smali_content_module_jar",
     ],
     independent_destinations = {
         "intellij.libraries.sqlite": "lib/intellij.libraries.sqlite.jar",
@@ -728,6 +733,7 @@ dev_dist_complex_plugin(
     independent_artifacts = [
         "//libraries/sqlite:sqlite_content_module_jar",
         "//android/android/webp:webp_content_module_jar",
+        "//android/android/smali:smali_content_module_jar",
     ],
     independent_destinations = {
         "intellij.libraries.sqlite": "lib/intellij.libraries.sqlite.jar",
@@ -1079,6 +1085,7 @@ dev_dist_complex_plugin(
     independent_artifacts = [
         "//libraries/sqlite:sqlite_content_module_jar",
         "//android/android/webp:webp_content_module_jar",
+        "//android/android/smali:smali_content_module_jar",
     ],
     independent_destinations = {
         "intellij.libraries.sqlite": "lib/intellij.libraries.sqlite.jar",
@@ -1434,6 +1441,7 @@ dev_dist_complex_plugin(
     independent_artifacts = [
         "//libraries/sqlite:sqlite_content_module_jar",
         "//android/android/webp:webp_content_module_jar",
+        "//android/android/smali:smali_content_module_jar",
     ],
     independent_destinations = {
         "intellij.libraries.sqlite": "lib/intellij.libraries.sqlite.jar",
@@ -1789,6 +1797,7 @@ dev_dist_complex_plugin(
     independent_artifacts = [
         "//libraries/sqlite:sqlite_content_module_jar",
         "//android/android/webp:webp_content_module_jar",
+        "//android/android/smali:smali_content_module_jar",
     ],
     independent_destinations = {
         "intellij.libraries.sqlite": "lib/intellij.libraries.sqlite.jar",
@@ -2144,6 +2153,7 @@ dev_dist_complex_plugin(
     independent_artifacts = [
         "//libraries/sqlite:sqlite_content_module_jar",
         "//android/android/webp:webp_content_module_jar",
+        "//android/android/smali:smali_content_module_jar",
     ],
     independent_destinations = {
         "intellij.libraries.sqlite": "lib/intellij.libraries.sqlite.jar",

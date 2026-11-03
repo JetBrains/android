@@ -35,7 +35,6 @@
 
   <depends optional="true" config-file="android-plugin-androidstudio.xml">com.intellij.modules.androidstudio</depends>
   <depends optional="true" config-file="android-plugin-idea.xml">com.intellij.modules.idea</depends>
-  <depends optional="true" config-file="android-smali.xml">com.android.tools.idea.smali</depends>
 
   <xi:include href="/org/jetbrains/android/dom/android-xml.xml"/>
 
@@ -805,5 +804,6 @@
   <xi:include href="/com/android/tools/idea/ui/resourcemanager/META-INF/resources-explorer.xml"/>
   <content namespace="jetbrains">
     <module name="intellij.android.core.webp"/>
+    <module name="intellij.android.core.smali"/>
   </content>
 </idea-plugin>

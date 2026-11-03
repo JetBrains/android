@@ -94,7 +94,6 @@
     <orderEntry type="module" module-name="intellij.android.threading-checker" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
     <orderEntry type="module" module-name="intellij.android.rendering" />
-    <orderEntry type="module" module-name="intellij.android.smali" />
     <orderEntry type="module" module-name="intellij.android.testartifacts" />
     <orderEntry type="module" module-name="intellij.android.utp" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
