@@ -16,6 +16,7 @@
 <idea-plugin>
   <name>Gradle Declarative Support</name>
   <id>com.android.tools.gradle.dcl</id>
+  <category>Build Tools</category>
   <description>
     <![CDATA[
     Support Gradle Declarative Projects with DCL language
