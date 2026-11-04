@@ -28,7 +28,6 @@ import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerView
 import com.android.tools.idea.ui.resourcemanager.widget.OverflowingTabbedPaneWrapper
 import com.google.common.truth.Truth.assertThat
 import com.intellij.configurationStore.runInAllowSaveMode
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
@@ -36,13 +35,13 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.WaitFor
 import com.intellij.util.ui.UIUtil
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNull
 
 private const val WAIT_TIMEOUT = 3000
 
@@ -124,8 +123,8 @@ class ResourcePickerDialogTest {
     assertThat(waitForSampleDataList.isConditionRealized).isTrue()
 
     sampleDataList!!.setUI(HeadlessListUI())
-    val point = sampleDataList.indexToLocation(0)
-    simulateMouseClick(sampleDataList, point, 2)
+    val point = sampleDataList!!.indexToLocation(0)
+    simulateMouseClick(sampleDataList!!, point, 2)
     // We don't know for a fact what resource will come first, so just check that the format is correct.
     assertThat(pickerDialog.resourceName).startsWith("@tools:sample/")
   }
@@ -195,12 +194,10 @@ class ResourcePickerDialogTest {
   fun manualRefreshRequiredOnExternalResourceChange() {
     runInEdtAndWait {
       createModalDialogAndInteractWithIt({
+        // Add a new resource, outside the dialog modal
+        projectRule.fixture.copyFileToProject("designAssets/add_dark.png", "res/drawable/add.png")
         pickerDialog.show()
       }) { dialogWrapper ->
-        ApplicationManager.getApplication().invokeLater {
-          // This is called with modality of the created dialog, for test purpose only
-          projectRule.fixture.copyFileToProject("designAssets/add_dark.png", "res/drawable/add.png")
-        }
         val explorerView = UIUtil.findComponentOfType(dialogWrapper.rootPane, ResourceExplorerView::class.java)!!
         waitAndAssert<AssetListView>(explorerView) {
           UIUtil.dispatchAllInvocationEvents()
