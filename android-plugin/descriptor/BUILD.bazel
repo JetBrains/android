@@ -587,6 +587,7 @@ dev_dist_complex_plugin(
         "module-resource:6:source": "//android/streaming:dev_dist_resources",
         "module-resource:7:source": "//android/android:dev_dist_resources",
     },
+    stamp_class_modes = ["frontend"],
 )
 
 dev_dist_complex_plugin(
@@ -937,6 +938,7 @@ dev_dist_complex_plugin(
         "module-resource:6:source": "//android/streaming:dev_dist_resources",
         "module-resource:7:source": "//android/android:dev_dist_resources",
     },
+    stamp_class_modes = ["frontend"],
 )
 
 dev_dist_complex_plugin(
@@ -1291,6 +1293,7 @@ dev_dist_complex_plugin(
         "module-resource:6:source": "//android/streaming:dev_dist_resources",
         "module-resource:7:source": "//android/android:dev_dist_resources",
     },
+    stamp_class_modes = ["frontend"],
 )
 
 dev_dist_complex_plugin(
@@ -1645,6 +1648,7 @@ dev_dist_complex_plugin(
         "module-resource:6:source": "//android/streaming:dev_dist_resources",
         "module-resource:7:source": "//android/android:dev_dist_resources",
     },
+    stamp_class_modes = ["frontend"],
 )
 
 dev_dist_complex_plugin(
@@ -1999,6 +2003,7 @@ dev_dist_complex_plugin(
         "module-resource:6:source": "//android/streaming:dev_dist_resources",
         "module-resource:7:source": "//android/android:dev_dist_resources",
     },
+    stamp_class_modes = ["frontend"],
 )
 
 dev_dist_complex_plugin(
@@ -2349,6 +2354,7 @@ dev_dist_complex_plugin(
         "module-resource:6:source": "//android/streaming:dev_dist_resources",
         "module-resource:7:source": "//android/android:dev_dist_resources",
     },
+    stamp_class_modes = ["frontend"],
 )
 ### auto-generated section `dev intellij.android.plugin.descriptor` end
 
