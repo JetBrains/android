@@ -50,7 +50,6 @@ jvm_library(
         "//android/jps-model",
         "//android/project-system",
         "//android/gradle-dsl",
-        "//libraries/kotlinc/analysis-api-impl-base:libraries-kotlinc-analysis-api-impl-base",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//android/adt-testutils:adt-testutils_test_lib",
         "//android/project-system-gradle-repository-search:projectSystem-gradle-repositorySearch",
