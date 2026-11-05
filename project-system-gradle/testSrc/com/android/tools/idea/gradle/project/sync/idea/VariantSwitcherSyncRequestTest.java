@@ -33,7 +33,7 @@ public class VariantSwitcherSyncRequestTest {
 
     VariantSwitcher.importAsVariantSwitch(myProject, ROOT_PATH, () -> {
       GradleSyncInvoker.Request request = getProjectSyncRequest(myProject, ROOT_PATH);
-      recommendationsDuringImport.add(recommendsPluginUpgradeAfterImport(request == null ? null : request.getTrigger(), false));
+      recommendationsDuringImport.add(recommendsPluginUpgradeAfterImport(request == null ? null : request.getTrigger(), false, false));
       return Unit.INSTANCE;
     });
 
