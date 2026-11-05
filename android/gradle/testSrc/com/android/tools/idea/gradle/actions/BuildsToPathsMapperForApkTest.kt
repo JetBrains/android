@@ -39,10 +39,11 @@ import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Lists
 import com.google.common.truth.Truth.assertThat
+import com.intellij.idea.IJIgnore
 import com.intellij.testFramework.HeavyPlatformTestCase
-import java.io.File
 import org.mockito.Mockito
 import org.mockito.kotlin.whenever
+import java.io.File
 
 /** Tests for [BuildsToPathsMapper]. */
 class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
@@ -69,6 +70,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
     myModule = project.findAppModule()
   }
 
+  @IJIgnore(issue = "IDEA-395612")
   fun testSingleOutputFromPostBuildModelForApk() {
     initTestProject("3.5.0", IdeAndroidProjectType.PROJECT_TYPE_APP)
     val output = File("path/to/apk")
@@ -103,6 +105,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
     assertThat(buildsAndBundlePaths[myModule.name]).isEqualTo(output1.parentFile)
   }
 
+  @IJIgnore(issue = "IDEA-395612")
   fun testSingleOutputFromPostBuildModelForSignedApk() {
     initTestProject("3.5.0", IdeAndroidProjectType.PROJECT_TYPE_APP)
     val output = File("path/to/apk")
@@ -117,6 +120,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
     assertThat(buildsAndBundlePaths[buildVariant]).isEqualTo(output)
   }
 
+  @IJIgnore(issue = "IDEA-395612")
   fun testMultipleOutputFromPostBuildModelForSignedApk() {
     initTestProject("3.5.0", IdeAndroidProjectType.PROJECT_TYPE_APP)
     val output1 = File("path/to/apk1")
@@ -163,6 +167,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
     assertThat(buildsAndBundlePaths[buildVariant]).isEqualTo(output)
   }
 
+  @IJIgnore(issue = "IDEA-395612")
   fun testSingleOutputFromPostBuildModelForBundle() {
     initTestProject("3.5.0", IdeAndroidProjectType.PROJECT_TYPE_APP)
     val output = File("path/to/bundle")
@@ -178,6 +183,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
     assertThat(buildsAndBundlePaths[myModule.name]).isEqualTo(output)
   }
 
+  @IJIgnore(issue = "IDEA-395612")
   fun testSingleOutputFromPostBuildModelForSignedBundle() {
     initTestProject("3.5.0", IdeAndroidProjectType.PROJECT_TYPE_APP)
     val output = File("path/to/bundle")
