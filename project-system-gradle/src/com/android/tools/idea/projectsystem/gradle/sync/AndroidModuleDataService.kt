@@ -58,6 +58,7 @@ import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER
 import com.intellij.facet.ModifiableFacetModel
 import com.intellij.notification.NotificationGroupManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -209,7 +210,13 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
         project.setProjectSyncRequest(projectData.linkedExternalProjectPath, null)
       }
       // JetBrains patch: upstream recommends the AGP upgrade only after a GradleSyncExecutor sync, and IntelliJ imports on open and on Reload All Gradle Projects without one.
-      if (recommendsPluginUpgradeAfterImport(trigger, IdeInfo.getInstance().isAndroidStudio)) {
+      if (
+        recommendsPluginUpgradeAfterImport(
+          trigger,
+          IdeInfo.getInstance().isAndroidStudio,
+          ApplicationManager.getApplication().isUnitTestMode,
+        )
+      ) {
         AndroidPluginInfo.findFromModel(project)?.let { info ->
           project.getService(AssistantInvoker::class.java).maybeForceOrRecommendPluginUpgrade(project, info)
         }
@@ -351,9 +358,10 @@ private val TRIGGERS_WITHOUT_UPGRADE_RECOMMENDATION = setOf(TRIGGER_AGP_VERSION_
 
 // JetBrains patch: IntelliJ imports the project on open and on Reload All Gradle Projects without GradleSyncExecutor, so no sync request is left
 // behind; switching to a cached variant leaves its own request, so an import without a request still follows an actual sync.
+// Unit tests set up projects from models without a sync request, so they keep the upstream behavior.
 @VisibleForTesting
-fun recommendsPluginUpgradeAfterImport(syncTrigger: Trigger?, isAndroidStudio: Boolean): Boolean =
-  syncTrigger?.let { it !in TRIGGERS_WITHOUT_UPGRADE_RECOMMENDATION } ?: !isAndroidStudio
+fun recommendsPluginUpgradeAfterImport(syncTrigger: Trigger?, isAndroidStudio: Boolean, isUnitTestMode: Boolean): Boolean =
+  syncTrigger?.let { it !in TRIGGERS_WITHOUT_UPGRADE_RECOMMENDATION } ?: !(isAndroidStudio || isUnitTestMode)
 
 internal fun createLibraryResolverFor(projectNode: DataNode<ProjectData>): IdeLibraryModelResolverImpl {
   val libraryTable = ExternalSystemApiUtil.find(projectNode, AndroidProjectKeys.IDE_LIBRARY_TABLE)?.data

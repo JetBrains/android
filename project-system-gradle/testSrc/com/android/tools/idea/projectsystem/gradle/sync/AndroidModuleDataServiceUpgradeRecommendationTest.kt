@@ -11,23 +11,35 @@ class AndroidModuleDataServiceUpgradeRecommendationTest {
 
   @Test
   fun `recommends the plugin upgrade after an IntelliJ import that left no sync request`() {
-    assertThat(recommendsPluginUpgradeAfterImport(syncTrigger = null, isAndroidStudio = false)).isTrue()
+    assertThat(recommendsPluginUpgradeAfterImport(syncTrigger = null, isAndroidStudio = false, isUnitTestMode = false)).isTrue()
   }
 
   @Test
   fun `does not recommend the plugin upgrade in Android Studio without a sync request`() {
-    assertThat(recommendsPluginUpgradeAfterImport(syncTrigger = null, isAndroidStudio = true)).isFalse()
+    assertThat(recommendsPluginUpgradeAfterImport(syncTrigger = null, isAndroidStudio = true, isUnitTestMode = false)).isFalse()
+  }
+
+  @Test
+  fun `does not recommend the plugin upgrade in unit test mode without a sync request`() {
+    assertThat(recommendsPluginUpgradeAfterImport(syncTrigger = null, isAndroidStudio = false, isUnitTestMode = true)).isFalse()
   }
 
   @Test
   fun `recommends the plugin upgrade after a requested sync in both IDEs`() {
-    assertThat(recommendsPluginUpgradeAfterImport(TRIGGER_PROJECT_MODIFIED, isAndroidStudio = true)).isTrue()
-    assertThat(recommendsPluginUpgradeAfterImport(TRIGGER_PROJECT_MODIFIED, isAndroidStudio = false)).isTrue()
+    assertThat(recommendsPluginUpgradeAfterImport(TRIGGER_PROJECT_MODIFIED, isAndroidStudio = true, isUnitTestMode = false)).isTrue()
+    assertThat(recommendsPluginUpgradeAfterImport(TRIGGER_PROJECT_MODIFIED, isAndroidStudio = false, isUnitTestMode = false)).isTrue()
+  }
+
+  @Test
+  fun `recommends the plugin upgrade after a requested sync in unit test mode`() {
+    assertThat(recommendsPluginUpgradeAfterImport(TRIGGER_PROJECT_MODIFIED, isAndroidStudio = false, isUnitTestMode = true)).isTrue()
   }
 
   @Test
   fun `does not recommend the plugin upgrade after an AGP upgrade or a variant change`() {
-    assertThat(recommendsPluginUpgradeAfterImport(TRIGGER_AGP_VERSION_UPDATED, isAndroidStudio = false)).isFalse()
-    assertThat(recommendsPluginUpgradeAfterImport(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER, isAndroidStudio = false)).isFalse()
+    assertThat(recommendsPluginUpgradeAfterImport(TRIGGER_AGP_VERSION_UPDATED, isAndroidStudio = false, isUnitTestMode = false)).isFalse()
+    assertThat(
+      recommendsPluginUpgradeAfterImport(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER, isAndroidStudio = false, isUnitTestMode = false)
+    ).isFalse()
   }
 }
