@@ -27,9 +27,7 @@ import com.android.tools.idea.execution.common.processhandler.SingleDeviceAndroi
 import com.android.tools.idea.run.DeploymentApplicationService
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.testFramework.ProjectRule
-import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.ApplicationRule
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
@@ -62,7 +60,7 @@ class SingleDeviceAndroidProcessMonitorTest {
     return mockDevice
   }
 
-  @get:Rule val projectRule = ProjectRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
   @get:Rule var mockitoJunit = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS)
   var mockDevice = createDevice()
@@ -102,8 +100,6 @@ class SingleDeviceAndroidProcessMonitorTest {
       capturedTimeoutTimeUnit = it.getArgument(2)
       mockTimeoutScheduledFuture
     }
-    ApplicationManager.getApplication()
-      .replaceService(DeploymentApplicationService::class.java, mockDeploymentAppService, projectRule.project)
   }
 
   private fun startMonitor(
