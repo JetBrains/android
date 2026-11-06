@@ -64,6 +64,12 @@ import com.intellij.testFramework.TemporaryDirectory
 import com.intellij.ui.LoadingNode
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.treeStructure.Tree
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.runBlocking
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import java.awt.Component
 import java.awt.Container
 import java.io.File
@@ -82,12 +88,6 @@ import kotlin.io.path.createParentDirectories
 import kotlin.io.path.pathString
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.runBlocking
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 
 // Timeout to use when waiting for isLoaded condition
 // IsLoaded occurs when the APK has been read and the download size is available.
@@ -763,8 +763,9 @@ class ApkEditorTest(val isPageAlignFeatureEnabled: Boolean) {
 
     override suspend fun getProvidersAsync(project: Project, file: VirtualFile): List<FileEditorProvider> = providers
 
-    override suspend fun getDumbUnawareProviders(project: Project, file: VirtualFile, excludeIds: Set<String>): List<FileEditorProvider> =
-      providers.filterNot { excludeIds.contains(it.editorTypeId) }
+    override suspend fun getProvidersAsync(project: Project,
+                                           file: VirtualFile,
+                                           openEditorTypeIds: Set<String>): List<FileEditorProvider> = providers
 
     override fun getProvider(editorTypeId: String): FileEditorProvider? = provider.takeIf { it.editorTypeId == editorTypeId }
   }
