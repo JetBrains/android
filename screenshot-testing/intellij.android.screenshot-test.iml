@@ -31,7 +31,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.model" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
@@ -47,23 +47,23 @@
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.platform.core.impl" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
-    <orderEntry type="module" module-name="intellij.platform.diff" />
-    <orderEntry type="module" module-name="intellij.platform.diff.impl" />
+    <orderEntry type="module" module-name="intellij.platform.diff" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.platform.diff.impl" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.editor.ui" />
-    <orderEntry type="module" module-name="intellij.platform.execution" />
+    <orderEntry type="module" module-name="intellij.platform.execution" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.execution.impl" />
-    <orderEntry type="module" module-name="intellij.platform.externalSystem" />
-    <orderEntry type="module" module-name="intellij.platform.externalSystem.impl" />
+    <orderEntry type="module" module-name="intellij.platform.externalSystem" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.platform.externalSystem.impl" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.ide.core" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
-    <orderEntry type="module" module-name="intellij.platform.images" />
+    <orderEntry type="module" module-name="intellij.platform.images" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="intellij.platform.lang.impl" />
-    <orderEntry type="module" module-name="intellij.platform.lang.core" />
+    <orderEntry type="module" module-name="intellij.platform.lang.core" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.projectModel" />
     <orderEntry type="module" module-name="intellij.platform.uast" />
-    <orderEntry type="module" module-name="intellij.android.core" />
-    <orderEntry type="module" module-name="intellij.android.analytics" />
+    <orderEntry type="module" module-name="intellij.android.core" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.analytics" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.libraries.protobuf" />
     <orderEntry type="module" module-name="intellij.android.testartifacts" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" />

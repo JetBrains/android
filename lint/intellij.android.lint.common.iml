@@ -30,7 +30,7 @@
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.common" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="module" module-name="intellij.android.common" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.gradle.java" />
     <orderEntry type="module" module-name="intellij.groovy.psi" />
     <orderEntry type="module" module-name="intellij.java.analysis.impl" />
@@ -47,7 +47,7 @@
     <orderEntry type="module" module-name="intellij.platform.ide" />
     <orderEntry type="module" module-name="intellij.platform.ide.core" />
     <orderEntry type="module" module-name="intellij.platform.ide.core.impl" />
-    <orderEntry type="module" module-name="intellij.platform.jps.model" />
+    <orderEntry type="module" module-name="intellij.platform.jps.model" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="intellij.platform.lang.impl" />
     <orderEntry type="module" module-name="intellij.platform.projectModel" />
@@ -63,13 +63,13 @@
     <orderEntry type="module" module-name="intellij.xml.psi" />
     <orderEntry type="module" module-name="intellij.xml.psi.impl" />
     <orderEntry type="module" module-name="intellij.kotlin.base.codeInsight" />
-    <orderEntry type="module" module-name="intellij.kotlin.base.plugin" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.plugin" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.kotlin.base.util" />
-    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" />
+    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang" />
     <orderEntry type="module" module-name="intellij.xml.analysis" />
     <orderEntry type="module" module-name="intellij.gradle.java.groovy" />
-    <orderEntry type="module" module-name="intellij.kotlin.codeInsight.utils" />
+    <orderEntry type="module" module-name="intellij.kotlin.codeInsight.utils" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.kotlin.base.psi" />
   </component>
 </module>

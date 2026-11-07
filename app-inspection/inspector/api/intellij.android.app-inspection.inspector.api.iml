@@ -6,11 +6,11 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
-    <orderEntry type="module" module-name="intellij.libraries.protobuf" />
+    <orderEntry type="module" module-name="intellij.libraries.protobuf" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.core" />
     <orderEntry type="module" module-name="intellij.libraries.jetbrains.annotations" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
-    <orderEntry type="module" module-name="intellij.libraries.protobuf.java.util" />
+    <orderEntry type="module" module-name="intellij.libraries.protobuf.java.util" scope="RUNTIME" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.platform.util" />

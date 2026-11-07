@@ -13,17 +13,17 @@
     <orderEntry type="module" module-name="intellij.platform.analysis" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="intellij.platform.core" />
-    <orderEntry type="module" module-name="intellij.platform.codeStyle.impl" />
+    <orderEntry type="module" module-name="intellij.platform.codeStyle.impl" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="module" module-name="intellij.platform.uast" />
     <orderEntry type="module" module-name="intellij.platform.lang.impl" />
-    <orderEntry type="module" module-name="intellij.gradle" />
-    <orderEntry type="module" module-name="intellij.kotlin.base.codeInsight" />
-    <orderEntry type="module" module-name="intellij.kotlin.base.util" />
+    <orderEntry type="module" module-name="intellij.gradle" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.codeInsight" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.util" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.ide" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.libraries.guava" />
-    <orderEntry type="module" module-name="intellij.libraries.commons.lang3" />
-    <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.common" />
+    <orderEntry type="module" module-name="intellij.libraries.guava" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.libraries.commons.lang3" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.common" scope="RUNTIME" />
   </component>
 </module>

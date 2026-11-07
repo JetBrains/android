@@ -24,7 +24,7 @@
     </content>
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.jetbrains.annotations" />
-    <orderEntry type="module-library">
+    <orderEntry type="module-library" scope="RUNTIME">
       <library name="instantapps-api">
         <CLASSES>
           <root url="jar://$MODULE_DIR$/lib/instantapps-api-1.8.jar!/" />
@@ -34,11 +34,11 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.libraries.asm" />
-    <orderEntry type="module" module-name="intellij.libraries.gradle" />
+    <orderEntry type="module" module-name="intellij.libraries.gradle" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.libraries.guava" />
     <orderEntry type="module" module-name="intellij.libraries.hdr.histogram" />
     <orderEntry type="module" module-name="intellij.libraries.aalto.xml" />
-    <orderEntry type="library" name="aapt-proto" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="aapt-proto" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.asm.tools" />
     <orderEntry type="module" module-name="intellij.libraries.commons.compress" />
     <orderEntry type="module" module-name="intellij.libraries.commons.io" />
@@ -53,7 +53,7 @@
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.collections.immutable" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.core" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.guava" />
-    <orderEntry type="module" module-name="intellij.libraries.kotlinx.datetime" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinx.datetime" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.libraries.kotlin.reflect" />
     <orderEntry type="module" module-name="intellij.libraries.kxml2" />
     <orderEntry type="module" module-name="intellij.libraries.protobuf" />
@@ -79,7 +79,7 @@
     <orderEntry type="module" module-name="intellij.android.deploy" />
     <orderEntry type="module" module-name="intellij.android.execution.common" />
     <orderEntry type="module" module-name="intellij.platform.backend.workspace" />
-    <orderEntry type="module" module-name="intellij.platform.bookmarks" />
+    <orderEntry type="module" module-name="intellij.platform.bookmarks" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.jps.model" />
     <orderEntry type="module" module-name="intellij.android.lang" />
     <orderEntry type="module" module-name="intellij.android.layoutlib-loader" />
@@ -89,16 +89,16 @@
     <orderEntry type="module" module-name="intellij.android.preview-elements" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" />
-    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.server-flags" />
     <orderEntry type="module" module-name="intellij.android.threading-checker" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
     <orderEntry type="module" module-name="intellij.android.rendering" />
     <orderEntry type="module" module-name="intellij.android.testartifacts" />
-    <orderEntry type="module" module-name="intellij.android.utp" />
+    <orderEntry type="module" module-name="intellij.android.utp" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
-    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" />
+    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.gradle.common" />
     <orderEntry type="module" module-name="intellij.gradle.java" />
     <orderEntry type="module" module-name="intellij.groovy" />
@@ -118,7 +118,7 @@
     <orderEntry type="module" module-name="intellij.java.i18n" />
     <orderEntry type="module" module-name="intellij.java.impl" />
     <orderEntry type="module" module-name="intellij.java.xml.dom.impl" />
-    <orderEntry type="module" module-name="intellij.java.impl.inspections" />
+    <orderEntry type="module" module-name="intellij.java.impl.inspections" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.java.impl.refactorings" />
     <orderEntry type="module" module-name="intellij.java.indexing" />
     <orderEntry type="module" module-name="intellij.java.psi" />
@@ -130,8 +130,8 @@
     <orderEntry type="module" module-name="intellij.junit" />
     <orderEntry type="module" module-name="intellij.jvm.analysis" />
     <orderEntry type="module" module-name="intellij.jvm.analysis.impl" />
-    <orderEntry type="module" module-name="intellij.maven.server.eventListener" />
-    <orderEntry type="module" module-name="intellij.maven.server.indexer" />
+    <orderEntry type="module" module-name="intellij.maven.server.eventListener" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.maven.server.indexer" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.analysis" />
     <orderEntry type="module" module-name="intellij.platform.analysis.impl" />
     <orderEntry type="module" module-name="intellij.platform.backend.observation" />
@@ -143,7 +143,7 @@
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
     <orderEntry type="module" module-name="intellij.platform.credentialStore" />
     <orderEntry type="module" module-name="intellij.platform.debugger" />
-    <orderEntry type="module" module-name="intellij.platform.debugger.impl" />
+    <orderEntry type="module" module-name="intellij.platform.debugger.impl" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.diagnostic.freezeAnalyzer" />
     <orderEntry type="module" module-name="intellij.platform.editor.ui" />
     <orderEntry type="module" module-name="intellij.platform.execution" />
@@ -176,7 +176,7 @@
     <orderEntry type="module" module-name="intellij.platform.projectModel" />
     <orderEntry type="module" module-name="intellij.platform.projectModel.impl" />
     <orderEntry type="module" module-name="intellij.platform.refactoring" />
-    <orderEntry type="module" module-name="intellij.platform.remote.core" />
+    <orderEntry type="module" module-name="intellij.platform.remote.core" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.smRunner" />
     <orderEntry type="module" module-name="intellij.platform.statistics" />
     <orderEntry type="module" module-name="intellij.platform.statistics.uploader" />
@@ -195,7 +195,7 @@
     <orderEntry type="module" module-name="intellij.platform.util.progress" />
     <orderEntry type="module" module-name="intellij.platform.util.rt" />
     <orderEntry type="module" module-name="intellij.platform.util.text.matching" />
-    <orderEntry type="module" module-name="intellij.platform.util.trove" />
+    <orderEntry type="module" module-name="intellij.platform.util.trove" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
     <orderEntry type="module" module-name="intellij.platform.workspace.storage" />
     <orderEntry type="module" module-name="intellij.properties.psi" />
@@ -225,14 +225,14 @@
     <orderEntry type="module" module-name="intellij.kotlin.codeInsight.shared" />
     <orderEntry type="module" module-name="kotlin.fir.frontend-independent" />
     <orderEntry type="module" module-name="intellij.kotlin.formatter.minimal" />
-    <orderEntry type="module" module-name="intellij.platform.customization.min" />
-    <orderEntry type="module" module-name="intellij.idea.customization.base" />
+    <orderEntry type="module" module-name="intellij.platform.customization.min" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.idea.customization.base" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.preview-fast-compile" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.analysis.api.platform.interface" />
     <orderEntry type="module" module-name="intellij.android.backup.api" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.flags" />
     <orderEntry type="module" module-name="intellij.kotlin.gradle.gradle" />
-    <orderEntry type="module" module-name="intellij.android.completion" />
+    <orderEntry type="module" module-name="intellij.android.completion" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.analysis.api.k2" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.symbol.light.classes" />
     <orderEntry type="module" module-name="intellij.libraries.jgoodies.forms" />
@@ -257,7 +257,7 @@
     </orderEntry>
     <orderEntry type="module" module-name="intellij.platform.debugger.impl.shared" />
     <orderEntry type="module" module-name="intellij.xml.emmet" />
-    <orderEntry type="module" module-name="intellij.libraries.jspecify" />
+    <orderEntry type="module" module-name="intellij.libraries.jspecify" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.gradle.java.groovy" />
   </component>
 </module>

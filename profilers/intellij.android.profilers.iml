@@ -7,7 +7,7 @@
     </content>
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.asm" />
-    <orderEntry type="module" module-name="intellij.libraries.asm.tools" />
+    <orderEntry type="module" module-name="intellij.libraries.asm.tools" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.libraries.fastutil" />
     <orderEntry type="module" module-name="intellij.libraries.jetbrains.annotations" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
@@ -17,23 +17,23 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
-    <orderEntry type="module" module-name="intellij.android.artwork" />
+    <orderEntry type="module" module-name="intellij.android.artwork" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.codenavigation" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />
     <orderEntry type="module" module-name="intellij.android.profilers.atrace" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.transport" />
-    <orderEntry type="module" module-name="intellij.maven.server.eventListener" />
+    <orderEntry type="module" module-name="intellij.maven.server.eventListener" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.platform.extensions" />
     <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="module" module-name="intellij.platform.util.base" />
     <orderEntry type="module" module-name="intellij.platform.util.rt" />
-    <orderEntry type="module" module-name="intellij.platform.util.trove" />
-    <orderEntry type="module" module-name="intellij.platform.ide.core" />
-    <orderEntry type="module" module-name="intellij.platform.editor.ui" />
-    <orderEntry type="module" module-name="intellij.platform.core.ui" />
+    <orderEntry type="module" module-name="intellij.platform.util.trove" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.platform.ide.core" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.platform.editor.ui" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.platform.core.ui" scope="RUNTIME" />
     <orderEntry type="module" module-name="fleet.util.core" />
   </component>
 </module>

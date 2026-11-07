@@ -22,10 +22,10 @@
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.common" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.symbol.light.classes" />
     <orderEntry type="module" module-name="intellij.android.core" />
-    <orderEntry type="module" module-name="intellij.android.lang" />
-    <orderEntry type="module" module-name="intellij.android.kotlin.idea.common" />
+    <orderEntry type="module" module-name="intellij.android.lang" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.kotlin.idea.common" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.testartifacts" />
-    <orderEntry type="module" module-name="intellij.android.analytics" />
+    <orderEntry type="module" module-name="intellij.android.analytics" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.gradle" />
     <orderEntry type="module" module-name="intellij.gradle.java" />
     <orderEntry type="module" module-name="intellij.java.execution.impl" />

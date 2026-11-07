@@ -12,11 +12,11 @@
     <orderEntry type="module" module-name="intellij.libraries.protobuf" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.android.artwork" />
+    <orderEntry type="module" module-name="intellij.android.artwork" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.buildCommon" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
-    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" />
+    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.java.debugger" />
     <orderEntry type="module" module-name="intellij.java.debugger.impl" />
     <orderEntry type="module" module-name="intellij.java.execution" />

@@ -8,7 +8,7 @@
     </content>
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.fastutil" />
-    <orderEntry type="module" module-name="intellij.libraries.grpc" />
+    <orderEntry type="module" module-name="intellij.libraries.grpc" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.libraries.gson" />
     <orderEntry type="module" module-name="intellij.libraries.jetbrains.annotations" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
@@ -20,14 +20,14 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
     <orderEntry type="module" module-name="intellij.android.analytics" />
-    <orderEntry type="module" module-name="intellij.android.app-inspection.ide" />
+    <orderEntry type="module" module-name="intellij.android.app-inspection.ide" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.codenavigation" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.deploy" />
     <orderEntry type="module" module-name="intellij.android.execution.common" />
-    <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />
+    <orderEntry type="module" module-name="intellij.android.inspectors-common.api" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.inspectors-common.api-ide" />
     <orderEntry type="module" module-name="intellij.android.inspectors-common.ui" />
     <orderEntry type="module" module-name="intellij.android.logcat" />
@@ -38,7 +38,7 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
     <orderEntry type="module" module-name="intellij.android.transport" />
-    <orderEntry type="module" module-name="intellij.android.transportDatabase" />
+    <orderEntry type="module" module-name="intellij.android.transportDatabase" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.java.execution" />
     <orderEntry type="module" module-name="intellij.java.indexing" />
     <orderEntry type="module" module-name="intellij.java.psi" />

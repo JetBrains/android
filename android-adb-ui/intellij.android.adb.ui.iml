@@ -19,7 +19,7 @@
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.core" />
-    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" />
+    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.analysis" />
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
@@ -37,7 +37,7 @@
     <orderEntry type="module" module-name="intellij.platform.util.rt" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
-    <orderEntry type="module" module-name="intellij.webp" />
+    <orderEntry type="module" module-name="intellij.webp" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.concurrency" />
   </component>
 </module>

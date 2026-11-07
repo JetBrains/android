@@ -27,7 +27,7 @@
     <orderEntry type="module" module-name="intellij.libraries.jetbrains.annotations" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.common" />
-    <orderEntry type="module" module-name="intellij.platform.ide.core.impl" />
+    <orderEntry type="module" module-name="intellij.platform.ide.core.impl" scope="RUNTIME" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.common" />
@@ -38,9 +38,9 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
-    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" />
+    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.gradle.common" />
-    <orderEntry type="module" module-name="intellij.java.frontback.psi" />
+    <orderEntry type="module" module-name="intellij.java.frontback.psi" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.java.psi" />
     <orderEntry type="module" module-name="intellij.java.syntax" />
     <orderEntry type="module" module-name="intellij.platform.analysis" />
@@ -61,9 +61,9 @@
     <orderEntry type="module" module-name="intellij.xml.parser" />
     <orderEntry type="module" module-name="intellij.xml.impl" />
     <orderEntry type="module" module-name="intellij.xml.psi" />
-    <orderEntry type="module" module-name="intellij.kotlin.base.facet" />
-    <orderEntry type="module" module-name="intellij.kotlin.base.plugin" />
-    <orderEntry type="module" module-name="intellij.kotlin.base.projectStructure" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.facet" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.plugin" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.projectStructure" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.kotlin.base.util" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.analysis.api" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.analysis.api.platform.interface" />

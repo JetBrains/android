@@ -35,7 +35,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
-    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" />
+    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.java.analysis.impl" />
     <orderEntry type="module" module-name="intellij.java.frontback.psi" />
     <orderEntry type="module" module-name="intellij.java.frontback.psi.impl" />
@@ -52,7 +52,7 @@
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.platform.core.impl" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
-    <orderEntry type="module" module-name="intellij.platform.editor.ex" />
+    <orderEntry type="module" module-name="intellij.platform.editor.ex" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.editor.ui" />
     <orderEntry type="module" module-name="intellij.platform.extensions" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
@@ -83,8 +83,8 @@
     <orderEntry type="module" module-name="intellij.xml.psi" />
     <orderEntry type="module" module-name="intellij.xml.psi.impl" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.compose" />
-    <orderEntry type="module" module-name="intellij.android.wizard" />
-    <orderEntry type="module" module-name="intellij.android.wizard.model" />
+    <orderEntry type="module" module-name="intellij.android.wizard" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.wizard.model" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.assistant" />
     <orderEntry type="module" module-name="intellij.android.common" />
@@ -94,8 +94,8 @@
     <orderEntry type="module" module-name="intellij.libraries.jaxb" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
-    <orderEntry type="module" module-name="intellij.libraries.commons.lang3" />
-    <orderEntry type="module" module-name="intellij.libraries.jcip" />
+    <orderEntry type="module" module-name="intellij.libraries.commons.lang3" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.libraries.jcip" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.libraries.jetbrains.annotations" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.collections.immutable" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.core" />
@@ -103,11 +103,11 @@
     <orderEntry type="module" module-name="intellij.android.compose-common" />
     <orderEntry type="module" module-name="intellij.android.lint.common" />
     <orderEntry type="module" module-name="intellij.android.newProjectWizard" />
-    <orderEntry type="module" module-name="intellij.android.jps.model" />
+    <orderEntry type="module" module-name="intellij.android.jps.model" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
     <orderEntry type="module" module-name="intellij.android.rendering" />
     <orderEntry type="module" module-name="intellij.android.layoutlib-loader" />
-    <orderEntry type="module" module-name="intellij.android.ml-api" />
+    <orderEntry type="module" module-name="intellij.android.ml-api" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.avd" />
     <orderEntry type="module" module-name="intellij.android.visual-lint" />
     <orderEntry type="module" module-name="intellij.libraries.protobuf" />

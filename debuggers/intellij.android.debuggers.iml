@@ -19,11 +19,11 @@
     <orderEntry type="module" module-name="intellij.android.analytics" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.core" />
-    <orderEntry type="module" module-name="intellij.android.deploy" />
+    <orderEntry type="module" module-name="intellij.android.deploy" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.execution.common" />
-    <orderEntry type="module" module-name="intellij.android.jps.model" />
+    <orderEntry type="module" module-name="intellij.android.jps.model" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
-    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" />
+    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.java.debugger" />
     <orderEntry type="module" module-name="intellij.java.debugger.impl" />
     <orderEntry type="module" module-name="intellij.java.execution" />
@@ -60,6 +60,6 @@
     <orderEntry type="module" module-name="intellij.java" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.common" />
-    <orderEntry type="module" module-name="intellij.platform.debugger.impl.rpc" />
+    <orderEntry type="module" module-name="intellij.platform.debugger.impl.rpc" scope="RUNTIME" />
   </component>
 </module>

@@ -14,7 +14,7 @@
     <orderEntry type="module" module-name="intellij.libraries.protobuf" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.android.jps.model" />
+    <orderEntry type="module" module-name="intellij.android.jps.model" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.deploy" />
     <orderEntry type="module" module-name="intellij.android.common" />
@@ -23,7 +23,7 @@
     <orderEntry type="module" module-name="intellij.android.buildCommon" />
     <orderEntry type="module" module-name="intellij.android.adb" />
     <orderEntry type="module" module-name="intellij.android.backup.api" />
-    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" />
+    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.java.debugger" />
     <orderEntry type="module" module-name="intellij.java.debugger.impl" />
     <orderEntry type="module" module-name="intellij.java.execution" />

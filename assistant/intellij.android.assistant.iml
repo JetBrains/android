@@ -18,10 +18,10 @@
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.core" />
-    <orderEntry type="module" module-name="intellij.android.jps.model" />
+    <orderEntry type="module" module-name="intellij.android.jps.model" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.newProjectWizard" />
     <orderEntry type="module" module-name="intellij.android.templates" />
-    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" />
+    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.groovy.psi" />
     <orderEntry type="module" module-name="intellij.java.frontback.psi.impl" />
     <orderEntry type="module" module-name="intellij.platform.core" />

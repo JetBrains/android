@@ -10,16 +10,16 @@
     <orderEntry type="module" module-name="intellij.libraries.guava" />
     <orderEntry type="module" module-name="intellij.libraries.jetbrains.annotations" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.core" />
-    <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.guava" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.guava" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.libraries.protobuf" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.device-explorer-common" />
-    <orderEntry type="module" module-name="intellij.android.adb" />
+    <orderEntry type="module" module-name="intellij.android.adb" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
-    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" />
+    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
     <orderEntry type="module" module-name="intellij.platform.editor.ui" />

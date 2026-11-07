@@ -12,15 +12,15 @@
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.core" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.android.adt.ui" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
-    <orderEntry type="module" module-name="intellij.android.app-inspection.api" />
+    <orderEntry type="module" module-name="intellij.android.app-inspection.api" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.inspector.api" />
     <orderEntry type="module" module-name="intellij.android.codenavigation" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />
-    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" />
-    <orderEntry type="module" module-name="intellij.platform.concurrency" />
+    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.platform.concurrency" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
@@ -28,8 +28,8 @@
     <orderEntry type="module" module-name="intellij.platform.lang.impl" />
     <orderEntry type="module" module-name="intellij.platform.projectModel" />
     <orderEntry type="module" module-name="intellij.platform.util" />
-    <orderEntry type="module" module-name="intellij.platform.util.ex" />
-    <orderEntry type="module" module-name="intellij.platform.util.jdom" />
+    <orderEntry type="module" module-name="intellij.platform.util.ex" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.platform.util.jdom" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
     <orderEntry type="module-library">
       <library name="brotli-dec" type="repository">

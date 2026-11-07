@@ -20,7 +20,7 @@
     <orderEntry type="module" module-name="intellij.android.device-explorer-common" />
     <orderEntry type="module" module-name="intellij.android.device-explorer-files" />
     <orderEntry type="module" module-name="intellij.android.device-explorer-monitor" />
-    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" />
+    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
     <orderEntry type="module" module-name="intellij.platform.extensions" />

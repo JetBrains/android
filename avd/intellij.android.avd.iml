@@ -59,6 +59,6 @@
     <orderEntry type="module" module-name="intellij.libraries.guava" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.collections.immutable" />
     <orderEntry type="module" module-name="intellij.libraries.protobuf" />
-    <orderEntry type="module" module-name="intellij.libraries.kotlinx.datetime" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinx.datetime" scope="RUNTIME" />
   </component>
 </module>

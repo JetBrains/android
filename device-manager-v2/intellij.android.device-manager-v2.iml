@@ -39,8 +39,8 @@
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.adb" />
-    <orderEntry type="module" module-name="intellij.android.wizard" />
-    <orderEntry type="module" module-name="intellij.android.wizard.model" />
+    <orderEntry type="module" module-name="intellij.android.wizard" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.wizard.model" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.wear-pairing" />
     <orderEntry type="module" module-name="intellij.android.device-explorer" />
     <orderEntry type="module" module-name="intellij.android.avd" />
@@ -60,7 +60,7 @@
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="intellij.platform.projectModel" />
     <orderEntry type="module" module-name="intellij.platform.util" />
-    <orderEntry type="module" module-name="intellij.platform.util.jdom" />
+    <orderEntry type="module" module-name="intellij.platform.util.jdom" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
   </component>
 </module>

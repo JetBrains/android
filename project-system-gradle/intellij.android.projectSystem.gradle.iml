@@ -29,7 +29,7 @@
     <orderEntry type="module" module-name="intellij.libraries.commons.lang3" />
     <orderEntry type="module" module-name="intellij.libraries.fastutil" />
     <orderEntry type="module" module-name="intellij.libraries.gradle" />
-    <orderEntry type="module" module-name="intellij.libraries.grpc" />
+    <orderEntry type="module" module-name="intellij.libraries.grpc" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.libraries.gson" />
     <orderEntry type="module" module-name="intellij.libraries.guava" />
     <orderEntry type="module" module-name="intellij.libraries.jetbrains.annotations" />
@@ -61,7 +61,7 @@
     <orderEntry type="module" module-name="intellij.android.wizard" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
-    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" />
+    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.gradle.common" />
     <orderEntry type="module" module-name="intellij.gradle.java" />
     <orderEntry type="module" module-name="intellij.gradle.toolingExtension" />
@@ -100,18 +100,18 @@
     <orderEntry type="module" module-name="intellij.kotlin.highlighting.minimal" />
     <orderEntry type="module" module-name="intellij.kotlin.projectWizard.core" />
     <orderEntry type="module" module-name="intellij.kotlin.refactorings.base" />
-    <orderEntry type="module" module-name="intellij.maven.server.indexer" />
+    <orderEntry type="module" module-name="intellij.maven.server.indexer" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.analysis" />
     <orderEntry type="module" module-name="intellij.platform.analysis.impl" />
     <orderEntry type="module" module-name="intellij.platform.backend.workspace" />
-    <orderEntry type="module" module-name="intellij.platform.collaborationTools" />
+    <orderEntry type="module" module-name="intellij.platform.collaborationTools" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.concurrency" />
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.platform.core.impl" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
     <orderEntry type="module" module-name="intellij.platform.credentialStore" />
     <orderEntry type="module" module-name="intellij.platform.debugger" />
-    <orderEntry type="module" module-name="intellij.platform.debugger.impl" />
+    <orderEntry type="module" module-name="intellij.platform.debugger.impl" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.editor.ui" />
     <orderEntry type="module" module-name="intellij.platform.execution" />
     <orderEntry type="module" module-name="intellij.platform.execution.impl" />
@@ -138,7 +138,7 @@
     <orderEntry type="module" module-name="intellij.platform.projectModel" />
     <orderEntry type="module" module-name="intellij.platform.projectModel.impl" />
     <orderEntry type="module" module-name="intellij.platform.refactoring" />
-    <orderEntry type="module" module-name="intellij.platform.remote.core" />
+    <orderEntry type="module" module-name="intellij.platform.remote.core" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.serviceContainer" />
     <orderEntry type="module" module-name="intellij.platform.smRunner" />
     <orderEntry type="module" module-name="intellij.platform.statistics" />
@@ -164,21 +164,21 @@
     <orderEntry type="module" module-name="intellij.xml.psi" />
     <orderEntry type="module" module-name="intellij.xml.psi.impl" />
     <orderEntry type="module" module-name="kotlin.gradle.gradle-java" />
-    <orderEntry type="module" module-name="intellij.android.ml-api" />
+    <orderEntry type="module" module-name="intellij.android.ml-api" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.server-flags" />
     <orderEntry type="module" module-name="intellij.android.lang" />
     <orderEntry type="module" module-name="intellij.android.gmaven" />
     <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang" />
-    <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.ide" />
-    <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.sync" />
+    <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.ide" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.sync" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.kotlin.base.projectStructure" />
-    <orderEntry type="module" module-name="intellij.libraries.kotlinc.analysis.api.k2" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinc.analysis.api.k2" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.symbol.light.classes" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.flags" />
     <orderEntry type="module" module-name="intellij.android.testartifacts" />
-    <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.flags" />
+    <orderEntry type="module" module-name="intellij.android.gradle.declarative.lang.flags" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.app-publishing" />
-    <orderEntry type="module" module-name="intellij.android.observable" />
+    <orderEntry type="module" module-name="intellij.android.observable" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.gradle.java.groovy" />
     <orderEntry type="module" module-name="intellij.java.guiForms.rt" />
     <orderEntry type="module" module-name="intellij.kotlin.references" />

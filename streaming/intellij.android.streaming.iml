@@ -16,9 +16,9 @@
     <orderEntry type="module" module-name="intellij.libraries.jetbrains.annotations" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.common" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.core" />
-    <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.guava" />
-    <orderEntry type="module" module-name="intellij.libraries.kotlinx.datetime" />
-    <orderEntry type="module" module-name="intellij.libraries.kotlinx.io" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.guava" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinx.datetime" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinx.io" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.libraries.protobuf" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
@@ -31,7 +31,7 @@
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.jps.model" />
-    <orderEntry type="module" module-name="intellij.android.layout-ui" />
+    <orderEntry type="module" module-name="intellij.android.layout-ui" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
     <orderEntry type="module" module-name="intellij.libraries.rd.core" />
@@ -45,7 +45,7 @@
     <orderEntry type="module" module-name="intellij.platform.execution" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
     <orderEntry type="module" module-name="intellij.platform.ide.core" />
-    <orderEntry type="module" module-name="intellij.platform.ide.core.impl" />
+    <orderEntry type="module" module-name="intellij.platform.ide.core.impl" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="intellij.platform.ide.progress" />
     <orderEntry type="module" module-name="intellij.platform.ide.ui" />

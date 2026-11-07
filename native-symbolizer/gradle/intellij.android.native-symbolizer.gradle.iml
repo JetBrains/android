@@ -10,10 +10,10 @@
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.android.common" />
-    <orderEntry type="module" module-name="intellij.android.core" />
+    <orderEntry type="module" module-name="intellij.android.common" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.core" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.native-symbolizer" />
-    <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" />
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.platform.extensions" />

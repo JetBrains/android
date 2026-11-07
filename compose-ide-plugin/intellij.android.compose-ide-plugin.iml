@@ -33,7 +33,7 @@
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.common" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.ir" scope="PROVIDED" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.kotlin.compiler.fir" scope="PROVIDED" />
-    <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.core" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinx.coroutines.core" scope="RUNTIME" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
@@ -41,11 +41,11 @@
     <orderEntry type="module" module-name="intellij.android.compose-common" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
-    <orderEntry type="module" module-name="intellij.android.core" />
-    <orderEntry type="module" module-name="intellij.android.execution.common" />
+    <orderEntry type="module" module-name="intellij.android.core" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.execution.common" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.kotlin.completion.impl" />
     <orderEntry type="module" module-name="intellij.android.android-material" />
-    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" />
+    <orderEntry type="module" module-name="intellij.color.scheme.warmNeon" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.java" />
     <orderEntry type="module" module-name="intellij.java.debugger" />
     <orderEntry type="module" module-name="intellij.java.debugger.impl" />
@@ -58,7 +58,7 @@
     <orderEntry type="module" module-name="intellij.kotlin.base.analysis.utils" />
     <orderEntry type="module" module-name="intellij.kotlin.base.codeInsight" />
     <orderEntry type="module" module-name="intellij.kotlin.base.indices" />
-    <orderEntry type="module" module-name="intellij.kotlin.base.plugin" />
+    <orderEntry type="module" module-name="intellij.kotlin.base.plugin" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.kotlin.base.projectStructure" />
     <orderEntry type="module" module-name="intellij.kotlin.base.psi" />
     <orderEntry type="module" module-name="intellij.kotlin.base.resources" />
@@ -67,7 +67,7 @@
     <orderEntry type="module" module-name="intellij.kotlin.codeInsight.utils" />
     <orderEntry type="module" module-name="intellij.kotlin.formatter" />
     <orderEntry type="module" module-name="intellij.kotlin.formatter.minimal" />
-    <orderEntry type="module" module-name="intellij.kotlin.highlighting" />
+    <orderEntry type="module" module-name="intellij.kotlin.highlighting" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.kotlin.highlighting.minimal" />
     <orderEntry type="module" module-name="intellij.kotlin.jvm.debugger.core" />
     <orderEntry type="module" module-name="intellij.kotlin.refactorings" />
@@ -81,7 +81,7 @@
     <orderEntry type="module" module-name="intellij.platform.core.impl" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
     <orderEntry type="module" module-name="intellij.platform.debugger" />
-    <orderEntry type="module" module-name="intellij.platform.debugger.impl" />
+    <orderEntry type="module" module-name="intellij.platform.debugger.impl" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.editor.ui" />
     <orderEntry type="module" module-name="intellij.platform.extensions" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
@@ -98,14 +98,14 @@
     <orderEntry type="module" module-name="intellij.platform.usageView.impl" />
     <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="module" module-name="intellij.platform.util.base" />
-    <orderEntry type="module" module-name="intellij.platform.util.jdom" />
+    <orderEntry type="module" module-name="intellij.platform.util.jdom" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
     <orderEntry type="module" module-name="kotlin.fir.frontend-independent" />
     <orderEntry type="module" module-name="intellij.android.completion" />
     <orderEntry type="module" module-name="intellij.java.guiForms.rt" />
     <orderEntry type="module" module-name="intellij.kotlin.codeInsight.liveTemplates" />
     <orderEntry type="module" module-name="intellij.kotlin.compilerPlugins.support.bundled" />
-    <orderEntry type="module" module-name="intellij.kotlin.jvm.debugger.base.util" />
+    <orderEntry type="module" module-name="intellij.kotlin.jvm.debugger.base.util" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.libraries.kotlinc.compose.compiler.plugin" scope="PROVIDED" />
     <orderEntry type="module" module-name="intellij.platform.debugger.impl.shared" />
   </component>

@@ -18,11 +18,11 @@
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.analytics" />
     <orderEntry type="module" module-name="intellij.android.common" />
-    <orderEntry type="module" module-name="intellij.android.jps.model" />
+    <orderEntry type="module" module-name="intellij.android.jps.model" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
     <orderEntry type="module" module-name="intellij.java.frontback.psi" />
-    <orderEntry type="module" module-name="intellij.java.frontback.psi.impl" />
+    <orderEntry type="module" module-name="intellij.java.frontback.psi.impl" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.java.indexing" />
     <orderEntry type="module" module-name="intellij.java.psi" />
     <orderEntry type="module" module-name="intellij.java.psi.impl" />

@@ -10,13 +10,13 @@
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.jetbrains.annotations" />
     <orderEntry type="module" module-name="intellij.libraries.protobuf" />
-    <orderEntry type="library" name="kotlin-stdlib" level="project" />
-    <orderEntry type="module" module-name="intellij.libraries.sqlite" />
+    <orderEntry type="library" scope="RUNTIME" name="kotlin-stdlib" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.sqlite" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.libraries.guava" />
-    <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
-    <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.model" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.common" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="module" module-name="intellij.platform.core" />
-    <orderEntry type="module" module-name="intellij.platform.util.base" />
+    <orderEntry type="module" module-name="intellij.platform.util.base" scope="RUNTIME" />
   </component>
 </module>

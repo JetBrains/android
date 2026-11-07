@@ -7,11 +7,11 @@
       <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
     </content>
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
-    <orderEntry type="module" module-name="intellij.libraries.guava" />
-    <orderEntry type="library" name="kotlin-stdlib" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.guava" scope="RUNTIME" />
+    <orderEntry type="library" scope="RUNTIME" name="kotlin-stdlib" level="project" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="intellij.platform.core" />
-    <orderEntry type="module" module-name="intellij.platform.util" />
+    <orderEntry type="module" module-name="intellij.platform.core" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.platform.util" scope="RUNTIME" />
   </component>
 </module>
