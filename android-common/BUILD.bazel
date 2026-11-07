@@ -30,6 +30,13 @@ jvm_library(
         "//android/studio-flags",
         "//android/android-concurrency:concurrency",
     ],
+    runtime_deps = [
+        # do not sort,
+        "//plugins/kotlin/base/code-insight",
+        "//plugins/kotlin/base/plugin",
+        "//libraries/kotlinx/datetime",
+        "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
+    ],
     deps = [
         # do not sort,
         "//libraries/kotlinc/analysis-api:libraries-kotlinc-analysis-api",
@@ -40,10 +47,7 @@ jvm_library(
         "//java/java-frontback-psi-api:frontback-psi",
         "//java/java-impl:impl",
         "//java/java-psi-api:psi",
-        "//plugins/kotlin/base/code-insight",
         "//plugins/kotlin/base/facet",
-        "//plugins/kotlin/base/plugin",
-        "//libraries/kotlinx/datetime",
         "//platform/analysis-api:analysis",
         "//platform/core-api:core",
         "//platform/core-impl",
@@ -74,7 +78,6 @@ jvm_library(
         "//libraries/jetbrains/annotations",
         "//libraries/jna",
         "//libraries/kotlinx/coroutines/core",
-        "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
         "//libraries/protobuf",
     ],
 )

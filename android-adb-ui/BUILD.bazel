@@ -18,6 +18,11 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+        "//plugins/webp",
+    ],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
@@ -31,7 +36,6 @@ jvm_library(
         "//android/artwork",
         "//android/android-common:common",
         "//android/android:core",
-        "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
         "//platform/analysis-api:analysis",
         "//platform/core-api:core",
         "//platform/core-ui",
@@ -49,7 +53,6 @@ jvm_library(
         "//platform/util-rt",
         "//platform/util:util-ui",
         "//android/render-resources",
-        "//plugins/webp",
         "//platform/util/concurrency",
     ],
 )

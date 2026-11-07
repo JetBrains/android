@@ -14,6 +14,12 @@ jvm_library(
     ),
     module_name = "intellij.android.android-material",
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//android/android:core",
+        "//platform/util/concurrency",
+        "//platform/rd-platform-community:rd-community",
+    ],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
@@ -21,14 +27,11 @@ jvm_library(
         "//libraries/gson",
         "@lib//:kotlin-stdlib",
         "//android/android-common:common",
-        "//android/android:core",
-        "//platform/util/concurrency",
         "//platform/core-api:core",
         "//platform/ide-core",
         "//platform/util",
         "//platform/util/base",
         "//platform/util-ex",
-        "//platform/rd-platform-community:rd-community",
     ],
 )
 ### auto-generated section `build intellij.android.android-material` end

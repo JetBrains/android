@@ -18,6 +18,7 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = ["//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon"],
     deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
@@ -36,7 +37,6 @@ jvm_library(
         "//android/adt-ui",
         "//android/artwork",
         "//android/wizard",
-        "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
         "//plugins/kotlin/project-wizard/idea",
         "//platform/util/concurrency",
         "//platform/core-api:core",

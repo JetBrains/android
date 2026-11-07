@@ -26,6 +26,12 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//android/wizard",
+        "//android/wizard-model",
+        "//platform/util/jdom",
+    ],
     deps = [
         # do not sort,
         "//libraries/guava",
@@ -36,8 +42,6 @@ jvm_library(
         "//android/artwork",
         "//android/project-system",
         "//android/android-adb:adb",
-        "//android/wizard",
-        "//android/wizard-model",
         "//android/wear-pairing",
         "//android/device-explorer",
         "//android/avd",
@@ -57,7 +61,6 @@ jvm_library(
         "//platform/platform-impl:ide-impl",
         "//platform/projectModel-api:projectModel",
         "//platform/util",
-        "//platform/util/jdom",
         "//platform/util:util-ui",
     ],
 )

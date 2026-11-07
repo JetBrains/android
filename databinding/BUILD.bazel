@@ -18,6 +18,11 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//android/jps-model",
+        "//java/java-frontback-psi-impl:frontback-psi-impl",
+    ],
     deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
@@ -30,11 +35,9 @@ jvm_library(
         "//android/android:core",
         "//android/analytics",
         "//android/android-common:common",
-        "//android/jps-model",
         "//android/project-system",
         "//android/render-resources",
         "//java/java-frontback-psi-api:frontback-psi",
-        "//java/java-frontback-psi-impl:frontback-psi-impl",
         "//java/java-indexing-api:indexing",
         "//java/java-psi-api:psi",
         "//java/java-psi-impl:psi-impl",

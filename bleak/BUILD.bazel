@@ -17,13 +17,13 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = ["//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
         "//libraries/fastutil",
         "//libraries/jetbrains/annotations",
         "@lib//:kotlin-stdlib",
-        "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
         "//platform/util",
     ],
 )

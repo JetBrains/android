@@ -17,14 +17,14 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
-    deps = [
+    runtime_deps = [
         # do not sort,
-        "@lib//:studio-platform-provided",
         "//libraries/guava",
         "@lib//:kotlin-stdlib",
         "//platform/core-api:core",
         "//platform/util",
     ],
+    deps = ["@lib//:studio-platform-provided"],
 )
 ### auto-generated section `build intellij.android.layoutlib-loader` end
 

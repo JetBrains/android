@@ -18,6 +18,11 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//android/adt-ui-model",
+        "//android/deploy",
+    ],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
@@ -28,7 +33,6 @@ jvm_library(
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/protobuf",
         "//android/adt-ui",
-        "//android/adt-ui-model",
         "//android/analytics",
         "//android/app-inspection/api",
         "//android/app-inspection/inspector/api",
@@ -36,7 +40,6 @@ jvm_library(
         "//android/artwork",
         "//android/android-common:common",
         "//android/android:core",
-        "//android/deploy",
         "//android/execution/common",
         "//android/project-system",
         "//android/android-transport:transport",

@@ -18,6 +18,11 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//android/jps-model",
+        "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    ],
     deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
@@ -26,7 +31,6 @@ jvm_library(
         "//libraries/jetbrains/annotations",
         "//libraries/kotlinx/coroutines/core",
         "//libraries/protobuf",
-        "//android/jps-model",
         "//android/project-system",
         "//android/deploy",
         "//android/android-common:common",
@@ -35,7 +39,6 @@ jvm_library(
         "//android/build-common",
         "//android/android-adb:adb",
         "//android/backup:backup-api",
-        "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
         "//java/debugger/openapi:java-debugger",
         "//java/debugger/impl",
         "//java/execution/openapi:java-execution",

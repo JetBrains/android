@@ -14,6 +14,7 @@ jvm_library(
     ),
     module_name = "intellij.android.codenavigation",
     visibility = ["//visibility:public"],
+    runtime_deps = ["//platform/lvcs-impl"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
@@ -34,7 +35,6 @@ jvm_library(
         "//platform/lang-core",
         "//platform/lang-impl",
         "//platform/buildView",
-        "//platform/lvcs-impl",
         "//platform/projectModel-api:projectModel",
         "//platform/util",
         "//platform/util/jdom",

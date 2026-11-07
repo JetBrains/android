@@ -26,11 +26,11 @@ jvm_library(
         "//platform/compose/markdown",
         "//platform/compose",
     ],
+    runtime_deps = ["//android/artwork"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
         "@lib//:kotlin-stdlib",
-        "//android/artwork",
         "//platform/compose/markdown",
         "//platform/compose",
     ],

@@ -25,11 +25,11 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = ["//plugins/gradle"],
     deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
         "@lib//:studio-platform-provided",
-        "//plugins/gradle",
         "//java/java-psi-api:psi",
         "//libraries/jetbrains/annotations",
         "//platform/analysis-impl",

@@ -18,6 +18,11 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//libraries/kotlinx/coroutines/guava",
+        "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+    ],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
@@ -25,7 +30,6 @@ jvm_library(
         "//libraries/jetbrains/annotations",
         "@lib//:kotlin-stdlib",
         "//libraries/kotlinx/coroutines/core",
-        "//libraries/kotlinx/coroutines/guava",
         "//libraries/protobuf",
         "//android/android-adb:adb",
         "//android/adt-ui",
@@ -33,7 +37,6 @@ jvm_library(
         "//android/android-common:common",
         "//android/device-explorer-common",
         "//android/project-system",
-        "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
         "//platform/analysis-api:analysis",
         "//platform/util/concurrency",
         "//platform/core-api:core",

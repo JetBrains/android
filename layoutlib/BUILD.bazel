@@ -18,11 +18,11 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = ["//libraries/asm-tools"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
         "//libraries/guava",
-        "//libraries/asm-tools",
         "//libraries/jetbrains/annotations",
         "@lib//:kotlin-stdlib",
         "//libraries/layoutlib",

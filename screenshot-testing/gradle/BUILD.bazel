@@ -17,6 +17,12 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//android/android-lang:lang",
+        "//android/android-kotlin/idea-android/common",
+        "//android/analytics",
+    ],
     deps = [
         # do not sort,
         "//platform/core-api:core",
@@ -33,10 +39,7 @@ jvm_library(
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//libraries/kotlinc/symbol-light-classes:libraries-kotlinc-symbol-light-classes",
         "//android/android:core",
-        "//android/android-lang:lang",
-        "//android/android-kotlin/idea-android/common",
         "//android/testartifacts",
-        "//android/analytics",
         "//plugins/gradle",
         "//plugins/gradle/java",
         "//java/execution/impl",

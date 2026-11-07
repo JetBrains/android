@@ -18,17 +18,20 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//libraries/guava",
+        "//platform/util-ex",
+        "//platform/execution-impl",
+    ],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
-        "//libraries/guava",
         "@lib//:kotlin-stdlib",
         "//plugins/gradle:gradle-common",
         "//platform/external-system-api:externalSystem",
         "//platform/util",
-        "//platform/util-ex",
         "//platform/core-api:core",
-        "//platform/execution-impl",
         "//platform/consoleView",
     ],
 )

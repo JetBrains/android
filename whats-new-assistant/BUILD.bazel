@@ -18,6 +18,11 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//android/build-attribution",
+        "//platform/platform-impl/jcef",
+    ],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
@@ -29,7 +34,6 @@ jvm_library(
         "//libraries/protobuf",
         "//android/app-inspection/ide",
         "//android/assistant",
-        "//android/build-attribution",
         "//android/android-common:common",
         "//android/android:core",
         "//android/streaming",
@@ -43,7 +47,6 @@ jvm_library(
         "//platform/ide-core",
         "//platform/ide-core-impl",
         "//platform/platform-impl:ide-impl",
-        "//platform/platform-impl/jcef",
         "//platform/platform-util-io:ide-util-io",
         "//platform/projectModel-api:projectModel",
         "//platform/util",

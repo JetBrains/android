@@ -20,6 +20,12 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//android/jps-model",
+        "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
+        "//xml/xml-psi-impl:psi-impl",
+    ],
     deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
@@ -30,7 +36,6 @@ jvm_library(
         "//libraries/protobuf",
         "//android/android:core",
         "//android/android-common:common",
-        "//android/jps-model",
         "//android/project-system",
         "//java/java-analysis-impl:analysis-impl",
         "//java/java-frontback-impl:frontback-impl",
@@ -40,7 +45,6 @@ jvm_library(
         "//java/java-psi-api:psi",
         "//java/java-psi-impl:psi-impl",
         "//java/jsp-base-openapi:jsp-base",
-        "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
         "//platform/analysis-api:analysis",
         "//platform/analysis-impl",
         "//platform/core-api:core",
@@ -60,7 +64,6 @@ jvm_library(
         "//xml/dom-openapi:dom",
         "//xml/xml-parser:parser",
         "//xml/xml-psi-api:psi",
-        "//xml/xml-psi-impl:psi-impl",
     ],
 )
 ### auto-generated section `build intellij.android.lang-databinding` end

@@ -18,12 +18,18 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//libraries/asm-tools",
+        "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+        "//java/java-frontback-psi-api:frontback-psi",
+        "//libraries/fastutil",
+    ],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
         "//libraries/asm",
         "//libraries/guava",
-        "//libraries/asm-tools",
         "//libraries/http-client",
         "//libraries/jetbrains/annotations",
         "@lib//:kotlin-stdlib",
@@ -31,8 +37,6 @@ jvm_library(
         "//libraries/kxml2",
         "//android/layoutlib-loader",
         "//android/render-resources",
-        "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
-        "//java/java-frontback-psi-api:frontback-psi",
         "//java/java-psi-api:psi",
         "//platform/core-api:core",
         "//platform/extensions",
@@ -40,7 +44,6 @@ jvm_library(
         "//platform/util/base",
         "//platform/util-rt",
         "//libraries/layoutlib",
-        "//libraries/fastutil",
     ],
 )
 ### auto-generated section `build intellij.android.rendering` end

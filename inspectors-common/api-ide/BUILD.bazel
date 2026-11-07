@@ -14,12 +14,12 @@ jvm_library(
     ),
     module_name = "intellij.android.inspectors-common.api-ide",
     visibility = ["//visibility:public"],
+    runtime_deps = ["//libraries/protobuf"],
     deps = [
         # do not sort,
         "//libraries/guava",
         "//libraries/jetbrains/annotations",
         "@lib//:kotlin-stdlib",
-        "//libraries/protobuf",
         "//android/adt-ui",
         "//android/inspectors-common/ui",
         "//android/codenavigation",

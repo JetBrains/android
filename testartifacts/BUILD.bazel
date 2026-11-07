@@ -26,6 +26,7 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = ["//platform/external-system-api:externalSystem"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
@@ -47,7 +48,6 @@ jvm_library(
         "//platform/execution",
         "//platform/execution-impl",
         "//platform/consoleView",
-        "//platform/external-system-api:externalSystem",
         "//platform/extensions",
         "//platform/platform-api:ide",
         "//platform/ide-core",

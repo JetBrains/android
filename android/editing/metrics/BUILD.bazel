@@ -18,6 +18,11 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//libraries/kotlinx/datetime",
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+    ],
     deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
@@ -28,9 +33,7 @@ jvm_library(
         "//platform/extensions",
         "//platform/lang-api:lang",
         "//platform/lang-impl",
-        "//libraries/kotlinx/datetime",
         "//platform/refactoring",
-        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
     ],
 )
 ### auto-generated section `build intellij.android.core.editing.metrics` end

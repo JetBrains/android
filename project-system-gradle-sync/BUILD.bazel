@@ -22,6 +22,7 @@ jvm_library(
     kotlinc_opts = ":custom_projectSystem-gradle-sync",
     module_name = "intellij.android.projectSystem.gradle.sync",
     visibility = ["//visibility:public"],
+    runtime_deps = ["//plugins/gradle/tooling-extension-impl:toolingExtension-impl"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
@@ -37,7 +38,6 @@ jvm_library(
         "//platform/core-api:core",
         "//platform/util",
         "//plugins/kotlin/gradle/gradle-tooling/impl",
-        "//plugins/gradle/tooling-extension-impl:toolingExtension-impl",
         "//libraries/jspecify",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
     ],

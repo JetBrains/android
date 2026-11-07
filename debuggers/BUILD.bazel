@@ -27,6 +27,13 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//android/deploy",
+        "//android/jps-model",
+        "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+        "//platform/xdebugger-impl/rpc",
+    ],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
@@ -39,11 +46,8 @@ jvm_library(
         "//android/analytics",
         "//android/android-common:common",
         "//android/android:core",
-        "//android/deploy",
         "//android/execution/common",
-        "//android/jps-model",
         "//android/render-resources",
-        "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
         "//java/debugger/openapi:java-debugger",
         "//java/debugger/impl",
         "//java/execution/openapi:java-execution",
@@ -80,7 +84,6 @@ jvm_library(
         "//java/openapi:java",
         "//android/project-system",
         "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
-        "//platform/xdebugger-impl/rpc",
     ],
 )
 ### auto-generated section `build intellij.android.debuggers` end

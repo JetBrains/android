@@ -18,6 +18,7 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = ["//libraries/kotlinx/coroutines/core"],
     deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
@@ -28,7 +29,6 @@ jvm_library(
         "//libraries/grpc-netty-shaded",
         "//libraries/guava",
         "//libraries/jetbrains/annotations",
-        "//libraries/kotlinx/coroutines/core",
         "//platform/core-api:core",
         "//platform/platform-api:ide",
         "//platform/ide-core",

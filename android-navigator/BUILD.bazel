@@ -23,6 +23,11 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//android/android-lang:lang",
+        "//android/smali",
+    ],
     deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
@@ -35,10 +40,8 @@ jvm_library(
         "//java/debugger/openapi:java-debugger",
         "//android/android:core",
         "//android/jps-model",
-        "//android/android-lang:lang",
         "//android/project-system",
         "//android/project-system-gradle:projectSystem-gradle",
-        "//android/smali",
         "@lib//:studio-platform-provided",
         "//libraries/commons/io",
         "//libraries/guava",

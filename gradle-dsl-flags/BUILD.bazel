@@ -17,12 +17,15 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//platform/core-api:core",
+        "//platform/ide-core-impl",
+    ],
     deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
         "//platform/util",
-        "//platform/core-api:core",
-        "//platform/ide-core-impl",
     ],
 )
 ### auto-generated section `build intellij.android.gradle.dsl.flags` end

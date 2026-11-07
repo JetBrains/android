@@ -58,6 +58,16 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//plugins/gradle/plugin",
+        "//plugins/groovy/groovy-psi:psi",
+        "//java/java-frontback-psi-api:frontback-psi",
+        "//java/java-psi-api:psi",
+        "//platform/backend/workspace",
+        "//platform/workspace/jps",
+        "//platform/workspace/storage",
+    ],
     deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
@@ -66,10 +76,6 @@ jvm_library(
         "//libraries/guava",
         "//libraries/jetbrains/annotations",
         "//plugins/gradle",
-        "//plugins/gradle/plugin",
-        "//plugins/groovy/groovy-psi:psi",
-        "//java/java-frontback-psi-api:frontback-psi",
-        "//java/java-psi-api:psi",
         "//java/java-syntax:syntax",
         "//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
         "//platform/analysis-api:analysis",
@@ -84,9 +90,6 @@ jvm_library(
         "//platform/util/base",
         "//platform/util-rt",
         "//android/gradle-dsl-flags",
-        "//platform/backend/workspace",
-        "//platform/workspace/jps",
-        "//platform/workspace/storage",
     ],
 )
 ### auto-generated section `build intellij.android.gradle.dsl` end

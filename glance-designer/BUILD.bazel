@@ -18,6 +18,11 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//android/layout-ui",
+        "//platform/util:util-ui",
+    ],
     deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
@@ -30,7 +35,6 @@ jvm_library(
         "//android/designer",
         "//android/adt-ui",
         "//android/android:core",
-        "//android/layout-ui",
         "//android/android-common:common",
         "//android/project-system",
         "//android/preview-designer",
@@ -50,7 +54,6 @@ jvm_library(
         "//platform/projectModel-api:projectModel",
         "//uast/uast-common:uast",
         "//platform/util",
-        "//platform/util:util-ui",
         "//android/rendering",
         "//android/intellij.android.compose-common:compose-common",
         "//plugins/kotlin/code-insight/api",

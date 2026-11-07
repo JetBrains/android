@@ -17,6 +17,7 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = ["//android/jps-model"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
@@ -32,7 +33,6 @@ jvm_library(
         "//android/android:core",
         "//android/gradle-dsl",
         "//android/gradle-dsl-android",
-        "//android/jps-model",
         "//android/project-system",
         "//android/render-resources",
         "//plugins/gradle:gradle-common",

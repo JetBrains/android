@@ -18,6 +18,7 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = ["//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
@@ -32,7 +33,6 @@ jvm_library(
         "//android/device-explorer-common",
         "//android/device-explorer-files",
         "//android/device-explorer-monitor",
-        "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
         "//platform/core-api:core",
         "//platform/core-ui",
         "//platform/extensions",

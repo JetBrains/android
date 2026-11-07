@@ -14,6 +14,7 @@ jvm_library(
     ),
     module_name = "intellij.android.app-inspection.inspectors.backgroundtask.model",
     visibility = ["//visibility:public"],
+    runtime_deps = ["//android/app-inspection/api"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
@@ -21,7 +22,6 @@ jvm_library(
         "@lib//:kotlin-stdlib",
         "//libraries/kotlinx/coroutines/core",
         "//libraries/protobuf",
-        "//android/app-inspection/api",
         "//android/app-inspection/inspector/api",
         "//android/codenavigation",
         "//android/inspectors-common/api",

@@ -18,6 +18,12 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//android/jps-model",
+        "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
+        "//plugins/kotlin/base/util",
+    ],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
@@ -36,7 +42,6 @@ jvm_library(
         "//android/android-common:common",
         "//android/android:core",
         "//android/designer",
-        "//android/jps-model",
         "//android/layout-ui",
         "//android/android-npw:newProjectWizard",
         "//android/observable",
@@ -44,7 +49,6 @@ jvm_library(
         "//android/project-system",
         "//android/render-resources",
         "//android/rendering",
-        "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
         "//java/openapi:java",
         "//java/java-impl:impl",
         "//java/java-psi-api:psi",
@@ -68,7 +72,6 @@ jvm_library(
         "//xml/dom-openapi:dom",
         "//xml/xml-psi-api:psi",
         "//plugins/kotlin/base/project-structure",
-        "//plugins/kotlin/base/util",
         "//platform/forms_rt:java-guiForms-rt",
     ],
 )

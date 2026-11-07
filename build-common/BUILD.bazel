@@ -13,17 +13,20 @@ jvm_library(
     ),
     module_name = "intellij.android.buildCommon",
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//libraries/guava",
+        "//platform/util-rt",
+    ],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
         "//libraries/gradle",
-        "//libraries/guava",
         "//libraries/jetbrains/annotations",
         "@lib//:kotlin-stdlib",
         "//platform/ide-core",
         "//platform/util",
         "//platform/util/base",
-        "//platform/util-rt",
     ],
 )
 ### auto-generated section `build intellij.android.buildCommon` end

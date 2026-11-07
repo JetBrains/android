@@ -18,6 +18,12 @@ jvm_library(
         ["resources/**/*"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
+        "//jps/model-api:model",
+        "//xml/dom-openapi:dom",
+    ],
     deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
@@ -32,7 +38,6 @@ jvm_library(
         "//android/render-resources",
         "//java/java-psi-api:psi",
         "//java/idea-ui:ui",
-        "//libraries/kotlinc/kotlin-compiler-common:libraries-kotlinc-kotlin-compiler-common",
         "//platform/analysis-api:analysis",
         "//platform/core-api:core",
         "//platform/core-impl",
@@ -44,7 +49,6 @@ jvm_library(
         "//platform/ide-core",
         "//platform/ide-core-impl",
         "//platform/platform-impl:ide-impl",
-        "//jps/model-api:model",
         "//platform/lang-api:lang",
         "//platform/lang-core",
         "//platform/projectModel-api:projectModel",
@@ -52,7 +56,6 @@ jvm_library(
         "//platform/util",
         "//platform/util/base",
         "//platform/util-rt",
-        "//xml/dom-openapi:dom",
     ],
 )
 ### auto-generated section `build intellij.android.projectSystem` end

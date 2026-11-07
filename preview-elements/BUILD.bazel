@@ -14,6 +14,7 @@ jvm_library(
     ),
     module_name = "intellij.android.preview-elements",
     visibility = ["//visibility:public"],
+    runtime_deps = ["//platform/core-api:core"],
     deps = [
         # do not sort,
         "@lib//:studio-platform-provided",
@@ -22,7 +23,6 @@ jvm_library(
         "@lib//:kotlin-stdlib",
         "//android/render-resources",
         "//android/rendering",
-        "//platform/core-api:core",
         "//platform/util",
     ],
 )
