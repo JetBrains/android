@@ -24,7 +24,6 @@ import com.android.tools.idea.testartifacts.testsuite.runconfiguration.TestSuite
 import com.intellij.build.BuildDescriptor;
 import com.intellij.build.BuildProgressListener;
 import com.intellij.build.BuildViewManager;
-import com.intellij.build.BuildViewSettingsProvider;
 import com.intellij.build.DefaultBuildDescriptor;
 import com.intellij.build.events.BuildEvent;
 import com.intellij.build.events.FinishBuildEvent;
@@ -55,7 +54,6 @@ import com.intellij.util.ObjectUtils;
 import java.time.Clock;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.execution.build.GradleBuildViewSettingsProvider;
 import org.jetbrains.plugins.gradle.execution.filters.ReRunTaskFilter;
 import org.jetbrains.plugins.gradle.util.GradleBundle;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
@@ -177,10 +175,5 @@ public final class GradleAndroidTestsExecutionConsoleManager
   public AnAction[] getRestartActions(final @NotNull AndroidTestSuiteView consoleView) {
     // RerunFailedTests action is not supported by AndroidTestSuiteView yet.
     return AnAction.EMPTY_ARRAY;
-  }
-
-  @Override
-  public @NotNull BuildViewSettingsProvider getExecutionConsoleSettings() {
-    return GradleBuildViewSettingsProvider.INSTANCE;
   }
 }
