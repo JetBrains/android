@@ -181,6 +181,6 @@ public final class GradleAndroidTestsExecutionConsoleManager
 
   @Override
   public @NotNull BuildViewSettingsProvider getExecutionConsoleSettings() {
-    return new GradleBuildViewSettingsProvider();
+    return GradleBuildViewSettingsProvider.INSTANCE;
   }
 }
