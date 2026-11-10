@@ -18,9 +18,10 @@ package org.jetbrains.kotlin.android
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.UsefulTestCase
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.components.KaDiagnosticCheckerFilter
 import org.jetbrains.kotlin.analysis.api.diagnostics.KaSeverity
+import org.jetbrains.kotlin.analysis.api.diagnostics.diagnostics
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.psi.KtFile
@@ -77,16 +78,17 @@ object DirectiveBasedActionUtils {
         )
     }
 
-    @OptIn(KaAllowAnalysisOnEdt::class)
+    @OptIn(KaAllowAnalysisOnEdt::class, KaExperimentalApi::class)
     fun checkForUnexpectedErrorsK2(file: KtFile) {
         checkForUnexpectedErrorsBase(file) { ktFile ->
             allowAnalysisOnEdt {
                 analyze(ktFile) {
                     ktFile
-                        .collectDiagnostics(KaDiagnosticCheckerFilter.ONLY_COMMON_CHECKERS)
+                        .diagnostics()
                         .filter { it.severity == KaSeverity.ERROR }
                         .map { "${it.factoryName}: ${it.psi.text.lines().first()}" }
                         .sorted()
+                        .toList()
                 }
             }
         }
