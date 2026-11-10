@@ -1,4 +1,5 @@
 load("@community//build:tests-options.bzl", "jps_test")
+load("@community//platform/build-scripts/bazel-rules:ij_plugin.bzl", "ij_plugin")
 load("@jps_dynamic_deps_community//:targets.bzl", "dev_dist_plugin")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
@@ -147,6 +148,14 @@ jvm_library(
     ],
 )
 ### auto-generated section `build intellij.android.compose-ide-plugin` end
+
+### auto-generated section `plugin intellij.android.compose-ide-plugin` start
+ij_plugin(
+    name = "compose-ide-plugin_plugin",
+    descriptor_module = ":compose-ide-plugin",
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `plugin intellij.android.compose-ide-plugin` end
 
 ### auto-generated section `iml intellij.android.compose-ide-plugin` start
 exports_files(
