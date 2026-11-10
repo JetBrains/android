@@ -34,13 +34,13 @@ private const val NEW_PROJECT_ACTION_ID = "WelcomeScreen.CreateNewProject"
 private val androidGroupId = AndroidModuleBuilder().builderId
 
 // Reopens the Android npw when the IDE launches straight into a project, skipping the welcome screen.
-internal class ReopenAndroidNpwStartupActivity : ProjectActivity {
+class ReopenAndroidNpwStartupActivity : ProjectActivity {
   override suspend fun execute(project: Project) {
     reopenAndroidNpwIfRequested()
   }
 }
 
-internal class OpenAndroidProjectWizardStartupLifecycleListener : AppLifecycleListener {
+class OpenAndroidProjectWizardStartupLifecycleListener : AppLifecycleListener {
   override fun appFrameCreated(commandLineArgs: List<String?>) {
     PromotionTemplateStateService.getInstance().markRestartedIfNpwReopenPending()
   }

@@ -24,13 +24,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.doubleClick
 import androidx.compose.ui.test.onChildren
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performTouchInput
 import com.android.tools.adtui.compose.utils.StudioComposeTestRule.Companion.createStudioComposeTestRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.model.NewProjectModel
@@ -40,6 +40,8 @@ import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.unit.dp
 import com.android.tools.idea.npw.project.ChooseAndroidProjectStep.Companion.getProjectTemplates
+import com.android.tools.idea.npw.startup.PromotionTemplateStateService
+import com.android.tools.idea.npw.template.KmpPluginPlaceholderProvider
 import com.android.tools.idea.npw.template.PluginPromotionTemplate
 import com.android.tools.idea.npw.template.WizardPluginPromotionTemplateProvider
 import com.android.tools.idea.testing.disposable
@@ -54,6 +56,7 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.extensions.impl.ExtensionsAreaImpl
 import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.replaceService
 import java.awt.image.BufferedImage
 import java.io.File
 import java.util.function.Supplier
@@ -61,6 +64,7 @@ import javax.imageio.ImageIO
 import javax.swing.SwingUtilities
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
@@ -77,9 +81,13 @@ class ComposeChooseAndroidProjectStepUITest {
   @get:Rule val projectRule = ProjectRule()
 
   private var originalNewTemplateEngineFlag: Boolean = false
+  private var originalGeminiFlag: Boolean = false
+  private var originalImportFlag: Boolean = false
 
   @Before
   fun setUp() {
+    originalGeminiFlag = StudioFlags.GEMINI_NEW_PROJECT_AGENT.get()
+    originalImportFlag = StudioFlags.IMPORT_PROJECT_ENABLED.get()
     originalNewTemplateEngineFlag = StudioFlags.NPW_NEW_TEMPLATE_ENGINE.get()
     StudioFlags.NPW_NEW_TEMPLATE_ENGINE.override(false)
   }
@@ -87,10 +95,15 @@ class ComposeChooseAndroidProjectStepUITest {
   @After
   fun tearDown() {
     StudioFlags.NPW_NEW_TEMPLATE_ENGINE.override(originalNewTemplateEngineFlag)
+    StudioFlags.GEMINI_NEW_PROJECT_AGENT.override(originalGeminiFlag)
+    StudioFlags.IMPORT_PROJECT_ENABLED.override(originalImportFlag)
   }
 
   @Before
   fun setUpProviders() {
+    ApplicationManager.getApplication().replaceService(
+      PromotionTemplateStateService::class.java, PromotionTemplateStateService(), projectRule.disposable,
+    )
     val point = ExtensionPointName<WizardTemplateProvider>("com.android.tools.idea.wizard.template.wizardTemplateProvider")
     val area = ApplicationManager.getApplication().extensionArea as ExtensionsAreaImpl
     if (!area.hasExtensionPoint(point)) {
@@ -455,6 +468,55 @@ class ComposeChooseAndroidProjectStepUITest {
       .assertCountEquals(FormFactor.Wear.getProjectTemplates().size)
 
     composeTestRule.onNodeWithText(PROMOTION_NAME, substring = true).assertExists()
+  }
+
+  @Test
+  fun kmpPlaceholderCanBeSelectedInBothSupportedCategories() = runTest {
+    StudioFlags.GEMINI_NEW_PROJECT_AGENT.override(false)
+    StudioFlags.IMPORT_PROJECT_ENABLED.override(false)
+    registerPromotionTemplates(*KmpPluginPlaceholderProvider().getTemplates().toTypedArray())
+    val model = ChooseAndroidProjectStepModel(Supplier { listOf(FormFactor.Mobile, FormFactor.Generic, FormFactor.Wear) })
+    model.getAndroidProjectEntries()
+    composeTestRule.setContent { ChooseAndroidProjectStepUI(model) }
+
+    for (category in listOf(FormFactor.Mobile, FormFactor.Generic)) {
+      composeTestRule.onNodeWithText(category.displayName).performClick()
+      composeTestRule.onNodeWithText("Kotlin Multiplatform", substring = true).assertIsDisplayed().performClick()
+      composeTestRule.runOnIdle {
+        val entry = assertIs<FormFactorProjectEntry>(model.selectedAndroidProjectEntry)
+        assertEquals(category.displayName, entry.formFactorTitle)
+        val selectedGridItem = assertIs<PluginPromotionGridItem>(entry.selectedGridItem)
+        assertEquals("com.jetbrains.kmm", selectedGridItem.pluginId)
+        assertTrue(entry.canGoForward.value)
+      }
+    }
+    composeTestRule.onNodeWithText(FormFactor.Wear.displayName).performClick()
+    composeTestRule.onNodeWithText("Kotlin Multiplatform", substring = true).assertDoesNotExist()
+  }
+
+  @Test
+  fun restoredTemplateSelectsItsCategory() = runTest {
+    val service = PromotionTemplateStateService.getInstance()
+    service.requestNpwReopenOnNextStartup("com.jetbrains.kmm", "Wear Activity", FormFactor.Wear)
+    service.markRestartedIfNpwReopenPending()
+    val model = ChooseAndroidProjectStepModel(Supplier { listOf(FormFactor.Mobile, FormFactor.Wear) })
+    model.getAndroidProjectEntries()
+
+    val entry = assertIs<FormFactorProjectEntry>(model.selectedAndroidProjectEntry)
+    assertEquals(FormFactor.Wear.displayName, entry.formFactorTitle)
+    val selectedGridItem = assertIs<TemplateGridItem>(entry.selectedGridItem)
+    assertEquals("Wear Activity", selectedGridItem.template.name)
+  }
+
+  @Test
+  fun installedPluginIsNotOfferedAsAPromotion() {
+    registerPromotionTemplates(
+      FakePluginPromotionTemplate("IDE platform", "com.intellij", FormFactor.Mobile),
+      FakePluginPromotionTemplate(PROMOTION_NAME, PROMOTION_PLUGIN_ID, FormFactor.Mobile),
+    )
+
+    val promotions = FormFactor.Mobile.getProjectTemplates().filterIsInstance<PluginPromotionGridItem>()
+    assertEquals(listOf(PROMOTION_PLUGIN_ID), promotions.map { it.pluginId })
   }
 
   private fun registerPromotionTemplates(vararg templates: PluginPromotionTemplate) {
