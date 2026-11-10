@@ -37,7 +37,6 @@ import com.google.devrel.gmscore.tools.apk.arsc.ResourceFile
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import com.intellij.diff.util.FileEditorBase
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.AsyncFileEditorProvider
@@ -174,10 +173,7 @@ class ApkEditorTest(val isPageAlignFeatureEnabled: Boolean) {
     val virtualFile = StandardFileSystems.local().refreshAndFindFileByPath(apk.toFile().absolutePath) ?: fail("Can't find file")
     @Suppress("UnstableApiUsage")
     runWriteAction {
-      ApplicationManager.getApplication()
-        .messageBus
-        .syncPublisher(VirtualFileManager.VFS_CHANGES)
-        .after(listOf(VFileContentChangeEvent(this, virtualFile, 0, 0)))
+      VirtualFileManager.getInstance().fireEvents(listOf(VFileContentChangeEvent(this, virtualFile, 0, 0)), {})
     }
 
     waitForCondition { apkEditor.getNodes().sorted() == listOf("/", "/AndroidManifest.xml", "/res", "/res/anim", "/res/anim/fade.xml") }
