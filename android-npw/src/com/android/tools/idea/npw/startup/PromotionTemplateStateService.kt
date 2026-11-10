@@ -49,7 +49,6 @@ class PromotionTemplateStateService : SimplePersistentStateComponent<PromotionTe
   fun consumeNpwReopenRequestAfterRestart(): Boolean {
     if (state.openAndroidNpwOnStartup && state.wasRestarted) {
       state.openAndroidNpwOnStartup = false
-      state.wasRestarted = false
       return true
     }
     return false
@@ -57,6 +56,8 @@ class PromotionTemplateStateService : SimplePersistentStateComponent<PromotionTe
 
   @Synchronized
   fun consumePromotedTemplate(): PromotedTemplate? {
+    if (!state.wasRestarted) return null
+
     val pluginId = state.promotedPluginId
     val templateName = state.promotedTemplateName
     val formFactor = state.promotedFormFactor
@@ -64,6 +65,7 @@ class PromotionTemplateStateService : SimplePersistentStateComponent<PromotionTe
     state.promotedPluginId = null
     state.promotedTemplateName = null
     state.promotedFormFactor = null
+    state.wasRestarted = false
 
     return if (pluginId != null && templateName != null && formFactor != null) {
       PromotedTemplate(name = templateName, formFactor = formFactor, pluginId = pluginId)
