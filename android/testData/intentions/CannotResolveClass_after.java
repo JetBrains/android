@@ -15,11 +15,10 @@
  */
 package com.example;
 
+import p1.p2.SomeClass;
+
 public class MainActivity {
   protected void onCreate() {
     SomeClass someClass;
   }
-}
-
-public class SomeClass {
 }
