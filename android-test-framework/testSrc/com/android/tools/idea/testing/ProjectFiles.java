@@ -23,7 +23,6 @@ import static org.junit.Assert.assertNotNull;
 import com.intellij.ide.highlighter.ModuleFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.module.EmptyModuleType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleType;
@@ -84,7 +83,7 @@ public final class ProjectFiles {
     createIfDoesntExist(moduleFile);
 
     VirtualFile virtualFile = StandardFileSystems.local().refreshAndFindFileByPath(moduleFile.getAbsolutePath());
-    return createModule(project, virtualFile, EmptyModuleType.getInstance());
+    return createModule(project, virtualFile, ModuleType.EMPTY);
   }
 
   @NotNull
