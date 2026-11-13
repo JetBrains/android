@@ -35,7 +35,6 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
@@ -65,11 +64,10 @@ internal class AndroidToolWindowManager : ProjectActivity {
                              check(checkRequests.tryEmit(null))
                            })
 
-      checkRequests
-        .debounce(100.milliseconds)
-        .collectLatest {
-          checkToolWindowStatuses(project = project, extensionId = it)
-        }
+      // JetBrains patch: collect instead of upstream collectLatest, because a check cancelled inside the tool window factory init leaves the tool window half-registered and is reported as a PluginException.
+      checkRequests.debounce(100.milliseconds).collect { extensionId ->
+        checkToolWindowStatuses(project = project, extensionId = extensionId)
+      }
     }
   }
 }
