@@ -37,6 +37,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Journey
 import com.android.tools.idea.testartifacts.instrumented.testsuite.util.ScreenshotTestUtils
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.fileEditor.FileEditorComposite
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -46,6 +47,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
 import java.awt.BorderLayout
 import java.io.File
+import java.util.concurrent.CompletableFuture
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -83,7 +85,7 @@ class JourneysResultsPanel(private val project: Project) : JPanel(BorderLayout()
               numEntries = artifacts.size,
               onImageDoubleClicked = {
                 if (artifact.screenshotImage != null) {
-                  openImageInEditor(File(artifact.screenshotImage))
+                  requestOpenImageInEditor(File(artifact.screenshotImage))
                 }
               },
             )
@@ -109,19 +111,19 @@ class JourneysResultsPanel(private val project: Project) : JPanel(BorderLayout()
   }
 
   @VisibleForTesting
-  fun openImageInEditor(imageFile: File) {
+  fun requestOpenImageInEditor(imageFile: File): CompletableFuture<FileEditorComposite>? {
     if (ScreenshotTestUtils.containUnderProjectRoot(project, imageFile.path) == null) {
       Messages.showErrorDialog(project, "Screenshot path is outside the project: " + imageFile.absolutePath, "Cannot Open Screenshot")
-      return
+      return null
     }
     val virtualFile = VfsUtil.findFileByIoFile(imageFile, true)
     if (virtualFile == null) {
       Messages.showErrorDialog(project, "Image file not found: " + imageFile.absolutePath, "Error")
-      return
+      return null
     }
 
     val descriptor = OpenFileDescriptor(project, virtualFile)
-    FileEditorManager.getInstance(project).requestOpenEditor(descriptor, FileEditorOpenRequest.fromDescriptor(descriptor).withRequestFocus(true))
+    return FileEditorManager.getInstance(project).requestOpenEditor(descriptor, FileEditorOpenRequest.fromDescriptor(descriptor).withRequestFocus(true))
   }
 
   override fun dispose() {

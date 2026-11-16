@@ -37,6 +37,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.fileEditor.FileEditorComposite;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorOpenRequest;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -51,6 +52,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.annotations.NotNull;
@@ -204,7 +206,7 @@ public class GoToBundleLocationTask {
 
       String description = e.getDescription();
       if (description.startsWith(ANALYZE_URL_PREFIX)) {
-        openBundleAnalyzer(description.substring(ANALYZE_URL_PREFIX.length()));
+        requestOpenBundleAnalyzer(description.substring(ANALYZE_URL_PREFIX.length()));
       }
       else if (description.startsWith(LOCATE_URL_PREFIX)) {
         File file = myBundlePathsPerModule.get(description.substring(LOCATE_URL_PREFIX.length()));
@@ -212,11 +214,11 @@ public class GoToBundleLocationTask {
       }
     }
 
-    private void openBundleAnalyzer(@NotNull String bundlePath) {
+    private @Nullable CompletableFuture<FileEditorComposite> requestOpenBundleAnalyzer(@NotNull String bundlePath) {
       File bundleFile = myBundlePathsPerModule.get(bundlePath);
       if (bundleFile == null) {
         getLog().warn(String.format("Error finding bundle file \"%s\"", bundlePath));
-        return;
+        return null;
       }
 
       VirtualFile virtualFile = !bundleFile.isFile() ? askUserForBundleFile(bundleFile)
@@ -224,16 +226,18 @@ public class GoToBundleLocationTask {
 
       if (virtualFile == null) {
         getLog().warn(String.format("Bundle file not found in virtual file system \"%s\"", bundlePath));
-        return;
+        return null;
       }
 
       OpenFileDescriptor fd = new OpenFileDescriptor(myProject, virtualFile);
-      FileEditorManager.getInstance(myProject).requestOpenEditor(fd, FileEditorOpenRequest.fromDescriptor(fd).withRequestFocus(true))
-        .thenAccept(composite -> {
-          if (composite.getAllEditors().isEmpty()) {
-            getLog().warn(String.format("Could not open editor for bundle file \"%s\"", bundlePath));
-          }
-        });
+      CompletableFuture<FileEditorComposite> opened =
+        FileEditorManager.getInstance(myProject).requestOpenEditor(fd, FileEditorOpenRequest.fromDescriptor(fd).withRequestFocus(true));
+      opened.thenAccept(composite -> {
+        if (composite.getAllEditors().isEmpty()) {
+          getLog().warn(String.format("Could not open editor for bundle file \"%s\"", bundlePath));
+        }
+      });
+      return opened;
     }
 
     @Nullable

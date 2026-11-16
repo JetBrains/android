@@ -68,7 +68,7 @@ class JourneysResultsPanelTest {
       val panel = JourneysResultsPanel(projectRule.project)
 
       // This call should succeed because the implementation uses refreshIfNeeded = true
-      panel.openImageInEditor(imageFile)
+      panel.requestOpenImageInEditor(imageFile)
 
       // Verify the editor was opened with the correct file.
       val descriptorCaptor = argumentCaptor<FileEditorNavigatable>()
@@ -93,7 +93,7 @@ class JourneysResultsPanelTest {
 
       val oldTestDialog = TestDialogManager.setTestDialog(TestDialog.OK)
       try {
-        panel.openImageInEditor(tempFile)
+        panel.requestOpenImageInEditor(tempFile)
       } finally {
         TestDialogManager.setTestDialog(oldTestDialog)
       }

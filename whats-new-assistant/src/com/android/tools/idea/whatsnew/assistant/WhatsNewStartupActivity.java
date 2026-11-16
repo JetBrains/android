@@ -114,7 +114,7 @@ public class WhatsNewStartupActivity implements StartupActivity.DumbAware {
     // If the Android Studio version is new, then always show on startup
     if (isNewStudioVersion(data, applicationRevision)) {
       ApplicationManager.getApplication().invokeLater(
-        () -> ((WhatsNewEditorAction)ActionManager.getInstance().getAction("WhatsNewEditorAction")).openWhatsNewEditor(project, true));
+        () -> ((WhatsNewEditorAction)ActionManager.getInstance().getAction("WhatsNewEditorAction")).requestOpenWhatsNewEditor(project, true));
     }
   }
 

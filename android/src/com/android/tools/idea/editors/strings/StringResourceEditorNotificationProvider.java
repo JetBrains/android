@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.strings;
 
 import static com.android.tools.idea.editors.strings.StringResourceEditorProvider.canViewTranslations;
-import static com.android.tools.idea.editors.strings.StringResourceEditorProvider.openEditor;
+import static com.android.tools.idea.editors.strings.StringResourceEditorProvider.requestOpenEditor;
 
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -43,7 +43,7 @@ public class StringResourceEditorNotificationProvider implements EditorNotificat
     return (fileEditor) -> {
       final InfoPanel panel = new InfoPanel(fileEditor);
       panel.setText("Edit translations for all locales in the translations editor.");
-      panel.createActionLabel("Open editor", () -> openEditor(project, file));
+      panel.createActionLabel("Open editor", () -> requestOpenEditor(project, file));
       panel.createActionLabel("Hide notification", () -> {
         panel.setVisible(false);
         myHide = true;

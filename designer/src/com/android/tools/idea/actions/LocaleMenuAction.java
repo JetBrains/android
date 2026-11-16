@@ -293,7 +293,7 @@ public class LocaleMenuAction extends DropDownAction {
       Configuration configuration = Iterables.getFirst(configurations, null);
       if (configuration != null) {
         Module module = ((StudioConfigurationModelModule)(configuration.getConfigModule())).getModule();
-        StringResourceEditorProvider.openEditor(module);
+        StringResourceEditorProvider.requestOpenEditor(module);
       }
     }
   }

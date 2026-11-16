@@ -21,10 +21,12 @@ import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.fileEditor.FileEditorComposite
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.project.Project
 import com.intellij.platform.ide.customization.ExternalProductResourceUrls
+import java.util.concurrent.CompletableFuture
 
 class WhatsNewEditorAction : AnAction("What's New in Android Studio") {
   override fun update(e: AnActionEvent) {
@@ -39,15 +41,14 @@ class WhatsNewEditorAction : AnAction("What's New in Android Studio") {
       return
     }
 
-    openWhatsNewEditor(e.project!!, false)
+    requestOpenWhatsNewEditor(e.project!!, false)
   }
 
-  fun openWhatsNewEditor(project: Project, isAutoOpened: Boolean) {
-    FileEditorManager.getInstance(project)?.let { fileEditorManager ->
-      WhatsNewMetricsTracker.getInstance().open(project, isAutoOpened)
-      val file = fileEditorManager.openFiles.firstOrNull { it is WhatsNewVirtualFile } ?: WhatsNewVirtualFileImpl()
-      fileEditorManager.requestOpenFile(file, FileEditorOpenRequest.withFocus(true))
-    }
+  fun requestOpenWhatsNewEditor(project: Project, isAutoOpened: Boolean): CompletableFuture<FileEditorComposite> {
+    val fileEditorManager = FileEditorManager.getInstance(project)
+    WhatsNewMetricsTracker.getInstance().open(project, isAutoOpened)
+    val file = fileEditorManager.openFiles.firstOrNull { it is WhatsNewVirtualFile } ?: WhatsNewVirtualFileImpl()
+    return fileEditorManager.requestOpenFile(file, FileEditorOpenRequest.withFocus(true))
   }
 
   private fun browseToWhatsNewUrl() {

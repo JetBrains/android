@@ -55,6 +55,6 @@ public class OpenStringResourceEditorAction extends AnAction {
     if (project == null || file == null) {
       return;
     }
-    StringResourceEditorProvider.openEditor(project, file);
+    StringResourceEditorProvider.requestOpenEditor(project, file);
   }
 }

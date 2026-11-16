@@ -27,6 +27,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorOpenRequest;
@@ -37,6 +38,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.PsiNavigateUtil;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -100,7 +102,7 @@ public class GotoComponentAction extends DumbAwareAction {
     }
 
     if (model != null && !navigateToXml(componentToNavigate)) {
-      switchTab(surface, model);
+      requestSwitchTab(surface, model);
     }
   }
 
@@ -121,10 +123,10 @@ public class GotoComponentAction extends DumbAwareAction {
    *
    * This is to ensure that we can switch tab even if the model is empty
    */
-  private void switchTab(@NotNull DesignSurface<?> surface, @NotNull NlModel model) {
+  private @NotNull CompletableFuture<Editor> requestSwitchTab(@NotNull DesignSurface<?> surface, @NotNull NlModel model) {
     // If the xml file is empty, just open the text editor
     OpenFileDescriptor descriptor = new OpenFileDescriptor(model.getProject(), model.getVirtualFile(), 0);
-    FileEditorManager.getInstance(surface.getProject())
+    return FileEditorManager.getInstance(surface.getProject())
       .requestOpenTextEditor(descriptor, FileEditorOpenRequest.fromDescriptor(descriptor).withRequestFocus(true));
   }
 }

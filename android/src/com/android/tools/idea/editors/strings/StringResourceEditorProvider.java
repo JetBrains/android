@@ -22,6 +22,7 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceFilesUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorComposite;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorOpenRequest;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
@@ -38,8 +39,10 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class StringResourceEditorProvider implements FileEditorProvider, DumbAware {
   public static final String ID = "string-resource-editor";
@@ -82,23 +85,25 @@ public class StringResourceEditorProvider implements FileEditorProvider, DumbAwa
     return false;
   }
 
-  public static void openEditor(@NotNull final Module module) {
+  public static @Nullable CompletableFuture<FileEditorComposite> requestOpenEditor(@NotNull final Module module) {
     final VirtualFile vf = StringsVirtualFile.getStringsVirtualFile(module);
-    if (vf != null) {
-      Project project = module.getProject();
-      openEditor(project, new OpenFileDescriptor(project, vf));
+    if (vf == null) {
+      return null;
     }
+    Project project = module.getProject();
+    return requestOpenEditor(project, new OpenFileDescriptor(project, vf));
   }
 
-  public static void openEditor(@NotNull final Project project, @NotNull VirtualFile file) {
+  public static @NotNull CompletableFuture<FileEditorComposite> requestOpenEditor(@NotNull final Project project, @NotNull VirtualFile file) {
     VirtualFile stringsFile = StringsVirtualFile.getInstance(project, file);
     assert stringsFile != null;
 
-    openEditor(project, new OpenFileDescriptor(project, stringsFile));
+    return requestOpenEditor(project, new OpenFileDescriptor(project, stringsFile));
   }
 
-  private static void openEditor(@NotNull Project project, @NotNull OpenFileDescriptor descriptor) {
-    FileEditorManager.getInstance(project)
+  private static @NotNull CompletableFuture<FileEditorComposite> requestOpenEditor(@NotNull Project project,
+                                                                                @NotNull OpenFileDescriptor descriptor) {
+    return FileEditorManager.getInstance(project)
       .requestOpenEditor(descriptor, FileEditorOpenRequest.fromDescriptor(descriptor).withRequestFocus(true));
   }
 
