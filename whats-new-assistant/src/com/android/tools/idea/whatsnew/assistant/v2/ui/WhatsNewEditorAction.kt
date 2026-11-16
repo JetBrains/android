@@ -22,6 +22,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.project.Project
 import com.intellij.platform.ide.customization.ExternalProductResourceUrls
 
@@ -45,7 +46,7 @@ class WhatsNewEditorAction : AnAction("What's New in Android Studio") {
     FileEditorManager.getInstance(project)?.let { fileEditorManager ->
       WhatsNewMetricsTracker.getInstance().open(project, isAutoOpened)
       val file = fileEditorManager.openFiles.firstOrNull { it is WhatsNewVirtualFile } ?: WhatsNewVirtualFileImpl()
-      fileEditorManager.openFile(file, true)
+      fileEditorManager.requestOpenFile(file, FileEditorOpenRequest.withFocus(true))
     }
   }
 

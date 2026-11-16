@@ -34,6 +34,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
@@ -69,28 +70,31 @@ class ReRunUiCheckModeAction : AnAction() {
     val isWearPreview = selectedContent.getUserData(TAB_IS_WEAR_PREVIEW) ?: return
 
     // Selects or reopens the file containing the preview
-    val editors = FileEditorManager.getInstance(project).openFile(uiCheckInstancePreviewDef.virtualFile, true, true)
-    val relevantEditor =
-      editors.filterIsInstance<SplitEditor<*>>().firstOrNull { it.getPreviewManager<ComposePreviewManager>() != null } ?: return
-    if (relevantEditor.isTextMode(e)) {
-      relevantEditor.selectSplitMode(false)
-    }
+    val request = FileEditorOpenRequest.withFocus(true).withReuseOpen(true)
+    FileEditorManager.getInstance(project).requestOpenFile(uiCheckInstancePreviewDef.virtualFile, request).thenAccept { composite ->
+      val relevantEditor =
+        composite.allEditors.filterIsInstance<SplitEditor<*>>().firstOrNull { it.getPreviewManager<ComposePreviewManager>() != null }
+        ?: return@thenAccept
+      if (relevantEditor.isTextMode()) {
+        relevantEditor.selectSplitMode(false)
+      }
 
-    val composeManager = relevantEditor.getPreviewManager<ComposePreviewManager>() ?: return
-    val flowManager =
-      relevantEditor.getDesignSurface()?.let {
-        PreviewFlowManager.KEY.getData(DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, it))
-      } ?: return
-    AndroidCoroutineScope(composeManager).launch {
-      // Waits for the correct preview to be recreated, and starts UI Check on it
-      val previewElements =
-        flowManager.allPreviewElementsFlow.firstOrNull { flow ->
-          flow.asCollection().any { it.previewElementDefinition == uiCheckInstancePreviewDef }
-        }
-      previewElements
-        ?.asCollection()
-        ?.firstOrNull { it.previewElementDefinition == uiCheckInstancePreviewDef }
-        ?.let { composeManager.setMode(PreviewMode.UiCheck(UiCheckInstance(it, isWearPreview))) }
+      val composeManager = relevantEditor.getPreviewManager<ComposePreviewManager>() ?: return@thenAccept
+      val flowManager =
+        relevantEditor.getDesignSurface()?.let {
+          PreviewFlowManager.KEY.getData(DataManager.getInstance().customizeDataContext(DataContext.EMPTY_CONTEXT, it))
+        } ?: return@thenAccept
+      AndroidCoroutineScope(composeManager).launch {
+        // Waits for the correct preview to be recreated, and starts UI Check on it
+        val previewElements =
+          flowManager.allPreviewElementsFlow.firstOrNull { flow ->
+            flow.asCollection().any { it.previewElementDefinition == uiCheckInstancePreviewDef }
+          }
+        previewElements
+          ?.asCollection()
+          ?.firstOrNull { it.previewElementDefinition == uiCheckInstancePreviewDef }
+          ?.let { composeManager.setMode(PreviewMode.UiCheck(UiCheckInstance(it, isWearPreview))) }
+      }
     }
   }
 

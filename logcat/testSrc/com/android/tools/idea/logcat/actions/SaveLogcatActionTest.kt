@@ -34,6 +34,7 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TemporaryDirectory
 import com.intellij.testFramework.TestActionEvent
+import com.intellij.testFramework.awaitPendingEditorOpen
 import com.intellij.testFramework.runInEdtAndWait
 import java.io.File
 import java.nio.file.Path
@@ -191,7 +192,10 @@ class SaveLogcatActionTest {
       notificationRule.notifications.first().actions.find { it.templateText == "Open in Editor" }
         ?: throw AssertionError("Expected action not found")
 
-    runInEdtAndWait { openInEditorAction.actionPerformed(event) }
+    runInEdtAndWait {
+      openInEditorAction.actionPerformed(event)
+      awaitPendingEditorOpen(project)
+    }
 
     assertThat(FileEditorManager.getInstance(project).openFiles[0].name).isEqualTo(fakeFileChooserFactory.files[0].withLogcatExt().name)
   }

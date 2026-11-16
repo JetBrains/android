@@ -19,7 +19,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.browsers.BrowserLauncher
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.FileEditorComposite
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorNavigatable
 import com.intellij.openapi.util.io.FileUtil
@@ -29,15 +29,15 @@ import com.intellij.testFramework.TemporaryDirectory
 import com.intellij.testFramework.replaceService
 import java.io.File
 import java.net.URI
+import java.util.concurrent.CompletableFuture
 import org.jetbrains.android.ComponentStack
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
@@ -51,7 +51,7 @@ class BenchmarkLinkListenerTest {
   @get:Rule val rules = checkNotNull(RuleChain.outerRule(projectRule).around(EdtRule()).around(temporaryDirectoryRule))
   private val mockEditorService = mock<FileEditorManager>()
   private val mockBrowserService = mock<BrowserLauncher>()
-  private val fileCapture = ArgumentCaptor.forClass(FileEditorNavigatable::class.java)
+  private val fileCapture = argumentCaptor<FileEditorNavigatable>()
   private lateinit var componentStack: ComponentStack
 
   @Before
@@ -59,8 +59,8 @@ class BenchmarkLinkListenerTest {
     componentStack = ComponentStack(projectRule.project)
     componentStack.registerServiceInstance(FileEditorManager::class.java, mockEditorService)
     ApplicationManager.getApplication().replaceService(BrowserLauncher::class.java, mockBrowserService, projectRule.testRootDisposable)
-    whenever(mockEditorService.openEditor(any(), anyBoolean())).thenCallRealMethod()
-    whenever(mockEditorService.openFileEditor(fileCapture.capture(), any())).thenReturn(ArrayList<FileEditor>())
+    whenever(mockEditorService.requestOpenEditor(fileCapture.capture(), any()))
+      .thenReturn(CompletableFuture.completedFuture(FileEditorComposite.EMPTY))
   }
 
   @After
@@ -74,7 +74,7 @@ class BenchmarkLinkListenerTest {
     val traceFile = FileUtil.createTempFile("traceFile", ".trace")
     traceFile.deleteOnExit()
     ApplicationManager.getApplication().invokeAndWait { listener.hyperlinkClicked("file://${traceFile.name}") }
-    assertThat(fileCapture.value.file.name).isEqualTo(traceFile.name)
+    assertThat(fileCapture.lastValue.file.name).isEqualTo(traceFile.name)
   }
 
   @Test
@@ -83,7 +83,7 @@ class BenchmarkLinkListenerTest {
     val traceFile = FileUtil.createTempFile("traceFile", ".trace")
     traceFile.deleteOnExit()
     listener.hyperlinkClicked("uri://${traceFile.name}?param1=value1&param2=value2")
-    assertThat(fileCapture.value.file.name).isEqualTo(traceFile.name)
+    assertThat(fileCapture.lastValue.file.name).isEqualTo(traceFile.name)
   }
 
   @Test

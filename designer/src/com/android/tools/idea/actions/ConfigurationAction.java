@@ -30,6 +30,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Toggleable;
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
+import com.intellij.openapi.fileEditor.FileEditorComposite;
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
 import com.intellij.openapi.fileEditor.ex.FileEditorWithProvider;
@@ -39,6 +41,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -119,9 +122,10 @@ public abstract class ConfigurationAction extends AnAction implements Configurat
     OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file, -1);
     FileEditorManagerEx manager = FileEditorManagerEx.getInstanceEx(project);
     FileEditorWithProvider previousSelection = manager.getSelectedEditorWithProvider(old);
-    manager.openEditor(descriptor, true);
+    CompletableFuture<FileEditorComposite> opened =
+      manager.requestOpenEditor(descriptor, FileEditorOpenRequest.fromDescriptor(descriptor).withRequestFocus(true));
     if (previousSelection != null) {
-      manager.setSelectedEditor(file, previousSelection.getProvider().getEditorTypeId());
+      opened.thenRun(() -> manager.setSelectedEditor(file, previousSelection.getProvider().getEditorTypeId()));
     }
   }
 

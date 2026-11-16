@@ -38,6 +38,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.util.Screensh
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
@@ -120,7 +121,7 @@ class JourneysResultsPanel(private val project: Project) : JPanel(BorderLayout()
     }
 
     val descriptor = OpenFileDescriptor(project, virtualFile)
-    FileEditorManager.getInstance(project).openEditor(descriptor, true)
+    FileEditorManager.getInstance(project).requestOpenEditor(descriptor, FileEditorOpenRequest.fromDescriptor(descriptor).withRequestFocus(true))
   }
 
   override fun dispose() {

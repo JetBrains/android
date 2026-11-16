@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.actions;
 
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.testFramework.EditorOpenTestUtil.awaitPendingEditorOpen;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
@@ -78,6 +79,7 @@ public class OpenApkTest extends HeavyPlatformTestCase {
       new GoToApkLocationTask.OpenFolderNotificationListener(apkPathsMap, myProject);
     HyperlinkEvent e = new HyperlinkEvent(new Object(), HyperlinkEvent.EventType.ACTIVATED, null, "analyze:fooApp");
     listener.hyperlinkActivated(mock(Notification.class), e);
+    awaitPendingEditorOpen(myProject);
     assertTrue(FileEditorManager.getInstance(myProject).isFileOpen(target));
   }
 
@@ -90,6 +92,7 @@ public class OpenApkTest extends HeavyPlatformTestCase {
       new GoToApkLocationTask.OpenFolderNotificationListener(apkPathsMap, myProject);
     HyperlinkEvent e = new HyperlinkEvent(new Object(), HyperlinkEvent.EventType.ACTIVATED, null, "analyze:fooApp");
     listener.hyperlinkActivated(mock(Notification.class), e);
+    awaitPendingEditorOpen(myProject);
     assertTrue(FileEditorManager.getInstance(myProject).isFileOpen(target));
   }
 

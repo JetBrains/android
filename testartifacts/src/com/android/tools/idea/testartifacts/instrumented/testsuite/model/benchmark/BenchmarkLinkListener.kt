@@ -20,6 +20,7 @@ import com.android.tools.idea.project.AndroidNotification
 import com.intellij.ide.browsers.BrowserLauncher
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
@@ -85,7 +86,7 @@ class BenchmarkLinkListener(
         } else {
           // open the trace in the Studio Profiler
           // TODO(b/364596134): pass selection parameters to PerfettoParser to zoom-in on a relevant part of the trace
-          FileEditorManager.getInstance(project).openEditor(fd, true)
+          FileEditorManager.getInstance(project).requestOpenEditor(fd, FileEditorOpenRequest.fromDescriptor(fd).withRequestFocus(true))
         }
       }
       link.startsWith("http://") || link.startsWith("https://") -> {

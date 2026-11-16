@@ -25,6 +25,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.vfs.VirtualFileManager
 import kotlin.io.path.Path
@@ -62,7 +63,7 @@ class FlushTraceAction : DumbAwareAction("Flush Perfetto Trace") {
           // in the logs. It complains about an issue with the trace header when opening the file.
           // The Profiler uses a try-and-error approach to opening various files.
           if (project != null) {
-            FileEditorManager.getInstance(project).openFile(virtualFile, true)
+            FileEditorManager.getInstance(project).openFile(virtualFile, FileEditorOpenRequest.withFocus(true))
           }
 
           // TODO(b/467364934): Decide on the best UX for opening/displaying the file.

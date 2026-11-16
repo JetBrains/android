@@ -60,6 +60,7 @@ import com.intellij.openapi.editor.colors.CodeInsightColors
 import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.editor.ex.util.EditorUtil
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
@@ -255,12 +256,17 @@ class BuildAnalyzerViewController(
           invokeLater {
             val openFileDescriptor =
               OpenFileDescriptor(project, property.propertiesFile.virtualFile, property.psiElement.textRange.endOffset)
-            FileEditorManager.getInstance(project).openTextEditor(openFileDescriptor, true)?.let { editor ->
-              blinkPropertyTextInEditor(editor, property)
-              val pointInEditor = JBPopupFactory.getInstance().guessBestPopupLocation(editor)
-              val message =
-                "'android.enableJetifier' property is now set to false.<br/>" + "Please, remove it after reviewing any associated comments."
-              createPropertyRemovalFeedbackBalloon(message, MessageType.INFO).show(pointInEditor, Balloon.Position.atRight)
+            val fileEditorManager = FileEditorManager.getInstance(project)
+            val request = FileEditorOpenRequest.fromDescriptor(openFileDescriptor).withRequestFocus(true)
+            fileEditorManager.requestOpenTextEditor(openFileDescriptor, request).thenAccept { editor ->
+              if (editor == null) return@thenAccept
+              fileEditorManager.runWhenLoaded(editor) {
+                blinkPropertyTextInEditor(editor, property)
+                val pointInEditor = JBPopupFactory.getInstance().guessBestPopupLocation(editor)
+                val message =
+                  "'android.enableJetifier' property is now set to false.<br/>" + "Please, remove it after reviewing any associated comments."
+                createPropertyRemovalFeedbackBalloon(message, MessageType.INFO).show(pointInEditor, Balloon.Position.atRight)
+              }
             }
           }
         }

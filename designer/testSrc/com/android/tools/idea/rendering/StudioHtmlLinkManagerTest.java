@@ -27,6 +27,7 @@ import com.intellij.openapi.application.impl.NonBlockingReadActionImpl;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.testFramework.EditorOpenTestUtil;
 import com.intellij.testFramework.PlatformTestUtil;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -102,6 +103,7 @@ public class StudioHtmlLinkManagerTest extends LayoutTestCase {
     StudioHtmlLinkManager.handleOpenStackUrl(url, myModule);
     NonBlockingReadActionImpl.waitForAsyncTaskCompletion();
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    EditorOpenTestUtil.awaitPendingEditorOpen(getProject());
     FileEditor selectedEditor = FileEditorManager.getInstance(getProject()).getSelectedEditor();
     assertThat(selectedEditor).isNotNull();
     // We should always navigate to the source file when it's available

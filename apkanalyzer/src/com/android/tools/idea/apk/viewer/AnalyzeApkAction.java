@@ -26,6 +26,7 @@ import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
@@ -75,7 +76,7 @@ public class AnalyzeApkAction extends DumbAwareAction {
     }
 
     OpenFileDescriptor fd = new OpenFileDescriptor(project, vf);
-    FileEditorManager.getInstance(project).openEditor(fd, true);
+    FileEditorManager.getInstance(project).requestOpenEditor(fd, FileEditorOpenRequest.fromDescriptor(fd).withRequestFocus(true));
   }
 
   @Nullable

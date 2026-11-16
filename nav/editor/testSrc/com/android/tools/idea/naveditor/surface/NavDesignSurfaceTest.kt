@@ -51,6 +51,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.IndexingTestUtil
+import com.intellij.testFramework.awaitPendingEditorOpen
 import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
 import java.awt.Point
@@ -111,11 +112,13 @@ class NavDesignSurfaceTest : NavTestCase() {
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     TestNavUsageTracker.create(model).use { tracker ->
       surface.notifyComponentActivate(model.treeReader.find("fragment1")!!)
+      awaitPendingEditorOpen(project)
       val editorManager = FileEditorManager.getInstance(project)
       assertEquals("activity_main.xml", editorManager.openFiles[0].name)
 
       editorManager.closeFile(editorManager.openFiles[0])
       surface.notifyComponentActivate(model.treeReader.find("fragment2")!!)
+      awaitPendingEditorOpen(project)
       assertEquals("fragment_blank.xml", editorManager.openFiles[0].name)
       verify(tracker, times(2)).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.ACTIVATE_LAYOUT).build())
     }
@@ -134,10 +137,12 @@ class NavDesignSurfaceTest : NavTestCase() {
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     TestNavUsageTracker.create(model).use { tracker ->
       surface.notifyComponentActivate(model.treeReader.find("fragment1")!!)
+      awaitPendingEditorOpen(project)
       val editorManager = FileEditorManager.getInstance(project)
       assertEquals("MainActivity.java", editorManager.openFiles[0].name)
       editorManager.closeFile(editorManager.openFiles[0])
       surface.notifyComponentActivate(model.treeReader.find("fragment2")!!)
+      awaitPendingEditorOpen(project)
       assertEquals("BlankFragment.java", editorManager.openFiles[0].name)
       verify(tracker, times(2)).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.ACTIVATE_CLASS).build())
     }
@@ -170,6 +175,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     DesignSurfaceTestUtil.setModelToSurfaceAndWait(surface, model)
     TestNavUsageTracker.create(model).use { tracker ->
       surface.notifyComponentActivate(model.treeReader.find("nav")!!)
+      awaitPendingEditorOpen(project)
       val editorManager = FileEditorManager.getInstance(project)
       assertEquals("navigation.xml", editorManager.openFiles[0].name)
       verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.ACTIVATE_INCLUDE).build())

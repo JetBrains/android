@@ -25,6 +25,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.fileTypes.PlainTextLanguage
 import com.intellij.openapi.module.ModuleUtil
 import java.io.PrintWriter
@@ -76,6 +77,6 @@ class ShowRoomSchemaAction : AnAction("Show Room schema") {
         output.toString(),
         ScratchFileService.Option.create_new_always,
       )
-      ?.let { FileEditorManager.getInstance(project).openFile(it, true) }
+      ?.let { FileEditorManager.getInstance(project).requestOpenFile(it, FileEditorOpenRequest.withFocus(true)) }
   }
 }

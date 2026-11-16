@@ -21,6 +21,7 @@ import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.ide.util.DirectoryChooserUtil
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -148,7 +149,8 @@ protected constructor(
     val createdFile = WriteCommandAction.runWriteCommandAction(project, Computable { createClass(directory, project) })
 
     val fileDescriptor = OpenFileDescriptor(project, createdFile)
-    FileEditorManager.getInstance(project).openEditor(fileDescriptor, true)
+    FileEditorManager.getInstance(project)
+      .requestOpenEditor(fileDescriptor, FileEditorOpenRequest.fromDescriptor(fileDescriptor).withRequestFocus(true))
   }
 
   protected abstract fun createClass(directory: PsiDirectory, project: Project): VirtualFile

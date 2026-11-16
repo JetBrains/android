@@ -36,6 +36,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -153,7 +154,8 @@ class SwitchToVariationAction(
 
   override fun actionPerformed(e: AnActionEvent) {
     val descriptor = OpenFileDescriptor(myProject, myFile, -1)
-    FileEditorManager.getInstance(myProject).openEditor(descriptor, true)
+    FileEditorManager.getInstance(myProject)
+      .requestOpenEditor(descriptor, FileEditorOpenRequest.fromDescriptor(descriptor).withRequestFocus(true))
   }
 }
 

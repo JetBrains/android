@@ -29,13 +29,13 @@ import com.intellij.openapi.fileChooser.FileChooserDialog
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.platform.ide.progress.ModalTaskOwner
 import com.intellij.platform.ide.progress.TaskCancellation
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import icons.StudioIcons
-import java.awt.EventQueue.invokeLater
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -88,7 +88,8 @@ object ExportSnapshotAction :
         }
 
       inspector.currentClient.saveSnapshot(filePath, screenshotType)
-      invokeLater { FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, virtualFile), false) }
+      val openFileDescriptor = OpenFileDescriptor(project, virtualFile)
+      FileEditorManager.getInstance(project).requestOpenEditor(openFileDescriptor, FileEditorOpenRequest.fromDescriptor(openFileDescriptor))
     }
   }
 }
@@ -112,7 +113,9 @@ object ImportSnapshotAction :
     if (vFiles.isEmpty()) return
     val vFile = vFiles[0]
     runWithModalProgressBlocking(ModalTaskOwner.project(project), "Opening snapshot", TaskCancellation.cancellable()) {
-      invokeLater { FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, vFile), true) }
+      val openFileDescriptor = OpenFileDescriptor(project, vFile)
+      FileEditorManager.getInstance(project)
+        .requestOpenEditor(openFileDescriptor, FileEditorOpenRequest.fromDescriptor(openFileDescriptor).withRequestFocus(true))
     }
   }
 }

@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers.capture;
 import com.android.tools.idea.profilers.capture.unified.UnifiedProfilerEditorProvider;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.fileTypes.INativeFileType;
 import com.intellij.openapi.project.Project;
@@ -66,7 +67,7 @@ public abstract class AndroidProfilerCaptureFileType implements INativeFileType 
                                           FileEditorProvider unifiedProvider,
                                           FileEditorManager fileEditorManager) {
     if (unifiedProvider.accept(project, file)) {
-      fileEditorManager.openFile(file, true);
+      fileEditorManager.requestOpenFile(file, FileEditorOpenRequest.withFocus(true));
       return true;
     }
     else if (legacyProvider.accept(project, file)) {

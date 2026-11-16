@@ -78,6 +78,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProcessCanceledException;
@@ -240,7 +241,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
           if (myProject.isDisposed()) {
             return;
           }
-          FileEditorManager.getInstance(myProject).openFile(virtualFile, true);
+          FileEditorManager.getInstance(myProject).requestOpenFile(virtualFile, FileEditorOpenRequest.withFocus(true));
         });
       }
     });

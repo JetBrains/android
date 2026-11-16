@@ -23,6 +23,7 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -83,7 +84,8 @@ public class GoToDeclarationAction extends AbstractAction {
     .expireWith(myProject)
     .finishOnUiThread(ModalityState.defaultModalityState(), descriptor -> {
       if (descriptor != null) {
-        FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
+        FileEditorManager.getInstance(myProject)
+          .requestOpenEditor(descriptor, FileEditorOpenRequest.fromDescriptor(descriptor).withRequestFocus(true));
       }
     })
     .submit(AppExecutorUtil.getAppExecutorService());

@@ -37,8 +37,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
-import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -228,10 +228,12 @@ public class GoToBundleLocationTask {
       }
 
       OpenFileDescriptor fd = new OpenFileDescriptor(myProject, virtualFile);
-      List<FileEditor> editors = FileEditorManager.getInstance(myProject).openEditor(fd, true);
-      if (editors.isEmpty()) {
-        getLog().warn(String.format("Could not open editor for bundle file \"%s\"", bundlePath));
-      }
+      FileEditorManager.getInstance(myProject).requestOpenEditor(fd, FileEditorOpenRequest.fromDescriptor(fd).withRequestFocus(true))
+        .thenAccept(composite -> {
+          if (composite.getAllEditors().isEmpty()) {
+            getLog().warn(String.format("Could not open editor for bundle file \"%s\"", bundlePath));
+          }
+        });
     }
 
     @Nullable

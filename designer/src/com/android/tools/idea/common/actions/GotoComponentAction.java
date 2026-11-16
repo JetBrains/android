@@ -29,6 +29,7 @@ import com.google.common.collect.Iterables;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
@@ -122,9 +123,9 @@ public class GotoComponentAction extends DumbAwareAction {
    */
   private void switchTab(@NotNull DesignSurface<?> surface, @NotNull NlModel model) {
     // If the xml file is empty, just open the text editor
-    FileEditorManager editorManager = FileEditorManager.getInstance(surface.getProject());
-    editorManager.openTextEditor(
-      new OpenFileDescriptor(model.getProject(), model.getVirtualFile(), 0), true);
+    OpenFileDescriptor descriptor = new OpenFileDescriptor(model.getProject(), model.getVirtualFile(), 0);
+    FileEditorManager.getInstance(surface.getProject())
+      .requestOpenTextEditor(descriptor, FileEditorOpenRequest.fromDescriptor(descriptor).withRequestFocus(true));
   }
 }
 

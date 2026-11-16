@@ -40,6 +40,7 @@ import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderMa
 import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderManagerImpl
 import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderModelState
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -551,7 +552,8 @@ class DumpProjectAction : InternalDumpAction("Structure") {
     val dump = dumper.toString().trimIndent()
     val outputFile = File(project.guessProjectDir()!!.toIoFile(), sanitizeFileName(project.name) + ".project_dump")
     outputFile.writeText(dump)
-    FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, VfsUtil.findFileByIoFile(outputFile, true)!!), true)
+    val descriptor = OpenFileDescriptor(project, VfsUtil.findFileByIoFile(outputFile, true)!!)
+    FileEditorManager.getInstance(project).requestOpenEditor(descriptor, FileEditorOpenRequest.fromDescriptor(descriptor).withRequestFocus(true))
     VfsUtil.markDirtyAndRefresh(true, false, false, outputFile)
     Logger.getInstance(DumpProjectAction::class.java).info("Project structure dumped to file: " + outputFile.toURI().toURL())
   }

@@ -82,6 +82,7 @@ import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -624,44 +625,37 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
 
   private static void openEditor(@NotNull Project project, @NotNull OpenFileDescriptor descriptor) {
     FileEditorManager manager = FileEditorManager.getInstance(project);
-    if (manager.openTextEditor(descriptor, true) == null) {
-      manager.openEditor(descriptor, true);
-    }
-  }
-
-  private static boolean openEditor(@NotNull Project project, @NotNull PsiFile psiFile, int line, int column) {
-    VirtualFile file = psiFile.getVirtualFile();
-    if (file != null) {
-      return openEditor(project, file, line, column);
-    }
-
-    return false;
-  }
-
-  private static boolean openEditor(@NotNull Project project, @NotNull VirtualFile file, int line, int column) {
-    OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file, line, column);
-    FileEditorManager manager = FileEditorManager.getInstance(project);
-
+    FileEditorOpenRequest request = FileEditorOpenRequest.fromDescriptor(descriptor).withRequestFocus(true);
     // Attempt to prefer text editor if it's available for this file
-    if (manager.openTextEditor(descriptor, true) != null) {
-      return true;
-    }
-
-    return !manager.openEditor(descriptor, true).isEmpty();
+    manager.requestOpenTextEditor(descriptor, request).thenAccept(editor -> {
+      if (editor == null) {
+        manager.requestOpenEditor(descriptor, request);
+      }
+    });
   }
 
-  private static boolean openEditor(@NotNull Project project, @NotNull PsiFile psiFile, int offset) {
+  private static void openEditor(@NotNull Project project, @NotNull PsiFile psiFile, int line, int column) {
     VirtualFile file = psiFile.getVirtualFile();
     if (file != null) {
-      return openEditor(project, file, offset);
+      openEditor(project, file, line, column);
     }
-
-    return false;
   }
 
-  private static boolean openEditor(@NotNull Project project, @NotNull VirtualFile file, int offset) {
+  private static void openEditor(@NotNull Project project, @NotNull VirtualFile file, int line, int column) {
+    openEditor(project, new OpenFileDescriptor(project, file, line, column));
+  }
+
+  private static void openEditor(@NotNull Project project, @NotNull PsiFile psiFile, int offset) {
+    VirtualFile file = psiFile.getVirtualFile();
+    if (file != null) {
+      openEditor(project, file, offset);
+    }
+  }
+
+  private static void openEditor(@NotNull Project project, @NotNull VirtualFile file, int offset) {
     OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file, offset);
-    return !FileEditorManager.getInstance(project).openEditor(descriptor, true).isEmpty();
+    FileEditorManager.getInstance(project)
+      .requestOpenEditor(descriptor, FileEditorOpenRequest.fromDescriptor(descriptor).withRequestFocus(true));
   }
 
   /**

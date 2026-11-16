@@ -18,24 +18,29 @@ package org.jetbrains.android.uipreview
 import com.intellij.ide.impl.ProjectViewSelectInPaneTarget
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.fileEditor.FileEditorComposite
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.util.SlowOperations
+import java.util.concurrent.CompletableFuture
 import kotlin.use
 
 object EditorUtil {
   /**
-   * Opens the specified file in the editor
+   * Requests to open the specified file in the editor
    *
    * @param project The project which contains the given file.
    * @param vFile The file to open
    */
   @JvmStatic
-  fun openEditor(project: Project, vFile: VirtualFile) {
-    FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, vFile), true)
+  fun requestOpenEditor(project: Project, vFile: VirtualFile): CompletableFuture<FileEditorComposite> {
+    val descriptor = OpenFileDescriptor(project, vFile)
+    return FileEditorManager.getInstance(project)
+      .requestOpenEditor(descriptor, FileEditorOpenRequest.fromDescriptor(descriptor).withRequestFocus(true))
   }
 
   /**

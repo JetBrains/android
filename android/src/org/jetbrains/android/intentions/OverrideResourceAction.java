@@ -39,6 +39,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -408,7 +409,8 @@ public class OverrideResourceAction extends AbstractIntentionAction {
 
       if (open) {
         OpenFileDescriptor descriptor = new OpenFileDescriptor(project, newFile, -1);
-        FileEditorManager.getInstance(project).openEditor(descriptor, true);
+        FileEditorManager.getInstance(project)
+          .requestOpenEditor(descriptor, FileEditorOpenRequest.fromDescriptor(descriptor).withRequestFocus(true));
       }
     }
   }

@@ -29,6 +29,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.progress.PerformInBackgroundOption
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -217,7 +218,7 @@ private fun showBalloon(project: Project, toolWindowId: String?, type: MessageTy
 private fun openEditorOrBrowser(result: VirtualFile, project: Project, editor: Boolean) {
   ApplicationManager.getApplication().invokeLater {
     if (editor) {
-      FileEditorManager.getInstance(project).openFile(result, true)
+      FileEditorManager.getInstance(project).requestOpenFile(result, FileEditorOpenRequest.withFocus(true))
     } else {
       BrowserUtil.browse(result)
     }

@@ -41,6 +41,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.fileTypes.PlainTextLanguage
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
@@ -220,7 +221,7 @@ class InferAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", I
         val fileName = "InferenceReport.txt"
         val f = ScratchFileCreator.createScratchOrTempFile(project, fileName, PlainTextLanguage.INSTANCE, report)
         if (f != null) {
-          FileEditorManager.getInstance(project).openFile(f, true)
+          FileEditorManager.getInstance(project).requestOpenFile(f, FileEditorOpenRequest.withFocus(true))
         }
       } catch (t: Throwable) {
         report?.let(::println)

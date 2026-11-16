@@ -25,6 +25,7 @@ import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
+import java.util.concurrent.ExecutionException
 
 class OpenFileHandler : CliActionHandler {
   override val type: Int = CommandType.OPEN_FILE.number
@@ -42,11 +43,15 @@ class OpenFileHandler : CliActionHandler {
 
     val file = parsedRequest.filePath
     try {
+      val virtualFile = LocalFileSystem.getInstance().findFileByPath(file) ?: throw Exception("File not found")
+      val composite =
+        try {
+          FileEditorManager.getInstance(project).requestOpenFile(virtualFile).get()
+        } catch (e: ExecutionException) {
+          throw e.cause ?: e
+        }
       ApplicationManager.getApplication().invokeAndWait {
-        val editors =
-          FileEditorManager.getInstance(project)
-            .openFile(LocalFileSystem.getInstance().findFileByPath(file) ?: throw Exception("File not found"))
-        val editor = editors.getOrNull(0) as? TextEditorWithPreview ?: return@invokeAndWait
+        val editor = composite.allEditors.getOrNull(0) as? TextEditorWithPreview ?: return@invokeAndWait
         editor.setLayout(TextEditorWithPreview.Layout.SHOW_EDITOR_AND_PREVIEW)
       }
     } catch (e: ProcessCanceledException) {

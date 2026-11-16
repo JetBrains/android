@@ -72,7 +72,7 @@ class GenerateMotionSceneFix(val url: ResourceUrl) : DefaultLintQuickFix("Genera
           val resFile = xmlDir.createChildData(project, "${url.name}$DOT_XML")
           VfsUtil.saveText(resFile, generateMotionSceneContent(widgetId))
           ReformatUtil.reformatAndRearrange(project, resFile)
-          EditorUtil.openEditor(project, resFile)
+          EditorUtil.requestOpenEditor(project, resFile)
           EditorUtil.selectEditor(project, resFile)
           motionTag?.setAttribute(ATTR_CONSTRAINT_LAYOUT_DESCRIPTION, AUTO_URI, url.toString())
         } catch (ex: IOException) {

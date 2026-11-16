@@ -83,6 +83,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -569,7 +570,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
         if (file.exists()) {
           VirtualFile virtualFile = VfsUtil.findFileByIoFile(file, false);
           if (virtualFile != null) {
-            FileEditorManager.getInstance(getProject()).openFile(virtualFile, true);
+            FileEditorManager.getInstance(getProject()).requestOpenFile(virtualFile, FileEditorOpenRequest.withFocus(true));
             NavUsageTracker.Companion.getInstance(getModel()).createEvent(metricsEventType).log();
             return;
           }
@@ -585,7 +586,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
         if (file != null) {
           VirtualFile virtualFile = file.getVirtualFile();
           if (virtualFile != null) {
-            FileEditorManager.getInstance(getProject()).openFile(virtualFile, true);
+            FileEditorManager.getInstance(getProject()).requestOpenFile(virtualFile, FileEditorOpenRequest.withFocus(true));
             NavUsageTracker.Companion.getInstance(getModel()).createEvent(ACTIVATE_CLASS).log();
             return;
           }

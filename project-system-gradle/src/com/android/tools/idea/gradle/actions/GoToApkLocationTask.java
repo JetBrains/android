@@ -36,6 +36,7 @@ import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -224,7 +225,7 @@ public class GoToApkLocationTask {
         }
         if (apk != null) {
           OpenFileDescriptor fd = new OpenFileDescriptor(myProject, apk);
-          FileEditorManager.getInstance(myProject).openEditor(fd, true);
+          FileEditorManager.getInstance(myProject).requestOpenEditor(fd, FileEditorOpenRequest.fromDescriptor(fd).withRequestFocus(true));
         }
       }
       else if (description.startsWith(MODULE)) {

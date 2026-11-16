@@ -18,7 +18,8 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.OpenFileDescriptor
+import com.intellij.openapi.fileEditor.FileEditorNavigatable
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.ui.TestDialog
 import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.openapi.vfs.VfsUtil
@@ -33,10 +34,9 @@ import javax.imageio.ImageIO
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import org.mockito.kotlin.eq
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.verifyNoInteractions
 
 @RunsInEdt
@@ -71,9 +71,11 @@ class JourneysResultsPanelTest {
       panel.openImageInEditor(imageFile)
 
       // Verify the editor was opened with the correct file.
-      val descriptorCaptor = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
-      verify(mockFileEditorManager).openEditor(descriptorCaptor.capture(), eq(true))
-      assertThat(descriptorCaptor.value.file.path).isEqualTo(imageFile.absolutePath.replace(File.separatorChar, '/'))
+      val descriptorCaptor = argumentCaptor<FileEditorNavigatable>()
+      val requestCaptor = argumentCaptor<FileEditorOpenRequest>()
+      verify(mockFileEditorManager).requestOpenEditor(descriptorCaptor.capture(), requestCaptor.capture())
+      assertThat(descriptorCaptor.firstValue.file.path).isEqualTo(imageFile.absolutePath.replace(File.separatorChar, '/'))
+      assertThat(requestCaptor.firstValue.requestFocus).isTrue()
     } finally {
       imageFile.delete()
       newDir.delete()

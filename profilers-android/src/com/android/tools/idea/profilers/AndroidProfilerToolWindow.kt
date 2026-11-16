@@ -55,6 +55,7 @@ import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -318,8 +319,9 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
         }
         liveTaskVirtualFile?.let { virtualFile ->
           invokeLater {
-            FileEditorManager.getInstance(project).openFile(virtualFile, true)
-            updateLiveTaskBanner()
+            FileEditorManager.getInstance(project).requestOpenFile(virtualFile, FileEditorOpenRequest.withFocus(true)).thenAccept {
+              updateLiveTaskBanner()
+            }
           }
         }
       }
@@ -428,8 +430,9 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
         val fileEditorManager = FileEditorManager.getInstance(project)
         if (fileEditorManager.isFileOpen(virtualFile)) {
           invokeLater {
-            fileEditorManager.openFile(virtualFile, true)
-            updateLiveTaskBanner()
+            fileEditorManager.requestOpenFile(virtualFile, FileEditorOpenRequest.withFocus(true)).thenAccept {
+              updateLiveTaskBanner()
+            }
           }
         }
       }

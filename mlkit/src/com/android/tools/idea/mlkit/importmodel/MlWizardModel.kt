@@ -34,6 +34,7 @@ import com.google.wireless.android.sdk.stats.MlModelBindingEvent.EventType
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
@@ -99,7 +100,7 @@ class MlWizardModel(val module: Module) : WizardModel(), LargeFileWriteRequestor
 
           val virtualFile = fromFile.copy(this, toDir, fromFile.name)
           val fileEditorManager: FileEditorManager = FileEditorManager.getInstance(module.project)
-          fileEditorManager.openFile(virtualFile, true)
+          fileEditorManager.requestOpenFile(virtualFile, FileEditorOpenRequest.withFocus(true))
           if (autoAddBasicSetup.get() || autoAddGpuSetup.get()) {
             val context =
               RenderingContext(

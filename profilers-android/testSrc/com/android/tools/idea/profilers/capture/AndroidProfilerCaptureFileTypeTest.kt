@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.profilers.capture.unified.UnifiedProfilerEditorProvider
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -27,12 +28,13 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.mockito.Mockito.any
-import org.mockito.Mockito.anyBoolean
 import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.never
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
@@ -93,7 +95,7 @@ class AndroidProfilerCaptureFileTypeTest {
     verify(mockLegacyProvider).accept(mockProject, mockFile)
     verify(mockLegacyProvider).createEditor(mockProject, mockFile)
     // Verify the file manager was not used directly.
-    verify(mockFileEditorManager, never()).openFile(any(), anyBoolean())
+    verify(mockFileEditorManager, never()).requestOpenFile(any(), any())
   }
 
   @Test
@@ -115,7 +117,9 @@ class AndroidProfilerCaptureFileTypeTest {
     // Verify the legacy provider's createEditor was NOT called.
     verify(mockLegacyProvider, never()).createEditor(any(), any())
     // Verify the file was opened using the FileEditorManager.
-    verify(mockFileEditorManager).openFile(mockFile, true)
+    val request = argumentCaptor<FileEditorOpenRequest>()
+    verify(mockFileEditorManager).requestOpenFile(eq(mockFile), request.capture())
+    assertTrue(request.firstValue.requestFocus)
   }
 
   @Test
@@ -132,7 +136,7 @@ class AndroidProfilerCaptureFileTypeTest {
     assertFalse(result)
     // Verify neither provider's editor creation/opening logic was called.
     verify(mockLegacyProvider, never()).createEditor(any(), any())
-    verify(mockFileEditorManager, never()).openFile(any(), anyBoolean())
+    verify(mockFileEditorManager, never()).requestOpenFile(any(), any())
   }
 
   @After

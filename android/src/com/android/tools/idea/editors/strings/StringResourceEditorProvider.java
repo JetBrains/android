@@ -23,6 +23,7 @@ import com.android.tools.idea.res.ResourceFilesUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -84,11 +85,8 @@ public class StringResourceEditorProvider implements FileEditorProvider, DumbAwa
   public static void openEditor(@NotNull final Module module) {
     final VirtualFile vf = StringsVirtualFile.getStringsVirtualFile(module);
     if (vf != null) {
-      ApplicationManager.getApplication().invokeLater(() -> {
-        Project project = module.getProject();
-        OpenFileDescriptor descriptor = new OpenFileDescriptor(project, vf);
-        FileEditorManager.getInstance(project).openEditor(descriptor, true);
-      });
+      Project project = module.getProject();
+      openEditor(project, new OpenFileDescriptor(project, vf));
     }
   }
 
@@ -96,10 +94,12 @@ public class StringResourceEditorProvider implements FileEditorProvider, DumbAwa
     VirtualFile stringsFile = StringsVirtualFile.getInstance(project, file);
     assert stringsFile != null;
 
-    ApplicationManager.getApplication().invokeLater(() -> {
-      OpenFileDescriptor descriptor = new OpenFileDescriptor(project, stringsFile);
-      FileEditorManager.getInstance(project).openEditor(descriptor, true);
-    });
+    openEditor(project, new OpenFileDescriptor(project, stringsFile));
+  }
+
+  private static void openEditor(@NotNull Project project, @NotNull OpenFileDescriptor descriptor) {
+    FileEditorManager.getInstance(project)
+      .requestOpenEditor(descriptor, FileEditorOpenRequest.fromDescriptor(descriptor).withRequestFocus(true));
   }
 
   @Override

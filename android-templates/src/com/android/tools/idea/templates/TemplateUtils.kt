@@ -45,7 +45,7 @@ import com.intellij.util.lang.JavaVersion
 import java.io.File
 import java.io.IOException
 import java.security.InvalidParameterException
-import org.jetbrains.android.uipreview.EditorUtil.openEditor
+import org.jetbrains.android.uipreview.EditorUtil.requestOpenEditor
 import org.jetbrains.android.uipreview.EditorUtil.selectEditor
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -67,7 +67,7 @@ object TemplateUtils {
         files.filter(File::exists).mapNotNull { LocalFileSystem.getInstance().refreshAndFindFileByIoFile(it) }
       }
 
-    virtualFiles.forEach { openEditor(project, it) }
+    virtualFiles.forEach { requestOpenEditor(project, it) }
 
     if (select && virtualFiles.isNotEmpty()) {
       selectEditor(project, virtualFiles.last())

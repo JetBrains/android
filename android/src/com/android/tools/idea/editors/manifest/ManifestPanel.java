@@ -64,6 +64,7 @@ import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.editor.colors.EditorFontType;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -765,7 +766,8 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
             column = sourcePosition.getStartColumn();
           }
           OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, file, line, column);
-          FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
+          FileEditorManager.getInstance(myProject)
+            .requestOpenEditor(descriptor, FileEditorOpenRequest.fromDescriptor(descriptor).withRequestFocus(true));
           break;
         }
       }
@@ -1312,7 +1314,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
           if (virtualFile != null) {
             OpenFileDescriptor descriptor = new OpenFileDescriptor(project, virtualFile, line, column);
             FileEditorManager manager = FileEditorManager.getInstance(project);
-            manager.openTextEditor(descriptor, true);
+            manager.requestOpenTextEditor(descriptor, FileEditorOpenRequest.fromDescriptor(descriptor).withRequestFocus(true));
           }
         }
         catch (MalformedURLException e) { // Ignore

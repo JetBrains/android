@@ -34,6 +34,7 @@ import com.intellij.ide.BrowserUtil
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationListener
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
@@ -128,7 +129,8 @@ abstract class PageAlignNotifier(val balloonsEnabled: Boolean = PageAlignConfig.
           val apkFile = File(description)
           val apkVirtualFile = StandardFileSystems.local().refreshAndFindFileByPath(apkFile.absolutePath) ?: return
           val openFileDescriptor = OpenFileDescriptor(project, apkVirtualFile)
-          FileEditorManager.getInstance(project).openEditor(openFileDescriptor, true)
+          FileEditorManager.getInstance(project)
+            .requestOpenEditor(openFileDescriptor, FileEditorOpenRequest.fromDescriptor(openFileDescriptor).withRequestFocus(true))
         } else if (url != null && (url.protocol == "http" || url.protocol == "https")) {
           BrowserUtil.browse(url.toExternalForm(), project)
         }

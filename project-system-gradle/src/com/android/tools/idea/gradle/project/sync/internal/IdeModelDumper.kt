@@ -77,6 +77,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -950,7 +951,8 @@ class DumpProjectIdeModelAction : InternalDumpAction("IDE Models") {
     val dump = dumper.toString().trimIndent()
     val outputFile = File(project.guessProjectDir()!!.toIoFile(), sanitizeFileName(project.name) + ".project_ide_models_dump")
     outputFile.writeText(dump)
-    FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, VfsUtil.findFileByIoFile(outputFile, true)!!), true)
+    val descriptor = OpenFileDescriptor(project, VfsUtil.findFileByIoFile(outputFile, true)!!)
+    FileEditorManager.getInstance(project).requestOpenEditor(descriptor, FileEditorOpenRequest.fromDescriptor(descriptor).withRequestFocus(true))
     VfsUtil.markDirtyAndRefresh(true, false, false, outputFile)
     Logger.getInstance(DumpProjectIdeModelAction::class.java).info("Android IDE models dumped to file: " + outputFile.toURI().toURL())
   }

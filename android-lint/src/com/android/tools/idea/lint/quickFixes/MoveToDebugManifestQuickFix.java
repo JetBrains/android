@@ -149,7 +149,7 @@ public class MoveToDebugManifestQuickFix extends DefaultLintQuickFix {
       Messages.showErrorDialog(project, error, "Move Permission");
     }
     else {
-      EditorUtil.openEditor(project, newFile);
+      EditorUtil.requestOpenEditor(project, newFile);
       EditorUtil.selectEditor(project, newFile);
     }
   }

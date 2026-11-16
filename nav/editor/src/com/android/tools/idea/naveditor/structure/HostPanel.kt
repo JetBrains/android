@@ -37,6 +37,7 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -210,7 +211,7 @@ class HostPanel(private val surface: DesignSurface<*>) : AdtSecondaryPanel(CardL
     if (index != -1) {
       val containingFile = list.model.getElementAt(index).tagPointer.containingFile
       if (containingFile != null) {
-        FileEditorManager.getInstance(surface.project).openFile(containingFile.virtualFile, true)
+        FileEditorManager.getInstance(surface.project).requestOpenFile(containingFile.virtualFile, FileEditorOpenRequest.withFocus(true))
       }
     }
   }

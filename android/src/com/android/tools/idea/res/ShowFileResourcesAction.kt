@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.CommonDataKeys.PSI_FILE
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.fileTypes.PlainTextLanguage
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -57,6 +58,6 @@ class ShowFileResourcesAction : AnAction("Show resources defined in file") {
           textOutput,
           ScratchFileService.Option.create_new_always,
         ) ?: return
-    FileEditorManager.getInstance(project).openFile(scratchFile, true)
+    FileEditorManager.getInstance(project).requestOpenFile(scratchFile, FileEditorOpenRequest.withFocus(true))
   }
 }
