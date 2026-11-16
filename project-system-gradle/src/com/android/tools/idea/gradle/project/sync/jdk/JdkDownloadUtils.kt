@@ -29,14 +29,14 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.use
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.platform.util.progress.reportRawProgress
-import java.nio.file.Path
-import kotlin.coroutines.resume
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.gradle.internal.jvm.inspection.JvmVendor
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.plugins.gradle.util.toJvmVendor
+import java.nio.file.Path
+import kotlin.coroutines.resume
 
 /**
  * Collection of utils to downloads JBR from Intellij [hosted server](https://download.jetbrains.com/jdk/feed/v1/jdks.json.xz) by using
