@@ -11758,7 +11758,7 @@ jvm_library(
         "//android/android-adb:adb-testUtil_test_lib",
         "//platform/scratch/plugin",
         "//plugins/kotlin/base/facet",
-        "//plugins/kotlin/test-framework:test-framework_test_lib",
+        "//plugins/kotlin/test-framework",
         "//plugins/kotlin/jps/util/runtime",
     ],
 )
