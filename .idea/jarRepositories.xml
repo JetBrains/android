@@ -80,7 +80,7 @@
     <remote-repository>
       <option name="id" value="kpm" />
       <option name="name" value="kpm" />
-      <option name="url" value="https://cache-redirector.jetbrains.com/packages.jetbrains.team/maven/p/kpm/public" />
+      <option name="url" value="https://cache-redirector.jetbrains.com/maven/ultimate-public" />
     </remote-repository>
   </component>
 </project>
