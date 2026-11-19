@@ -30,6 +30,16 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.util.Disposer
+import com.intellij.platform.backend.workspace.WorkspaceModelChangeListener
+import com.intellij.platform.backend.workspace.WorkspaceModelTopics
+import com.intellij.platform.workspace.jps.entities.ContentRootEntity
+import com.intellij.platform.workspace.jps.entities.FacetEntity
+import com.intellij.platform.workspace.jps.entities.LibraryEntity
+import com.intellij.platform.workspace.jps.entities.ModuleEntity
+import com.intellij.platform.workspace.jps.entities.SdkEntity
+import com.intellij.platform.workspace.jps.entities.SourceRootEntity
+import com.intellij.platform.workspace.storage.VersionedStorageChange
+import com.intellij.platform.workspace.storage.WorkspaceEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.android.facet.AndroidFacet
@@ -49,7 +59,25 @@ class AndroidProjectRootListener private constructor(private val project: Projec
       ModuleRootListener.TOPIC,
       object : ModuleRootListener {
         override fun rootsChanged(event: ModuleRootEvent) {
+          // JetBrains: skip a roots change that comes from the workspace model.
+          // The WorkspaceModelTopics.CHANGED listener below handles it and checks which entities changed.
+          if (event.isCausedByWorkspaceModelChangesOnly) return
           moduleRootsOrDependenciesChanged()
+        }
+      },
+    )
+
+    // JetBrains: Rider keeps its .NET project model in the workspace model, and the model changes while the user types.
+    // Each change fires rootsChanged. RootsChangedDumbModeTask enters dumb mode, and dumb mode closes the completion popup.
+    // So queue the task only when an entity of a type in ROOT_ENTITY_CLASSES changes (RIDER-144420).
+    // Tests: AndroidProjectRootListenerTest.updateAfterContentRootAdded and noUpdateAfterUnrelatedWorkspaceModelChange.
+    messageBusConnection.subscribe(
+      WorkspaceModelTopics.CHANGED,
+      object : WorkspaceModelChangeListener {
+        override fun changed(event: VersionedStorageChange) {
+          if (ROOT_ENTITY_CLASSES.any { event.getChanges(it).isNotEmpty() }) {
+            moduleRootsOrDependenciesChanged()
+          }
         }
       },
     )
@@ -74,6 +102,20 @@ class AndroidProjectRootListener private constructor(private val project: Projec
   }
 
   companion object {
+    /**
+     * JetBrains: the entity types that [RootsChangedDumbModeTask] reads.
+     * A change of an entity of any other type does not queue the task.
+     */
+    private val ROOT_ENTITY_CLASSES: List<Class<out WorkspaceEntity>> =
+      listOf(
+        ModuleEntity::class.java,
+        ContentRootEntity::class.java,
+        SourceRootEntity::class.java,
+        LibraryEntity::class.java,
+        SdkEntity::class.java,
+        FacetEntity::class.java,
+      )
+
     /**
      * Makes AndroidProjectRootListener listen to the [ModuleRootListener.TOPIC] events if it has not been listening already.
      *

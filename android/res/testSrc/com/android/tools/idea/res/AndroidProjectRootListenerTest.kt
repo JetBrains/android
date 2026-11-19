@@ -22,9 +22,24 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.WriteAction
+import com.intellij.platform.backend.workspace.WorkspaceModel
+import com.intellij.platform.workspace.jps.entities.ModuleGroupPathEntity
+import com.intellij.platform.workspace.jps.entities.groupPath
+import com.intellij.platform.workspace.jps.entities.modifyModuleEntity
+import com.intellij.platform.workspace.jps.entities.modifyModuleGroupPathEntity
+import com.intellij.platform.workspace.storage.EntityStorage
+import com.intellij.platform.workspace.storage.MutableEntityStorage
+import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.registerOrReplaceServiceInstance
+import com.intellij.workspaceModel.core.fileIndex.WorkspaceFileIndexContributor
+import com.intellij.workspaceModel.core.fileIndex.WorkspaceFileSetRegistrar
+import com.intellij.workspaceModel.core.fileIndex.impl.WorkspaceFileIndexImpl
+import com.intellij.workspaceModel.ide.legacyBridge.findModuleEntity
+import java.util.concurrent.TimeoutException
 import kotlin.time.Duration.Companion.seconds
 import org.jetbrains.android.facet.ResourceFolderManager
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -89,5 +104,54 @@ class AndroidProjectRootListenerTest {
 
     // Wait for the event queue to clear out, and verify the ResourceFolderManager was updated.
     waitForCondition(10.seconds) { checkForChangesInvocations == 1 }
+  }
+
+  @Test
+  fun updateAfterContentRootAdded() {
+    // JetBrains: a new content root must still update the resources after the entity type check (RIDER-144420).
+    // Register AndroidProjectRootListener and ensure it doesn't trigger updates as it starts.
+    AndroidProjectRootListener.ensureSubscribed(project)
+    assertThat(checkForChangesInvocations).isEqualTo(0)
+
+    // Add a content root. The workspace model gets a new ContentRootEntity.
+    val contentRoot = androidProjectRule.fixture.tempDirFixture.findOrCreateDir("extraContentRoot")
+    ApplicationManager.getApplication().invokeAndWait { PsiTestUtil.addContentRoot(module, contentRoot) }
+
+    // Wait for the event queue to clear out, and verify the ResourceFolderManager was updated.
+    waitForCondition(10.seconds) { checkForChangesInvocations == 1 }
+  }
+
+  @Test
+  fun noUpdateAfterUnrelatedWorkspaceModelChange() {
+    // JetBrains: reproduces RIDER-144420. A change of an entity that the resources do not read must not update them.
+    // Rider registers a WorkspaceFileIndexContributor for its project model entities, so each change of them fires rootsChanged.
+    // A contributor for ModuleGroupPathEntity makes a change of the group path fire rootsChanged in the same way.
+    WorkspaceFileIndexImpl.EP_NAME.point.registerExtension(
+      object : WorkspaceFileIndexContributor<ModuleGroupPathEntity> {
+        override val entityClass: Class<ModuleGroupPathEntity> = ModuleGroupPathEntity::class.java
+
+        override fun registerFileSets(entity: ModuleGroupPathEntity, registrar: WorkspaceFileSetRegistrar, storage: EntityStorage) = Unit
+      },
+      androidProjectRule.testRootDisposable,
+    )
+    AndroidProjectRootListener.ensureSubscribed(project)
+
+    // Add a group path to the module. This also changes the ModuleEntity, so one update is expected.
+    updateProjectModel("AndroidProjectRootListenerTest: add group path") { builder ->
+      val moduleEntity = module.findModuleEntity(builder)!!
+      builder.modifyModuleEntity(moduleEntity) { groupPath = ModuleGroupPathEntity(listOf("group"), moduleEntity.entitySource) }
+    }
+    waitForCondition(10.seconds) { checkForChangesInvocations == 1 }
+
+    // Change only the group path. The ModuleEntity stays the same, so no update must come within 2 seconds.
+    updateProjectModel("AndroidProjectRootListenerTest: change group path") { builder ->
+      val groupPathEntity = module.findModuleEntity(builder)!!.groupPath!!
+      builder.modifyModuleGroupPathEntity(groupPathEntity) { path = mutableListOf("otherGroup") }
+    }
+    assertThrows(TimeoutException::class.java) { waitForCondition(2.seconds) { checkForChangesInvocations > 1 } }
+  }
+
+  private fun updateProjectModel(description: String, updater: (MutableEntityStorage) -> Unit) {
+    WriteAction.runAndWait<Throwable> { WorkspaceModel.getInstance(project).updateProjectModel(description, updater) }
   }
 }
