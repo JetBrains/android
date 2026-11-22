@@ -1,9 +1,9 @@
-load("@jps_dynamic_deps_community//:targets.bzl", "dev_dist_plugin")
+load("@jps_dynamic_deps_community//:targets.bzl", "dist_plugin")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
-load("//platform/build-scripts/bazel-rules:dev_plugin_remainder.bzl", "dev_dist_complex_plugin")
+load("//platform/build-scripts/bazel-rules:dev_plugin_remainder.bzl", "dist_complex_plugin")
 
 ### auto-generated section `dev intellij.android.plugin.descriptor` start
-dev_dist_plugin(
+dist_plugin(
     content_modules = [
         # do not sort,
         "intellij.libraries.ffmpeg",
@@ -239,7 +239,7 @@ dev_dist_plugin(
     ],
 )
 
-dev_dist_complex_plugin(
+dist_complex_plugin(
     artifact_inputs = {
         "//libraries/ffmpeg:ffmpeg.jar": "intellij.libraries.ffmpeg",
         "//libraries/kxml2:kxml2.jar": "intellij.libraries.kxml2",
@@ -583,19 +583,19 @@ dev_dist_complex_plugin(
         "module-resource:7:source": "android/android/resources/images/asset_studio",
     },
     source_tree_targets = {
-        "module-resource:0:source": "//android/android/lib:dev_dist_resources",
-        "module-resource:1:source": "//android/android/lib:dev_dist_resources",
-        "module-resource:2:source": "//android/artwork:dev_dist_resources",
-        "module-resource:3:source": "//android/streaming:dev_dist_resources",
-        "module-resource:4:source": "//android/streaming:dev_dist_resources",
-        "module-resource:5:source": "//android/streaming:dev_dist_resources",
-        "module-resource:6:source": "//android/streaming:dev_dist_resources",
-        "module-resource:7:source": "//android/android:dev_dist_resources",
+        "module-resource:0:source": "//android/android/lib:dist_resources",
+        "module-resource:1:source": "//android/android/lib:dist_resources",
+        "module-resource:2:source": "//android/artwork:dist_resources",
+        "module-resource:3:source": "//android/streaming:dist_resources",
+        "module-resource:4:source": "//android/streaming:dist_resources",
+        "module-resource:5:source": "//android/streaming:dist_resources",
+        "module-resource:6:source": "//android/streaming:dist_resources",
+        "module-resource:7:source": "//android/android:dist_resources",
     },
     stamp_class_modes = ["frontend"],
 )
 
-dev_dist_complex_plugin(
+dist_complex_plugin(
     artifact_inputs = {
         "//libraries/ffmpeg:ffmpeg.jar": "intellij.libraries.ffmpeg",
         "//libraries/kxml2:kxml2.jar": "intellij.libraries.kxml2",
@@ -935,19 +935,19 @@ dev_dist_complex_plugin(
         "module-resource:7:source": "android/android/resources/images/asset_studio",
     },
     source_tree_targets = {
-        "module-resource:0:source": "//android/android/lib:dev_dist_resources",
-        "module-resource:1:source": "//android/android/lib:dev_dist_resources",
-        "module-resource:2:source": "//android/artwork:dev_dist_resources",
-        "module-resource:3:source": "//android/streaming:dev_dist_resources",
-        "module-resource:4:source": "//android/streaming:dev_dist_resources",
-        "module-resource:5:source": "//android/streaming:dev_dist_resources",
-        "module-resource:6:source": "//android/streaming:dev_dist_resources",
-        "module-resource:7:source": "//android/android:dev_dist_resources",
+        "module-resource:0:source": "//android/android/lib:dist_resources",
+        "module-resource:1:source": "//android/android/lib:dist_resources",
+        "module-resource:2:source": "//android/artwork:dist_resources",
+        "module-resource:3:source": "//android/streaming:dist_resources",
+        "module-resource:4:source": "//android/streaming:dist_resources",
+        "module-resource:5:source": "//android/streaming:dist_resources",
+        "module-resource:6:source": "//android/streaming:dist_resources",
+        "module-resource:7:source": "//android/android:dist_resources",
     },
     stamp_class_modes = ["frontend"],
 )
 
-dev_dist_complex_plugin(
+dist_complex_plugin(
     artifact_inputs = {
         "//libraries/ffmpeg:ffmpeg.jar": "intellij.libraries.ffmpeg",
         "//libraries/kxml2:kxml2.jar": "intellij.libraries.kxml2",
@@ -1291,19 +1291,19 @@ dev_dist_complex_plugin(
         "module-resource:7:source": "android/android/resources/images/asset_studio",
     },
     source_tree_targets = {
-        "module-resource:0:source": "//android/android/lib:dev_dist_resources",
-        "module-resource:1:source": "//android/android/lib:dev_dist_resources",
-        "module-resource:2:source": "//android/artwork:dev_dist_resources",
-        "module-resource:3:source": "//android/streaming:dev_dist_resources",
-        "module-resource:4:source": "//android/streaming:dev_dist_resources",
-        "module-resource:5:source": "//android/streaming:dev_dist_resources",
-        "module-resource:6:source": "//android/streaming:dev_dist_resources",
-        "module-resource:7:source": "//android/android:dev_dist_resources",
+        "module-resource:0:source": "//android/android/lib:dist_resources",
+        "module-resource:1:source": "//android/android/lib:dist_resources",
+        "module-resource:2:source": "//android/artwork:dist_resources",
+        "module-resource:3:source": "//android/streaming:dist_resources",
+        "module-resource:4:source": "//android/streaming:dist_resources",
+        "module-resource:5:source": "//android/streaming:dist_resources",
+        "module-resource:6:source": "//android/streaming:dist_resources",
+        "module-resource:7:source": "//android/android:dist_resources",
     },
     stamp_class_modes = ["frontend"],
 )
 
-dev_dist_complex_plugin(
+dist_complex_plugin(
     artifact_inputs = {
         "//libraries/ffmpeg:ffmpeg.jar": "intellij.libraries.ffmpeg",
         "//libraries/kxml2:kxml2.jar": "intellij.libraries.kxml2",
@@ -1647,19 +1647,19 @@ dev_dist_complex_plugin(
         "module-resource:7:source": "android/android/resources/images/asset_studio",
     },
     source_tree_targets = {
-        "module-resource:0:source": "//android/android/lib:dev_dist_resources",
-        "module-resource:1:source": "//android/android/lib:dev_dist_resources",
-        "module-resource:2:source": "//android/artwork:dev_dist_resources",
-        "module-resource:3:source": "//android/streaming:dev_dist_resources",
-        "module-resource:4:source": "//android/streaming:dev_dist_resources",
-        "module-resource:5:source": "//android/streaming:dev_dist_resources",
-        "module-resource:6:source": "//android/streaming:dev_dist_resources",
-        "module-resource:7:source": "//android/android:dev_dist_resources",
+        "module-resource:0:source": "//android/android/lib:dist_resources",
+        "module-resource:1:source": "//android/android/lib:dist_resources",
+        "module-resource:2:source": "//android/artwork:dist_resources",
+        "module-resource:3:source": "//android/streaming:dist_resources",
+        "module-resource:4:source": "//android/streaming:dist_resources",
+        "module-resource:5:source": "//android/streaming:dist_resources",
+        "module-resource:6:source": "//android/streaming:dist_resources",
+        "module-resource:7:source": "//android/android:dist_resources",
     },
     stamp_class_modes = ["frontend"],
 )
 
-dev_dist_complex_plugin(
+dist_complex_plugin(
     artifact_inputs = {
         "//libraries/ffmpeg:ffmpeg.jar": "intellij.libraries.ffmpeg",
         "//libraries/kxml2:kxml2.jar": "intellij.libraries.kxml2",
@@ -2003,19 +2003,19 @@ dev_dist_complex_plugin(
         "module-resource:7:source": "android/android/resources/images/asset_studio",
     },
     source_tree_targets = {
-        "module-resource:0:source": "//android/android/lib:dev_dist_resources",
-        "module-resource:1:source": "//android/android/lib:dev_dist_resources",
-        "module-resource:2:source": "//android/artwork:dev_dist_resources",
-        "module-resource:3:source": "//android/streaming:dev_dist_resources",
-        "module-resource:4:source": "//android/streaming:dev_dist_resources",
-        "module-resource:5:source": "//android/streaming:dev_dist_resources",
-        "module-resource:6:source": "//android/streaming:dev_dist_resources",
-        "module-resource:7:source": "//android/android:dev_dist_resources",
+        "module-resource:0:source": "//android/android/lib:dist_resources",
+        "module-resource:1:source": "//android/android/lib:dist_resources",
+        "module-resource:2:source": "//android/artwork:dist_resources",
+        "module-resource:3:source": "//android/streaming:dist_resources",
+        "module-resource:4:source": "//android/streaming:dist_resources",
+        "module-resource:5:source": "//android/streaming:dist_resources",
+        "module-resource:6:source": "//android/streaming:dist_resources",
+        "module-resource:7:source": "//android/android:dist_resources",
     },
     stamp_class_modes = ["frontend"],
 )
 
-dev_dist_complex_plugin(
+dist_complex_plugin(
     artifact_inputs = {
         "//libraries/ffmpeg:ffmpeg.jar": "intellij.libraries.ffmpeg",
         "//libraries/kxml2:kxml2.jar": "intellij.libraries.kxml2",
@@ -2355,14 +2355,14 @@ dev_dist_complex_plugin(
         "module-resource:7:source": "android/android/resources/images/asset_studio",
     },
     source_tree_targets = {
-        "module-resource:0:source": "//android/android/lib:dev_dist_resources",
-        "module-resource:1:source": "//android/android/lib:dev_dist_resources",
-        "module-resource:2:source": "//android/artwork:dev_dist_resources",
-        "module-resource:3:source": "//android/streaming:dev_dist_resources",
-        "module-resource:4:source": "//android/streaming:dev_dist_resources",
-        "module-resource:5:source": "//android/streaming:dev_dist_resources",
-        "module-resource:6:source": "//android/streaming:dev_dist_resources",
-        "module-resource:7:source": "//android/android:dev_dist_resources",
+        "module-resource:0:source": "//android/android/lib:dist_resources",
+        "module-resource:1:source": "//android/android/lib:dist_resources",
+        "module-resource:2:source": "//android/artwork:dist_resources",
+        "module-resource:3:source": "//android/streaming:dist_resources",
+        "module-resource:4:source": "//android/streaming:dist_resources",
+        "module-resource:5:source": "//android/streaming:dist_resources",
+        "module-resource:6:source": "//android/streaming:dist_resources",
+        "module-resource:7:source": "//android/android:dist_resources",
     },
     stamp_class_modes = ["frontend"],
 )

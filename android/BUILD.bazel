@@ -4,7 +4,7 @@ load("//build:compiler-options.bzl", "create_kotlinc_options")
 
 ### auto-generated section `dev intellij.android.core` start
 filegroup(
-    name = "dev_dist_resources",
+    name = "dist_resources",
     srcs = glob(
         ["resources/images/asset_studio/**"],
     ),
