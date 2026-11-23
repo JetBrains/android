@@ -55,6 +55,7 @@ import kotlin.test.fail
 import kotlinx.coroutines.test.runTest
 import org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard.TargetType
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -178,6 +179,7 @@ class GradleSignStepTest {
   }
 
   @Test
+  @Ignore("JetBrains patch: ADV registration runs only in Android Studio")
   fun testAdiRegistered() = runTest {
     val client: AdiClient = mock()
     whenever(client.checkPackageRegistrationStatusAsync(setOf("com.example.app"), null))
@@ -205,6 +207,7 @@ class GradleSignStepTest {
   }
 
   @Test
+  @Ignore("JetBrains patch: ADV registration runs only in Android Studio")
   fun testAdiNotRegistered() = runTest {
     val client: AdiClient = mock()
     whenever(client.checkPackageRegistrationStatusAsync(setOf("com.example.app"), null))
@@ -232,6 +235,7 @@ class GradleSignStepTest {
   }
 
   @Test
+  @Ignore("JetBrains patch: ADV registration runs only in Android Studio")
   fun testAdiUnsupported() = runTest {
     val client: AdiClient = mock()
     val mockDeprecationData =

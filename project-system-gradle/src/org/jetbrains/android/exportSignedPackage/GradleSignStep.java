@@ -21,6 +21,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard.TargetType.APK;
 import static org.jetbrains.android.exportSignedPackage.ExportSignedPackageWizard.TargetType.BUNDLE;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeBasicVariant;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
@@ -189,7 +190,8 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
         lastSelectedIndices.add(i);
       }
     }
-    if (StudioFlags.SIGNED_BUILD_ADV_FEATURE.get()) {
+    // JetBrains patch: disable ADV registration outside Android Studio
+    if (StudioFlags.SIGNED_BUILD_ADV_FEATURE.get() && IdeInfo.getInstance().isAndroidStudio()) {
       byte[] cert;
       try {
         cert = myWizard.getTargetType() == BUNDLE ? null : myWizard.getCertificate().getEncoded();
@@ -479,7 +481,8 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
       myAdiStatus.setText(AndroidBundle.message("android.apk.sign.gradle.adi.checking.status"));
       myAdiStatusDescription.setText(" ");
       myLearnMoreLink.setVisible(false);
-      if (appId != null) {
+      // JetBrains patch: disable ADV registration outside Android Studio
+      if (appId != null && IdeInfo.getInstance().isAndroidStudio()) {
         byte[] cert;
         try {
           cert =  myWizard.getTargetType() == BUNDLE ? null : myWizard.getCertificate().getEncoded();
