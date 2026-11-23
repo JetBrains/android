@@ -64,7 +64,6 @@ jvm_library(
         "//libraries/gradle",
         "@lib//:aapt-proto",
         "//libraries/kotlinx/datetime",
-        "//platform/bookmarks",
         "//android/project-system-gradle-sync:projectSystem-gradle-sync",
         "//android/utp",
         "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
