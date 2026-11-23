@@ -75,6 +75,7 @@ import org.jetbrains.kotlin.psi.psiUtil.containingClass
 class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
   override fun collectNavigationMarkers(element: PsiElement, result: MutableCollection<in RelatedItemLineMarkerInfo<*>>) {
+    if (element !is PsiClass && element !is KtClass && element !is XmlFile) return
     val facet = element.androidFacet ?: return
     when (element) {
       is PsiClass -> {
