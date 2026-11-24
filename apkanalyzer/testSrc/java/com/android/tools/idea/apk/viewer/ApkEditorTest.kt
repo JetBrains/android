@@ -768,6 +768,8 @@ class ApkEditorTest(val isPageAlignFeatureEnabled: Boolean) {
                                            openEditorTypeIds: Set<String>): List<FileEditorProvider> = providers
 
     override fun getProvider(editorTypeId: String): FileEditorProvider? = provider.takeIf { it.editorTypeId == editorTypeId }
+
+    override fun getProvider(project: Project, editorTypeId: String): FileEditorProvider? = getProvider(editorTypeId)
   }
 
   /**
