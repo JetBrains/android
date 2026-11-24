@@ -35,6 +35,7 @@ import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
@@ -134,17 +135,23 @@ class EditorUtilsTest {
 
   @Test
   fun scaledUi() {
-    val uiSettings = UISettings.getInstance()
     try {
       val baseFontSize = createLogcatEditor().colorsScheme.consoleFontSize
 
-      uiSettings.ideScale = 2.0f
+      setIdeScale(2.0f)
       val scaledFontSize = createLogcatEditor().colorsScheme.consoleFontSize
 
       assertThat(scaledFontSize).isEqualTo(baseFontSize * 2)
     } finally {
-      uiSettings.ideScale = 1.0f
+      setIdeScale(1.0f)
     }
+  }
+
+  /** Sets [scale] through [UISettings], which writes a settings key later, and waits until [UISettings] reads it. */
+  private fun setIdeScale(scale: Float) {
+    val uiSettings = UISettings.getInstance()
+    uiSettings.ideScale = scale
+    PlatformTestUtil.waitWithEventsDispatching("UISettings reads the IDE scale $scale", { uiSettings.ideScale == scale }, 10)
   }
 
   private fun appendMessage(logcatMessage: LogcatMessage, formattingOptions: FormattingOptions) {
