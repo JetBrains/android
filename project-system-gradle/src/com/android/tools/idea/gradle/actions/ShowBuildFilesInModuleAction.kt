@@ -27,7 +27,6 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.project.ProjectManager
-import com.intellij.ui.treeStructure.ProjectViewUpdateCause
 
 class ShowBuildFilesInModuleAction : ToggleAction("Display Build Files In Module") {
   private val settings = ProjectToolWindowSettings.Companion.getInstance()
@@ -40,7 +39,7 @@ class ShowBuildFilesInModuleAction : ToggleAction("Display Build Files In Module
       ProjectManager.getInstance()
         .openProjects
         .filter { !it.isDisposed }
-        .forEach { ProjectView.getInstance(it)?.refresh(ProjectViewUpdateCause.SETTINGS) }
+        .forEach { ProjectView.getInstance(it)?.refresh() }
       trackShowBuildFileInModuleSettingChange(state)
     }
   }
