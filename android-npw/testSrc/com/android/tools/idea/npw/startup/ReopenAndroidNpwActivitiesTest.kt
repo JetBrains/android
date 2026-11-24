@@ -5,7 +5,7 @@ import com.android.tools.idea.npw.ideahost.AndroidModuleBuilder
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.wizard.template.FormFactor
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.projectWizard.projectTypeStep.resetStoredSelectionForTests
+import com.intellij.ide.wizard.impl.resetStoredProjectTypeSelectionForTests
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
@@ -27,12 +27,12 @@ class ReopenAndroidNpwActivitiesTest {
 
   @Before
   fun resetProjectWizardGroup() {
-    resetStoredSelectionForTests()
+    resetStoredProjectTypeSelectionForTests()
   }
 
   @After
   fun resetProjectWizardGroupAfterTest() {
-    resetStoredSelectionForTests()
+    resetStoredProjectTypeSelectionForTests()
   }
 
   @Test
