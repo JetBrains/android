@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.project.build.output.OpenFileWithLocationQu
 import com.google.common.truth.Truth
 import java.io.File
 import java.lang.reflect.InvocationTargetException
-import org.jetbrains.kotlin.kapt3.diagnostic.KaptError
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.junit.Test
 
@@ -115,5 +114,17 @@ class DataBindingIssueCheckerTest {
     Truth.assertThat(resultIssue.quickFixes[1]).isInstanceOf(OpenFileWithLocationQuickFix::class.java)
     Truth.assertThat((resultIssue.quickFixes[1] as OpenFileWithLocationQuickFix).myFilePosition.file!!.absolutePath)
       .isEqualTo(expectedPath2)
+  }
+}
+
+private class KaptError : RuntimeException {
+  val kind: Kind
+
+  enum class Kind(val message: String) {
+    ERROR_RAISED("Error while annotation processing"),
+  }
+
+  constructor(kind: Kind, cause: Throwable) : super(kind.message, cause) {
+    this.kind = kind
   }
 }

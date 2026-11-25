@@ -26,7 +26,6 @@ import com.intellij.openapi.util.text.StringUtil
 import java.io.File
 import java.util.Locale
 import java.util.regex.Pattern
-import org.jetbrains.kotlin.kapt3.diagnostic.KaptError
 
 fun parse(lineText: String, reader: OutputLineReader, messages: MutableList<Message>): Boolean {
     val colonIndex1 = lineText.colon()
@@ -133,7 +132,7 @@ private fun Int.skipDriveOnWin(line: String): Int {
 }
 
 private val KAPT_ERROR_WHILE_ANNOTATION_PROCESSING_MARKER_TEXT =
-    KaptError::class.java.canonicalName + ": " + KaptError.Kind.ERROR_RAISED.message
+    "KaptError: Error while annotation processing"
 
 private fun isKaptErrorWhileAnnotationProcessing(message: Message): Boolean {
     if (message.kind != Message.Kind.ERROR) return false
