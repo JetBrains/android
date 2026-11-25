@@ -7,13 +7,9 @@ load("//platform/build-scripts/bazel-rules:dist_plugin.bzl", "dist_plugin")
 ### auto-generated section `dev intellij.android.smali` start
 dist_plugin(
     descriptor = "resources/META-INF/plugin.xml",
-    jars = {
-        "lib/android-smali.jar": ["intellij.android.smali"],
-    },
+    jars = {"lib/android-smali.jar": ["intellij.android.smali"]},
     main_module = "intellij.android.smali",
-    module_labels = {
-        "intellij.android.smali": "@community//android/smali:smali",
-    },
+    module_labels = {"intellij.android.smali": "//android/smali"},
 )
 ### auto-generated section `dev intellij.android.smali` end
 

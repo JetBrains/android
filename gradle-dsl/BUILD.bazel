@@ -5,25 +5,16 @@ load("//platform/build-scripts/bazel-rules:dist_plugin.bzl", "dist_plugin")
 
 ### auto-generated section `dev intellij.android.gradle.dsl` start
 dist_plugin(
-    content_modules = [
-        # do not sort,
-        "intellij.android.gradle.dsl.groovy",
-        "intellij.android.gradle.dsl.kotlin",
-        "intellij.android.gradle.dsl.toml",
-        "intellij.android.gradle.dsl.declarative",
-        "intellij.android.gradle.dsl.flags",
-        "intellij.android.gradle.dsl.android",
-    ],
-    descriptor = "resources/META-INF/plugin.xml",
-    descriptors = {
-        "//android/gradle-dsl:resources/META-INF/gradle-dsl.xml": "META-INF/gradle-dsl.xml",
-        "@community//android/gradle-dsl-android:resources/intellij.android.gradle.dsl.android.xml": "intellij.android.gradle.dsl.android.xml",
-        "@community//android/gradle-dsl-declarative:resources/intellij.android.gradle.dsl.declarative.xml": "intellij.android.gradle.dsl.declarative.xml",
-        "@community//android/gradle-dsl-flags:resources/intellij.android.gradle.dsl.flags.xml": "intellij.android.gradle.dsl.flags.xml",
-        "@community//android/gradle-dsl-groovy:resources/intellij.android.gradle.dsl.groovy.xml": "intellij.android.gradle.dsl.groovy.xml",
-        "@community//android/gradle-dsl-kotlin:resources/intellij.android.gradle.dsl.kotlin.xml": "intellij.android.gradle.dsl.kotlin.xml",
-        "@community//android/gradle-dsl-toml:resources/intellij.android.gradle.dsl.toml.xml": "intellij.android.gradle.dsl.toml.xml",
+    content_modules = {
+        "intellij.android.gradle.dsl.groovy": "//android/gradle-dsl-groovy",
+        "intellij.android.gradle.dsl.kotlin": "//android/gradle-dsl-kotlin",
+        "intellij.android.gradle.dsl.toml": "//android/gradle-dsl-toml",
+        "intellij.android.gradle.dsl.declarative": "//android/gradle-dsl-declarative",
+        "intellij.android.gradle.dsl.flags": "//android/gradle-dsl-flags",
+        "intellij.android.gradle.dsl.android": "//android/gradle-dsl-android",
     },
+    descriptor = "resources/META-INF/plugin.xml",
+    descriptors = {"//android/gradle-dsl:resources/META-INF/gradle-dsl.xml": "META-INF/gradle-dsl.xml"},
     jars = {
         "lib/android-gradle-dsl.jar": [
             "intellij.android.gradle.dsl",
@@ -45,15 +36,15 @@ dist_plugin(
             "intellij.android.gradle.dsl.android",
         ],
     },
-    module_labels = {
-        "intellij.android.gradle.dsl": "@community//android/gradle-dsl:gradle-dsl",
-        "intellij.android.gradle.dsl.android": "@community//android/gradle-dsl-android:gradle-dsl-android",
-        "intellij.android.gradle.dsl.declarative": "@community//android/gradle-dsl-declarative:gradle-dsl-declarative",
-        "intellij.android.gradle.dsl.flags": "@community//android/gradle-dsl-flags:gradle-dsl-flags",
-        "intellij.android.gradle.dsl.groovy": "@community//android/gradle-dsl-groovy:gradle-dsl-groovy",
-        "intellij.android.gradle.dsl.kotlin": "@community//android/gradle-dsl-kotlin:gradle-dsl-kotlin",
-        "intellij.android.gradle.dsl.toml": "@community//android/gradle-dsl-toml:gradle-dsl-toml",
-    },
+    module_descriptors = [
+        "@community//android/gradle-dsl-android:resources/intellij.android.gradle.dsl.android.xml",
+        "@community//android/gradle-dsl-declarative:resources/intellij.android.gradle.dsl.declarative.xml",
+        "@community//android/gradle-dsl-flags:resources/intellij.android.gradle.dsl.flags.xml",
+        "@community//android/gradle-dsl-groovy:resources/intellij.android.gradle.dsl.groovy.xml",
+        "@community//android/gradle-dsl-kotlin:resources/intellij.android.gradle.dsl.kotlin.xml",
+        "@community//android/gradle-dsl-toml:resources/intellij.android.gradle.dsl.toml.xml",
+    ],
+    module_labels = {"intellij.android.gradle.dsl": "//android/gradle-dsl"},
 )
 ### auto-generated section `dev intellij.android.gradle.dsl` end
 

@@ -8,16 +8,10 @@ load("//platform/build-scripts/bazel-rules:dist_plugin.bzl", "dist_plugin")
 ### auto-generated section `dev intellij.android.compose-ide-plugin` start
 dist_plugin(
     descriptor = "resources/META-INF/plugin.xml",
-    descriptors = {
-        "//android/compose-ide-plugin:resources/META-INF/plugin.k2.xml": "META-INF/plugin.k2.xml",
-    },
-    jars = {
-        "lib/android-compose-ide-plugin.jar": ["intellij.android.compose-ide-plugin"],
-    },
+    descriptors = {"//android/compose-ide-plugin:resources/META-INF/plugin.k2.xml": "META-INF/plugin.k2.xml"},
+    jars = {"lib/android-compose-ide-plugin.jar": ["intellij.android.compose-ide-plugin"]},
     main_module = "intellij.android.compose-ide-plugin",
-    module_labels = {
-        "intellij.android.compose-ide-plugin": "@community//android/compose-ide-plugin:compose-ide-plugin",
-    },
+    module_labels = {"intellij.android.compose-ide-plugin": "//android/compose-ide-plugin"},
 )
 ### auto-generated section `dev intellij.android.compose-ide-plugin` end
 

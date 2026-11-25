@@ -4,20 +4,19 @@ load("//platform/build-scripts/bazel-rules:dist_plugin.bzl", "dist_plugin")
 
 ### auto-generated section `dev intellij.android.design-plugin.descriptor` start
 dist_plugin(
-    content_modules = [
-        # do not sort,
-        "intellij.libraries.layoutlib",
-        "intellij.android.compose-designer",
-        "intellij.android.designer",
-        "intellij.android.designer.gradle",
-        "intellij.android.glance-designer",
-        "intellij.android.layoutlib",
-        "intellij.android.nav.editor",
-        "intellij.android.nav.editor.gradle",
-        "intellij.android.preview-designer",
-        "intellij.android.visual-lint",
-        "intellij.android.wear-designer",
-    ],
+    content_modules = {
+        "intellij.libraries.layoutlib": "//libraries/layoutlib",
+        "intellij.android.compose-designer": "//android/compose-designer",
+        "intellij.android.designer": "//android/designer",
+        "intellij.android.designer.gradle": "//android/designer/gradle",
+        "intellij.android.glance-designer": "//android/glance-designer",
+        "intellij.android.layoutlib": "//android/layoutlib",
+        "intellij.android.nav.editor": "//android/nav/editor",
+        "intellij.android.nav.editor.gradle": "//android/nav/editor/gradle",
+        "intellij.android.preview-designer": "//android/preview-designer",
+        "intellij.android.visual-lint": "//android/visual-lint",
+        "intellij.android.wear-designer": "//android/wear-designer",
+    },
     descriptor = "resources/META-INF/plugin.xml",
     descriptors = {
         "//android/compose-designer:resources/META-INF/compose-designer.xml": "META-INF/compose-designer.xml",
@@ -29,7 +28,6 @@ dist_plugin(
         "//android/nav/editor:resources/META-INF/naveditor.xml": "META-INF/naveditor.xml",
         "//android/preview-designer:resources/META-INF/preview-designer.xml": "META-INF/preview-designer.xml",
         "//android/wear-designer:resources/META-INF/wear-designer.xml": "META-INF/wear-designer.xml",
-        "@community//libraries/layoutlib:resources/intellij.libraries.layoutlib.xml": "intellij.libraries.layoutlib.xml",
     },
     directory_name = "design-tools",
     jars = {
@@ -54,20 +52,8 @@ dist_plugin(
         "lib/eclipse-layout-kernel.jar": ["@lib//:android-nav-editor-eclipse-layout-kernel"],
     },
     main_module = "intellij.android.design-plugin.descriptor",
-    module_labels = {
-        "intellij.android.compose-designer": "@community//android/compose-designer:compose-designer",
-        "intellij.android.design-plugin.descriptor": "@community//android/design-plugin/descriptor:descriptor",
-        "intellij.android.designer": "@community//android/designer:designer",
-        "intellij.android.designer.gradle": "@community//android/designer/gradle:gradle",
-        "intellij.android.glance-designer": "@community//android/glance-designer:glance-designer",
-        "intellij.android.layoutlib": "@community//android/layoutlib:layoutlib",
-        "intellij.android.nav.editor": "@community//android/nav/editor:editor",
-        "intellij.android.nav.editor.gradle": "@community//android/nav/editor/gradle:gradle",
-        "intellij.android.preview-designer": "@community//android/preview-designer:preview-designer",
-        "intellij.android.visual-lint": "@community//android/visual-lint:visual-lint",
-        "intellij.android.wear-designer": "@community//android/wear-designer:wear-designer",
-        "intellij.libraries.layoutlib": "@community//libraries/layoutlib:layoutlib",
-    },
+    module_descriptors = ["@community//libraries/layoutlib:resources/intellij.libraries.layoutlib.xml"],
+    module_labels = {"intellij.android.design-plugin.descriptor": "//android/design-plugin/descriptor"},
 )
 ### auto-generated section `dev intellij.android.design-plugin.descriptor` end
 

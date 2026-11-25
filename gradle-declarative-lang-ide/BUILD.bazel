@@ -5,33 +5,25 @@ load("//platform/build-scripts/bazel-rules:dist_plugin.bzl", "dist_plugin")
 
 ### auto-generated section `dev intellij.android.gradle.declarative.lang.ide` start
 dist_plugin(
-    content_modules = [
-        # do not sort,
-        "intellij.android.gradle.declarative.lang",
-        "intellij.android.gradle.declarative.lang.sync",
-        "intellij.android.gradle.declarative.lang.flags",
-    ],
+    content_modules = {
+        "intellij.android.gradle.declarative.lang": "//android/gradle-declarative-lang",
+        "intellij.android.gradle.declarative.lang.sync": "//android/gradle-declarative-lang-sync",
+        "intellij.android.gradle.declarative.lang.flags": "//android/gradle-declarative-lang-flags",
+    },
     descriptor = "resources/META-INF/plugin.xml",
-    descriptors = {
-        "@community//android/gradle-declarative-lang-flags:resources/intellij.android.gradle.declarative.lang.flags.xml": "intellij.android.gradle.declarative.lang.flags.xml",
-        "@community//android/gradle-declarative-lang-sync:resources/intellij.android.gradle.declarative.lang.sync.xml": "intellij.android.gradle.declarative.lang.sync.xml",
-        "@community//android/gradle-declarative-lang:resources/intellij.android.gradle.declarative.lang.xml": "intellij.android.gradle.declarative.lang.xml",
-    },
-    jars = {
-        "lib/android-gradle-declarative-lang-ide.jar": ["intellij.android.gradle.declarative.lang.ide"],
-    },
+    jars = {"lib/android-gradle-declarative-lang-ide.jar": ["intellij.android.gradle.declarative.lang.ide"]},
     main_module = "intellij.android.gradle.declarative.lang.ide",
+    module_descriptors = [
+        "@community//android/gradle-declarative-lang-flags:resources/intellij.android.gradle.declarative.lang.flags.xml",
+        "@community//android/gradle-declarative-lang-sync:resources/intellij.android.gradle.declarative.lang.sync.xml",
+        "@community//android/gradle-declarative-lang:resources/intellij.android.gradle.declarative.lang.xml",
+    ],
     module_jar_paths = {
         "intellij.android.gradle.declarative.lang": "lib/intellij.android.gradle.declarative.lang.jar",
         "intellij.android.gradle.declarative.lang.sync": "lib/intellij.android.gradle.declarative.lang.sync.jar",
         "intellij.android.gradle.declarative.lang.flags": "lib/intellij.android.gradle.declarative.lang.flags.jar",
     },
-    module_labels = {
-        "intellij.android.gradle.declarative.lang": "@community//android/gradle-declarative-lang:gradle-declarative-lang",
-        "intellij.android.gradle.declarative.lang.flags": "@community//android/gradle-declarative-lang-flags:gradle-declarative-lang-flags",
-        "intellij.android.gradle.declarative.lang.ide": "@community//android/gradle-declarative-lang-ide:gradle-declarative-lang-ide",
-        "intellij.android.gradle.declarative.lang.sync": "@community//android/gradle-declarative-lang-sync:gradle-declarative-lang-sync",
-    },
+    module_labels = {"intellij.android.gradle.declarative.lang.ide": "//android/gradle-declarative-lang-ide"},
 )
 ### auto-generated section `dev intellij.android.gradle.declarative.lang.ide` end
 
