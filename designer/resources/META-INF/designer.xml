@@ -17,7 +17,7 @@
   <depends optional="true" config-file="designer-androidstudio.xml">com.intellij.modules.androidstudio</depends>
 
   <extensions defaultExtensionNs="com.intellij">
-    <fileEditorProvider implementation="com.android.tools.idea.editors.layeredimage.LayeredImageEditorProvider" />
+    <fileEditorProvider id="layeredimageeditor" implementation="com.android.tools.idea.editors.layeredimage.LayeredImageEditorProvider" />
     <troubleInfoCollector implementation="com.android.tools.idea.uibuilder.troubleshooting.DesignToolsTroubleInfoCollector" />
   </extensions>
 
@@ -55,7 +55,7 @@
   <!-- New layout editor -->
 
   <extensions defaultExtensionNs="com.intellij">
-    <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.SourceCodeEditorProvider" />
+    <fileEditorProvider id="android-source-code" implementation="com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.SourceCodeEditorProvider" />
     <editorNotificationProvider implementation="com.android.tools.idea.common.editor.SplitEditorPreviewNotificationForwarder" />
   </extensions>
 
@@ -77,8 +77,8 @@
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
-    <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.NlEditorProvider"/>
-    <fileEditorProvider implementation="com.android.tools.idea.uibuilder.editor.DesignFilesPreviewEditorProvider"/>
+    <fileEditorProvider id="android-designer2" implementation="com.android.tools.idea.uibuilder.editor.NlEditorProvider"/>
+    <fileEditorProvider id="android-preview-designer" implementation="com.android.tools.idea.uibuilder.editor.DesignFilesPreviewEditorProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">

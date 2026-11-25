@@ -97,8 +97,8 @@
     <executor implementation="com.android.tools.idea.profilers.ProfileRunExecutor"/>
     <executor implementation="com.android.tools.idea.profilers.ProfileRunExecutorGroup"/>
     <programRunner implementation="com.android.tools.idea.profilers.ProfilerProgramRunner" />
-    <fileEditorProvider implementation="com.android.tools.idea.profilers.capture.unified.UnifiedProfilerEditorProvider" />
-    <fileEditorProvider implementation="com.android.tools.idea.profilers.capture.AndroidProfilerCaptureEditorProvider" />
+    <fileEditorProvider id="UnifiedProfilerEditorProvider" implementation="com.android.tools.idea.profilers.capture.unified.UnifiedProfilerEditorProvider" />
+    <fileEditorProvider id="AndroidProfilerCaptureEditorProvider" implementation="com.android.tools.idea.profilers.capture.AndroidProfilerCaptureEditorProvider" />
     <fileType name="AndroidProfilerCpuCapture" implementationClass="com.android.tools.idea.profilers.capture.CpuCaptureFileType"
               extensions="trace"/>
     <fileType name="AndroidProfilerMemoryAllocation" implementationClass="com.android.tools.idea.profilers.capture.MemoryAllocationFileType"

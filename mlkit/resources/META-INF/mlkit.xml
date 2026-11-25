@@ -18,7 +18,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <moduleService serviceImplementation="com.android.tools.idea.mlkit.MlModuleService"/>
     <fileTypeFactory implementation="com.android.tools.idea.mlkit.viewer.MlModelFileTypeFactory"/>
-    <fileEditorProvider implementation="com.android.tools.idea.mlkit.viewer.TfliteModelFileEditorProvider"/>
+    <fileEditorProvider id="tflite_model_file_editor" implementation="com.android.tools.idea.mlkit.viewer.TfliteModelFileEditorProvider"/>
     <java.shortNamesCache implementation="com.android.tools.idea.mlkit.MlShortNamesCache"/>
     <java.elementFinder implementation="com.android.tools.idea.mlkit.MlClassFinder" id="mlkit.MlClassFinder"
                         order="first, before java"/>
