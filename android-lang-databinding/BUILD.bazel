@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -69,12 +70,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.lang-databinding` end
 
 ### auto-generated section `iml intellij.android.lang-databinding` start
-exports_files(
-    [
-        "intellij.android.lang-databinding.iml",
-        "resources/META-INF/android-lang-databinding.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.lang-databinding",
+    target = "lang-databinding",
+    exports = ["resources/META-INF/android-lang-databinding.xml"],
 )
 ### auto-generated section `iml intellij.android.lang-databinding` end
 
@@ -128,11 +127,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.lang-databinding.tests` end
 
 ### auto-generated section `iml intellij.android.lang-databinding.tests` start
-exports_files(
-    [
-        "intellij.android.lang-databinding.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.lang-databinding.tests",
+    resources = False,
+    target = "lang-databinding-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.lang-databinding.tests` end
 

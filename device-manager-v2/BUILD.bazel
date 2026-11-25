@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
@@ -67,13 +68,13 @@ jvm_library(
 ### auto-generated section `build intellij.android.device-manager-v2` end
 
 ### auto-generated section `iml intellij.android.device-manager-v2` start
-exports_files(
-    [
-        "intellij.android.device-manager-v2.iml",
-        "resources/META-INF/device-manager-v2-androidstudio.xml",
+jps_module(
+    name = "intellij.android.device-manager-v2",
+    target = "device-manager-v2",
+    exports = [
         "resources/META-INF/device-manager-v2.xml",
+        "resources/META-INF/device-manager-v2-androidstudio.xml",
     ],
-    visibility = ["//visibility:public"],
 )
 ### auto-generated section `iml intellij.android.device-manager-v2` end
 
@@ -140,11 +141,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.device-manager-v2.tests` end
 
 ### auto-generated section `iml intellij.android.device-manager-v2.tests` start
-exports_files(
-    [
-        "intellij.android.device-manager-v2.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.device-manager-v2.tests",
+    resources = False,
+    target = "device-manager-v2-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.device-manager-v2.tests` end
 

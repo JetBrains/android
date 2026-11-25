@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
@@ -63,12 +64,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.play-publishing` end
 
 ### auto-generated section `iml intellij.android.play-publishing` start
-exports_files(
-    [
-        "intellij.android.play-publishing.iml",
-        "resources/META-INF/play-publishing.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.play-publishing",
+    target = "play-publishing",
+    exports = ["resources/META-INF/play-publishing.xml"],
 )
 ### auto-generated section `iml intellij.android.play-publishing` end
 
@@ -127,11 +126,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.play-publishing.tests` end
 
 ### auto-generated section `iml intellij.android.play-publishing.tests` start
-exports_files(
-    [
-        "intellij.android.play-publishing.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.play-publishing.tests",
+    resources = False,
+    target = "play-publishing-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.play-publishing.tests` end
 

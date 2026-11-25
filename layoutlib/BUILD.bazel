@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -33,12 +34,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.layoutlib` end
 
 ### auto-generated section `iml intellij.android.layoutlib` start
-exports_files(
-    [
-        "intellij.android.layoutlib.iml",
-        "resources/META-INF/layoutlib.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.layoutlib",
+    target = "layoutlib",
+    exports = ["resources/META-INF/layoutlib.xml"],
 )
 ### auto-generated section `iml intellij.android.layoutlib` end
 
@@ -72,11 +71,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.layoutlib.tests` end
 
 ### auto-generated section `iml intellij.android.layoutlib.tests` start
-exports_files(
-    [
-        "intellij.android.layoutlib.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.layoutlib.tests",
+    resources = False,
+    target = "layoutlib-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.layoutlib.tests` end
 

@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -35,11 +36,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.projectSystem.gradle.repositorySearch` end
 
 ### auto-generated section `iml intellij.android.projectSystem.gradle.repositorySearch` start
-exports_files(
-    [
-        "intellij.android.projectSystem.gradle.repositorySearch.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.projectSystem.gradle.repositorySearch",
+    resources = False,
+    target = "projectSystem-gradle-repositorySearch",
 )
 ### auto-generated section `iml intellij.android.projectSystem.gradle.repositorySearch` end
 
@@ -72,11 +72,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.projectSystem.gradle.repositorySearch.tests` end
 
 ### auto-generated section `iml intellij.android.projectSystem.gradle.repositorySearch.tests` start
-exports_files(
-    [
-        "intellij.android.projectSystem.gradle.repositorySearch.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.projectSystem.gradle.repositorySearch.tests",
+    resources = False,
+    target = "projectSystem-gradle-repositorySearch-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.projectSystem.gradle.repositorySearch.tests` end
 

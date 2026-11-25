@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -56,12 +57,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.core.editing.documentation` end
 
 ### auto-generated section `iml intellij.android.core.editing.documentation` start
-exports_files(
-    [
-        "intellij.android.core.editing.documentation.iml",
-        "resources/META-INF/android-editing-documentation.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.core.editing.documentation",
+    target = "documentation",
+    exports = ["resources/META-INF/android-editing-documentation.xml"],
 )
 ### auto-generated section `iml intellij.android.core.editing.documentation` end
 
@@ -128,11 +127,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.core.editing.documentation.tests` end
 
 ### auto-generated section `iml intellij.android.core.editing.documentation.tests` start
-exports_files(
-    [
-        "intellij.android.core.editing.documentation.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.core.editing.documentation.tests",
+    resources = False,
+    target = "android-core-editing-documentation-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.core.editing.documentation.tests` end
 

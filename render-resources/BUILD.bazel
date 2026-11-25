@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -52,13 +53,13 @@ jvm_library(
 ### auto-generated section `build intellij.android.render-resources` end
 
 ### auto-generated section `iml intellij.android.render-resources` start
-exports_files(
-    [
-        "intellij.android.render-resources.iml",
+jps_module(
+    name = "intellij.android.render-resources",
+    target = "render-resources",
+    exports = [
         "resources/fonts/empty_font_directory.xml",
         "resources/fonts/google_font_directory.xml",
     ],
-    visibility = ["//visibility:public"],
 )
 ### auto-generated section `iml intellij.android.render-resources` end
 
@@ -98,11 +99,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.render-resources.tests` end
 
 ### auto-generated section `iml intellij.android.render-resources.tests` start
-exports_files(
-    [
-        "intellij.android.render-resources.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.render-resources.tests",
+    resources = False,
+    target = "render-resources-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.render-resources.tests` end
 

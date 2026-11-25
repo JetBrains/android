@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -90,12 +91,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.streaming` end
 
 ### auto-generated section `iml intellij.android.streaming` start
-exports_files(
-    [
-        "intellij.android.streaming.iml",
-        "resources/META-INF/streaming.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.streaming",
+    target = "streaming",
+    exports = ["resources/META-INF/streaming.xml"],
 )
 ### auto-generated section `iml intellij.android.streaming` end
 
@@ -157,11 +156,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.streaming.integration` end
 
 ### auto-generated section `iml intellij.android.streaming.integration` start
-exports_files(
-    [
-        "intellij.android.streaming.integration.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.streaming.integration",
+    resources = False,
+    target = "streaming-integration_test_lib",
 )
 ### auto-generated section `iml intellij.android.streaming.integration` end
 
@@ -247,11 +245,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.streaming.testUtil` end
 
 ### auto-generated section `iml intellij.android.streaming.testUtil` start
-exports_files(
-    [
-        "intellij.android.streaming.testUtil.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.streaming.testUtil",
+    resources = False,
+    target = "streaming-testUtil_test_lib",
 )
 ### auto-generated section `iml intellij.android.streaming.testUtil` end
 
@@ -353,11 +350,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.streaming.tests` end
 
 ### auto-generated section `iml intellij.android.streaming.tests` start
-exports_files(
-    [
-        "intellij.android.streaming.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.streaming.tests",
+    resources = False,
+    target = "streaming-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.streaming.tests` end
 

@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -78,13 +79,13 @@ jvm_library(
 ### auto-generated section `build intellij.android.nav.editor` end
 
 ### auto-generated section `iml intellij.android.nav.editor` start
-exports_files(
-    [
-        "intellij.android.nav.editor.iml",
+jps_module(
+    name = "intellij.android.nav.editor",
+    target = "editor",
+    exports = [
         "resources/META-INF/naveditor.xml",
         "resources/naveditor_help_assistance_bundle.xml",
     ],
-    visibility = ["//visibility:public"],
 )
 ### auto-generated section `iml intellij.android.nav.editor` end
 
@@ -158,11 +159,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.nav.editor.tests` end
 
 ### auto-generated section `iml intellij.android.nav.editor.tests` start
-exports_files(
-    [
-        "intellij.android.nav.editor.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.nav.editor.tests",
+    resources = False,
+    target = "android-nav-editor-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.nav.editor.tests` end
 

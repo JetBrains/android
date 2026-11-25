@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -56,14 +57,14 @@ jvm_library(
 ### auto-generated section `build intellij.android.whats-new-assistant` end
 
 ### auto-generated section `iml intellij.android.whats-new-assistant` start
-exports_files(
-    [
-        "intellij.android.whats-new-assistant.iml",
+jps_module(
+    name = "intellij.android.whats-new-assistant",
+    target = "whats-new-assistant",
+    exports = [
         "resources/META-INF/whats-new-assistant.xml",
-        "resources/whats-new-assistant-v2-prototype.xml",
         "resources/whats-new-assistant.xml",
+        "resources/whats-new-assistant-v2-prototype.xml",
     ],
-    visibility = ["//visibility:public"],
 )
 ### auto-generated section `iml intellij.android.whats-new-assistant` end
 
@@ -120,11 +121,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.whats-new-assistant-test` end
 
 ### auto-generated section `iml intellij.android.whats-new-assistant-test` start
-exports_files(
-    [
-        "intellij.android.whats-new-assistant-test.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.whats-new-assistant-test",
+    resources = False,
+    target = "whats-new-assistant-test_test_lib",
 )
 ### auto-generated section `iml intellij.android.whats-new-assistant-test` end
 

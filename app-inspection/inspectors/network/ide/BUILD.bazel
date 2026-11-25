@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -46,12 +47,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.app-inspection.inspectors.network.ide` end
 
 ### auto-generated section `iml intellij.android.app-inspection.inspectors.network.ide` start
-exports_files(
-    [
-        "intellij.android.app-inspection.inspectors.network.ide.iml",
-        "resources/META-INF/network-inspector.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.app-inspection.inspectors.network.ide",
+    target = "ide",
+    exports = ["resources/META-INF/network-inspector.xml"],
 )
 ### auto-generated section `iml intellij.android.app-inspection.inspectors.network.ide` end
 
@@ -97,11 +96,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.app-inspection.inspectors.network.ide.tests` end
 
 ### auto-generated section `iml intellij.android.app-inspection.inspectors.network.ide.tests` start
-exports_files(
-    [
-        "intellij.android.app-inspection.inspectors.network.ide.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.app-inspection.inspectors.network.ide.tests",
+    resources = False,
+    target = "android-app-inspection-inspectors-network-ide-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.app-inspection.inspectors.network.ide.tests` end
 

@@ -1,6 +1,7 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
-load("@jps_dynamic_deps_community//:targets.bzl", "dist_plugin")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
+load("//platform/build-scripts/bazel-rules:dist_plugin.bzl", "dist_plugin")
 
 ### auto-generated section `dev intellij.android.gradle.dsl` start
 dist_plugin(
@@ -16,6 +17,12 @@ dist_plugin(
     descriptor = "resources/META-INF/plugin.xml",
     descriptors = {
         "//android/gradle-dsl:resources/META-INF/gradle-dsl.xml": "META-INF/gradle-dsl.xml",
+        "@community//android/gradle-dsl-android:resources/intellij.android.gradle.dsl.android.xml": "intellij.android.gradle.dsl.android.xml",
+        "@community//android/gradle-dsl-declarative:resources/intellij.android.gradle.dsl.declarative.xml": "intellij.android.gradle.dsl.declarative.xml",
+        "@community//android/gradle-dsl-flags:resources/intellij.android.gradle.dsl.flags.xml": "intellij.android.gradle.dsl.flags.xml",
+        "@community//android/gradle-dsl-groovy:resources/intellij.android.gradle.dsl.groovy.xml": "intellij.android.gradle.dsl.groovy.xml",
+        "@community//android/gradle-dsl-kotlin:resources/intellij.android.gradle.dsl.kotlin.xml": "intellij.android.gradle.dsl.kotlin.xml",
+        "@community//android/gradle-dsl-toml:resources/intellij.android.gradle.dsl.toml.xml": "intellij.android.gradle.dsl.toml.xml",
     },
     jars = {
         "lib/android-gradle-dsl.jar": [
@@ -37,6 +44,15 @@ dist_plugin(
             "intellij.android.gradle.dsl.declarative",
             "intellij.android.gradle.dsl.android",
         ],
+    },
+    module_labels = {
+        "intellij.android.gradle.dsl": "@community//android/gradle-dsl:gradle-dsl",
+        "intellij.android.gradle.dsl.android": "@community//android/gradle-dsl-android:gradle-dsl-android",
+        "intellij.android.gradle.dsl.declarative": "@community//android/gradle-dsl-declarative:gradle-dsl-declarative",
+        "intellij.android.gradle.dsl.flags": "@community//android/gradle-dsl-flags:gradle-dsl-flags",
+        "intellij.android.gradle.dsl.groovy": "@community//android/gradle-dsl-groovy:gradle-dsl-groovy",
+        "intellij.android.gradle.dsl.kotlin": "@community//android/gradle-dsl-kotlin:gradle-dsl-kotlin",
+        "intellij.android.gradle.dsl.toml": "@community//android/gradle-dsl-toml:gradle-dsl-toml",
     },
 )
 ### auto-generated section `dev intellij.android.gradle.dsl` end
@@ -95,13 +111,11 @@ jvm_library(
 ### auto-generated section `build intellij.android.gradle.dsl` end
 
 ### auto-generated section `iml intellij.android.gradle.dsl` start
-exports_files(
-    [
-        "intellij.android.gradle.dsl.iml",
-        "resources/META-INF/gradle-dsl.xml",
-        "resources/META-INF/plugin.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.gradle.dsl",
+    descriptors = ["resources/META-INF/plugin.xml"],
+    target = "gradle-dsl",
+    exports = ["resources/META-INF/gradle-dsl.xml"],
 )
 ### auto-generated section `iml intellij.android.gradle.dsl` end
 
@@ -178,11 +192,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.gradle.dsl.tests` end
 
 ### auto-generated section `iml intellij.android.gradle.dsl.tests` start
-exports_files(
-    [
-        "intellij.android.gradle.dsl.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.gradle.dsl.tests",
+    resources = False,
+    target = "gradle-dsl-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.gradle.dsl.tests` end
 
@@ -253,11 +266,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.gradle.dsl.testutils` end
 
 ### auto-generated section `iml intellij.android.gradle.dsl.testutils` start
-exports_files(
-    [
-        "intellij.android.gradle.dsl.testutils.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.gradle.dsl.testutils",
+    resources = False,
+    target = "gradle-dsl-testutils_test_lib",
 )
 ### auto-generated section `iml intellij.android.gradle.dsl.testutils` end
 

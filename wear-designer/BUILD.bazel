@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -73,12 +74,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.wear-designer` end
 
 ### auto-generated section `iml intellij.android.wear-designer` start
-exports_files(
-    [
-        "intellij.android.wear-designer.iml",
-        "resources/META-INF/wear-designer.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.wear-designer",
+    target = "wear-designer",
+    exports = ["resources/META-INF/wear-designer.xml"],
 )
 ### auto-generated section `iml intellij.android.wear-designer` end
 
@@ -158,11 +157,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.wear-designer.tests` end
 
 ### auto-generated section `iml intellij.android.wear-designer.tests` start
-exports_files(
-    [
-        "intellij.android.wear-designer.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.wear-designer.tests",
+    resources = False,
+    target = "wear-designer-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.wear-designer.tests` end
 

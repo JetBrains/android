@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "kt_javac_options")
 
@@ -87,11 +88,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.core.rendering` end
 
 ### auto-generated section `iml intellij.android.core.rendering` start
-exports_files(
-    [
-        "intellij.android.core.rendering.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.core.rendering",
+    resources = False,
+    target = "rendering_test_lib",
 )
 ### auto-generated section `iml intellij.android.core.rendering` end
 

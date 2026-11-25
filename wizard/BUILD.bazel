@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -43,11 +44,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.wizard` end
 
 ### auto-generated section `iml intellij.android.wizard` start
-exports_files(
-    [
-        "intellij.android.wizard.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.wizard",
+    resources = False,
+    target = "wizard",
 )
 ### auto-generated section `iml intellij.android.wizard` end
 
@@ -100,11 +100,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.wizard.tests` end
 
 ### auto-generated section `iml intellij.android.wizard.tests` start
-exports_files(
-    [
-        "intellij.android.wizard.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.wizard.tests",
+    resources = False,
+    target = "wizard-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.wizard.tests` end
 

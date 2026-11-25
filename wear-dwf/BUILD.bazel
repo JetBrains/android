@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -55,12 +56,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.wear-dwf` end
 
 ### auto-generated section `iml intellij.android.wear-dwf` start
-exports_files(
-    [
-        "intellij.android.wear-dwf.iml",
-        "resources/META-INF/wear-dwf.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.wear-dwf",
+    target = "wear-dwf",
+    exports = ["resources/META-INF/wear-dwf.xml"],
 )
 ### auto-generated section `iml intellij.android.wear-dwf` end
 
@@ -120,11 +119,9 @@ jvm_library(
 ### auto-generated section `build intellij.android.wear-dwf.tests` end
 
 ### auto-generated section `iml intellij.android.wear-dwf.tests` start
-exports_files(
-    [
-        "intellij.android.wear-dwf.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.wear-dwf.tests",
+    target = "wear-dwf-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.wear-dwf.tests` end
 

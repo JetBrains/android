@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -61,12 +62,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.projectSystem` end
 
 ### auto-generated section `iml intellij.android.projectSystem` start
-exports_files(
-    [
-        "intellij.android.projectSystem.iml",
-        "resources/META-INF/project-system-plugin.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.projectSystem",
+    target = "project-system",
+    exports = ["resources/META-INF/project-system-plugin.xml"],
 )
 ### auto-generated section `iml intellij.android.projectSystem` end
 
@@ -113,11 +112,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.projectSystem.tests` end
 
 ### auto-generated section `iml intellij.android.projectSystem.tests` start
-exports_files(
-    [
-        "intellij.android.projectSystem.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.projectSystem.tests",
+    resources = False,
+    target = "projectSystem-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.projectSystem.tests` end
 

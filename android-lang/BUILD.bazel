@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -72,13 +73,13 @@ jvm_library(
 ### auto-generated section `build intellij.android.lang` end
 
 ### auto-generated section `iml intellij.android.lang` start
-exports_files(
-    [
-        "intellij.android.lang.iml",
+jps_module(
+    name = "intellij.android.lang",
+    target = "lang",
+    exports = [
         "resources/META-INF/android-lang.xml",
         "resources/injections/roomSqlInjections.xml",
     ],
-    visibility = ["//visibility:public"],
 )
 ### auto-generated section `iml intellij.android.lang` end
 
@@ -154,11 +155,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.lang.tests` end
 
 ### auto-generated section `iml intellij.android.lang.tests` start
-exports_files(
-    [
-        "intellij.android.lang.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.lang.tests",
+    resources = False,
+    target = "lang-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.lang.tests` end
 

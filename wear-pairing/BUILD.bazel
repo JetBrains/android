@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -57,12 +58,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.wear-pairing` end
 
 ### auto-generated section `iml intellij.android.wear-pairing` start
-exports_files(
-    [
-        "intellij.android.wear-pairing.iml",
-        "resources/META-INF/wear-pairing.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.wear-pairing",
+    target = "wear-pairing",
+    exports = ["resources/META-INF/wear-pairing.xml"],
 )
 ### auto-generated section `iml intellij.android.wear-pairing` end
 
@@ -131,11 +130,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.wear-pairing.tests` end
 
 ### auto-generated section `iml intellij.android.wear-pairing.tests` start
-exports_files(
-    [
-        "intellij.android.wear-pairing.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.wear-pairing.tests",
+    resources = False,
+    target = "wear-pairing-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.wear-pairing.tests` end
 

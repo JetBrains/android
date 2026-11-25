@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -28,11 +29,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.adt.ui.model` end
 
 ### auto-generated section `iml intellij.android.adt.ui.model` start
-exports_files(
-    [
-        "intellij.android.adt.ui.model.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.adt.ui.model",
+    resources = False,
+    target = "adt-ui-model",
 )
 ### auto-generated section `iml intellij.android.adt.ui.model` end
 
@@ -66,11 +66,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.adt.ui.model.tests` end
 
 ### auto-generated section `iml intellij.android.adt.ui.model.tests` start
-exports_files(
-    [
-        "intellij.android.adt.ui.model.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.adt.ui.model.tests",
+    resources = False,
+    target = "adt-ui-model-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.adt.ui.model.tests` end
 

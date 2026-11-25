@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -63,12 +64,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.glance-designer` end
 
 ### auto-generated section `iml intellij.android.glance-designer` start
-exports_files(
-    [
-        "intellij.android.glance-designer.iml",
-        "resources/META-INF/glance-designer.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.glance-designer",
+    target = "glance-designer",
+    exports = ["resources/META-INF/glance-designer.xml"],
 )
 ### auto-generated section `iml intellij.android.glance-designer` end
 
@@ -128,11 +127,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.glance-designer.tests` end
 
 ### auto-generated section `iml intellij.android.glance-designer.tests` start
-exports_files(
-    [
-        "intellij.android.glance-designer.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.glance-designer.tests",
+    resources = False,
+    target = "glance-designer-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.glance-designer.tests` end
 

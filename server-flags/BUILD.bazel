@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -29,12 +30,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.server-flags` end
 
 ### auto-generated section `iml intellij.android.server-flags` start
-exports_files(
-    [
-        "intellij.android.server-flags.iml",
-        "resources/META-INF/server-flags.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.server-flags",
+    target = "server-flags",
+    exports = ["resources/META-INF/server-flags.xml"],
 )
 ### auto-generated section `iml intellij.android.server-flags` end
 
@@ -67,11 +66,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.server-flags.tests` end
 
 ### auto-generated section `iml intellij.android.server-flags.tests` start
-exports_files(
-    [
-        "intellij.android.server-flags.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.server-flags.tests",
+    resources = False,
+    target = "server-flags-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.server-flags.tests` end
 

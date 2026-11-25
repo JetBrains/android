@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.gradle.dsl.kotlin` start
@@ -38,12 +39,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.gradle.dsl.kotlin` end
 
 ### auto-generated section `iml intellij.android.gradle.dsl.kotlin` start
-exports_files(
-    [
-        "intellij.android.gradle.dsl.kotlin.iml",
-        "resources/META-INF/gradle-dsl-kotlin.xml",
-        "resources/intellij.android.gradle.dsl.kotlin.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.gradle.dsl.kotlin",
+    descriptors = ["resources/intellij.android.gradle.dsl.kotlin.xml"],
+    target = "gradle-dsl-kotlin",
+    exports = ["resources/META-INF/gradle-dsl-kotlin.xml"],
 )
 ### auto-generated section `iml intellij.android.gradle.dsl.kotlin` end

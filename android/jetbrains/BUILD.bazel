@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "kt_javac_options")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
@@ -158,11 +159,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.core.jetbrains` end
 
 ### auto-generated section `iml intellij.android.core.jetbrains` start
-exports_files(
-    [
-        "intellij.android.core.jetbrains.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.core.jetbrains",
+    resources = False,
+    target = "jetbrains_test_lib",
 )
 ### auto-generated section `iml intellij.android.core.jetbrains` end
 

@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -79,12 +80,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.projectSystem.gradle.upgrade` end
 
 ### auto-generated section `iml intellij.android.projectSystem.gradle.upgrade` start
-exports_files(
-    [
-        "intellij.android.projectSystem.gradle.upgrade.iml",
-        "resources/META-INF/project-system-gradle-upgrade.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.projectSystem.gradle.upgrade",
+    target = "projectSystem-gradle-upgrade",
+    exports = ["resources/META-INF/project-system-gradle-upgrade.xml"],
 )
 ### auto-generated section `iml intellij.android.projectSystem.gradle.upgrade` end
 
@@ -165,11 +164,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.projectSystem.gradle.upgrade.tests` end
 
 ### auto-generated section `iml intellij.android.projectSystem.gradle.upgrade.tests` start
-exports_files(
-    [
-        "intellij.android.projectSystem.gradle.upgrade.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.projectSystem.gradle.upgrade.tests",
+    resources = False,
+    target = "projectSystem-gradle-upgrade-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.projectSystem.gradle.upgrade.tests` end
 

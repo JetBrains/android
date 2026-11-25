@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -40,12 +41,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.cli-server.server` end
 
 ### auto-generated section `iml intellij.android.cli-server.server` start
-exports_files(
-    [
-        "intellij.android.cli-server.server.iml",
-        "resources/META-INF/cli-server.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.cli-server.server",
+    target = "server",
+    exports = ["resources/META-INF/cli-server.xml"],
 )
 ### auto-generated section `iml intellij.android.cli-server.server` end
 
@@ -84,11 +83,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.cli-server.server.tests` end
 
 ### auto-generated section `iml intellij.android.cli-server.server.tests` start
-exports_files(
-    [
-        "intellij.android.cli-server.server.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.cli-server.server.tests",
+    resources = False,
+    target = "android-cli-server-server-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.cli-server.server.tests` end
 

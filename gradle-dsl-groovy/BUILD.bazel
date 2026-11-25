@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.gradle.dsl.groovy` start
@@ -33,12 +34,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.gradle.dsl.groovy` end
 
 ### auto-generated section `iml intellij.android.gradle.dsl.groovy` start
-exports_files(
-    [
-        "intellij.android.gradle.dsl.groovy.iml",
-        "resources/META-INF/gradle-dsl-groovy.xml",
-        "resources/intellij.android.gradle.dsl.groovy.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.gradle.dsl.groovy",
+    descriptors = ["resources/intellij.android.gradle.dsl.groovy.xml"],
+    target = "gradle-dsl-groovy",
+    exports = ["resources/META-INF/gradle-dsl-groovy.xml"],
 )
 ### auto-generated section `iml intellij.android.gradle.dsl.groovy` end

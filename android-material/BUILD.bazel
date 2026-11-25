@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -37,11 +38,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.android-material` end
 
 ### auto-generated section `iml intellij.android.android-material` start
-exports_files(
-    [
-        "intellij.android.android-material.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.android-material",
+    resources = False,
+    target = "android-material",
 )
 ### auto-generated section `iml intellij.android.android-material` end
 
@@ -93,11 +93,9 @@ jvm_library(
 ### auto-generated section `build intellij.android.android-material.tests` end
 
 ### auto-generated section `iml intellij.android.android-material.tests` start
-exports_files(
-    [
-        "intellij.android.android-material.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.android-material.tests",
+    target = "android-material-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.android-material.tests` end
 

@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -39,11 +40,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.analytics` end
 
 ### auto-generated section `iml intellij.android.analytics` start
-exports_files(
-    [
-        "intellij.android.analytics.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.analytics",
+    resources = False,
+    target = "analytics",
 )
 ### auto-generated section `iml intellij.android.analytics` end
 
@@ -75,11 +75,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.analytics.tests` end
 
 ### auto-generated section `iml intellij.android.analytics.tests` start
-exports_files(
-    [
-        "intellij.android.analytics.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.analytics.tests",
+    resources = False,
+    target = "analytics-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.analytics.tests` end
 

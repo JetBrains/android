@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -71,12 +72,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.apkanalyzer` end
 
 ### auto-generated section `iml intellij.android.apkanalyzer` start
-exports_files(
-    [
-        "intellij.android.apkanalyzer.iml",
-        "resources/META-INF/apkanalyzer.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.apkanalyzer",
+    target = "apkanalyzer",
+    exports = ["resources/META-INF/apkanalyzer.xml"],
 )
 ### auto-generated section `iml intellij.android.apkanalyzer` end
 
@@ -132,11 +131,9 @@ jvm_library(
 ### auto-generated section `build intellij.android.apkanalyzer.tests` end
 
 ### auto-generated section `iml intellij.android.apkanalyzer.tests` start
-exports_files(
-    [
-        "intellij.android.apkanalyzer.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.apkanalyzer.tests",
+    target = "apkanalyzer-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.apkanalyzer.tests` end
 

@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -33,11 +34,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.concurrency` end
 
 ### auto-generated section `iml intellij.android.concurrency` start
-exports_files(
-    [
-        "intellij.android.concurrency.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.concurrency",
+    resources = False,
+    target = "concurrency",
 )
 ### auto-generated section `iml intellij.android.concurrency` end
 
@@ -77,11 +77,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.concurrency.tests` end
 
 ### auto-generated section `iml intellij.android.concurrency.tests` start
-exports_files(
-    [
-        "intellij.android.concurrency.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.concurrency.tests",
+    resources = False,
+    target = "concurrency-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.concurrency.tests` end
 

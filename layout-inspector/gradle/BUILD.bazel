@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -41,12 +42,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.layout-inspector.gradle` end
 
 ### auto-generated section `iml intellij.android.layout-inspector.gradle` start
-exports_files(
-    [
-        "intellij.android.layout-inspector.gradle.iml",
-        "resources/META-INF/layout-inspector-gradle.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.layout-inspector.gradle",
+    target = "gradle",
+    exports = ["resources/META-INF/layout-inspector-gradle.xml"],
 )
 ### auto-generated section `iml intellij.android.layout-inspector.gradle` end
 
@@ -90,11 +89,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.layout-inspector.gradle.tests` end
 
 ### auto-generated section `iml intellij.android.layout-inspector.gradle.tests` start
-exports_files(
-    [
-        "intellij.android.layout-inspector.gradle.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.layout-inspector.gradle.tests",
+    resources = False,
+    target = "android-layout-inspector-gradle-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.layout-inspector.gradle.tests` end
 

@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 load("//platform/build-scripts/bazel-rules:content_module_jar.bzl", "content_module_jar")
 
@@ -50,11 +51,9 @@ jvm_library(
 ### auto-generated section `build intellij.android.core.webp` end
 
 ### auto-generated section `iml intellij.android.core.webp` start
-exports_files(
-    [
-        "intellij.android.core.webp.iml",
-        "resources/intellij.android.core.webp.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.core.webp",
+    descriptors = ["resources/intellij.android.core.webp.xml"],
+    target = "webp",
 )
 ### auto-generated section `iml intellij.android.core.webp` end

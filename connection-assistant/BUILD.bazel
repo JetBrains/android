@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -43,14 +44,14 @@ jvm_library(
 ### auto-generated section `build intellij.android.connection-assistant` end
 
 ### auto-generated section `iml intellij.android.connection-assistant` start
-exports_files(
-    [
-        "intellij.android.connection-assistant.iml",
+jps_module(
+    name = "intellij.android.connection-assistant",
+    target = "connection-assistant",
+    exports = [
         "resources/META-INF/connection-assistant.xml",
         "resources/connection_assistant_bundle.xml",
         "resources/connection_assistant_unsupported_bundle.xml",
     ],
-    visibility = ["//visibility:public"],
 )
 ### auto-generated section `iml intellij.android.connection-assistant` end
 
@@ -101,11 +102,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.connection-assistant-test` end
 
 ### auto-generated section `iml intellij.android.connection-assistant-test` start
-exports_files(
-    [
-        "intellij.android.connection-assistant-test.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.connection-assistant-test",
+    resources = False,
+    target = "connection-assistant-test_test_lib",
 )
 ### auto-generated section `iml intellij.android.connection-assistant-test` end
 

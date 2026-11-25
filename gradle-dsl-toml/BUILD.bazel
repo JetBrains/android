@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.gradle.dsl.toml` start
@@ -31,12 +32,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.gradle.dsl.toml` end
 
 ### auto-generated section `iml intellij.android.gradle.dsl.toml` start
-exports_files(
-    [
-        "intellij.android.gradle.dsl.toml.iml",
-        "resources/META-INF/gradle-dsl-toml.xml",
-        "resources/intellij.android.gradle.dsl.toml.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.gradle.dsl.toml",
+    descriptors = ["resources/intellij.android.gradle.dsl.toml.xml"],
+    target = "gradle-dsl-toml",
+    exports = ["resources/META-INF/gradle-dsl-toml.xml"],
 )
 ### auto-generated section `iml intellij.android.gradle.dsl.toml` end

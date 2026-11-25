@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
@@ -206,14 +207,14 @@ jvm_library(
 ### auto-generated section `build intellij.android.projectSystem.gradle` end
 
 ### auto-generated section `iml intellij.android.projectSystem.gradle` start
-exports_files(
-    [
-        "intellij.android.projectSystem.gradle.iml",
+jps_module(
+    name = "intellij.android.projectSystem.gradle",
+    target = "projectSystem-gradle",
+    exports = [
+        "resources/META-INF/project-system-gradle-plugin.xml",
         "resources/META-INF/project-system-gradle-plugin-androidstudio.xml",
         "resources/META-INF/project-system-gradle-plugin-idea.xml",
-        "resources/META-INF/project-system-gradle-plugin.xml",
     ],
-    visibility = ["//visibility:public"],
 )
 ### auto-generated section `iml intellij.android.projectSystem.gradle` end
 
@@ -394,11 +395,9 @@ jvm_library(
 ### auto-generated section `build intellij.android.projectSystem.gradle.tests` end
 
 ### auto-generated section `iml intellij.android.projectSystem.gradle.tests` start
-exports_files(
-    [
-        "intellij.android.projectSystem.gradle.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.projectSystem.gradle.tests",
+    target = "projectSystem-gradle-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.projectSystem.gradle.tests` end
 

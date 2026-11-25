@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -24,11 +25,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.emulator-snapshots` end
 
 ### auto-generated section `iml intellij.android.emulator-snapshots` start
-exports_files(
-    [
-        "intellij.android.emulator-snapshots.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.emulator-snapshots",
+    resources = False,
+    target = "emulator-snapshots_test_lib",
 )
 ### auto-generated section `iml intellij.android.emulator-snapshots` end
 

@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -37,11 +38,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.testutils` end
 
 ### auto-generated section `iml intellij.android.testutils` start
-exports_files(
-    [
-        "intellij.android.testutils.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.testutils",
+    resources = False,
+    target = "testutils_test_lib",
 )
 ### auto-generated section `iml intellij.android.testutils` end
 

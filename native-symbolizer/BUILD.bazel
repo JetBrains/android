@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -35,12 +36,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.native-symbolizer` end
 
 ### auto-generated section `iml intellij.android.native-symbolizer` start
-exports_files(
-    [
-        "intellij.android.native-symbolizer.iml",
-        "resources/META-INF/native-symbolizer.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.native-symbolizer",
+    target = "native-symbolizer",
+    exports = ["resources/META-INF/native-symbolizer.xml"],
 )
 ### auto-generated section `iml intellij.android.native-symbolizer` end
 
@@ -90,11 +89,9 @@ jvm_library(
 ### auto-generated section `build intellij.android.native-symbolizer.tests` end
 
 ### auto-generated section `iml intellij.android.native-symbolizer.tests` start
-exports_files(
-    [
-        "intellij.android.native-symbolizer.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.native-symbolizer.tests",
+    target = "native-symbolizer-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.native-symbolizer.tests` end
 

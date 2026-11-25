@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
@@ -72,13 +73,13 @@ jvm_library(
 ### auto-generated section `build intellij.android.adb` end
 
 ### auto-generated section `iml intellij.android.adb` start
-exports_files(
-    [
-        "intellij.android.adb.iml",
-        "resources/META-INF/android-adb-androidstudio.xml",
+jps_module(
+    name = "intellij.android.adb",
+    target = "adb",
+    exports = [
         "resources/META-INF/android-adb.xml",
+        "resources/META-INF/android-adb-androidstudio.xml",
     ],
-    visibility = ["//visibility:public"],
 )
 ### auto-generated section `iml intellij.android.adb` end
 
@@ -117,11 +118,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.adb.testUtil` end
 
 ### auto-generated section `iml intellij.android.adb.testUtil` start
-exports_files(
-    [
-        "intellij.android.adb.testUtil.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.adb.testUtil",
+    resources = False,
+    target = "adb-testUtil_test_lib",
 )
 ### auto-generated section `iml intellij.android.adb.testUtil` end
 
@@ -217,11 +217,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.adb.tests` end
 
 ### auto-generated section `iml intellij.android.adb.tests` start
-exports_files(
-    [
-        "intellij.android.adb.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.adb.tests",
+    resources = False,
+    target = "adb-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.adb.tests` end
 

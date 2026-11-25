@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
 
@@ -44,12 +45,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.studio-flags` end
 
 ### auto-generated section `iml intellij.android.studio-flags` start
-exports_files(
-    [
-        "intellij.android.studio-flags.iml",
-        "resources/META-INF/studio-flags.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.studio-flags",
+    target = "studio-flags",
+    exports = ["resources/META-INF/studio-flags.xml"],
 )
 ### auto-generated section `iml intellij.android.studio-flags` end
 
@@ -98,11 +97,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.studio-flags-tests` end
 
 ### auto-generated section `iml intellij.android.studio-flags-tests` start
-exports_files(
-    [
-        "intellij.android.studio-flags-tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.studio-flags-tests",
+    resources = False,
+    target = "studio-flags-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.studio-flags-tests` end
 

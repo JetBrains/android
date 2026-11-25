@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.gradle.dsl.flags` start
@@ -31,12 +32,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.gradle.dsl.flags` end
 
 ### auto-generated section `iml intellij.android.gradle.dsl.flags` start
-exports_files(
-    [
-        "intellij.android.gradle.dsl.flags.iml",
-        "resources/META-INF/gradle-dsl-flags.xml",
-        "resources/intellij.android.gradle.dsl.flags.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.gradle.dsl.flags",
+    descriptors = ["resources/intellij.android.gradle.dsl.flags.xml"],
+    target = "gradle-dsl-flags",
+    exports = ["resources/META-INF/gradle-dsl-flags.xml"],
 )
 ### auto-generated section `iml intellij.android.gradle.dsl.flags` end

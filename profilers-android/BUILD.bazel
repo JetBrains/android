@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -80,12 +81,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.profilersAndroid` end
 
 ### auto-generated section `iml intellij.android.profilersAndroid` start
-exports_files(
-    [
-        "intellij.android.profilersAndroid.iml",
-        "resources/META-INF/profilers.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.profilersAndroid",
+    target = "profilers-android",
+    exports = ["resources/META-INF/profilers.xml"],
 )
 ### auto-generated section `iml intellij.android.profilersAndroid` end
 
@@ -163,11 +162,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.profilersAndroid.tests` end
 
 ### auto-generated section `iml intellij.android.profilersAndroid.tests` start
-exports_files(
-    [
-        "intellij.android.profilersAndroid.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.profilersAndroid.tests",
+    resources = False,
+    target = "profilersAndroid-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.profilersAndroid.tests` end
 

@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library", "kt_javac_options")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
@@ -277,12 +278,14 @@ jvm_library(
 ### auto-generated section `build intellij.android.core` end
 
 ### auto-generated section `iml intellij.android.core` start
-exports_files(
-    [
-        "intellij.android.core.iml",
+jps_module(
+    name = "intellij.android.core",
+    libraries = ["//android/android/lib:instantapps-api-1.8.jar"],
+    target = "core",
+    exports = [
+        "resources/META-INF/android-plugin.xml",
         "resources/META-INF/android-plugin-androidstudio.xml",
         "resources/META-INF/android-plugin-idea.xml",
-        "resources/META-INF/android-plugin.xml",
         "resources/META-INF/new-deployment-target-selection.xml",
         "resources/colorschemes/LiveLiteralsColorSchemeDarcula.xml",
         "resources/colorschemes/LiveLiteralsColorSchemeDefault.xml",
@@ -11503,7 +11506,6 @@ exports_files(
         "resources/templates/module/mipmap-anydpi-v26/ic_launcher.xml",
         "resources/templates/module/mipmap-anydpi-v26/ic_launcher_round.xml",
     ],
-    visibility = ["//visibility:public"],
 )
 ### auto-generated section `iml intellij.android.core` end
 
@@ -11596,11 +11598,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.core.agp-integration-tests` end
 
 ### auto-generated section `iml intellij.android.core.agp-integration-tests` start
-exports_files(
-    [
-        "intellij.android.core.agp-integration-tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.core.agp-integration-tests",
+    resources = False,
+    target = "core-agp-integration-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.core.agp-integration-tests` end
 
@@ -11765,11 +11766,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.core.tests` end
 
 ### auto-generated section `iml intellij.android.core.tests` start
-exports_files(
-    [
-        "intellij.android.core.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.core.tests",
+    libraries = ["//android/android/lib:instantapps-api-1.8.jar"],
+    target = "core-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.core.tests` end
 
@@ -11797,9 +11797,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.externalAnnotations` end
 
 ### auto-generated section `iml intellij.android.externalAnnotations` start
-exports_files(
-    [
-        "intellij.android.externalAnnotations.iml",
+jps_module(
+    name = "intellij.android.externalAnnotations",
+    target = "externalAnnotations",
+    exports = [
         "annotations/android/accessibilityservice/annotations.xml",
         "annotations/android/accounts/annotations.xml",
         "annotations/android/animation/annotations.xml",
@@ -11916,6 +11917,5 @@ exports_files(
         "annotations/java/util/stream/annotations.xml",
         "annotations/java/util/zip/annotations.xml",
     ],
-    visibility = ["//visibility:public"],
 )
 ### auto-generated section `iml intellij.android.externalAnnotations` end

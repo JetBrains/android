@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -31,13 +32,11 @@ jvm_library(
 ### auto-generated section `build intellij.android.gradle.dsl.android` end
 
 ### auto-generated section `iml intellij.android.gradle.dsl.android` start
-exports_files(
-    [
-        "intellij.android.gradle.dsl.android.iml",
-        "resources/META-INF/gradle-dsl-android.xml",
-        "resources/intellij.android.gradle.dsl.android.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.gradle.dsl.android",
+    descriptors = ["resources/intellij.android.gradle.dsl.android.xml"],
+    target = "gradle-dsl-android",
+    exports = ["resources/META-INF/gradle-dsl-android.xml"],
 )
 ### auto-generated section `iml intellij.android.gradle.dsl.android` end
 
@@ -81,11 +80,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.gradle.dsl.android.tests` end
 
 ### auto-generated section `iml intellij.android.gradle.dsl.android.tests` start
-exports_files(
-    [
-        "intellij.android.gradle.dsl.android.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.gradle.dsl.android.tests",
+    resources = False,
+    target = "gradle-dsl-android-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.gradle.dsl.android.tests` end
 

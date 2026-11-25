@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.logcat.gradle` start
@@ -32,11 +33,9 @@ jvm_library(
 ### auto-generated section `build intellij.android.logcat.gradle` end
 
 ### auto-generated section `iml intellij.android.logcat.gradle` start
-exports_files(
-    [
-        "intellij.android.logcat.gradle.iml",
-        "resources/META-INF/logcat-gradle.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.logcat.gradle",
+    target = "gradle",
+    exports = ["resources/META-INF/logcat-gradle.xml"],
 )
 ### auto-generated section `iml intellij.android.logcat.gradle` end

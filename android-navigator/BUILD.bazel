@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library")
 
@@ -79,12 +80,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.navigator` end
 
 ### auto-generated section `iml intellij.android.navigator` start
-exports_files(
-    [
-        "intellij.android.navigator.iml",
-        "resources/META-INF/android-navigator.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.navigator",
+    target = "navigator",
+    exports = ["resources/META-INF/android-navigator.xml"],
 )
 ### auto-generated section `iml intellij.android.navigator` end
 
@@ -127,11 +126,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.navigator.testutils` end
 
 ### auto-generated section `iml intellij.android.navigator.testutils` start
-exports_files(
-    [
-        "intellij.android.navigator.testutils.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.navigator.testutils",
+    resources = False,
+    target = "navigator-testutils_test_lib",
 )
 ### auto-generated section `iml intellij.android.navigator.testutils` end
 

@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library", "resourcegroup")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
@@ -129,12 +130,11 @@ jvm_library(
 ### auto-generated section `build intellij.android.compose-designer` end
 
 ### auto-generated section `iml intellij.android.compose-designer` start
-exports_files(
-    [
-        "intellij.android.compose-designer.iml",
-        "resources/META-INF/compose-designer.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.compose-designer",
+    libraries = ["//android/compose-designer/lib:ui-animation-tooling-internal.jar"],
+    target = "compose-designer",
+    exports = ["resources/META-INF/compose-designer.xml"],
 )
 ### auto-generated section `iml intellij.android.compose-designer` end
 
@@ -167,11 +167,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.compose-designer.integration` end
 
 ### auto-generated section `iml intellij.android.compose-designer.integration` start
-exports_files(
-    [
-        "intellij.android.compose-designer.integration.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.compose-designer.integration",
+    resources = False,
+    target = "compose-designer-integration_test_lib",
 )
 ### auto-generated section `iml intellij.android.compose-designer.integration` end
 
@@ -240,11 +239,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.compose-designer.testFramework` end
 
 ### auto-generated section `iml intellij.android.compose-designer.testFramework` start
-exports_files(
-    [
-        "intellij.android.compose-designer.testFramework.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.compose-designer.testFramework",
+    resources = False,
+    target = "compose-designer-testFramework_test_lib",
 )
 ### auto-generated section `iml intellij.android.compose-designer.testFramework` end
 
@@ -391,11 +389,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.compose-designer.tests` end
 
 ### auto-generated section `iml intellij.android.compose-designer.tests` start
-exports_files(
-    [
-        "intellij.android.compose-designer.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.compose-designer.tests",
+    libraries = ["//android/compose-designer/lib:ui-animation-tooling-internal.jar"],
+    target = "compose-designer-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.compose-designer.tests` end
 

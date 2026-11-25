@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -58,12 +59,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.assistant` end
 
 ### auto-generated section `iml intellij.android.assistant` start
-exports_files(
-    [
-        "intellij.android.assistant.iml",
-        "resources/META-INF/assistant.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.assistant",
+    target = "assistant",
+    exports = ["resources/META-INF/assistant.xml"],
 )
 ### auto-generated section `iml intellij.android.assistant` end
 
@@ -111,11 +110,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.assistant-test` end
 
 ### auto-generated section `iml intellij.android.assistant-test` start
-exports_files(
-    [
-        "intellij.android.assistant-test.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.assistant-test",
+    resources = False,
+    target = "assistant-test_test_lib",
 )
 ### auto-generated section `iml intellij.android.assistant-test` end
 

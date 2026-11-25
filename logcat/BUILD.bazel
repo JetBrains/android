@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -71,14 +72,14 @@ jvm_library(
 ### auto-generated section `build intellij.android.logcat` end
 
 ### auto-generated section `iml intellij.android.logcat` start
-exports_files(
-    [
-        "intellij.android.logcat.iml",
+jps_module(
+    name = "intellij.android.logcat",
+    target = "logcat",
+    exports = [
         "resources/META-INF/logcat.xml",
         "resources/colorSchemes/LogcatColorSchemeDarcula.xml",
         "resources/colorSchemes/LogcatColorSchemeDefault.xml",
     ],
-    visibility = ["//visibility:public"],
 )
 ### auto-generated section `iml intellij.android.logcat` end
 
@@ -163,11 +164,9 @@ jvm_library(
 ### auto-generated section `build intellij.android.logcat.tests` end
 
 ### auto-generated section `iml intellij.android.logcat.tests` start
-exports_files(
-    [
-        "intellij.android.logcat.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.logcat.tests",
+    target = "logcat-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.logcat.tests` end
 

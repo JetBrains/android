@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -40,11 +41,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.inspectors-common.api-ide` end
 
 ### auto-generated section `iml intellij.android.inspectors-common.api-ide` start
-exports_files(
-    [
-        "intellij.android.inspectors-common.api-ide.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.inspectors-common.api-ide",
+    resources = False,
+    target = "api-ide",
 )
 ### auto-generated section `iml intellij.android.inspectors-common.api-ide` end
 
@@ -89,11 +89,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.inspectors-common.api-ide.tests` end
 
 ### auto-generated section `iml intellij.android.inspectors-common.api-ide.tests` start
-exports_files(
-    [
-        "intellij.android.inspectors-common.api-ide.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.inspectors-common.api-ide.tests",
+    resources = False,
+    target = "android-inspectors-common-api-ide-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.inspectors-common.api-ide.tests` end
 

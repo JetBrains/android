@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 load("//build:compiler-options.bzl", "create_kotlinc_options")
 
@@ -38,10 +39,9 @@ jvm_library(
 ### auto-generated section `build intellij.android.artwork-compose` end
 
 ### auto-generated section `iml intellij.android.artwork-compose` start
-exports_files(
-    [
-        "intellij.android.artwork-compose.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.artwork-compose",
+    resources = False,
+    target = "artwork-compose",
 )
 ### auto-generated section `iml intellij.android.artwork-compose` end

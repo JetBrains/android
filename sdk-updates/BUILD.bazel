@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -56,13 +57,13 @@ jvm_library(
 ### auto-generated section `build intellij.android.sdkUpdates` end
 
 ### auto-generated section `iml intellij.android.sdkUpdates` start
-exports_files(
-    [
-        "intellij.android.sdkUpdates.iml",
-        "resources/META-INF/sdk-updates-as.xml",
+jps_module(
+    name = "intellij.android.sdkUpdates",
+    target = "sdk-updates",
+    exports = [
         "resources/META-INF/sdk-updates.xml",
+        "resources/META-INF/sdk-updates-as.xml",
     ],
-    visibility = ["//visibility:public"],
 )
 ### auto-generated section `iml intellij.android.sdkUpdates` end
 
@@ -126,11 +127,9 @@ jvm_library(
 ### auto-generated section `build intellij.android.sdkUpdates.tests` end
 
 ### auto-generated section `iml intellij.android.sdkUpdates.tests` start
-exports_files(
-    [
-        "intellij.android.sdkUpdates.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.sdkUpdates.tests",
+    target = "sdkUpdates-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.sdkUpdates.tests` end
 

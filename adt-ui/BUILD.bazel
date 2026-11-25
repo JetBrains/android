@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@rules_jvm//:jvm.bzl", "jvm_library", "kt_javac_options")
 
 ### auto-generated section `build intellij.android.adt.ui` start
@@ -76,12 +77,12 @@ jvm_library(
 ### auto-generated section `build intellij.android.adt.ui` end
 
 ### auto-generated section `iml intellij.android.adt.ui` start
-exports_files(
-    [
-        "intellij.android.adt.ui.iml",
+jps_module(
+    name = "intellij.android.adt.ui",
+    target = "adt-ui",
+    exports = [
         "resources/META-INF/adt-ui.xml",
         "resources/META-INF/splittingtabs.xml",
     ],
-    visibility = ["//visibility:public"],
 )
 ### auto-generated section `iml intellij.android.adt.ui` end

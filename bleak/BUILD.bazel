@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.android.bleak` start
@@ -30,10 +31,8 @@ jvm_library(
 ### auto-generated section `build intellij.android.bleak` end
 
 ### auto-generated section `iml intellij.android.bleak` start
-exports_files(
-    [
-        "intellij.android.bleak.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.bleak",
+    target = "bleak",
 )
 ### auto-generated section `iml intellij.android.bleak` end

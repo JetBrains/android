@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -30,12 +31,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.ml-api` end
 
 ### auto-generated section `iml intellij.android.ml-api` start
-exports_files(
-    [
-        "intellij.android.ml-api.iml",
-        "src/resources/META-INF/aiplugin-api.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.ml-api",
+    target = "ml-api",
+    exports = ["src/resources/META-INF/aiplugin-api.xml"],
 )
 ### auto-generated section `iml intellij.android.ml-api` end
 
@@ -76,11 +75,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.ml-api-tests` end
 
 ### auto-generated section `iml intellij.android.ml-api-tests` start
-exports_files(
-    [
-        "intellij.android.ml-api-tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.ml-api-tests",
+    resources = False,
+    target = "ml-api-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.ml-api-tests` end
 

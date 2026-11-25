@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//build:tests-options.bzl", "jps_test")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -19,11 +20,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.memory-usage` end
 
 ### auto-generated section `iml intellij.android.memory-usage` start
-exports_files(
-    [
-        "intellij.android.memory-usage.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.memory-usage",
+    resources = False,
+    target = "memory-usage",
 )
 ### auto-generated section `iml intellij.android.memory-usage` end
 
@@ -52,11 +52,10 @@ jvm_library(
 ### auto-generated section `build intellij.android.memory-usage.tests` end
 
 ### auto-generated section `iml intellij.android.memory-usage.tests` start
-exports_files(
-    [
-        "intellij.android.memory-usage.tests.iml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.android.memory-usage.tests",
+    resources = False,
+    target = "memory-usage-tests_test_lib",
 )
 ### auto-generated section `iml intellij.android.memory-usage.tests` end
 
