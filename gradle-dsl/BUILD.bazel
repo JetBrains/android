@@ -36,14 +36,6 @@ dist_plugin(
             "intellij.android.gradle.dsl.android",
         ],
     },
-    module_descriptors = [
-        "@community//android/gradle-dsl-android:resources/intellij.android.gradle.dsl.android.xml",
-        "@community//android/gradle-dsl-declarative:resources/intellij.android.gradle.dsl.declarative.xml",
-        "@community//android/gradle-dsl-flags:resources/intellij.android.gradle.dsl.flags.xml",
-        "@community//android/gradle-dsl-groovy:resources/intellij.android.gradle.dsl.groovy.xml",
-        "@community//android/gradle-dsl-kotlin:resources/intellij.android.gradle.dsl.kotlin.xml",
-        "@community//android/gradle-dsl-toml:resources/intellij.android.gradle.dsl.toml.xml",
-    ],
     module_labels = {"intellij.android.gradle.dsl": "//android/gradle-dsl"},
 )
 ### auto-generated section `dev intellij.android.gradle.dsl` end

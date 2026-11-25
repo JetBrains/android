@@ -227,15 +227,6 @@ dist_plugin(
             "intellij.android.core.smali",
         ],
     },
-    module_descriptors = [
-        "@community//android/android/smali:resources/intellij.android.core.smali.xml",
-        "@community//android/android/webp:resources/intellij.android.core.webp.xml",
-        "@community//libraries/ffmpeg:resources/intellij.libraries.ffmpeg.xml",
-        "@community//libraries/kxml2:resources/intellij.libraries.kxml2.xml",
-        "@community//libraries/layoutlib:resources/intellij.libraries.layoutlib.xml",
-        "@community//libraries/sqlite:resources/intellij.libraries.sqlite.xml",
-        "@community//libraries/zxing-core:resources/intellij.libraries.zxing.core.xml",
-    ],
     module_labels = {"intellij.android.plugin.descriptor": "//android/android-plugin/descriptor"},
     variants = [
         "darwin_aarch64",

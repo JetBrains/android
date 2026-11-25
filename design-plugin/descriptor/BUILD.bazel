@@ -52,7 +52,6 @@ dist_plugin(
         "lib/eclipse-layout-kernel.jar": ["@lib//:android-nav-editor-eclipse-layout-kernel"],
     },
     main_module = "intellij.android.design-plugin.descriptor",
-    module_descriptors = ["@community//libraries/layoutlib:resources/intellij.libraries.layoutlib.xml"],
     module_labels = {"intellij.android.design-plugin.descriptor": "//android/design-plugin/descriptor"},
 )
 ### auto-generated section `dev intellij.android.design-plugin.descriptor` end

@@ -13,11 +13,6 @@ dist_plugin(
     descriptor = "resources/META-INF/plugin.xml",
     jars = {"lib/android-gradle-declarative-lang-ide.jar": ["intellij.android.gradle.declarative.lang.ide"]},
     main_module = "intellij.android.gradle.declarative.lang.ide",
-    module_descriptors = [
-        "@community//android/gradle-declarative-lang-flags:resources/intellij.android.gradle.declarative.lang.flags.xml",
-        "@community//android/gradle-declarative-lang-sync:resources/intellij.android.gradle.declarative.lang.sync.xml",
-        "@community//android/gradle-declarative-lang:resources/intellij.android.gradle.declarative.lang.xml",
-    ],
     module_jar_paths = {
         "intellij.android.gradle.declarative.lang": "lib/intellij.android.gradle.declarative.lang.jar",
         "intellij.android.gradle.declarative.lang.sync": "lib/intellij.android.gradle.declarative.lang.sync.jar",
