@@ -36,7 +36,7 @@ jvm_library(
         "//android/gradle-dsl-android",
         "//android/project-system",
         "//android/render-resources",
-        "//plugins/gradle:gradle-common",
+        "//plugins/gradle",
         "//java/java-impl:impl",
         "//java/java-psi-api:psi",
         "//java/java-psi-impl:psi-impl",

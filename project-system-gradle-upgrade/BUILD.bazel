@@ -118,7 +118,7 @@ jvm_library(
         "//libraries/mockito-kotlin",
         "//libraries/protobuf",
         "//android/gradle-dsl:gradle-dsl-testutils_test_lib",
-        "//plugins/gradle:gradle-common",
+        "//plugins/gradle",
         "//plugins/gradle/plugin",
         "//java/java-frontback-psi-api:frontback-psi",
         "//java/java-impl:impl",

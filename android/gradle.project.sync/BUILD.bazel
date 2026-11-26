@@ -45,7 +45,7 @@ jvm_library(
         "//android/project-system-gradle-sync:projectSystem-gradle-sync",
         "//android/android-test-framework:testFramework_test_lib",
         "//plugins/color-schemes/warm-neon-color-scheme:color-scheme-warmNeon",
-        "//plugins/gradle:gradle-common",
+        "//plugins/gradle",
         "//plugins/gradle/plugin",
         "//platform/analysis-api:analysis",
         "//platform/backend/workspace",

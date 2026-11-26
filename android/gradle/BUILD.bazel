@@ -56,7 +56,7 @@ jvm_library(
         "//android/project-system-gradle-repository-search:projectSystem-gradle-repositorySearch",
         "//android/gradle-tooling/studio-gradle-tooling-api:android-gradle-tooling-api",
         "//android/render-resources",
-        "//plugins/gradle:gradle-common",
+        "//plugins/gradle",
         "//plugins/gradle/plugin",
         "//java/openapi:java",
         "//java/testFramework",

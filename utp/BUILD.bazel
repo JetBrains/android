@@ -29,7 +29,7 @@ jvm_library(
         # do not sort,
         "@lib//:studio-platform-provided",
         "@lib//:kotlin-stdlib",
-        "//plugins/gradle:gradle-common",
+        "//plugins/gradle",
         "//platform/external-system-api:externalSystem",
         "//platform/util",
         "//platform/core-api:core",
